@@ -1,0 +1,58 @@
+# Fernando Govea Tattoo Studio - robots.txt
+# https://fernandogovea.com
+
+# Allow all crawlers by default
+User-agent: *
+Allow: /
+
+# Block admin and protected areas
+Disallow: /admin/
+Disallow: /client-portal/
+Disallow: /api/private/
+Disallow: /.well-known/security.txt
+
+# Allow important API endpoints for structured data
+Allow: /api/public/
+Allow: /api/gallery/
+Allow: /api/services/
+
+# Block development/testing files
+Disallow: /*.test.*
+Disallow: /*.spec.*
+Disallow: /test/
+Disallow: /tests/
+Disallow: /e2e-tests/
+Disallow: /docs/
+Disallow: /.env
+Disallow: /.git/
+
+# Specific bot rules
+User-agent: Googlebot
+Crawl-delay: 0
+Allow: /
+
+User-agent: Bingbot
+Crawl-delay: 0
+Allow: /
+
+User-agent: Slurp
+Crawl-delay: 0
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Block bad bots
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://fernandogovea.com/sitemap.xml
+Sitemap: https://fernandogovea.com/sitemap-gallery.xml
+Sitemap: https://fernandogovea.com/sitemap-services.xml

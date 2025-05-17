@@ -1,0 +1,477 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "./client"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["public", "auth"]
+}
+
+model Booking {
+  id            Int          @id @default(autoincrement())
+  name          String
+  email         String
+  phone         String
+  tattooType    String       
+  size          String
+  placement     String
+  description   String
+  preferredDate DateTime     
+  preferredTime String       
+  paymentMethod String       
+  depositPaid   Boolean      @default(false) 
+  createdAt     DateTime     @default(now()) 
+  updatedAt     DateTime     @updatedAt 
+  customerId    String?      
+  artistId      String?      
+  notes         String?
+  appointment   Appointment?
+  artist        Artist?      @relation(fields: [artistId], references: [id])
+  customer      Customer?    @relation(fields: [customerId], references: [id])
+  payment       Payment?
+
+  @@index([email], map: "idx_booking_email")
+  @@index([preferredDate], map: "idx_booking_preferred_date")
+  
+  @@schema("public")
+}
+
+model Payment {
+  id            Int            @id @default(autoincrement())
+  bookingId     Int            @unique
+  amount        Float
+  paymentMethod payment_method 
+  status        String
+  transactionId String? 
+  customerEmail String 
+  customerName  String 
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  booking       Booking        @relation(fields: [bookingId], references: [id])
+
+  @@index([status], map: "idx_payment_status")
+  
+  @@schema("public")
+}
+
+model Lead {
+  id             Int       @id @default(autoincrement())
+  name           String
+  email          String
+  leadMagnetType String 
+  downloadDate   DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  customerId     String? 
+  notes          String?
+  customer       Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([email], map: "idx_lead_email")
+  
+  @@schema("public")
+}
+
+model Contact {
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String
+  subject    String?
+  message    String
+  createdAt  DateTime  @default(now()) 
+  updatedAt  DateTime  @updatedAt 
+  customerId String?   
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([email], map: "idx_contact_email")
+  
+  @@schema("public")
+}
+
+model Testimonial {
+  id            Int       @id @default(autoincrement())
+  customerName  String 
+  customerImage String? 
+  tattooType    String? 
+  rating        Int       @default(5)
+  comment       String
+  featured      Boolean   @default(false)
+  verified      Boolean   @default(true)
+  publishedAt   DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  customerId    String? 
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  
+  @@schema("public")
+}
+
+model User {
+  id            String           @id @default(uuid())
+  name          String?
+  email         String           @unique
+  emailVerified DateTime? 
+  password      String?
+  image         String?
+  role          String           @default("admin")
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  artist        Artist?
+  sessions      Session[]
+  analytics     AnalyticsEvent[]
+  
+  @@schema("public")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String 
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@schema("public")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  
+  @@schema("public")
+}
+
+model Customer {
+  id            String         @id @default(uuid())
+  firstName     String 
+  lastName      String 
+  email         String?        @unique
+  phone         String?
+  avatarUrl     String? 
+  address       String?
+  city          String?
+  state         String?
+  postalCode    String? 
+  country       String?
+  birthDate     DateTime? 
+  allergies     String?
+  source        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  personalNotes String? 
+  appointments  Appointment[]
+  bookings      Booking[]
+  contacts      Contact[]
+  interactions  Interaction[]
+  leads         Lead[]
+  notes         Note[]
+  designs       TattooDesign[]
+  testimonials  Testimonial[]
+  transactions  Transaction[]
+  tags          Tag[]          @relation("CustomerToTag")
+
+  @@index([email], map: "idx_customer_email")
+  
+  @@schema("public")
+}
+
+model Artist {
+  id                  String         @id @default(uuid())
+  userId              String         @unique
+  specialty           String?
+  bio                 String?
+  portfolio           String?
+  availableForBooking Boolean        @default(true)
+  hourlyRate          Float? 
+  startDate           DateTime? 
+  endDate             DateTime? 
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  appointments        Appointment[]
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings            Booking[]
+  designs             TattooDesign[]
+  
+  @@schema("public")
+}
+
+model Appointment {
+  id           String        @id @default(uuid())
+  bookingId    Int?          @unique
+  title        String
+  description  String?
+  startDate    DateTime 
+  endDate      DateTime 
+  status       String
+  deposit      Float?
+  totalPrice   Float? 
+  designNotes  String? 
+  followUpDate DateTime? 
+  location     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  customerId   String 
+  artistId     String 
+  artist       Artist        @relation(fields: [artistId], references: [id])
+  booking      Booking?      @relation(fields: [bookingId], references: [id])
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  interactions Interaction[]
+  transactions Transaction[]
+
+  @@index([startDate], map: "idx_appointment_start_date")
+  
+  @@schema("public")
+}
+
+model TattooDesign {
+  id           String    @id @default(uuid())
+  name         String
+  description  String?
+  fileUrl      String? 
+  thumbnailUrl String? 
+  designType   String? 
+  size         String?
+  isApproved   Boolean   @default(false)
+  approvedAt   DateTime? 
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  artistId     String 
+  customerId   String? 
+  artist       Artist    @relation(fields: [artistId], references: [id])
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  
+  @@schema("public")
+}
+
+model Transaction {
+  id            String       @id @default(uuid())
+  amount        Float
+  currency      String       @default("USD")
+  status        String
+  paymentMethod String 
+  transactionId String? 
+  receiptUrl    String? 
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  customerId    String 
+  appointmentId String? 
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  customer      Customer     @relation(fields: [customerId], references: [id])
+
+  @@index([status], map: "idx_transaction_status")
+  
+  @@schema("public")
+}
+
+model Interaction {
+  id            String       @id @default(uuid())
+  type          String
+  subject       String?
+  content       String?
+  direction     String
+  outcome       String?
+  scheduledAt   DateTime? 
+  completedAt   DateTime? 
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  customerId    String 
+  appointmentId String? 
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  customer      Customer     @relation(fields: [customerId], references: [id])
+  
+  @@schema("public")
+}
+
+model Tag {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  color     String     @default("gray")
+  createdAt DateTime   @default(now()) @db.Timestamp(6)
+  updatedAt DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  customers Customer[] @relation("CustomerToTag")
+  
+  @@schema("public")
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  content    String
+  type       String   @default("manual")
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  updatedAt  DateTime @default(now()) @updatedAt @db.Timestamp(6)
+  customerId String 
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([customerId])
+  
+  @@schema("public")
+}
+
+model Analytics {
+  date      String
+  metric    String
+  count     Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@id([date, metric])
+  @@index([metric])
+  
+  @@schema("public")
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String
+  price       Int
+  duration    Int
+  imageUrl    String?
+  enabled     Boolean  @default(true)
+  featured    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@schema("public")
+}
+
+// New AnalyticsEvent model for detailed event tracking
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  timestamp  DateTime @default(now())
+  userId     String?
+  sessionId  String?
+  category   String
+  action     String
+  label      String?
+  value      Float?
+  path       String?
+  referrer   String?
+  deviceType String?
+  browser    String?
+  os         String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId], map: "AnalyticsEvent_userId_idx")
+  @@index([sessionId], map: "AnalyticsEvent_sessionId_idx")
+  @@index([category], map: "AnalyticsEvent_category_idx")
+  @@index([action], map: "AnalyticsEvent_action_idx")
+  @@index([timestamp], map: "AnalyticsEvent_timestamp_idx")
+  @@index([path], map: "AnalyticsEvent_path_idx")
+  
+  @@schema("public")
+}
+
+enum action_type {
+  email
+  sms
+  notification
+  webhook
+  
+  @@schema("public")
+}
+
+enum appointment_status {
+  scheduled
+  confirmed
+  completed
+  cancelled
+  no_show
+  
+  @@schema("public")
+}
+
+enum design_status {
+  draft
+  pending_approval
+  approved
+  rejected
+  
+  @@schema("public")
+}
+
+enum interaction_direction {
+  inbound
+  outbound
+  internal
+  
+  @@schema("public")
+}
+
+enum interaction_type {
+  email
+  phone
+  in_person
+  note
+  message
+  
+  @@schema("public")
+}
+
+enum payment_method {
+  cash
+  card
+  venmo
+  cashapp
+  paypal
+  other
+  
+  @@schema("public")
+}
+
+enum payment_status {
+  verified
+  pending
+  failed
+  
+  @@schema("public")
+}
+
+enum transaction_status {
+  completed
+  pending
+  failed
+  
+  @@schema("public")
+}
+
+enum trigger_type {
+  appointment
+  appointment_status_change
+  client_created
+  client_updated
+  payment_received
+  custom_date
+  manual
+  
+  @@schema("public")
+}
+
+enum user_role {
+  admin
+  superadmin
+  user
+  artist
+  client
+  
+  @@schema("public")
+}
+
+enum workflow_status {
+  success
+  failed
+  pending
+  
+  @@schema("public")
+}

@@ -1,0 +1,571 @@
+/* Global styles for the tattoo website */
+@layer base, components, utilities;
+@import 'tailwindcss';
+@import '../styles/fonts.css';
+@import '../styles/utilities.css';
+
+/* CSS properties for visual effects */
+@property --glow-opacity {
+  syntax: '<number>';
+  initial-value: 0.3;
+  inherits: false;
+}
+
+@property --glow-spread {
+  syntax: '<length>';
+  initial-value: 15px;
+  inherits: false;
+}
+
+/* Define theme classes for dark/light themes */
+[data-theme="dark"] .dark-theme,
+.dark-theme {
+  /* Dark theme styles will go here */
+}
+
+[data-theme="light"] .light-theme,
+.light-theme {
+  /* Light theme styles will go here */
+}
+
+/* Base theme variables - these get overridden by ThemeProvider */
+@theme inline {
+  /* Base colors from simplified theme system */
+  --color-background: #0A0A0A;
+  --color-foreground: #FAFAFA;
+  --color-primary: #E53935;
+  --color-secondary: #2563EB;
+  --color-accent: #E53935;
+  --color-muted: rgba(255, 255, 255, 0.7);
+  --color-card: rgba(18, 18, 18, 0.5);
+  --color-card-border: rgba(255, 255, 255, 0.1);
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+  
+  /* System UI values */
+  --radius: 0.5rem;
+  --radius-sm: 0.25rem;  
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+  
+  /* Typography */
+  --font-family-sans: var(--font-inter);
+  --font-family-montserrat: var(--font-montserrat);
+  --font-family-pacifico: var(--font-pacifico);
+  --font-family-satisfy: var(--font-satisfy);
+  
+  /* Text sizes mapped to MUI typography */
+  --font-size-h1: 2.5rem;
+  --font-size-h2: 2rem;
+  --font-size-h3: 1.75rem;
+  --font-size-h4: 1.5rem;
+  --font-size-h5: 1.25rem;
+  --font-size-h6: 1.125rem;
+  --font-size-body1: 1rem;
+  --font-size-body2: 0.875rem;
+  --font-size-caption: 0.75rem;
+  
+  /* Font weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* Letter spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  
+  /* Backdrop blur values */
+  --backdrop-blur-sm: 4px;
+  --backdrop-blur-default: 8px;
+  --backdrop-blur-md: 12px;
+  --backdrop-blur-lg: 16px;
+  --backdrop-blur-xl: 24px;
+  
+  /* MUI-specific theme variables */
+  --mui-primary-main: var(--color-primary);
+  --mui-primary-dark: color-mix(in oklch, var(--color-primary), black 20%);
+  --mui-primary-light: color-mix(in oklch, var(--color-primary), white 20%);
+  --mui-primary-contrast: var(--color-foreground);
+  
+  --mui-secondary-main: var(--color-secondary);
+  --mui-secondary-dark: color-mix(in oklch, var(--color-secondary), black 20%);
+  --mui-secondary-light: color-mix(in oklch, var(--color-secondary), white 20%);
+  --mui-secondary-contrast: var(--color-foreground);
+  
+  --mui-error-main: var(--color-error);
+  --mui-warning-main: var(--color-warning);
+  --mui-info-main: var(--color-info);
+  --mui-success-main: var(--color-success);
+  
+  /* MUI typography mappings */
+  --mui-font-h1: var(--font-family-sans);
+  --mui-font-h2: var(--font-family-sans); 
+  --mui-font-h3: var(--font-family-sans);
+  --mui-font-h4: var(--font-family-sans);
+  --mui-font-h5: var(--font-family-sans);
+  --mui-font-h6: var(--font-family-sans);
+  --mui-font-subtitle1: var(--font-family-sans);
+  --mui-font-subtitle2: var(--font-family-sans);
+  --mui-font-body1: var(--font-family-sans);
+  --mui-font-body2: var(--font-family-sans);
+  --mui-font-button: var(--font-family-sans);
+  --mui-font-caption: var(--font-family-sans);
+  --mui-font-overline: var(--font-family-sans);
+  
+  /* MUI breakpoint values */
+  --breakpoint-sm: 37.5rem; /* 600px */
+  --breakpoint-md: 56.25rem; /* 900px */
+  --breakpoint-lg: 75rem; /* 1200px */
+  --breakpoint-xl: 96rem; /* 1536px */
+  --breakpoint-2xl: 120rem; /* 1920px */
+  
+  /* MUI shadows */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Animation keyframes definitions */
+:root {
+  --animate-fade-in: fade-in 0.6s ease forwards;
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  --animate-slide-up: slide-up 0.6s ease forwards;
+  @keyframes slide-up {
+    0% {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  --animate-draw-path: draw-path 2s ease forwards;
+  @keyframes draw-path {
+    0% {
+      stroke-dashoffset: 1000;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.5;
+    }
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+  }
+
+  --animate-scale-in: scale-in 0.5s ease forwards;
+  @keyframes scale-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Easing functions */
+  --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
+  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Spacing */
+  --spacing: 0.25rem;
+}
+
+/* Dark mode theme */
+.dark-theme {
+  --color-background: #0A0A0A;
+  --color-foreground: #FAFAFA;
+  --color-card: rgba(18, 18, 18, 0.5);
+  --color-card-border: rgba(255, 255, 255, 0.1);
+  
+  /* MUI dark theme overrides */
+  --mui-background-default: #0A0A0A;
+  --mui-background-paper: #121212;
+  --mui-text-primary: #FAFAFA;
+  --mui-text-secondary: rgba(255, 255, 255, 0.7);
+  --mui-text-disabled: rgba(255, 255, 255, 0.5);
+}
+
+/* Light mode theme */
+.light-theme {
+  --color-background: #FAFAFA;
+  --color-foreground: #0A0A0A;
+  --color-card: rgba(255, 255, 255, 0.5);
+  --color-card-border: rgba(0, 0, 0, 0.1);
+  
+  /* MUI light theme overrides */
+  --mui-background-default: #FAFAFA;
+  --mui-background-paper: #FFFFFF;
+  --mui-text-primary: #0A0A0A;
+  --mui-text-secondary: rgba(0, 0, 0, 0.7);
+  --mui-text-disabled: rgba(0, 0, 0, 0.5);
+}
+
+/* Typography utilities */
+@utility font-montserrat {
+  font-family: var(--font-montserrat);
+}
+
+@utility font-pacifico {
+  font-family: var(--font-pacifico);
+}
+
+@utility font-cursive {
+  font-family: var(--font-cursive);
+}
+
+@utility font-satisfy {
+  font-family: var(--font-satisfy);
+}
+
+/* Animation utilities */
+@utility animate-fade-in {
+  animation: var(--animate-fade-in);
+}
+
+@utility animate-slide-up {
+  animation: var(--animate-slide-up);
+}
+
+@utility animate-draw {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: var(--animate-draw-path);
+}
+
+@utility animate-draw-delayed-1 {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: var(--animate-draw-path) 0.3s;
+}
+
+@utility animate-draw-delayed-2 {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: var(--animate-draw-path) 0.6s;
+}
+
+@utility animate-draw-delayed-3 {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: var(--animate-draw-path) 0.9s;
+}
+
+@utility animate-fade-in-delayed {
+  opacity: 0;
+  animation: var(--animate-fade-in) 1.2s;
+}
+
+@utility animate-scale-in {
+  opacity: 0;
+  transform: scale(0.9);
+  animation: var(--animate-scale-in) 0.2s;
+}
+
+/* Form utilities */
+@utility form-input {
+  width: 100%;
+  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
+  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 3);
+  color: var(--color-tattoo-white);
+}
+
+@utility form-input-placeholder {
+  color: color-mix(in oklch, var(--color-tattoo-white), transparent 50%);
+}
+
+@utility form-input-focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-tattoo-red);
+}
+
+@utility form-select {
+  width: 100%;
+  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
+  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 3);
+  color: var(--color-tattoo-white);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 1rem center;
+  background-size: 1.5em 1.5em;
+  background-repeat: no-repeat;
+}
+
+@utility form-textarea {
+  width: 100%;
+  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
+  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 3);
+  color: var(--color-tattoo-white);
+  min-height: 150px;
+  resize: vertical;
+}
+
+/* Checkbox and radio inputs */
+@utility form-checkbox {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
+  border-radius: 0.25rem;
+  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+@utility form-checkbox-checked {
+  background-color: var(--color-tattoo-red);
+  border-color: var(--color-tattoo-red);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='3'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/%3e%3c/svg%3e");
+  background-size: 75% 75%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@utility form-checkbox-focus {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-tattoo-red), transparent 50%);
+}
+
+@utility form-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Custom component styles with @utility */
+@utility card {
+  background-color: color-mix(in oklch, var(--color-tattoo-black) 30%, transparent);
+  backdrop-filter: blur(var(--backdrop-blur-default));
+  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 10%, transparent);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 6);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+@utility card-dark {
+  background-color: color-mix(in oklch, var(--color-tattoo-white) 5%, transparent);
+  border-color: color-mix(in oklch, var(--color-tattoo-black) 10%, transparent);
+}
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 6);
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: all 300ms var(--ease-snappy);
+  cursor: pointer;
+}
+
+@utility btn-primary {
+  background-color: var(--color-tattoo-red);
+  color: var(--color-tattoo-white);
+}
+
+@utility btn-primary-hover {
+  background-color: var(--color-tattoo-red-dark);
+}
+
+@utility btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--color-tattoo-white);
+  color: var(--color-tattoo-white);
+}
+
+@utility btn-secondary-hover {
+  background-color: color-mix(in oklch, var(--color-tattoo-white), transparent 90%);
+}
+
+@utility btn-blue {
+  background-color: var(--color-tattoo-blue);
+  color: var(--color-tattoo-white);
+}
+
+@utility btn-blue-hover {
+  background-color: var(--color-tattoo-blue-dark);
+}
+
+/* Button sizes */
+@utility btn-sm {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  font-size: 0.875rem;
+}
+
+@utility btn-lg {
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 8);
+  font-size: 1.125rem;
+}
+
+/* Custom utility for glass containers */
+@utility glass-container {
+  background-color: color-mix(in oklch, var(--color-background), transparent 80%);
+  backdrop-filter: blur(var(--backdrop-blur-default));
+  border: 1px solid color-mix(in oklch, var(--color-foreground), transparent 90%);
+  border-radius: var(--radius);
+}
+
+/* Layout utilities */
+@utility section {
+  padding-top: calc(var(--spacing) * 24);
+  padding-bottom: calc(var(--spacing) * 24);
+}
+
+@utility section-dark {
+  background-color: color-mix(in oklch, var(--color-tattoo-black), transparent 20%);
+}
+
+/* Glow effect utilities */
+@utility glow-red {
+  box-shadow: 0 0 var(--glow-spread)
+    color-mix(in oklch, var(--color-tattoo-red), transparent calc((1 - var(--glow-opacity)) * 100%));
+  transition: box-shadow 0.3s var(--ease-fluid);
+}
+
+@utility glow-red-hover {
+  --glow-opacity: 0.5;
+  --glow-spread: 25px;
+}
+
+@utility glow-blue {
+  box-shadow: 0 0 var(--glow-spread)
+    color-mix(
+      in oklch,
+      var(--color-tattoo-blue),
+      transparent calc((1 - var(--glow-opacity)) * 100%)
+    );
+  transition: box-shadow 0.3s var(--ease-fluid);
+}
+
+@utility glow-blue-hover {
+  --glow-opacity: 0.5;
+  --glow-spread: 25px;
+}
+
+/* 3D transform utilities */
+@utility rotate-x-15 {
+  transform: rotateX(15deg);
+}
+
+@utility rotate-y-15 {
+  transform: rotateY(15deg);
+}
+
+@utility translate-z-4 {
+  transform: translateZ(1rem);
+}
+
+@utility perspective-container {
+  perspective: 1000px;
+}
+
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Animation delay utilities */
+@utility animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+@utility animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+@utility animation-delay-600 {
+  animation-delay: 0.6s;
+}
+
+@utility animation-delay-800 {
+  animation-delay: 0.8s;
+}
+
+/* Container query utilities */
+@utility container-responsive-layout {
+  @container;
+}
+
+@utility container-card {
+  @container card (min-width: 300px);
+}
+
+/* Advanced color-mix utilities */
+@utility text-mix-primary {
+  color: color-mix(in oklch, var(--color-primary), var(--color-foreground) 15%);
+}
+
+@utility bg-mix-primary {
+  background-color: color-mix(in oklch, var(--color-primary), var(--color-background) 85%);
+}
+
+@utility border-mix-primary {
+  border-color: color-mix(in oklch, var(--color-primary), var(--color-foreground) 50%);
+}
+
+/* Gradient utilities using the v4 gradient APIs */
+@utility bg-gradient-primary {
+  background: linear-gradient(var(--color-primary), color-mix(in oklch, var(--color-primary), black 30%));
+}
+
+@utility bg-gradient-fancy {
+  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+}
+
+@utility bg-gradient-radial {
+  background: radial-gradient(var(--color-primary), color-mix(in oklch, var(--color-primary), transparent 100%));
+}
+
+@utility bg-gradient-conic {
+  background: conic-gradient(from 0deg at 50% 50%, var(--color-primary), var(--color-secondary), var(--color-primary));
+}
+
+/* Card variants for UI states */
+@utility card-not-hovering {
+  transform: scale(1);
+}
+
+@utility card-hovering {
+  transform: scale(1.02);
+  transition: transform 0.3s var(--ease-fluid);
+}

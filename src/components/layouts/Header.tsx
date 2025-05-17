@@ -1,0 +1,150 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Menu, X } from 'lucide-react';
+
+// Navigation links
+const navigationLinks = [
+  { href: '/services', label: 'Services' },
+  { href: '/gallery', label: 'Gallery' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/booking', label: 'Book Now', isButton: true },
+];
+
+export function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  // Handle scroll events
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Set initial state
+    handleScroll();
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [scrolled]);
+
+  // Close mobile menu when path changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  return (
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-black/80 backdrop-blur-sm shadow-md py-3' : 'bg-transparent py-5'
+      }`}
+    >
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex justify-between items-center">
+          {/* Logo */}
+          <Link href="/" className="relative z-20">
+            <Image
+              src="/logo.png"
+              alt="Ink 37 Logo"
+              width={110}
+              height={52}
+              className="h-auto w-auto"
+              priority
+            />
+          </Link>
+
+          {/* Desktop Navigation - hidden on mobile */}
+          <nav className="hidden md:flex items-center space-x-2">
+            {navigationLinks.map((link) => 
+              link.isButton ? (
+                <Button
+                  key={link.href}
+                  asChild
+                  variant="default"
+                  className="bg-tattoo-red hover:bg-tattoo-red-dark text-white ml-2"
+                >
+                  <Link href={link.href}>{link.label}</Link>
+                </Button>
+              ) : (
+                <Button
+                  key={link.href}
+                  asChild
+                  variant="ghost"
+                  className={`text-white hover:text-white/80 ${
+                    pathname === link.href ? 'bg-white/10' : ''
+                  }`}
+                >
+                  <Link href={link.href}>{link.label}</Link>
+                </Button>
+              )
+            )}
+          </nav>
+
+          {/* Mobile menu button - visible only on mobile */}
+          <button 
+            className="md:hidden p-2 text-white focus:outline-none"
+            onClick={toggleMobileMenu}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          >
+            {mobileMenuOpen ? (
+              <X size={24} />
+            ) : (
+              <Menu size={24} />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden bg-black/95 backdrop-blur-md shadow-lg"
+          >
+            <nav className="container mx-auto px-4 py-4 flex flex-col space-y-3">
+              {navigationLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-white py-2 px-4 rounded-md ${
+                    pathname === link.href 
+                      ? 'bg-tattoo-red/20 font-medium' 
+                      : 'hover:bg-white/5'
+                  } ${link.isButton ? 'bg-tattoo-red text-center' : ''}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}
+
+export default Header;

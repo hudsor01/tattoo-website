@@ -1,0 +1,98 @@
+/**
+ * Modern Theme System additional utilities
+ * Using Tailwind CSS v4 directives and functions
+ */
+
+/* Glow effects using @property directive */
+/* Fix for @variant hover::before error */
+@utility glow-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-effect::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklch, var(--glow-color, var(--color-tattoo-red)), transparent calc((1 - var(--glow-opacity)) * 100%)),
+    transparent 70%
+  );
+  transform: scale(1.5);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-fluid);
+}
+
+.glow-effect:hover::before {
+  opacity: 1;
+}
+
+/* Container query components */
+@utility responsive-grid {
+  container-type: inline-size;
+  container-name: grid;
+}
+
+/* Fix for nested @utility error */
+@container grid (min-width: 640px) {
+  .responsive-item {
+    grid-column: span 1;
+  }
+}
+
+@container grid (min-width: 768px) {
+  .responsive-item {
+    grid-column: span 2;
+  }
+}
+
+/* Define as top-level utilities */
+@utility responsive-item-sm {
+  grid-column: span 1;
+}
+
+@utility responsive-item-md {
+  grid-column: span 2;
+}
+
+/* Custom hover effects */
+@utility hover-scale {
+  transition: transform 0.3s var(--ease-fluid);
+  
+  @variant hover {
+    transform: scale(1.05);
+  }
+}
+
+@utility hover-lift {
+  transition:
+    transform 0.3s var(--ease-fluid),
+    box-shadow 0.3s var(--ease-fluid);
+    
+  @variant hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Advanced masonry layout */
+@utility masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-auto-rows: 10px;
+  grid-gap: 1rem;
+}
+
+@utility masonry-item {
+  grid-row-end: span var(--masonry-row-span, 30);
+}
+
+/* Theme variants */
+@custom-variant theme-holiday (&:where([data-theme="holiday"] *));
+
+@utility theme-holiday {
+  --color-primary: oklch(0.6 0.25 142);
+  --color-secondary: oklch(0.65 0.27 25);
+}
