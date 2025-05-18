@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Paper, Typography, Box, CircularProgress } from '@mui/material';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Grid } from '@/components/ui/mui-grid';
+import { Users, Calendar, CheckCircle, MessageSquare } from 'lucide-react';
 
 /**
  * Admin Dashboard Page
@@ -31,7 +32,7 @@ export default function AdminDashboardPage() {
 
         // Load stats from Supabase
         // In a real implementation, this would fetch actual data
-        // For now, we'll use placeholder values
+        // For now, we\'ll use placeholder values
 
         // Allow some time to simulate loading
         await new Promise(resolve => setTimeout(resolve, 800));
@@ -52,177 +53,100 @@ export default function AdminDashboardPage() {
     loadDashboardData();
   }, [user, isAdmin]);
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const statCards = [
+    {
+      title: 'Total Customers',
+      value: stats.totalCustomers,
+      icon: <Users className="h-5 w-5" />,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
+    },
+    {
+      title: 'Pending Bookings',
+      value: stats.pendingBookings,
+      icon: <Calendar className="h-5 w-5" />,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-100',
+    },
+    {
+      title: 'Completed Appointments',
+      value: stats.completedAppointments,
+      icon: <CheckCircle className="h-5 w-5" />,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
+    },
+    {
+      title: 'Recent Messages',
+      value: stats.recentMessages,
+      icon: <MessageSquare className="h-5 w-5" />,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100',
+    },
+  ];
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Typography
-        variant="h4"
-        component="h1"
-        gutterBottom
-        sx={{
-          fontWeight: 600,
-          mb: 4,
-          color: 'primary.main',
-          fontFamily: 'var(--font-montserrat)',
-        }}
-      >
-        Admin Dashboard
-      </Typography>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back, {user?.email || \'Admin\'}
+        </p>
+      </div>
 
-      {/* Stats Overview */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="Total Customers" value={stats.totalCustomers} icon="👥" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="Pending Bookings" value={stats.pendingBookings} icon="📅" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="Completed Appointments" value={stats.completedAppointments} icon="✅" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="New Messages" value={stats.recentMessages} icon="✉️" />
-        </Grid>
-      </Grid>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((stat, index) => (
+          <Card key={index}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
+              <div className={`${stat.bgColor} p-2 rounded-full`}>
+                <div className={stat.color}>{stat.icon}</div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <div className="text-2xl font-bold">{stat.value}</div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-      {/* Quick Actions */}
-      <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 6, mb: 2 }}>
-        Quick Actions
-      </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={4}>
-          <ActionCard
-            title="Manage Appointments"
-            description="View and manage upcoming appointments"
-            link="/admin/appointments"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <ActionCard
-            title="Customer Messages"
-            description="Respond to customer inquiries"
-            link="/admin/messages"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <ActionCard
-            title="Update Gallery"
-            description="Add or remove portfolio items"
-            link="/admin/gallery"
-          />
-        </Grid>
-      </Grid>
-    </Container>
-  );
-}
-
-/**
- * Stats Card Component
- */
-function StatsCard({ title, value, icon }: { title: string; value: number; icon: string }) {
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        display: 'flex',
-        flexDirection: 'column',
-        height: 140,
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'divider',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: -10,
-          right: -10,
-          fontSize: 80,
-          opacity: 0.1,
-          transform: 'rotate(15deg)',
-          color: 'primary.main',
-        }}
-      >
-        {icon}
-      </Box>
-      <Typography variant="h6" component="h2" color="text.secondary" gutterBottom>
-        {title}
-      </Typography>
-      <Typography
-        component="p"
-        variant="h3"
-        sx={{
-          fontWeight: 'bold',
-          mt: 'auto',
-          zIndex: 1,
-          color: 'primary.main',
-        }}
-      >
-        {value.toLocaleString()}
-      </Typography>
-    </Paper>
-  );
-}
-
-/**
- * Action Card Component
- */
-function ActionCard({
-  title,
-  description,
-  link,
-}: {
-  title: string;
-  description: string;
-  link: string;
-}) {
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        display: 'flex',
-        flexDirection: 'column',
-        height: 180,
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'divider',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: 3,
-          borderColor: 'primary.main',
-        },
-      }}
-      onClick={() => (window.location.href = link)}
-    >
-      <Typography variant="h6" component="h3" gutterBottom>
-        {title}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" paragraph>
-        {description}
-      </Typography>
-      <Typography
-        variant="body2"
-        sx={{
-          mt: 'auto',
-          color: 'primary.main',
-          fontWeight: 'medium',
-        }}
-      >
-        Open →
-      </Typography>
-    </Paper>
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>
+            Latest bookings and customer interactions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                New booking from John Doe - Traditional sleeve
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Message from Jane Smith regarding appointment
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Payment received from Mike Johnson - $500
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Booking {
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String
+  phone             String
+  tattooType        String
+  size              String
+  location          String
+  preferredDates    String
+  referenceImages   String?
+  consultationNotes String?
+  status            String    @default("pending")
+  deposit           Float?
+  estimatedPrice    Float?
+  appointmentDate   DateTime?
+  artistNotes       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  bookingType       String    @default("tattoo")
+  calEventId        String?
+  calBookingUid     String?
+  calRescheduleUid  String?
+  calUserId         String?
+  customerId        String?
+}
+
+model Customer {
+  id                  String    @id @default(uuid())
+  name                String
+  email               String    @unique
+  phone               String?
+  preferredArtist     String?
+  notes               String?
+  tags                String?
+  allergies           String?
+  referralSource      String?
+  preferredStyle      String?
+  skinSensitivity     String?
+  lastAppointmentDate DateTime?
+  totalSpent          Float     @default(0)
+  status              String    @default("active")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model GalleryItem {
+  id                String   @id @default(uuid())
+  title             String
+  image             String
+  description       String?
+  tattooType        String
+  featuredOrder     Int?     @default(0)
+  likes             Int      @default(0)
+  featured          Boolean  @default(false)
+  published         Boolean  @default(true)
+  featured_category String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  artistId          String?
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  role          String    @default("admin")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model BlogPost {
+  id              String    @id @default(uuid())
+  title           String
+  slug            String    @unique
+  content         String
+  excerpt         String?
+  featuredImage   String?
+  category        String?
+  tags            String?
+  published       Boolean   @default(false)
+  publishedAt     DateTime?
+  views           Int       @default(0)
+  readingTime     Int?
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  authorId        String
+}
+
+model PricingTier {
+  id            String   @id @default(uuid())
+  serviceType   String
+  name          String
+  description   String?
+  basePrice     Float
+  priceRange    String?
+  duration      Int?
+  size          String?
+  complexity    String?
+  includes      String?
+  displayOrder  Int      @default(0)
+  active        Boolean  @default(true)
+  customOptions String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

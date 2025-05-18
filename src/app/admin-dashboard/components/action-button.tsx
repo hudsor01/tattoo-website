@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@mui/material';
 import { ActionButtonProps } from '@/types/Components';
 
 export default function ActionButton({

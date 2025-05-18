@@ -1,259 +1,178 @@
 'use client';
 
 import React, { ReactNode, useState } from 'react';
-import {
-  AppBar,
-  Box,
-  CssBaseline,
-  Divider,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  useTheme,
-  useMediaQuery,
-  Avatar,
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PersonIcon from '@mui/icons-material/Person';
-import EventIcon from '@mui/icons-material/Event';
-import EmailIcon from '@mui/icons-material/Email';
-import PaymentIcon from '@mui/icons-material/Payment';
-import DesignServicesIcon from '@mui/icons-material/DesignServices';
-import LogoutIcon from '@mui/icons-material/Logout';
-import SettingsIcon from '@mui/icons-material/Settings';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import AdminLogo from './AdminLogo';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Calendar,
+  ChevronLeft,
+  CreditCard,
+  LogOut,
+  Mail,
+  Menu,
+  Settings,
+  Users,
+  LayoutDashboard,
+  Palette,
+  Bell,
+} from 'lucide-react';
 
-// Fixed width for the drawer
 const drawerWidth = 240;
 
-// Menu items for the sidebar
 const menuItems = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    icon: <DashboardIcon />,
-    href: '/admin/dashboard',
+    icon: <LayoutDashboard className="h-5 w-5" />,
+    href: '/admin-dashboard',
   },
   {
     id: 'appointments',
     label: 'Appointments',
-    icon: <EventIcon />,
-    href: '/admin/dashboard/appointments',
+    icon: <Calendar className="h-5 w-5" />,
+    href: '/admin-dashboard/appointments',
   },
-  { id: 'customers', label: 'Customers', icon: <PersonIcon />, href: '/admin/dashboard/customers' },
   {
-    id: 'email-campaigns',
-    label: 'Email Campaigns',
-    icon: <EmailIcon />,
-    href: '/admin/dashboard/email-campaigns',
+    id: 'customers',
+    label: 'Customers',
+    icon: <Users className="h-5 w-5" />,
+    href: '/admin-dashboard/customers',
   },
-  { id: 'payments', label: 'Payments', icon: <PaymentIcon />, href: '/admin/dashboard/payments' },
-  { id: 'settings', label: 'Settings', icon: <SettingsIcon />, href: '/admin/dashboard/settings' },
+  {
+    id: 'emails',
+    label: 'Email Campaigns',
+    icon: <Mail className="h-5 w-5" />,
+    href: '/admin-dashboard/emails',
+  },
+  {
+    id: 'payments',
+    label: 'Payments',
+    icon: <CreditCard className="h-5 w-5" />,
+    href: '/admin-dashboard/payments',
+  },
+  {
+    id: 'gallery',
+    label: 'Gallery',
+    icon: <Palette className="h-5 w-5" />,
+    href: '/admin-dashboard/gallery',
+  },
 ];
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const theme = useTheme();
-  const router = useRouter();
+interface DashboardLayoutProps {
+  children: ReactNode;
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const router = useRouter();
 
-  const [open, setOpen] = useState(!isMobile);
-
-  // Toggle drawer
-  const toggleDrawer = () => {
-    setOpen(!open);
-  };
-
-  const handleNavigation = (path: string) => {
-    router.push(path);
-    if (isMobile) {
-      setOpen(false);
-    }
+  const handleLogout = () => {
+    // Handle logout logic here
+    localStorage.removeItem('adminToken');
+    router.push('/admin-dashboard/auth/login');
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <CssBaseline />
-
-      {/* AppBar */}
-      <AppBar
-        position="fixed"
-        sx={{
-          zIndex: theme.zIndex.drawer + 1,
-          transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          ...(open && {
-            marginLeft: drawerWidth,
-            width: `calc(100% - ${drawerWidth}px)`,
-            transition: theme.transitions.create(['width', 'margin'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-          }),
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="toggle drawer"
-            edge="start"
-            onClick={toggleDrawer}
-            sx={{ marginRight: 2 }}
-          >
-            {open ? <ChevronLeftIcon /> : <MenuIcon />}
-          </IconButton>
-
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            <AdminLogo />
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{ ml: 2, color: 'rgba(255, 255, 255, 0.7)' }}
+    <div className="min-h-screen bg-background">
+      {/* Top Navigation Bar */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
+        <div className="flex items-center justify-between h-16 px-4">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="mr-2"
             >
-              Admin Portal
-            </Typography>
-          </Box>
+              <Menu className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl font-semibold">Admin Dashboard</h1>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="icon">
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Avatar>
+              <AvatarImage src="/avatar-placeholder.png" alt="Admin" />
+              <AvatarFallback>AD</AvatarFallback>
+            </Avatar>
+          </div>
+        </div>
+      </header>
 
-          {/* Notifications */}
-          <IconButton
-            color="inherit"
-            sx={{ mr: 2 }}
-            onClick={() => router.push('/admin/dashboard/notifications')}
-          >
-            <NotificationsIcon />
-          </IconButton>
+      <div className="flex mt-16">
+        {/* Sidebar */}
+        <aside
+          className={cn(
+            "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-muted/50 border-r transition-all duration-300",
+            sidebarOpen ? "w-60" : "w-0 overflow-hidden"
+          )}
+        >
+          <div className="p-4">
+            {/* Logo */}
+            <div className="mb-8">
+              <Link href="/admin-dashboard" className="flex items-center">
+                <span className="text-2xl font-bold text-primary">FGT</span>
+                <span className="ml-2 text-sm text-muted-foreground">Admin</span>
+              </Link>
+            </div>
 
-          {/* User Avatar */}
-          <Avatar
-            sx={{
-              bgcolor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-              cursor: 'pointer',
-              '&:hover': {
-                opacity: 0.8,
-              },
-            }}
-            onClick={() => router.push('/admin/dashboard/settings')}
-          >
-            F
-          </Avatar>
-        </Toolbar>
-      </AppBar>
-
-      {/* Drawer */}
-      <Drawer
-        variant={isMobile ? 'temporary' : 'permanent'}
-        open={open}
-        onClose={isMobile ? toggleDrawer : undefined}
-        sx={{
-          width: open ? drawerWidth : 0,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            whiteSpace: 'nowrap',
-            overflowX: 'hidden',
-            transition: theme.transitions.create('width', {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-            ...(!open && {
-              width: theme.spacing(7),
-              transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.leavingScreen,
-              }),
-            }),
-          },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            {menuItems.map(item => (
-              <ListItem
-                key={item.id}
-                disablePadding
-                sx={{
-                  display: 'block',
-                  backgroundColor:
-                    pathname === item.href ? theme.palette.action.selected : 'transparent',
-                }}
-              >
-                <ListItemButton
-                  onClick={() => handleNavigation(item.href)}
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                  }}
+            {/* Navigation */}
+            <nav className="space-y-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center space-x-3 px-3 py-2 rounded-md transition-colors",
+                    pathname === item.href
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
                 >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
-                      justifyContent: 'center',
-                      color: pathname === item.href ? theme.palette.primary.main : 'inherit',
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    sx={{
-                      opacity: open ? 1 : 0,
-                      fontWeight: pathname === item.href ? 'bold' : 'normal',
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-          <Divider />
-          <List>
-            <ListItem disablePadding sx={{ display: 'block' }}>
-              <ListItemButton
-                onClick={() => router.push('/admin/login')}
-                sx={{
-                  minHeight: 48,
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <LogoutIcon />
-                </ListItemIcon>
-                <ListItemText primary="Logout" sx={{ opacity: open ? 1 : 0 }} />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </Box>
-      </Drawer>
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
 
-      {/* Main content */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar /> {/* Adds space below the AppBar */}
-        {children}
-      </Box>
-    </Box>
+            {/* Bottom Actions */}
+            <div className="absolute bottom-4 left-4 right-4 space-y-1">
+              <Link
+                href="/admin-dashboard/settings"
+                className="flex items-center space-x-3 px-3 py-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <Settings className="h-5 w-5" />
+                <span>Settings</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-3 px-3 py-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main
+          className={cn(
+            "flex-1 transition-all duration-300",
+            sidebarOpen ? "ml-60" : "ml-0"
+          )}
+        >
+          <div className="p-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }

@@ -6,7 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import dynamic from 'next/dynamic';
 import { PageViewTracker } from '@/components/PageViewTracker';
 import { AnalyticsProvider } from '@/components/providers/AnalyticsProvider';
-import { ThemeProvider as MuiThemeProvider } from '@/components/theme/theme-provider';
+// Theme is now handled by next-themes and Tailwind CSS
 import { useAuthStore } from '@/lib/auth/auth-system';
 import { createClient } from '@/lib/supabase/client';
 
@@ -33,6 +33,12 @@ export default function Providers({ children }: ProvidersProps) {
   // Initialize authentication
   useEffect(() => {
     if (!initialized) {
+      // Skip auth initialization if Supabase is not configured
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
+          process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co') {
+        return;
+      }
+      
       // Set up auth state
       refreshUser();
       
@@ -71,26 +77,23 @@ export default function Providers({ children }: ProvidersProps) {
     <TrpcClientProvider>
       {/* Theme provider from next-themes */}
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-        {/* MUI + Tailwind provider */}
-        <MuiThemeProvider>
-          {/* Analytics tracking provider */}
-          <AnalyticsProvider>
-            {/* Track page views */}
-            <PageViewTracker />
+        {/* Analytics tracking provider */}
+        <AnalyticsProvider>
+          {/* Track page views */}
+          <PageViewTracker />
 
-            {/* Toast notifications - positioned for good UX */}
-            <Toaster 
-              position="bottom-right" 
-              closeButton
-              richColors
-              theme="system" 
-              className="z-[9999]"
-            />
+          {/* Toast notifications - positioned for good UX */}
+          <Toaster 
+            position="bottom-right" 
+            closeButton
+            richColors
+            theme="system" 
+            className="z-[9999]"
+          />
 
-            {/* App content */}
-            {children}
-          </AnalyticsProvider>
-        </MuiThemeProvider>
+          {/* App content */}
+          {children}
+        </AnalyticsProvider>
       </ThemeProvider>
     </TrpcClientProvider>
   );

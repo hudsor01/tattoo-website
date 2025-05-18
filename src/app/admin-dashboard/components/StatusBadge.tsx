@@ -1,47 +1,37 @@
 'use client';
 
 import React from 'react';
-import { Chip } from '@mui/material';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { StatusBadgeProps } from '@/types/Components';
 
+type StatusType = 'success' | 'warning' | 'error' | 'info';
+
 export default function StatusBadge({ status, text }: StatusBadgeProps) {
-  const colors = {
-    success: {
-      bgcolor: 'rgba(0, 128, 0, 0.2)',
-      color: '#4caf50',
-      borderColor: 'rgba(0, 128, 0, 0.5)',
-    },
-    warning: {
-      bgcolor: 'rgba(255, 193, 7, 0.2)',
-      color: '#ffeb3b',
-      borderColor: 'rgba(255, 193, 7, 0.5)',
-    },
-    error: {
-      bgcolor: 'rgba(178, 34, 34, 0.2)',
-      color: '#f44336',
-      borderColor: 'rgba(178, 34, 34, 0.5)',
-    },
-    info: {
-      bgcolor: 'rgba(3, 169, 244, 0.2)',
-      color: '#03a9f4',
-      borderColor: 'rgba(3, 169, 244, 0.5)',
-    },
+  const getVariantClass = (status: StatusType) => {
+    switch (status) {
+      case 'success':
+        return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200';
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200';
+      case 'error':
+        return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200';
+      case 'info':
+        return 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200';
+    }
   };
 
   return (
-    <Chip
-      label={text}
-      size="small"
-      sx={{
-        bgcolor: colors[status].bgcolor,
-        color: colors[status].color,
-        border: 1,
-        borderColor: colors[status].borderColor,
-        fontSize: '0.75rem',
-        fontWeight: 'medium',
-        borderRadius: '16px',
-        height: '24px',
-      }}
-    />
+    <Badge
+      variant="outline"
+      className={cn(
+        'text-xs font-medium px-2.5 py-0.5',
+        getVariantClass(status)
+      )}
+    >
+      {text}
+    </Badge>
   );
 }

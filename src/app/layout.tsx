@@ -5,7 +5,6 @@ import type { Metadata } from 'next';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import Providers from '@/app/providers';
 import { AppLayout } from '@/components/layouts/unified-layout-system';
-import MuiThemeRegistry from '@/components/theme/MuiThemeRegistry';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -101,15 +100,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
         />
-
-        {/* MUI Theme Registry for server-side styles */}
-        <MuiThemeRegistry>
-          {/* Providers system */}
-          <Providers>
-            {/* Layout system */}
-            <AppLayout>{children}</AppLayout>
-          </Providers>
-        </MuiThemeRegistry>
+        {/* Providers system */}
+        <Providers>
+          {/* Layout system */}
+          <AppLayout>{children}</AppLayout>
+        </Providers>
       </body>
     </html>
   );
