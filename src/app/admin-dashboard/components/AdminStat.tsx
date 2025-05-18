@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, Typography } from '@mui/material';
 import { AdminStatProps } from '@/types/Components';
 
 export default function AdminStat({ value, label, color = '#fff' }: AdminStatProps) {

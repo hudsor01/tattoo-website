@@ -56,7 +56,7 @@ export interface Booking extends BaseEntity {
   depositAmount?: number;
   depositPaid?: boolean;
   paymentStatus?: PaymentStatus | string;
-  status: 'new' | 'reviewed' | 'scheduled' | 'rejected' | 'cancelled' | string;
+  status: 'new' | 'reviewed' | 'scheduled' | 'rejected' | 'cancelled' | 'confirmed' | 'pending' | string;
   assignedArtist?: ID;
   source?: BookingSource | string;
   consultationDate?: DateString;
@@ -68,6 +68,13 @@ export interface Booking extends BaseEntity {
   agreeToTerms?: boolean;
   paymentMethod?: string;
   paymentIntentId?: string;
+  // Cal.com integration fields
+  calBookingId?: string;
+  calBookingUid?: string;
+  calEventTypeId?: number;
+  calStatus?: string;
+  calMeetingUrl?: string;
+  calMetadata?: Record<string, any>;
 }
 
 /**
@@ -91,6 +98,13 @@ export interface BookingCreateRequest {
   source?: BookingSource | string;
   notes?: string;
   priority?: 'low' | 'medium' | 'high';
+  // Cal.com integration fields
+  calBookingId?: string;
+  calBookingUid?: string;
+  calEventTypeId?: number;
+  calStatus?: string;
+  calMeetingUrl?: string;
+  calMetadata?: Record<string, any>;
 }
 
 /**
@@ -191,6 +205,10 @@ export interface BookingFormData {
   paymentMethod?: string;
   paymentIntentId?: string;
   depositPaid?: boolean;
+  // Cal.com integration fields
+  calBookingId?: string;
+  calBookingUid?: string;
+  calEventTypeId?: number;
 }
 
 /**

@@ -59,17 +59,6 @@
   --font-family-pacifico: var(--font-pacifico);
   --font-family-satisfy: var(--font-satisfy);
   
-  /* Text sizes mapped to MUI typography */
-  --font-size-h1: 2.5rem;
-  --font-size-h2: 2rem;
-  --font-size-h3: 1.75rem;
-  --font-size-h4: 1.5rem;
-  --font-size-h5: 1.25rem;
-  --font-size-h6: 1.125rem;
-  --font-size-body1: 1rem;
-  --font-size-body2: 0.875rem;
-  --font-size-caption: 0.75rem;
-  
   /* Font weights */
   --font-weight-light: 300;
   --font-weight-regular: 400;
@@ -95,54 +84,6 @@
   --backdrop-blur-md: 12px;
   --backdrop-blur-lg: 16px;
   --backdrop-blur-xl: 24px;
-  
-  /* MUI-specific theme variables */
-  --mui-primary-main: var(--color-primary);
-  --mui-primary-dark: color-mix(in oklch, var(--color-primary), black 20%);
-  --mui-primary-light: color-mix(in oklch, var(--color-primary), white 20%);
-  --mui-primary-contrast: var(--color-foreground);
-  
-  --mui-secondary-main: var(--color-secondary);
-  --mui-secondary-dark: color-mix(in oklch, var(--color-secondary), black 20%);
-  --mui-secondary-light: color-mix(in oklch, var(--color-secondary), white 20%);
-  --mui-secondary-contrast: var(--color-foreground);
-  
-  --mui-error-main: var(--color-error);
-  --mui-warning-main: var(--color-warning);
-  --mui-info-main: var(--color-info);
-  --mui-success-main: var(--color-success);
-  
-  /* MUI typography mappings */
-  --mui-font-h1: var(--font-family-sans);
-  --mui-font-h2: var(--font-family-sans); 
-  --mui-font-h3: var(--font-family-sans);
-  --mui-font-h4: var(--font-family-sans);
-  --mui-font-h5: var(--font-family-sans);
-  --mui-font-h6: var(--font-family-sans);
-  --mui-font-subtitle1: var(--font-family-sans);
-  --mui-font-subtitle2: var(--font-family-sans);
-  --mui-font-body1: var(--font-family-sans);
-  --mui-font-body2: var(--font-family-sans);
-  --mui-font-button: var(--font-family-sans);
-  --mui-font-caption: var(--font-family-sans);
-  --mui-font-overline: var(--font-family-sans);
-  
-  /* MUI breakpoint values */
-  --breakpoint-sm: 37.5rem; /* 600px */
-  --breakpoint-md: 56.25rem; /* 900px */
-  --breakpoint-lg: 75rem; /* 1200px */
-  --breakpoint-xl: 96rem; /* 1536px */
-  --breakpoint-2xl: 120rem; /* 1920px */
-  
-  /* MUI shadows */
-  --shadow-none: none;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-}
 
 /* Animation keyframes definitions */
 :root {
@@ -209,13 +150,6 @@
   --color-foreground: #FAFAFA;
   --color-card: rgba(18, 18, 18, 0.5);
   --color-card-border: rgba(255, 255, 255, 0.1);
-  
-  /* MUI dark theme overrides */
-  --mui-background-default: #0A0A0A;
-  --mui-background-paper: #121212;
-  --mui-text-primary: #FAFAFA;
-  --mui-text-secondary: rgba(255, 255, 255, 0.7);
-  --mui-text-disabled: rgba(255, 255, 255, 0.5);
 }
 
 /* Light mode theme */
@@ -224,13 +158,6 @@
   --color-foreground: #0A0A0A;
   --color-card: rgba(255, 255, 255, 0.5);
   --color-card-border: rgba(0, 0, 0, 0.1);
-  
-  /* MUI light theme overrides */
-  --mui-background-default: #FAFAFA;
-  --mui-background-paper: #FFFFFF;
-  --mui-text-primary: #0A0A0A;
-  --mui-text-secondary: rgba(0, 0, 0, 0.7);
-  --mui-text-disabled: rgba(0, 0, 0, 0.5);
 }
 
 /* Typography utilities */

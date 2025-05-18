@@ -2,40 +2,6 @@
 
 import React from 'react';
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  Avatar,
-  Button,
-  Stack,
-  Card,
-  TablePagination,
-  TextField,
-  InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Divider,
-  Badge,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EmailIcon from '@mui/icons-material/Email';
-import MarkunreadIcon from '@mui/icons-material/Markunread';
-import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
-import SubjectIcon from '@mui/icons-material/Subject';
-import TextsmsIcon from '@mui/icons-material/Textsms';
 import { Contact } from '@/types/contact';
 
 export default function ContactsSection() {
@@ -300,16 +266,6 @@ export default function ContactsSection() {
           size="small"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          sx={{
-            width: 300,
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              borderRadius: 2,
-              '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
-              '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-              '&.Mui-focused fieldset': { borderColor: '#E53935' },
-            },
-          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -480,29 +436,12 @@ export default function ContactsSection() {
                       icon={<MarkEmailReadIcon />}
                       label="Read"
                       size="small"
-                      sx={{
-                        bgcolor: 'rgba(46, 125, 50, 0.2)',
-                        color: '#4caf50',
-                        '& .MuiChip-icon': {
-                          color: '#4caf50',
-                        },
-                      }}
                     />
                   ) : (
                     <Chip
                       icon={<MarkunreadIcon />}
                       label="Unread"
                       size="small"
-                      sx={{
-                        bgcolor: 'rgba(211, 47, 47, 0.2)',
-                        color: '#f44336',
-                        fontWeight: 'bold',
-                        '& .MuiChip-icon': {
-                          color: '#f44336',
-                        },
-                      }}
-                    />
-                  )}
                 </TableCell>
                 <TableCell
                   align="right"
@@ -567,17 +506,6 @@ export default function ContactsSection() {
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        sx={{
-          '.MuiTablePagination-toolbar': {
-            color: 'rgba(255,255,255,0.7)',
-          },
-          '.MuiTablePagination-selectIcon': {
-            color: 'rgba(255,255,255,0.7)',
-          },
-          '.MuiTablePagination-actions': {
-            color: 'rgba(255,255,255,0.7)',
-          },
-        }}
       />
 
       {/* Contact Details Dialog */}
@@ -617,28 +545,6 @@ export default function ContactsSection() {
                       icon={<MarkEmailReadIcon />}
                       label="Read"
                       size="small"
-                      sx={{
-                        bgcolor: 'rgba(46, 125, 50, 0.2)',
-                        color: '#4caf50',
-                        '& .MuiChip-icon': {
-                          color: '#4caf50',
-                        },
-                      }}
-                    />
-                  ) : (
-                    <Chip
-                      icon={<MarkunreadIcon />}
-                      label="Unread"
-                      size="small"
-                      sx={{
-                        bgcolor: 'rgba(211, 47, 47, 0.2)',
-                        color: '#f44336',
-                        '& .MuiChip-icon': {
-                          color: '#f44336',
-                        },
-                      }}
-                    />
-                  )}
                 </Box>
               </Box>
             </DialogTitle>

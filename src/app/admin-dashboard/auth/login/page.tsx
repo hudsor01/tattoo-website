@@ -1,56 +1,84 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { login, signup } from './actions';
-import { Paper, Container, Box, Typography } from '@mui/material';
-import LockIcon from '@mui/icons-material/Lock';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Lock } from 'lucide-react';
 
 export default function AdminLoginPage() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (action: (formData: FormData) => Promise<void>) => {
+    setIsLoading(true);
+    try {
+      await action(new FormData(document.querySelector('form')!));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Container maxWidth="sm" sx={{ mt: 8 }}>
-      <Paper
-        elevation={3}
-        sx={{
-          p: 4,
-          borderRadius: 2,
-          background: 'rgba(18, 18, 18, 0.5)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            mb: 4,
-          }}
-        >
-          <Typography
-            component="h1"
-            variant="h4"
-            sx={{
-              mb: 3,
-              color: 'primary.main',
-              fontFamily: 'var(--font-pacifico)',
-            }}
-          >
-            Ink 37
-          </Typography>
-
-          <LockIcon sx={{ fontSize: 40, mb: 2, color: 'primary.main' }} />
-        </Box>
-
-        {/* Using the standardized AuthForm component */}
-        <form>
-          <label htmlFor="email">Email:</label>
-          <input id="email" name="email" type="email" required />
-          <label htmlFor="password">Password:</label>
-          <input id="password" name="password" type="password" required />
-          <button formAction={login}>Log in</button>
-          <button formAction={signup}>Sign up</button>
-        </form>
-      </Paper>
-    </Container>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex flex-col items-center space-y-4">
+            <h1 className="text-3xl font-bold text-primary">Ink 37</h1>
+            <Lock className="h-10 w-10 text-primary" />
+          </div>
+          <CardTitle>Admin Login</CardTitle>
+          <CardDescription>
+            Enter your credentials to access the admin dashboard
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="admin@example.com"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                className="flex-1"
+                formAction={login}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Logging in...' : 'Log in'}
+              </Button>
+              <Button
+                type="submit"
+                variant="outline"
+                className="flex-1"
+                formAction={signup}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing up...' : 'Sign up'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

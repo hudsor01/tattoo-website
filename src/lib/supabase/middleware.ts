@@ -14,6 +14,14 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
+  // Check if Supabase is configured
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co') {
+    // Return response without Supabase session update
+    return response;
+  }
+
   // Create a Supabase client for middleware usage
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

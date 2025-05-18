@@ -53,6 +53,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Temporarily bypass Supabase auth until environment variables are set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co') {
+    return NextResponse.next();
+  }
+
   // Update Supabase auth session
   const response = await updateSession(request);
 

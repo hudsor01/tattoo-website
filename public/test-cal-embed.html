@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cal.com Embed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .cal-embed {
+            min-height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cal.com Embed Test Page</h1>
+    
+    <div class="test-info">
+        <h2>Test Instructions:</h2>
+        <ol>
+            <li>Replace 'YOUR_CAL_USERNAME' with your actual Cal.com username</li>
+            <li>Replace 'EVENT_TYPE' with your Cal.com event type (e.g., '30min', 'consultation')</li>
+            <li>Open this page in a browser to test the embed</li>
+            <li>Try booking an appointment to test the full flow</li>
+        </ol>
+    </div>
+    
+    <h2>Inline Embed:</h2>
+    <div class="cal-embed">
+        <!-- Cal.com inline embed code -->
+        <div 
+            data-cal-link="YOUR_CAL_USERNAME/EVENT_TYPE"
+            data-cal-config='{"theme":"light"}'
+            style="width:100%;height:100%;overflow:scroll"
+        ></div>
+        <script>
+            (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+            Cal("init");
+            Cal("ui", {"theme":"light","styles":{"branding":{"brandColor":"#000000"}},"hideEventTypeDetails":false});
+        </script>
+    </div>
+    
+    <h2>Popup Button:</h2>
+    <button data-cal-link="YOUR_CAL_USERNAME/EVENT_TYPE">Book Appointment</button>
+    
+    <script type="text/javascript">
+        (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+        Cal("init");
+    </script>
+</body>
+</html>

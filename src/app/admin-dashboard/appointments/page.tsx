@@ -2,33 +2,36 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { DataTable } from '@/app/admin-dashboard/components/data-table';
+import StatusBadge from '@/app/admin-dashboard/components/StatusBadge';
+import { 
+  CalendarDays, 
+  DollarSign, 
+  CheckCircle, 
+  Camera, 
+  MessageSquare 
+} from 'lucide-react';
 import {
-  Box,
-  Button,
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  IconButton,
-  Typography,
-  FormControlLabel,
-  Checkbox,
-  InputAdornment,
-  Tooltip,
-  Chip,
-} from '@mui/material';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import EventIcon from '@mui/icons-material/Event';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import MessageIcon from '@mui/icons-material/Message';
-import PhotoIcon from '@mui/icons-material/Photo';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { DataTable, StatusChip } from '@/app/admin-dashboard/components/data-table';
-import Grid from '@/components/ui/mui-grid';
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 // Define Appointment type locally if not exported from supabase-types
 export type Appointment = {
@@ -54,31 +57,6 @@ interface AppointmentFormDialogProps {
   initialData: Partial<Appointment> | null;
   customers: Array<{ id: string; name: string }>;
 }
-
-// --- Reusable Styles ---
-const inputSx = {
-  '& .MuiOutlinedInput-root': {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    '&:hover fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#d62828',
-    },
-  },
-  '& .MuiInputLabel-root': {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  '& .MuiInputBase-input': {
-    color: 'white',
-  },
-  '& .MuiSvgIcon-root, & .MuiSelect-icon': {
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-};
 
 // Status options
 const STATUS_OPTIONS = [
@@ -152,11 +130,9 @@ function AppointmentFormDialog({
     }));
   };
 
-  // Handle date changes for DateTimePicker
-  const handleDateChange = (name: string, value: Date | null) => {
-    if (value) {
-      setFormData(prev => ({ ...prev, [name]: value.toISOString() }));
-    }
+  // Handle select changes
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -165,258 +141,184 @@ function AppointmentFormDialog({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="md"
-      PaperProps={{
-        sx: {
-          backgroundColor: '#141414',
-          backgroundImage: 'none',
-          color: 'white',
-          borderRadius: 2,
-        },
-      }}
-    >
-      <DialogTitle sx={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', px: 3, py: 2 }}>
-        {initialData?.id ? 'Edit Appointment' : 'Schedule New Appointment'}
-      </DialogTitle>
+    <Dialog open={open} onOpenChange={() => onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            {initialData?.id ? 'Edit Appointment' : 'Schedule New Appointment'}
+          </DialogTitle>
+          <DialogDescription>
+            Fill in the details to schedule a new appointment or update an existing one.
+          </DialogDescription>
+        </DialogHeader>
 
-      <DialogContent sx={{ px: 3, py: 3 }}>
-        {/* Wrap content in a form for potential semantic benefits and accessibility */}
-        <Box component="form" onSubmit={handleSubmit} noValidate>
-          <Grid container spacing={3}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer Selection */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="customerId"
-                label="Select Customer"
-                select
+            <div className="space-y-2">
+              <Label htmlFor="customerId">Select Customer *</Label>
+              <Select
                 value={formData.customerId || ''}
-                onChange={handleFormChange}
-                fullWidth
-                required
-                variant="outlined"
-                margin="normal"
-                sx={inputSx}
+                onValueChange={(value) => handleSelectChange('customerId', value)}
               >
-                {customers.map(customer => (
-                  <MenuItem key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map(customer => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Appointment Title */}
-            <Grid item xs={12} md={6}>
-              <TextField
+            <div className="space-y-2">
+              <Label htmlFor="title">Appointment Title *</Label>
+              <Input
+                id="title"
                 name="title"
-                label="Appointment Title"
                 value={formData.title || ''}
                 onChange={handleFormChange}
-                fullWidth
                 required
-                variant="outlined"
-                margin="normal"
-                sx={inputSx}
               />
-            </Grid>
+            </div>
 
             {/* Start Time */}
-            <Grid item xs={12} md={6}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DateTimePicker
-                  label="Start Time"
-                  value={formData.startTime ? new Date(formData.startTime) : null}
-                  onChange={newValue => handleDateChange('startTime', newValue)}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      margin: 'normal',
-                      required: true,
-                      sx: inputSx,
-                    },
-                  }}
-                />
-              </LocalizationProvider>
-            </Grid>
+            <div className="space-y-2">
+              <Label htmlFor="startTime">Start Time *</Label>
+              <Input
+                id="startTime"
+                name="startTime"
+                type="datetime-local"
+                value={formData.startTime ? new Date(formData.startTime).toISOString().slice(0, 16) : ''}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
 
             {/* End Time */}
-            <Grid item xs={12} md={6}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DateTimePicker
-                  label="End Time"
-                  value={formData.endTime ? new Date(formData.endTime) : null}
-                  onChange={newValue => handleDateChange('endTime', newValue)}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      margin: 'normal',
-                      required: true,
-                      sx: inputSx,
-                    },
-                  }}
-                />
-              </LocalizationProvider>
-            </Grid>
+            <div className="space-y-2">
+              <Label htmlFor="endTime">End Time *</Label>
+              <Input
+                id="endTime"
+                name="endTime"
+                type="datetime-local"
+                value={formData.endTime ? new Date(formData.endTime).toISOString().slice(0, 16) : ''}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
 
             {/* Status */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="status"
-                label="Appointment Status"
-                select
+            <div className="space-y-2">
+              <Label htmlFor="status">Appointment Status</Label>
+              <Select
                 value={formData.status || 'scheduled'}
-                onChange={handleFormChange}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                sx={inputSx}
+                onValueChange={(value) => handleSelectChange('status', value)}
               >
-                {STATUS_OPTIONS.map(option => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Tattoo Style */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="tattooStyle"
-                label="Tattoo Style"
-                select
+            <div className="space-y-2">
+              <Label htmlFor="tattooStyle">Tattoo Style</Label>
+              <Select
                 value={formData.tattooStyle || ''}
-                onChange={handleFormChange}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                sx={inputSx}
+                onValueChange={(value) => handleSelectChange('tattooStyle', value)}
               >
-                {TATTOO_STYLES.map(style => (
-                  <MenuItem key={style} value={style}>
-                    {style}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a style" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TATTOO_STYLES.map(style => (
+                    <SelectItem key={style} value={style}>
+                      {style}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Deposit Paid Checkbox */}
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    name="depositPaid"
-                    checked={formData.depositPaid || false}
-                    onChange={handleFormChange}
-                    sx={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      '&.Mui-checked': {
-                        color: '#d62828',
-                      },
-                    }}
-                  />
-                }
-                label="Deposit Paid"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  mt: 2, // Adjust margin as needed
-                }}
+            <div className="col-span-2 flex items-center space-x-2">
+              <Checkbox
+                id="depositPaid"
+                checked={formData.depositPaid || false}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({ ...prev, depositPaid: !!checked }))}
               />
-            </Grid>
+              <Label htmlFor="depositPaid">Deposit Paid</Label>
+            </div>
 
             {/* Deposit Amount */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="depositAmount"
-                label="Deposit Amount"
-                type="number"
-                value={formData.depositAmount || ''}
-                onChange={handleFormChange}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                disabled={!formData.depositPaid}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <AttachMoneyIcon sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={inputSx}
-              />
-            </Grid>
+            <div className="space-y-2">
+              <Label htmlFor="depositAmount">Deposit Amount</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="depositAmount"
+                  name="depositAmount"
+                  type="number"
+                  value={formData.depositAmount || ''}
+                  onChange={handleFormChange}
+                  disabled={!formData.depositPaid}
+                  className="pl-10"
+                />
+              </div>
+            </div>
 
             {/* Total Price */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                name="price"
-                label="Total Price"
-                type="number"
-                value={formData.price || ''}
-                onChange={handleFormChange}
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <AttachMoneyIcon sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={inputSx}
-              />
-            </Grid>
+            <div className="space-y-2">
+              <Label htmlFor="price">Total Price</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  value={formData.price || ''}
+                  onChange={handleFormChange}
+                  className="pl-10"
+                />
+              </div>
+            </div>
 
             {/* Description */}
-            <Grid item xs={12}>
-              <TextField
+            <div className="col-span-2 space-y-2">
+              <Label htmlFor="description">Appointment Description</Label>
+              <Textarea
+                id="description"
                 name="description"
-                label="Appointment Description"
                 value={formData.description || ''}
                 onChange={handleFormChange}
-                fullWidth
-                multiline
                 rows={4}
-                variant="outlined"
-                margin="normal"
-                sx={inputSx}
               />
-            </Grid>
-          </Grid>
-        </Box>
-      </DialogContent>
+            </div>
+          </div>
 
-      <DialogActions sx={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', px: 3, py: 2 }}>
-        <Button
-          onClick={onClose}
-          sx={{
-            color: 'rgba(255, 255, 255, 0.7)',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            },
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit} // Trigger submit handler
-          sx={{
-            backgroundColor: '#d62828',
-            '&:hover': {
-              backgroundColor: '#b21e1e',
-            },
-          }}
-        >
-          {initialData?.id ? 'Update Appointment' : 'Schedule Appointment'}
-        </Button>
-      </DialogActions>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              {initialData?.id ? 'Update Appointment' : 'Schedule Appointment'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }
@@ -435,25 +337,22 @@ export default function AppointmentsPage() {
 
   // Custom toolbar actions
   const customToolbarActions = (
-    <TextField
-      select
+    <Select
       value={statusFilter}
-      onChange={e => setStatusFilter(e.target.value)}
-      variant="outlined"
-      label="Status Filter"
-      size="small"
-      sx={{
-        ...inputSx, // Use common input style
-        minWidth: 150,
-      }}
+      onValueChange={setStatusFilter}
     >
-      <MenuItem value="all">All Appointments</MenuItem>
-      {STATUS_OPTIONS.map(option => (
-        <MenuItem key={option.value} value={option.value}>
-          {option.label}
-        </MenuItem>
-      ))}
-    </TextField>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Filter by status" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Appointments</SelectItem>
+        {STATUS_OPTIONS.map(option => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 
   // Fetch data
@@ -668,61 +567,29 @@ export default function AppointmentsPage() {
   };
 
   return (
-    <Box sx={{ p: 3, backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
+    <div className="p-6 bg-gray-950 min-h-screen">
       {/* Header */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'flex-start', // Align items to the top
-          mb: 4,
-          p: 3,
-          backgroundColor: '#141414', // Darker background for the header
-          borderRadius: 2,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        }}
-      >
+      <div className="flex items-start mb-8 p-6 bg-gray-900 rounded-lg shadow-lg">
         {/* Icon */}
-        <Box
-          sx={{
-            backgroundColor: 'rgba(214, 40, 40, 0.1)', // Red accent background
-            color: '#d62828', // Red accent color
-            borderRadius: '12px', // Slightly rounded square
-            p: 1.5, // Adjusted padding
-            mr: 2,
-            display: 'flex', // Ensure icon is centered if needed
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <EventIcon sx={{ fontSize: 32 }} />
-        </Box>
+        <div className="bg-red-500/10 text-red-500 rounded-lg p-3 mr-4 flex items-center justify-center">
+          <CalendarDays className="h-8 w-8" />
+        </div>
         {/* Text Content */}
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'white', mb: 0.5 }}>
+        <div>
+          <h1 className="text-2xl font-bold text-white mb-1">
             Tattoo Appointments
-          </Typography>
-          <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          </h1>
+          <p className="text-gray-400">
             Schedule and manage tattoo sessions, consultations, and follow-ups
-          </Typography>
-        </Box>
-      </Box>
+          </p>
+        </div>
+      </div>
 
       {/* Error Alert - Display error prominently if present */}
       {error && (
-        <Box
-          sx={{
-            mb: 3,
-            p: 2,
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            color: '#ef4444',
-            borderRadius: 1,
-            borderLeft: '4px solid #ef4444',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="body1">{error}</Typography>
-        </Box>
+        <div className="mb-6 p-4 bg-red-500/10 text-red-500 rounded-lg border-l-4 border-red-500 flex items-center">
+          <p>{error}</p>
+        </div>
       )}
 
       {/* DataTable Component */}
@@ -750,26 +617,12 @@ export default function AppointmentsPage() {
             }) => {
               const clientName = (params.value as string | null | undefined) || '';
               return (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(214, 40, 40, 0.1)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mr: 1.5,
-                      color: '#d62828',
-                      fontWeight: 'bold',
-                      fontSize: '0.9rem',
-                    }}
-                  >
+                <div className="flex items-center">
+                  <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center mr-3 text-red-500 font-bold text-sm">
                     {clientName.charAt(0)}
-                  </Box>
-                  <Typography variant="body2">{clientName}</Typography>
-                </Box>
+                  </div>
+                  <span className="text-sm">{clientName}</span>
+                </div>
               );
             },
           },
@@ -783,14 +636,12 @@ export default function AppointmentsPage() {
               field: string | number | symbol;
               value: unknown;
             }) => (
-              <Box>
-                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                  {params.value as string}
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+              <div>
+                <p className="text-sm font-medium">{params.value as string}</p>
+                <p className="text-xs text-gray-500">
                   {(params.row as Appointment).tattooStyle}
-                </Typography>
-              </Box>
+                </p>
+              </div>
             ),
           },
           {
@@ -811,12 +662,10 @@ export default function AppointmentsPage() {
               });
 
               return (
-                <Box>
-                  <Typography variant="body2">{formattedDate}</Typography>
-                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                    {formattedTime}
-                  </Typography>
-                </Box>
+                <div>
+                  <p className="text-sm">{formattedDate}</p>
+                  <p className="text-xs text-gray-500">{formattedTime}</p>
+                </div>
               );
             },
           },
@@ -824,7 +673,7 @@ export default function AppointmentsPage() {
             field: 'status',
             headerName: 'Status',
             width: 130,
-            renderCell: params => <StatusChip status={params.value as string} />,
+            renderCell: params => <StatusBadge status={params.value as string} />,
           },
           {
             field: 'depositInfo',
@@ -837,24 +686,18 @@ export default function AppointmentsPage() {
               return 'Not paid';
             },
             renderCell: (params: { row: Appointment }) => (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <div className="flex items-center">
                 {params.row.depositPaid ? (
                   <>
-                    <CheckCircleIcon sx={{ color: '#10b981', mr: 1, fontSize: 16 }} />
-                    <Typography variant="body2">${params.row.depositAmount}</Typography>
+                    <CheckCircle className="text-green-500 mr-2 h-4 w-4" />
+                    <span className="text-sm">${params.row.depositAmount}</span>
                   </>
                 ) : (
-                  <Chip
-                    label="Not paid"
-                    size="small"
-                    sx={{
-                      bgcolor: 'rgba(239, 68, 68, 0.1)',
-                      color: '#ef4444',
-                      fontSize: '0.7rem',
-                    }}
-                  />
+                  <Badge variant="destructive" className="text-xs">
+                    Not paid
+                  </Badge>
                 )}
-              </Box>
+              </div>
             ),
           },
           {
@@ -870,48 +713,33 @@ export default function AppointmentsPage() {
           onDelete: handleDeleteAppointment,
           width: 180,
           renderCustomActions: (id: string | number) => (
-            <Box display="flex">
-              <Tooltip title="Upload design">
-                <IconButton
-                  size="small"
-                  sx={{
-                    color: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                    },
-                    mr: 0.5,
-                  }}
-                  onClick={e => {
-                    e.stopPropagation();
-                    router.push(`/admin/designs/upload?appointment=${id}`);
-                  }}
-                >
-                  <PhotoIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Message customer">
-                <IconButton
-                  size="small"
-                  sx={{
-                    color: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    },
-                  }}
-                  onClick={e => {
-                    e.stopPropagation();
-                    const appointment = appointments.find(a => a.id === String(id));
-                    if (appointment) {
-                      router.push(`/admin/messages/new?customer=${appointment.customerId}`);
-                    }
-                  }}
-                >
-                  <MessageIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-green-500 hover:bg-green-500/10"
+                onClick={e => {
+                  e.stopPropagation();
+                  router.push(`/admin/designs/upload?appointment=${id}`);
+                }}
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-blue-500 hover:bg-blue-500/10"
+                onClick={e => {
+                  e.stopPropagation();
+                  const appointment = appointments.find(a => a.id === String(id));
+                  if (appointment) {
+                    router.push(`/admin/messages/new?customer=${appointment.customerId}`);
+                  }
+                }}
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+            </div>
           ),
         }}
       />
@@ -924,6 +752,6 @@ export default function AppointmentsPage() {
         initialData={editingAppointment}
         customers={customers}
       />
-    </Box>
+    </div>
   );
 }

@@ -2,41 +2,6 @@
 
 import React from 'react';
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  Avatar,
-  Button,
-  IconButton,
-  Stack,
-  Card,
-  TablePagination,
-  TextField,
-  InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Divider,
-} from '@mui/material';
-import Grid from '@/components/ui/mui-grid';
-import SearchIcon from '@mui/icons-material/Search';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EmailIcon from '@mui/icons-material/Email';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import DownloadIcon from '@mui/icons-material/Download';
-
 import { Lead, LeadSummary } from '@/types';
 
 export default function LeadsSection() {
@@ -305,34 +270,6 @@ export default function LeadsSection() {
         </Grid>
       </Box>
 
-      {/* Search */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-        <TextField
-          placeholder="Search leads..."
-          variant="outlined"
-          size="small"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          sx={{
-            width: 300,
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              borderRadius: 2,
-              '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
-              '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-              '&.Mui-focused fieldset': { borderColor: '#E53935' },
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'rgba(255,255,255,0.5)' }} />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-
       {/* Leads Table */}
       <TableContainer
         component={Paper}
@@ -471,18 +408,6 @@ export default function LeadsSection() {
                     icon={lead.leadMagnetType === 'pdf' ? <PictureAsPdfIcon /> : <DownloadIcon />}
                     label={lead.leadMagnetTitle}
                     size="small"
-                    sx={{
-                      bgcolor: 'rgba(0, 0, 0, 0.4)',
-                      color: '#fff',
-                      '& .MuiChip-icon': {
-                        color:
-                          lead.leadMagnetType === 'pdf'
-                            ? '#E53935'
-                            : lead.leadMagnetType === 'lookbook'
-                              ? '#42A5F5'
-                              : '#66BB6A',
-                      },
-                    }}
                   />
                 </TableCell>
                 <TableCell
@@ -543,26 +468,6 @@ export default function LeadsSection() {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <TablePagination
-        component="div"
-        count={filteredLeads.length}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        sx={{
-          '.MuiTablePagination-toolbar': {
-            color: 'rgba(255,255,255,0.7)',
-          },
-          '.MuiTablePagination-selectIcon': {
-            color: 'rgba(255,255,255,0.7)',
-          },
-          '.MuiTablePagination-actions': {
-            color: 'rgba(255,255,255,0.7)',
-          },
-        }}
-      />
 
       {/* Lead Details Dialog */}
       <Dialog
@@ -634,19 +539,6 @@ export default function LeadsSection() {
                           }
                           label={selectedLead.leadMagnetType || 'Download'}
                           size="small"
-                          sx={{
-                            bgcolor: 'rgba(0, 0, 0, 0.4)',
-                            color: '#fff',
-                            textTransform: 'capitalize',
-                            '& .MuiChip-icon': {
-                              color:
-                                selectedLead.leadMagnetType === 'pdf'
-                                  ? '#E53935'
-                                  : selectedLead.leadMagnetType === 'lookbook'
-                                    ? '#42A5F5'
-                                    : '#66BB6A',
-                            },
-                          }}
                         />
                       </Box>
                     </Box>

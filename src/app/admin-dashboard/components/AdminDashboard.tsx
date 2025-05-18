@@ -3,32 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/admin-dashboard/components/DashboardLayout';
-import {
-  Box,
-  Typography,
-  Button,
-  CircularProgress,
-  Card,
-  CardContent,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Alert,
-} from '@mui/material';
-import Grid from '@/components/ui/mui-grid';
-import { styled } from '@mui/material/styles';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PersonIcon from '@mui/icons-material/Person';
-import PaymentIcon from '@mui/icons-material/Payment';
-import EventIcon from '@mui/icons-material/Event';
-import MessageIcon from '@mui/icons-material/Message';
-import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import axios from 'axios';
 
 import { DashboardData, DashboardStatsCardProps } from '@/types/ui';
