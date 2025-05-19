@@ -36,62 +36,9 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
-
-
-// Mock data for demonstration
-const mockStats = {
-  totalBookings: 42,
-  pendingBookings: 8,
-  totalContacts: 156,
-  newsletterSubscribers: 89
-};
-
-const recentBookings = [
-  { 
-    id: 1, 
-    name: 'John Doe', 
-    email: 'john@example.com', 
-    service: 'Custom Design', 
-    date: '2024-01-20',
-    status: 'confirmed'
-  },
-  { 
-    id: 2, 
-    name: 'Jane Smith', 
-    email: 'jane@example.com', 
-    service: 'Cover-up', 
-    date: '2024-01-22',
-    status: 'pending'
-  },
-  {
-    id: 3,
-    name: 'Bob Wilson',
-    email: 'bob@example.com',
-    service: 'Japanese Sleeve',
-    date: '2024-01-24',
-    status: 'completed'
-  }
-];
-
-const chartData = [
-  { name: 'Mon', bookings: 4 },
-  { name: 'Tue', bookings: 3 },
-  { name: 'Wed', bookings: 5 },
-  { name: 'Thu', bookings: 2 },
-  { name: 'Fri', bookings: 6 },
-  { name: 'Sat', bookings: 8 },
-  { name: 'Sun', bookings: 1 },
-];
-
-const pieData = [
-  { name: 'Custom Design', value: 35, color: '#10b981' },
-  { name: 'Traditional', value: 25, color: '#3b82f6' },
-  { name: 'Realism', value: 20, color: '#f59e0b' },
-  { name: 'Japanese', value: 12, color: '#ef4444' },
-  { name: 'Cover-up', value: 8, color: '#8b5cf6' },
-];
 
 interface Contact {
   id: string;
@@ -103,22 +50,69 @@ interface Contact {
   createdAt: string;
 }
 
+interface Booking {
+  id: number;
+  name: string;
+  email: string;
+  service: string;
+  date: string;
+  status: 'pending' | 'confirmed' | 'completed';
+}
+
+interface Stats {
+  totalBookings: number;
+  pendingBookings: number;
+  totalContacts: number;
+  newsletterSubscribers: number;
+}
+
+interface ChartDataItem {
+  name: string;
+  bookings: number;
+}
+
+interface PieDataItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+// Mock data (should be defined somewhere in the file)
+const recentBookings: Booking[] = [
+  // Mock data would be here
+];
+
+const mockStats: Stats = {
+  totalBookings: 0,
+  pendingBookings: 0,
+  totalContacts: 0,
+  newsletterSubscribers: 0,
+};
+
+const chartData: ChartDataItem[] = [
+  // Chart data would be here
+];
+
+const pieData: PieDataItem[] = [
+  // Pie chart data would be here
+];
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [selectedBookings, setSelectedBookings] = useState<number[]>([]);
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactsLoading, setContactsLoading] = useState<boolean>(false);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     // Clear JWT token
     document.cookie = 'admin-token=; Max-Age=0; path=/';
     router.push('/admin/login');
   };
 
-  const exportData = () => {
+  const exportData = (): void => {
     const csvContent = 'data:text/csv;charset=utf-8,' +
       'Name,Email,Service,Date,Status\n' +
       recentBookings.map(booking => 
@@ -131,7 +125,7 @@ export default function AdminDashboard() {
     link.click();
   };
 
-  const handleSelectBooking = (id: number) => {
+  const handleSelectBooking = (id: number): void => {
     setSelectedBookings(prev => 
       prev.includes(id) 
         ? prev.filter(bookingId => bookingId !== id)
@@ -139,7 +133,7 @@ export default function AdminDashboard() {
     );
   };
 
-  const handleSelectAll = () => {
+  const handleSelectAll = (): void => {
     if (selectedBookings.length === recentBookings.length) {
       setSelectedBookings([]);
     } else {
@@ -147,7 +141,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredBookings = recentBookings.filter(booking => 
+  const filteredBookings: Booking[] = recentBookings.filter(booking => 
     filterStatus === 'all' || booking.status === filterStatus
   );
 
@@ -156,7 +150,7 @@ export default function AdminDashboard() {
     fetchContacts();
   }, []);
 
-  const fetchContacts = async () => {
+  const fetchContacts = async (): Promise<void> => {
     setContactsLoading(true);
     try {
       const response = await fetch('/api/admin/contacts');
@@ -172,7 +166,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const exportContacts = async () => {
+  const exportContacts = async (): Promise<void> => {
     try {
       const response = await fetch('/api/admin/contacts', {
         method: 'POST',
@@ -194,7 +188,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSelectContact = (id: string) => {
+  const handleSelectContact = (id: string): void => {
     setSelectedContacts(prev => 
       prev.includes(id) 
         ? prev.filter(contactId => contactId !== id)
@@ -202,7 +196,7 @@ export default function AdminDashboard() {
     );
   };
 
-  const handleSelectAllContacts = () => {
+  const handleSelectAllContacts = (): void => {
     if (selectedContacts.length === contacts.length) {
       setSelectedContacts([]);
     } else {

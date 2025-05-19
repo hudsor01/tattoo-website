@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthState {
   user: User | null;
@@ -21,7 +21,7 @@ interface AuthState {
 /**
  * Auth store for managing authentication state
  */
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   session: null,
   isLoading: true,
@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         user: data.user,
         session: data.session,
-        isAdmin: data.user?.user_metadata?.role === "admin",
+        isAdmin: data.user?.user_metadata?.['role'] === "admin",
       });
 
       return { user: data.user, error: null };
@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           user: data.user,
           session: sessionData.session,
-          isAdmin: data.user?.user_metadata?.role === "admin",
+          isAdmin: data.user?.user_metadata?.['role'] === "admin",
         });
       }
     } catch (error) {
@@ -104,7 +104,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           user: userData.user,
           session: data.session,
-          isAdmin: userData.user?.user_metadata?.role === "admin",
+          isAdmin: userData.user?.user_metadata?.['role'] === "admin",
         });
       } else {
         set({ user: null, session: null, isAdmin: false });

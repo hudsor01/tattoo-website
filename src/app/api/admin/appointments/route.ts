@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAccess } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
-import type { AppointmentStatus, FormattedAppointment } from '@/types/appointments-types';
+import type { AppointmentStatus, FormattedAppointment } from '@/types/booking-types';
 
 /**
  * GET /api/admin/appointments

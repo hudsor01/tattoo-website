@@ -4,10 +4,82 @@
  * Type definitions for payment processing, forms, and related functionality.
  */
 
-import type { ID, DateString, BaseEntity } from './base-types';
+import type { ID, DateString } from './utility-types';
+import type { BaseEntity } from './database.types';
 import { PaymentStatus, PaymentMethod } from './enum-types';
 import { z } from 'zod';
 import { PaymentMethodSchema, PaymentStatusSchema } from './booking-types';
+/**
+ * PRICING TYPES (from pricing-types.ts)
+ */
+
+/**
+ * Pricing breakdown structure
+ */
+export interface PricingBreakdown {
+  baseHourlyRate: number;
+  estimatedHours: number;
+  sizeFactor: number;
+  placementFactor: number;
+  complexityFactor: number;
+  totalPrice: number;
+  depositAmount: number;
+}
+
+/**
+ * Size pricing data structure
+ */
+export interface SizePricing {
+  size: string;
+  label: string;
+  basePrice: number;
+}
+
+/**
+ * Placement factor data structure
+ */
+export interface PlacementFactor {
+  placement: string;
+  label: string;
+  factor: number;
+}
+
+/**
+ * Complexity level data structure
+ */
+export interface ComplexityLevel {
+  level: number;
+  label: string;
+  factor: number;
+}
+
+/**
+ * Standard pricing data structure
+ */
+export interface StandardPricingData {
+  sizePrices: SizePricing[];
+  placementFactors: PlacementFactor[];
+  complexityLevels: ComplexityLevel[];
+  depositPercentage: number;
+  baseHourlyRate: number;
+}
+
+/**
+ * Artist rate structure
+ */
+export interface ArtistRate {
+  baseRate: number;
+  customRates: Array<{
+    size: string;
+    placement: string;
+    rate: number;
+  }>;
+}
+
+/**
+ * PAYMENT TYPES
+ */
+
 /**
  * Props for payment form components
  */

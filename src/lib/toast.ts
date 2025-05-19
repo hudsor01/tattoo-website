@@ -9,7 +9,7 @@
 
 import { toast as sonnerToast } from 'sonner';
 import type { ToastT, ExternalToast } from 'sonner';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES, TOAST_DURATIONS } from '@/types/toast-types';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, TOAST_DURATIONS } from '@/types/component-types';
 
 // Re-export message constants for convenience
 export { ERROR_MESSAGES, SUCCESS_MESSAGES, TOAST_DURATIONS };

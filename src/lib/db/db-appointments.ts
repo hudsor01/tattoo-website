@@ -9,7 +9,7 @@ import {
   AppointmentStatus, 
   AppointmentCreateInput, 
   AppointmentUpdateInput 
-} from '@/types/appointments-types';
+} from '@/types/booking-types';
 
 /**
  * Get upcoming appointments for a user (customer or artist)

@@ -4,7 +4,7 @@
  * This module provides functions for interacting with database functions.
  */
 
-import { serverClient } from './supabase/server-client';
+import { createClient } from './supabase/server';
 
 /**
  * Types for function parameters and responses
@@ -44,13 +44,25 @@ export type AvailabilityResponse = {
 };
 
 /**
+ * Type for conflicting appointments
+ */
+export type ConflictingAppointment = {
+  appointment_id: string;
+  start_time: string;
+  end_time: string;
+  artist_id: string;
+  customer_id?: string;
+  status?: string;
+};
+
+/**
  * Check availability for appointments on a given date
  */
 export async function checkAvailability(
   params: CheckAvailabilityParams
 ): Promise<AvailabilityResponse> {
   try {
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     const { data, error } = await supabase.rpc('check_availability', {
       p_date: params.date,
@@ -79,7 +91,7 @@ export async function createAppointment(
   params: CreateAppointmentParams
 ): Promise<AppointmentResponse> {
   try {
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     const { data, error } = await supabase.rpc('create_appointment', {
       p_customer_id: params.customer_id,
@@ -113,9 +125,9 @@ export async function createAppointment(
  */
 export async function cancelAppointment(appointmentId: string): Promise<AppointmentResponse> {
   try {
-    const supabase = serverClient();
+    const supabase = await createClient();
     
-    const { data, error } = await supabase.rpc('cancel_appointment', {
+    const { error } = await supabase.rpc('cancel_appointment', {
       p_appointment_id: appointmentId,
     });
     
@@ -145,7 +157,7 @@ export async function getAvailableTimeSlots(
   artist_id?: string
 ): Promise<AvailabilityResponse> {
   try {
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     const { data, error } = await supabase.rpc('get_available_time_slots', {
       p_date: date,
@@ -175,9 +187,9 @@ export async function checkAppointmentAvailability(
   startTime: Date,
   endTime: Date,
   appointmentId?: string
-): Promise<{ available: boolean; conflicting_appointments?: any[] }> {
+): Promise<{ available: boolean; conflicting_appointments?: ConflictingAppointment[] }> {
   try {
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     const { data, error } = await supabase.rpc('check_appointment_availability', {
       p_artist_id: artistId,
@@ -206,7 +218,7 @@ export async function calculateAppointmentDuration(
   complexity: number = 3
 ): Promise<string> {
   try {
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     const { data, error } = await supabase.rpc('calculate_appointment_duration', {
       p_size: size,

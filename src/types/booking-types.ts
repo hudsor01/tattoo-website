@@ -1,14 +1,22 @@
 /**
  * booking-types.ts
  *
- * Type definitions for the booking system.
- * Includes interfaces, type aliases, and Zod schemas for bookings and related operations.
+ * Consolidated type definitions for the entire booking system.
+ * Includes bookings, appointments, availability, and calendar integration types.
  */
 
 import { z } from 'zod';
-import type { BaseEntity, DateString, ApiResponse, ID } from './base-types';
+import type { DateString, ID } from './utility-types';
+import type { BaseEntity } from './database.types';
+import type { ApiResponse } from './api-types';
 import { BookingSource } from './enum-types';
 import { paginationSchema, dateRangeSchema } from './validation-types';
+
+/**
+ * ========================================================================
+ * BOOKING TYPES
+ * ========================================================================
+ */
 
 /**
  * Booking form schema for client-side validation
@@ -184,53 +192,336 @@ export interface BookingStats {
 }
 
 /**
- * Forms interfaces - previously in booking-types.ts
+ * ========================================================================
+ * APPOINTMENT TYPES (from appointments-types.ts)
+ * ========================================================================
  */
 
 /**
- * Form data type for the booking form
+ * Represents a file attachment for an appointment.
  */
-export interface BookingFormData {
+export interface FileData {
   name: string;
-  email: string;
-  phone: string;
-  tattooType: string;
-  size: string;
-  placement: string;
-  description: string;
-  preferredDate: string;
-  preferredTime: string;
-  agreeToTerms: boolean;
-  referenceImages?: string[];
-  paymentMethod?: string;
-  paymentIntentId?: string;
-  depositPaid?: boolean;
-  // Cal.com integration fields
+  url: string;
+  type?: string;
+  size?: number;
+}
+
+// Appointment status type
+export const appointmentStatusEnum = z.enum(['pending', 'confirmed', 'completed', 'cancelled']);
+export type AppointmentStatus = z.infer<typeof appointmentStatusEnum>;
+
+// Repository-specific appointment status type
+export type AppointmentRepositoryStatus =
+  | 'scheduled'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show'
+  | 'rescheduled';
+
+export const getAppointmentQueryParamsSchema = z.object({
+  status: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  clientId: z.string().optional(),
+});
+
+export type GetAppointmentQueryParams = z.infer<typeof getAppointmentQueryParamsSchema>;
+
+// Appointment parameters
+export interface CreateAppointmentParams {
+  customerId: number;
+  startDate: string;
+  endDate: string;
+  serviceType: string;
+  details?: string;
+  // Legacy support
+  customer_id?: number;
+  start_date?: string;
+  end_date?: string;
+  service_type?: string;
+}
+
+// Appointment entity
+export interface Appointment extends BaseEntity {
+  id: ID;
+  clientId: ID;
+  bookingId?: ID;
+  startTime: DateString;
+  endTime: DateString;
+  duration: number;
+  service: AppointmentService;
+  status: AppointmentStatus | AppointmentRepositoryStatus;
+  artist?: {
+    id: ID;
+    name: string;
+  };
+  location?: string;
+  notes?: string;
+  deposit?: {
+    amount: number;
+    paid: boolean;
+    paidAt?: DateString;
+  };
+  price?: {
+    service: number;
+    extras?: number;
+    tax?: number;
+    total: number;
+  };
+  checkinAt?: DateString;
+  checkoutAt?: DateString;
+  cancellationReason?: string;
+  rescheduledFrom?: ID;
+  rescheduledTo?: ID;
   calBookingId?: string;
-  calBookingUid?: string;
-  calEventTypeId?: number;
+  calEventId?: string;
+  files?: FileData[];
+}
+
+// Appointment service details
+export interface AppointmentService {
+  type: string;
+  name: string;
+  duration: number;
+  price: number;
+  description?: string;
+}
+
+export interface AppointmentCreateRequest {
+  clientId: ID;
+  bookingId?: ID;
+  startTime: DateString;
+  duration: number;
+  service: {
+    type: string;
+    name: string;
+    price: number;
+  };
+  artistId?: ID;
+  notes?: string;
+  deposit?: {
+    amount: number;
+    required: boolean;
+  };
+}
+
+export interface AppointmentUpdateRequest {
+  startTime?: DateString;
+  endTime?: DateString;
+  duration?: number;
+  status?: AppointmentStatus;
+  notes?: string;
+  deposit?: {
+    paid: boolean;
+    paidAt?: DateString;
+  };
+  cancellationReason?: string;
 }
 
 /**
- * Infer types from the Zod schemas for consistency
- * These will be properly resolved when imported from the services
+ * ========================================================================
+ * AVAILABILITY TYPES (from availability-types.ts)
+ * ========================================================================
  */
-export type BookingInputData = z.infer<typeof BookingSchema>;
-export type DepositUpdateData = z.infer<typeof DepositUpdateSchema>;
 
 /**
- * Stripe payment intent interface - moved from booking-types.ts
+ * Parameters for checking availability
  */
-export interface StripePaymentIntent {
+export interface AvailabilityParams {
+  date: string;
+  duration?: number;
+  artistId?: string;
+}
+
+/**
+ * Result of an availability check
+ */
+export interface AvailabilityResult {
+  date: string;
+  duration_minutes: number;
+  is_authenticated: boolean;
+  available_slots?: Array<{
+    start_time: string;
+    end_time: string;
+  }>;
+  error?: string;
+}
+
+/**
+ * Time slot structure returned from availability endpoints
+ */
+export interface TimeSlot {
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+  conflict_reason?: string;
+}
+
+/**
+ * Artist availability schedule
+ */
+export interface ArtistAvailability {
+  artistId: ID;
+  dayOfWeek: number; // 0-6 (Sunday-Saturday)
+  startTime: string; // HH:MM format
+  endTime: string; // HH:MM format
+  isAvailable: boolean;
+  exceptions?: Array<{
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    isAvailable: boolean;
+    reason?: string;
+  }>;
+}
+
+/**
+ * Availability configuration
+ */
+export interface AvailabilityConfig {
+  minBookingHours: number; // Minimum hours before booking
+  maxBookingDays: number; // Maximum days in advance
+  slotDuration: number; // Duration of each slot in minutes
+  bufferTime: number; // Buffer time between appointments
+  workingHours: {
+    [key: string]: { // day of week or 'default'
+      start: string;
+      end: string;
+      breaks?: Array<{
+        start: string;
+        end: string;
+      }>;
+    };
+  };
+}
+
+/**
+ * ========================================================================
+ * CAL.COM INTEGRATION TYPES (from cal-types.ts)
+ * ========================================================================
+ */
+
+/**
+ * Cal.com event types available on their platform
+ */
+export type CalEventType = 
+  | 'tattoo-consultation'
+  | 'deposit-payment'
+  | 'follow-up'
+  | 'touch-up'
+  | 'design-review';
+
+/**
+ * Cal.com booking status
+ */
+export type CalBookingStatus = 
+  | 'pending'
+  | 'accepted'
+  | 'rejected'
+  | 'cancelled'
+  | 'rescheduled';
+
+/**
+ * Cal.com webhook event types
+ */
+export type CalWebhookEvent = 
+  | 'booking.created'
+  | 'booking.updated'
+  | 'booking.cancelled'
+  | 'booking.rescheduled';
+
+/**
+ * Cal.com webhook payload structure
+ */
+export interface CalWebhookPayload {
+  /** Type of the webhook event */
+  event: CalWebhookEvent;
+  /** Unique identifier for the webhook call */
   id: string;
-  status: string;
-  client_secret?: string;
-  amount: number;
-  currency: string;
-  created: number;
-  receipt_email?: string;
-  metadata?: Record<string, string>;
+  /** Timestamp when the event occurred */
+  timestamp: number;
+  /** The actual booking data */
+  payload: CalBookingPayload;
 }
+
+/**
+ * Cal.com booking payload
+ */
+export interface CalBookingPayload {
+  id: number;
+  uid: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  status: CalBookingStatus;
+  eventType: {
+    id: number;
+    title: string;
+    slug: string;
+  };
+  organizer: {
+    id: number;
+    name: string;
+    email: string;
+    timeZone: string;
+  };
+  attendees: Array<{
+    id: number;
+    email: string;
+    name: string;
+    timeZone: string;
+    locale?: string;
+  }>;
+  location?: string;
+  destinationCalendar?: {
+    id: number;
+    integration: string;
+    externalId: string;
+  };
+  metadata?: Record<string, any>;
+  customInputs?: Record<string, any>;
+  payment?: {
+    amount: number;
+    currency: string;
+    status: string;
+  };
+}
+
+/**
+ * Cal.com availability
+ */
+export interface CalAvailability {
+  dateRanges: Array<{
+    start: string;
+    end: string;
+  }>;
+  days: number[]; // 0-6 representing days of week
+  startTime: string; // HH:MM
+  endTime: string; // HH:MM
+  timeZone: string;
+}
+
+/**
+ * Cal.com integration settings
+ */
+export interface CalIntegrationSettings {
+  enabled: boolean;
+  apiKey?: string;
+  eventTypeId?: number;
+  calendarId?: string;
+  defaultDuration?: number;
+  bufferTime?: number;
+  webhookSecret?: string;
+}
+
+/**
+ * ========================================================================
+ * BOOKING SCHEMAS
+ * ========================================================================
+ */
 
 /**
  * Base booking schema used by API
@@ -349,309 +640,140 @@ export const bookingListResponseSchema = z.object({
 export type BookingListResponse = z.infer<typeof bookingListResponseSchema>;
 
 /**
- * Email data for booking confirmations
+ * Payment status schema from existing booking-types
  */
-export interface BookingConfirmationEmailData {
-  name: string;
-  email: string;
-  bookingId: number;
-  tattooType: string;
-  size: string;
-  placement: string;
-  preferredDate: string;
-  preferredTime: string;
-  depositPaid: boolean;
-  depositConfirmed?: boolean;
-  paymentMethod?: string;
-  referenceImages?: string[];
-}
+export const PaymentStatusSchema = z.enum(['pending', 'paid', 'failed', 'refunded']);
+export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
 
 /**
- * Booking response from the API
+ * Payment method schema from existing booking-types
  */
-export interface BookingApiResponse extends ApiResponse {
-  bookingId?: number;
-}
+export const PaymentMethodSchema = z.enum(['cashapp', 'venmo', 'paypal', 'card', 'cash']);
+export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
+
+// Add missing enums that were referenced
+export type TattooSize = 'small' | 'medium' | 'large' | 'extra_large';
+export type TattooStyle = 'traditional' | 'realism' | 'tribal' | 'japanese' | 'blackwork' | 'watercolor' | 'other';
 
 /**
- * Payment form props interface
- */
-export interface PaymentFormProps {
-  formData: BookingFormData;
-  onSuccess: (paymentIntent: StripePaymentIntent) => void;
-  onError: (error: Error) => void;
-}
-
-/**
- * Booking Schema Definitions
- *
- * This file provides the single source of truth for all booking-related types
- * using Zod schemas. All types related to bookings should be derived from
- * these schemas to ensure consistency across the application.
+ * Additional booking schemas from older form types
  */
 
 /**
- * Booking status options
- */
-export const BookingStatusSchema = z.enum([
-  'pending',
-  'confirmed',
-  'completed',
-  'cancelled',
-  'new',
-  'reviewed',
-  'scheduled',
-  'rejected',
-]);
-
-/**
- * Payment status options
- */
-export const PaymentStatusSchema = z.enum([
-  'pending',
-  'processing',
-  'completed',
-  'failed',
-  'refunded',
-]);
-
-/**
- * Valid payment methods
- */
-export const PaymentMethodSchema = z.enum(['cashapp', 'venmo', 'paypal', 'card', 'unspecified']);
-
-/**
- * Tattoo size options
- */
-export const TattooSizeSchema = z.enum(['small', 'medium', 'large', 'extra_large', 'custom']);
-
-/**
- * Tattoo style options
- */
-export const TattooStyleSchema = z.enum([
-  'black_and_grey',
-  'traditional',
-  'neo_traditional',
-  'japanese',
-  'realism',
-  'watercolor',
-  'tribal',
-  'other',
-]);
-
-/**
- * Base booking schema shared between create/update operations
+ * Base booking schema
  */
 export const BookingBaseSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  name: z.string().min(2, 'Name is required'),
   email: z.string().email('Invalid email format'),
-  phone: z.string().min(5, 'Phone must be at least 5 characters').optional(),
+  phone: z.string().min(10, 'Phone must be at least 10 characters'),
   tattooType: z.string().min(1, 'Tattoo type is required'),
   size: z.string().min(1, 'Size is required'),
   placement: z.string().min(1, 'Placement is required'),
-  description: z.string().min(1, 'Description is required'),
-  preferredDate: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Invalid preferred date format',
-  }),
-  preferredTime: z.string().min(1, 'Preferred time is required'),
-  alternateDate: z
-    .string()
-    .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid alternate date format',
-    })
-    .optional(),
-  alternateTime: z.string().optional(),
+  description: z.string().min(10, 'Please describe your tattoo idea'),
+  preferredDate: z.string(),
+  preferredTime: z.string(),
   referenceImages: z.array(z.string()).optional(),
+  status: z.enum(['new', 'reviewed', 'scheduled', 'confirmed', 'completed', 'cancelled']).optional().default('new'),
+  paymentStatus: PaymentStatusSchema.optional().default('pending'),
+  agreeToTerms: z.boolean().refine(val => val === true, 'You must agree to the terms'),
 });
 
 /**
  * Schema for creating a new booking
  */
 export const BookingCreateSchema = BookingBaseSchema.extend({
-  agreeToTerms: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the terms',
-  }),
-  paymentMethod: PaymentMethodSchema.optional().default('unspecified'),
-  paymentIntentId: z.string().optional(),
-});
-
-/**
- * Schema for updating an existing booking
- */
-export const BookingUpdateSchema = z.object({
-  name: z.string().min(2).optional(),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  tattooType: z.string().optional(),
-  size: z.string().optional(),
-  placement: z.string().optional(),
-  description: z.string().optional(),
-  preferredDate: z
-    .string()
-    .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid preferred date format',
-    })
-    .optional(),
-  preferredTime: z.string().optional(),
-  alternateDate: z
-    .string()
-    .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid alternate date format',
-    })
-    .optional(),
-  alternateTime: z.string().optional(),
-  status: BookingStatusSchema.optional(),
-  depositPaid: z.boolean().optional(),
-  paymentStatus: PaymentStatusSchema.optional(),
-  assignedArtist: z.string().optional(),
-  consultationDate: z
-    .string()
-    .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid consultation date format',
-    })
-    .optional(),
-  appointmentCreated: z.boolean().optional(),
-  appointmentId: z.string().optional(),
-  notes: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
-  tags: z.array(z.string()).optional(),
-  referenceImages: z.array(z.string()).optional(),
-});
-
-/**
- * Schema for a booking in the database
- */
-export const BookingSchema = BookingBaseSchema.extend({
-  id: z.string(),
+  recaptchaToken: z.string().optional(),
+  source: z.string().optional().default('website'),
   clientId: z.string().optional(),
-  status: BookingStatusSchema.default('pending'),
-  depositPaid: z.boolean().default(false),
-  paymentStatus: PaymentStatusSchema.optional(),
   paymentMethod: PaymentMethodSchema.optional(),
-  assignedArtist: z.string().optional(),
-  consultationDate: z
-    .string()
-    .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid consultation date format',
-    })
-    .optional(),
-  appointmentCreated: z.boolean().optional(),
-  appointmentId: z.string().optional(),
-  notes: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
-  tags: z.array(z.string()).optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  paymentIntentId: z.string().optional(),
+  stripeCustomerId: z.string().optional(),
 });
 
 /**
- * Schema for deposit update
+ * Schema for updating a booking
+ */
+export const BookingUpdateSchema = BookingBaseSchema.partial().extend({
+  id: z.string(),
+  status: z.enum(['new', 'reviewed', 'scheduled', 'confirmed', 'completed', 'cancelled']).optional(),
+  paymentStatus: PaymentStatusSchema.optional(),
+  depositPaid: z.boolean().optional(),
+  finalPrice: z.number().optional(),
+  notes: z.string().optional(),
+  artistNotes: z.string().optional(),
+});
+
+/**
+ * Schema for deposit payment update
  */
 export const DepositUpdateSchema = z.object({
   bookingId: z.number(),
-  paymentMethod: PaymentMethodSchema.optional(),
-});
-
-/**
- * Schema for payment related to booking
- */
-export const BookingPaymentSchema = z.object({
-  id: z.string(),
-  bookingId: z.string(),
-  amount: z.number().positive(),
+  paymentIntentId: z.string(),
   paymentMethod: PaymentMethodSchema,
-  status: PaymentStatusSchema,
-  transactionId: z.string().optional(),
-  customerEmail: z.string().email(),
-  customerName: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  amount: z.number(),
 });
 
 /**
- * Schema for booking list query parameters
+ * Booking list params schema
  */
 export const BookingListParamsSchema = z.object({
   page: z.number().int().positive().optional().default(1),
   limit: z.number().int().positive().optional().default(10),
-  status: BookingStatusSchema.optional(),
-  depositPaid: z.boolean().optional(),
-  startDate: z
-    .string()
-    .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid start date format',
-    })
-    .optional(),
-  endDate: z
-    .string()
-    .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid end date format',
-    })
-    .optional(),
-  searchTerm: z.string().optional(),
+  status: z.string().optional(),
+  paymentStatus: PaymentStatusSchema.optional(),
+  search: z.string().optional(),
+  sortBy: z.enum(['createdAt', 'preferredDate', 'status']).optional().default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 
 /**
- * Schema for booking list response
+ * Infer types from Zod schemas
  */
-export const BookingListResponseSchema = z.object({
-  bookings: z.array(BookingSchema),
-  pagination: z.object({
-    total: z.number(),
-    pages: z.number(),
-    currentPage: z.number(),
-    perPage: z.number(),
-  }),
-});
-
-/**
- * Schema for booking confirmation email data
- */
-export const BookingConfirmationEmailDataSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  bookingId: z.string(),
-  tattooType: z.string(),
-  size: z.string(),
-  placement: z.string(),
-  preferredDate: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Invalid preferred date format',
-  }),
-  preferredTime: z.string(),
-  depositPaid: z.boolean(),
-  depositConfirmed: z.boolean().optional(),
-  paymentMethod: z.string().optional(),
-  referenceImages: z.array(z.string()).optional(),
-});
-
-/**
- * Schema for booking response
- */
-export const BookingResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string().optional(),
-  bookingId: z.string().optional(),
-  error: z.string().optional(),
-});
-
-// Export type definitions derived from schemas
-export type BookingStatus = z.infer<typeof BookingStatusSchema>;
-export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
-export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
-export type TattooSize = z.infer<typeof TattooSizeSchema>;
-export type TattooStyle = z.infer<typeof TattooStyleSchema>;
-export type BookingBase = z.infer<typeof BookingBaseSchema>;
+export type BookingFormValues = z.infer<typeof BookingBaseSchema>;
 export type BookingCreateInput = z.infer<typeof BookingCreateSchema>;
 export type BookingUpdateInput = z.infer<typeof BookingUpdateSchema>;
-export type BookingPayment = z.infer<typeof BookingPaymentSchema>;
 export type BookingListParams = z.infer<typeof BookingListParamsSchema>;
-export type BookingFormValues = BookingCreateInput;
 
 /**
- * Form step interface for multi-step booking forms
+ * Stripe payment intent interface
  */
-export interface FormStep<T> {
-  title: string;
-  fields: Array<keyof T>;
-  validateFields: () => Promise<boolean>;
+export interface StripePaymentIntent {
+  id: string;
+  status: string;
+  client_secret?: string;
+  amount: number;
+  currency: string;
+  created: number;
+  receipt_email?: string;
+  metadata?: Record<string, string>;
 }
+
+/**
+ * Booking form data type for forms
+ */
+export interface BookingFormData {
+  name: string;
+  email: string;
+  phone: string;
+  tattooType: string;
+  size: string;
+  placement: string;
+  description: string;
+  preferredDate: string;
+  preferredTime: string;
+  agreeToTerms: boolean;
+  referenceImages?: string[];
+  paymentMethod?: string;
+  paymentIntentId?: string;
+  depositPaid?: boolean;
+  // Cal.com integration fields
+  calBookingId?: string;
+  calBookingUid?: string;
+  calEventTypeId?: number;
+}
+
+// These exports will be resolved when the schemas are properly imported
+export const BookingSchema = BookingBaseSchema; // Aliased for compatibility
+export const DepositUpdateData = DepositUpdateSchema;

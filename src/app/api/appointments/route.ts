@@ -15,7 +15,7 @@ import {
   scheduleAppointment,
   checkAppointmentAvailability,
 } from '@/lib/db/db-appointments';
-import { AppointmentCreateSchema } from '@/types/appointments-types';
+import { AppointmentCreateSchema } from '@/types/booking-types';
 
 /**
  * GET /api/appointments

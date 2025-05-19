@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Loader2 } from 'lucide-react';
-import type { IconButtonProps } from '@/types/ui/icon-types';
+import type { IconButtonProps } from '@/types/component-types';
 
 /**
  * IconButton component that combines the Button and Icon components

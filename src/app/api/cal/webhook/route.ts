@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import type { CalWebhookPayload, CalWebhookEvent } from '@/types/cal-types';
+import type { CalWebhookPayload, CalWebhookEvent } from '@/types/booking-types';
 import crypto from 'crypto';
 import { 
   sendCalBookingConfirmation, 

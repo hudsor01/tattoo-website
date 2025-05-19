@@ -15,7 +15,7 @@ export * from './prisma';
 export { createSupabaseClient } from './db-client';
 
 // Export database types
-export * from './db-types';
+export * from './database.types';
 
 // Export function execution utilities
 export { executeDbFunction } from './db-execute';

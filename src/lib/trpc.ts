@@ -16,4 +16,4 @@ export { createTRPCClientInstance as createTRPCClient } from '@/lib/trpc/client-
 export type {
   RouterInputs,
   RouterOutputs
-} from '@/types/trpc-types';
+} from '@/types/api-types';

@@ -4,7 +4,7 @@
  */
 
 import { create } from 'zustand';
-import type { UIState } from '@/types/store-types';
+import type { UIState } from '@/types/utility-types';
 
 // Helper to generate unique IDs for toasts
 const generateId = () => Math.random().toString(36).substring(2, 9);

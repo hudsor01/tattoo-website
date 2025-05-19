@@ -84,7 +84,7 @@
   --backdrop-blur-md: 12px;
   --backdrop-blur-lg: 16px;
   --backdrop-blur-xl: 24px;
-
+}
 /* Animation keyframes definitions */
 :root {
   --animate-fade-in: fade-in 0.6s ease forwards;

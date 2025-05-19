@@ -9,7 +9,7 @@ import {
   PricingBreakdown, 
   StandardPricingData,
   ArtistRate
-} from '@/types/pricing-types';
+} from '@/types/payments-types';
 
 /**
  * Calculate pricing for a tattoo based on size, placement, and complexity

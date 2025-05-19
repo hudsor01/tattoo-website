@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { 
   Appointment, 
   AppointmentCreateInput
-} from '@/types/appointments-types';
+} from '@/types/booking-types';
 import { useErrorHandling } from '@/hooks/use-error-handling';
 
 /**

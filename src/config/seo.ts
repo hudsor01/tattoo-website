@@ -1,7 +1,7 @@
 // SEO Configuration for Next.js Metadata API
 
 const siteName = 'Fernando Govea Tattoo';
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fernandogoveatatoo.com';
+const siteUrl = process.env['NEXT_PUBLIC_SITE_URL'] || 'https://fernandogoveatatoo.com';
 const siteDescription = 'Award-winning tattoo artist specializing in custom designs, traditional, and fine line tattoos. Book your consultation today in Austin, TX.';
 
 // Default metadata template for all pages

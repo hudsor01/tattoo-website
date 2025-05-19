@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { type Database } from '@/types/db-types';
+import { type Database } from '@/types/database.types';
 
 /**
  * Create a Supabase client for use in middleware

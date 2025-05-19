@@ -5,7 +5,7 @@
 
 import { DEFAULT_FROM_EMAIL } from './email-resend';
 
-import type { ContactFormData } from '@/types/forms-types';
+import type { ContactFormData } from '@/types/component-types';
 
 /**
  * Generate an email for admin notification of a new contact form submission

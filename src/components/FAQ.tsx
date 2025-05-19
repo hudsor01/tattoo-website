@@ -4,7 +4,7 @@ import React from 'react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaMinus } from 'react-icons/fa';
-import type { FAQItemType } from '@/types/ui/component-types';
+import type { FAQItemType } from '@/types/component-types';
 
 // FAQ data
 const faqItems: FAQItemType[] = [

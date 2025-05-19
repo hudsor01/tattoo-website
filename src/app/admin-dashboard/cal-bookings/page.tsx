@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CalendarIcon, Clock, User, MapPin, DollarSign } from 'lucide-react';
-import type { CalBookingPayload } from '@/types/cal-types';
+import type { CalBookingPayload } from '@/types/booking-types';
 
 // Mock data for demonstration - replace with actual API calls
 const mockBookings: CalBookingPayload[] = [

@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
-import type { FAQAccordionProps } from '@/types/ui/component-types';
+import type { FAQAccordionProps } from '@/types/component-types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 

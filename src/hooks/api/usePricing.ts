@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { 
   PricingBreakdown,
   StandardPricingData 
-} from '@/types/pricing-types';
+} from '@/types/payments-types';
 
 interface PricingCalculationParams {
   size: string;
