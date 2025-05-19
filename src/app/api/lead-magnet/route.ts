@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { apiRoute, leadMagnetSchema, leadMagnetResponseSchema } from '@/lib/validations/api';
+import { apiRoute, leadMagnetSchema, leadMagnetResponseSchema } from '@/lib/validations/validation-api-utils';
 import { prisma } from '@/lib/db/prisma';
-import { sendEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email/email';
 
 /**
  * Handle lead magnet requests

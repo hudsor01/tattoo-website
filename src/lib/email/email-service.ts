@@ -11,7 +11,7 @@
 import { sendEmail as resendSendEmail } from './email-resend';
 import type { EmailRecipient } from '@/types/email-types';
 import * as Sentry from '@sentry/nextjs';
-import { prisma } from '@/lib/db-client';
+import { prisma } from '@/lib/db/db';
 
 // Import type definitions
 import {

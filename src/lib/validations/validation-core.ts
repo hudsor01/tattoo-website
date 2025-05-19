@@ -7,15 +7,12 @@
 
 // Import Zod as a namespace to avoid tree-shaking issues in Edge runtime
 import * as z from 'zod';
-import { useToast } from '@/hooks/use-toast';
-import { useErrorHandling } from '@/hooks/use-error-handling';
 
 // Check if we're in production build mode
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 // Create safe array validation that avoids direct use of problematic z.array()
 export function safeArray<T extends z.ZodTypeAny>(schema: T) {
-  const toast = useToast();
   if (IS_PRODUCTION) {
     // In production, use a simplified validator that just checks if it's an array
     return z.preprocess(
@@ -189,7 +186,7 @@ export const formatZodErrors = formatValidationErrors;
  */
 export function showValidationErrors(error: z.ZodError): void {
   error.errors.forEach((err) => {
-    toast.error(err.message);
+    // toast.error(err.message);
   });
 }
 

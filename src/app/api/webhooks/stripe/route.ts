@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { serverClient } from '@/lib/supabase/server-client';
-import { sendEmail, generateBookingConfirmationEmail } from '@/lib/email';
+import { serverClient } from '@/lib/supabase/server';
+import { sendEmail, generateBookingConfirmationEmail } from '@/lib/email/email';
 // import { processBookingAsCRMContact } from '@/lib/services/crm';
 import { cache } from '@/lib/cache';
 import { logger } from '@/lib/logger';

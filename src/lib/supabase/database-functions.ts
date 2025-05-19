@@ -1,162 +1,139 @@
 /**
- * Database Functions for Tattoo Shop Management
- *
- * This module provides functions for interacting with database functions
- * on the Supabase backend for appointment booking and management.
+ * Supabase Database Functions
+ * 
+ * This file contains functions that interact with Supabase database,
+ * including role checks and other database operations.
  */
 
-import { createClient } from './server';
-
-// Define UserLike type directly instead of importing it
-interface UserLike {
-  id: string;
-  email?: string;
-  user_metadata?: Record<string, any>;
-}
-
-// We'll use dynamic imports for next/headers to prevent client-side errors
+import { User } from '@supabase/supabase-js';
+import { createClient } from './client';
+import { logger } from '@/lib/logger';
 
 /**
- * Types for appointment creation
+ * Check if a user has admin privileges
+ * This function can be used in both client and server contexts
+ * 
+ * @param user - The Supabase user object
+ * @returns true if the user is an admin, false otherwise
  */
-export type CreateAppointmentParams = {
-  customer_id: number | string;
-  start_date: string;
-  end_date: string;
-  service_type: string;
-  notes?: string;
-  deposit_required?: boolean;
-  deposit_amount?: number;
-};
+export async function checkIsAdmin(user: User | null): Promise<boolean> {
+  if (!user) {
+    return false;
+  }
 
-export type AppointmentResponse = {
-  appointment_id?: string;
-  error?: string;
-  success?: boolean;
-};
-
-export type AvailableSlotsResponse = {
-  available_slots?: { start_time: string; end_time: string }[];
-  error?: string;
-};
-
-/**
- * Creates a new appointment using the database function
- */
-export async function createAppointment(
-  params: CreateAppointmentParams,
-): Promise<AppointmentResponse> {
   try {
-    const supabase = await createClient();
+    // Check if user has admin role in metadata
+    const metadata = user.user_metadata || {};
+    const appMetadata = user.app_metadata || {};
+    
+    // Check various ways admin role might be stored
+    const isAdminInMetadata = 
+      metadata.role === 'admin' || 
+      appMetadata.role === 'admin' ||
+      metadata.is_admin === true ||
+      appMetadata.is_admin === true;
 
-    const { data, error } = await supabase.rpc('create_appointment', {
-      p_customer_id: params.customer_id,
-      p_start_date: params.start_date,
-      p_end_date: params.end_date,
-      p_service_type: params.service_type,
-      p_notes: params.notes || '',
-      p_deposit_required: params.deposit_required || false,
-      p_deposit_amount: params.deposit_amount || 0,
-    });
-
-    if (error) {
-      console.error('Error creating appointment:', error);
-      return { error: error.message };
+    if (isAdminInMetadata) {
+      return true;
     }
 
-    return {
-      appointment_id: data,
-      success: true,
-    };
+    // If not in metadata, check against the allowed admin emails
+    const authorizedAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim());
+    
+    if (user.email && authorizedAdmins.includes(user.email)) {
+      return true;
+    }
+
+    // You could also check against a database table if needed
+    // For example:
+    // const supabase = createClient();
+    // const { data, error } = await supabase
+    //   .from('admin_users')
+    //   .select('id')
+    //   .eq('user_id', user.id)
+    //   .single();
+    // 
+    // return !error && !!data;
+
+    return false;
   } catch (error) {
-    console.error('Error in createAppointment:', error);
-    return {
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
+    logger.error('Error checking admin status:', {
+      error,
+      userId: user.id,
+    });
+    return false;
   }
 }
 
 /**
- * Gets available appointment slots for a given date
+ * Get user role from the database or metadata
+ * 
+ * @param userId - The user ID to check
+ * @returns The user's role or null if not found
  */
-export async function getAvailableSlots(
-  date: string,
-  duration_minutes: number = 60,
-): Promise<AvailableSlotsResponse> {
+export async function getUserRole(userId: string): Promise<string | null> {
   try {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase.rpc('get_available_slots', {
-      p_date: date,
-      p_duration_minutes: duration_minutes,
-    });
-
-    if (error) {
-      console.error('Error getting available slots:', error);
-      return { error: error.message };
-    }
-
-    return {
-      available_slots: data,
-    };
-  } catch (error) {
-    console.error('Error in getAvailableSlots:', error);
-    return {
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
-  }
-}
-
-// Add this interface before the checkIsAdmin function
-interface CheckUserIsAdminParams {
-  p_user_id: string;
-}
-
-/**
- * Checks if the current user has admin privileges
- * This function works in both client and server contexts
- */
-export async function checkIsAdmin(user?: UserLike): Promise<boolean> {
-  try {
-    const supabase =
-      (await createClient()) as import('@supabase/supabase-js').SupabaseClient<unknown>;
-
-    // If user is provided, use it directly, otherwise fetch from auth
-    let userId: string | undefined;
-
-    if (user && user.id) {
-      // User object was passed in
-      userId = user.id;
-    } else {
-      // No user provided, try to get the current user
-      const {
-        data: { user: authUser },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !authUser) {
-        return false;
+    const supabase = createClient();
+    
+    // First check user metadata
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    
+    if (!userError && userData?.user?.id === userId) {
+      const role = userData.user.user_metadata?.role || userData.user.app_metadata?.role;
+      if (role) {
+        return role;
       }
-
-      userId = authUser.id;
     }
 
-    // Then check for admin role
-    if (!userId) {
-      return false;
-    }
-    const { data, error } = await supabase.rpc<boolean, CheckUserIsAdminParams>('check_user_is_admin', {
-      p_user_id: userId,
-    });
+    // If not in metadata, you could check a database table
+    // For example:
+    // const { data, error } = await supabase
+    //   .from('user_roles')
+    //   .select('role')
+    //   .eq('user_id', userId)
+    //   .single();
+    // 
+    // if (!error && data) {
+    //   return data.role;
+    // }
 
-    if (error) {
-      console.error('Error checking admin status:', error);
-      return false;
-    }
-
-    return !!data;
+    return null;
   } catch (error) {
-    console.error('Error in checkIsAdmin:', error);
+    logger.error('Error getting user role:', {
+      error,
+      userId,
+    });
+    return null;
+  }
+}
+
+/**
+ * Update user role in the database
+ * 
+ * @param userId - The user ID to update
+ * @param role - The new role to assign
+ * @returns Success status
+ */
+export async function updateUserRole(userId: string, role: string): Promise<boolean> {
+  try {
+    const supabase = createClient();
+    
+    // Note: admin.updateUserById is only available with service role key
+    // For client-side apps, you would need to call an API endpoint that uses server-side Supabase
+    // This is just a placeholder that won't work in the browser
+    
+    logger.warn('updateUserRole should be called from a server-side API endpoint', {
+      userId,
+      role,
+    });
+    
+    return false;
+  } catch (error) {
+    logger.error('Error updating user role:', {
+      error,
+      userId,
+      role,
+    });
     return false;
   }
 }

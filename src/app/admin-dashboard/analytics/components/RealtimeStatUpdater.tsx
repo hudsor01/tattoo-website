@@ -9,8 +9,6 @@ import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useErrorHandling } from '@/hooks/use-error-handling';
 
 export interface RealtimeStat {
   id: string;
@@ -23,10 +21,9 @@ export interface RealtimeStat {
 }
 
 export function RealtimeStatUpdater() {
-  const toast = useToast();
+  // const toast = useToast();
   const [stats, setStats] = useState<RealtimeStat[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Initialize with some data
@@ -91,17 +88,17 @@ export function RealtimeStatUpdater() {
         // Connection is established if we're receiving data
         if (!isConnected) {
           setIsConnected(true);
-          toast.success("Real-time connection established", {
-            description: "You're now receiving live analytics updates"
-          });
+          // toast.success("Real-time connection established", {
+          //   description: "You're now receiving live analytics updates"
+          // });
         }
       },
       onError(error) {
         console.error('Analytics subscription error:', error);
         setIsConnected(false);
-        toast.error("Connection error", {
-          description: "Failed to connect to analytics stream"
-        });
+        // toast.error("Connection error", {
+        //   description: "Failed to connect to analytics stream"
+        // });
       }
     });
 

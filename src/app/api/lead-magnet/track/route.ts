@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { apiRoute, trackingSchema } from '@/lib/validations/api';
+import { apiRoute, trackingSchema } from '@/lib/validations/validation-api-utils';
 import { prisma } from '@/lib/db/prisma';
 
 export const dynamic = 'force-dynamic';

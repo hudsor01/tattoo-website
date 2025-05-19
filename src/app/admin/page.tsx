@@ -113,11 +113,11 @@ export default function AdminDashboard() {
   };
 
   const exportData = (): void => {
-    const csvContent = 'data:text/csv;charset=utf-8,' +
-      'Name,Email,Service,Date,Status\n' +
+    const csvContent = `data:text/csv;charset=utf-8,` +
+      `Name,Email,Service,Date,Status\n${ 
       recentBookings.map(booking => 
         `${booking.name},${booking.email},${booking.service},${booking.date},${booking.status}`
-      ).join('\n');
+      ).join('\n')}`;
     
     const link = document.createElement('a');
     link.href = encodeURI(csvContent);

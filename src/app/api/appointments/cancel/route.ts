@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cancelAppointment } from '@/lib/db-functions';
-import { serverClient } from '@/lib/supabase/server-client';
+import { cancelAppointment } from '@/lib/db/functions';
+import { serverClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/appointments/cancel

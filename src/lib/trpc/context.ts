@@ -7,7 +7,7 @@
  */
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
-import { serverClient } from '@/lib/supabase/server-client';
+import { serverClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db/prisma';
 import { fixSupabaseUrl, ensureCorrectSupabaseUrl } from '@/lib/utils/common';
 import { logger } from '@/lib/logger';

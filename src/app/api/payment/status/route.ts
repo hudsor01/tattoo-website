@@ -3,8 +3,8 @@ import {
   apiRoute,
   paymentStatusCheckSchema,
   paymentStatusResponseSchema,
-} from '@/lib/validations/api';
-import { serverClient } from '@/lib/supabase/server-client';
+} from '@/lib/validations/validation-api-utils';
+import { serverClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/services/stripe';
 
 /**

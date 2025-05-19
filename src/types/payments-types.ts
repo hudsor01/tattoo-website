@@ -158,7 +158,7 @@ export interface Transaction {
  */
 
 // Define ID schema here since it's not available in the common module
-const ID = z.string().min(1);
+const IDSchema = z.string().min(1);
 
 /**
  * Payment type options

@@ -7,7 +7,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { publicProcedure, router, protectedProcedure } from '../server';
-import { serverClient } from '@/lib/supabase/server-client';
+import { serverClient } from '@/lib/supabase/server';
 
 export const appointmentsRouter = router({
   /**

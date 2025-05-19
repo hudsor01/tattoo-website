@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useLiveAnalytics } from '@/hooks/use-live-analytics';
 import {
   Card,
   CardContent,

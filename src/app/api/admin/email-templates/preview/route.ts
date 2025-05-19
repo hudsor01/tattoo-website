@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils';
-import { sendEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email/email';
 
 /**
  * POST /api/admin/email-templates/preview

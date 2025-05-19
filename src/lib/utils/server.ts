@@ -6,7 +6,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cookies } from 'next/headers';
-import { serverClient } from '@/lib/supabase/server-client';
+import { serverClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db/prisma';
 
 /**

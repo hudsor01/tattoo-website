@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAppointment } from '@/lib/db-functions';
-import { serverClient } from '@/lib/supabase/server-client';
+import { createAppointment } from '@/lib/db/functions';
+import { serverClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/appointments/schedule

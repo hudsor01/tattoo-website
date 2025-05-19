@@ -56,7 +56,7 @@ const getServerLogger = (): LoggerInterface => {
   try {
     // Dynamically import winston - only works on server
     // using eval to prevent webpack from trying to bundle this
-    // eslint-disable-next-line no-eval
+     
     const winston = eval("require('winston')");
 
     // Define colors for each log level

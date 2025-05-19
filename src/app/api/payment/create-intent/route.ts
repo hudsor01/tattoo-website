@@ -3,7 +3,7 @@ import {
   apiRoute,
   createPaymentIntentSchema,
   paymentIntentResponseSchema,
-} from '@/lib/validations/api';
+} from '@/lib/validations/validation-api-utils';
 import { stripe } from '@/lib/services/stripe';
 
 export const dynamic = 'force-dynamic';
