@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user?.email || \'Admin\'}
+          Welcome back, {user?.email || 'Admin'}
         </p>
       </div>
 

@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import type { 
   Appointment, 
-  AppointmentCreateInput
+  AppointmentCreateRequest
 } from '@/types/booking-types';
 import { useErrorHandling } from '@/hooks/use-error-handling';
 
@@ -14,11 +14,11 @@ import { useErrorHandling } from '@/hooks/use-error-handling';
  * Hook for managing appointments
  */
 export function useAppointments(options?: {
-  const toast = useToast(); 
   limit?: number;
   userType?: 'customer' | 'artist';
 }) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Default options

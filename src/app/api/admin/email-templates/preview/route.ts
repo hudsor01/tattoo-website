@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
         name: 'Ink 37',
         address: '123 Tattoo Ave, Ink City, CA 90210',
         phone: '555-INK-0037',
-        email: 'contact@ink37.com',
-        website: 'www.ink37.com',
+        email: 'contact@ink37tattoos.com',
+        website: 'www.ink37tattoos.com',
       },
     };
 

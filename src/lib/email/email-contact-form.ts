@@ -94,7 +94,7 @@ export function generateAdminContactEmail(data: ContactFormData) {
 
         <p>You can reply directly to this email to respond to ${data.name}.</p>
 
-        ${data.contactId ? `<a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://ink37.com'}/admin?section=contacts&id=${data.contactId}" class="button">View in Admin Dashboard</a>` : ''}
+        ${data.contactId ? `<a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://ink37tattoos.com'}/admin?section=contacts&id=${data.contactId}" class="button">View in Admin Dashboard</a>` : ''}
       </div>
       <div class="footer">
         <p>This is an automated notification from your Ink 37 website contact form.</p>
@@ -116,7 +116,7 @@ MESSAGE:
 ${data.message}
 
 You can reply directly to this email to respond to ${data.name}.
-${data.contactId ? `\nView in Admin Dashboard: ${process.env.NEXT_PUBLIC_BASE_URL || 'https://ink37.com'}/admin?section=contacts&id=${data.contactId}` : ''}
+${data.contactId ? `\nView in Admin Dashboard: ${process.env.NEXT_PUBLIC_BASE_URL || 'https://ink37tattoos.com'}/admin?section=contacts&id=${data.contactId}` : ''}
 
 This is an automated notification from your Ink 37 website contact form.
   `.trim();

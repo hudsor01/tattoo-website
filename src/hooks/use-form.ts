@@ -16,7 +16,6 @@ interface FormOptions<T> {
  * Custom form hook for form management with validation
  */
 export function useForm<T extends Record<string, any>>({
-  const toast = useToast();
   initialValues,
   validationSchema,
   onSubmit,
