@@ -12,7 +12,7 @@ import {
   RealtimeSubscriptionOptions,
   PostgresChangesConfig,
   UseRealtimeResult
-} from '@/types/hooks-types';
+} from '@/types/utility-types';
 
 /**
  * Hook for subscribing to Supabase realtime changes

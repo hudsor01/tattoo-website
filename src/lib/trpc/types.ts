@@ -6,7 +6,7 @@
  */
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from './routers';
-import type { RouterInputs, RouterOutputs } from '@/types/trpc-types';
+import type { RouterInputs, RouterOutputs } from '@/types/api-types';
 
 // Re-export the types from the types directory
 export type { RouterInputs, RouterOutputs };
@@ -18,7 +18,7 @@ type InferredRouterOutputs = inferRouterOutputs<AppRouter>;
 
 // These types will be picked up by TypeScript for type checking
 // but won't be included in the JavaScript output
-declare module '@/types/trpc-types' {
+declare module '@/types/api-types' {
   type RouterInputs = InferredRouterInputs
   type RouterOutputs = InferredRouterOutputs
 }

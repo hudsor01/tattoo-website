@@ -5,30 +5,28 @@
  * throughout the application.
  */
 
-import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef } from 'react';
 import { trpc } from '@/lib/trpc';
-import {
+import type {
   AnalyticsEventType,
   BaseEventType,
   BookingEventType,
   ConversionEventType,
   ErrorEventType,
-  EventCategory,
   GalleryEventType,
   InteractionEventType,
   PageViewEventType,
 } from '@/lib/trpc/routers/types';
+import { EventCategory } from '@/lib/trpc/routers/types';
 import { v4 as uuidv4 } from 'uuid';
 import { getCookie, setCookie } from '@/lib/cookie';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { getDeviceInfo } from '@/lib/browser';
+import { getDeviceInfo } from '@/lib/utils/browser/device-detection';
 
 /**
  * Main analytics hook for tracking events
  */
 export const useAnalytics = () => {
-  const router = useRouter();
   const pathname = usePathname();
 
   // Get the current session ID from cookie or create a new one
@@ -62,11 +60,12 @@ export const useAnalytics = () => {
   }, []);
 
   // tRPC procedures
-  const trackEventMutation = trpc.analytics.trackEvent.useMutation();
+  // Check the actual procedure names in your analytics router
+  const trackEventMutation = trpc.analytics.track.useMutation();
   const trackPageViewMutation = trpc.analytics.trackPageView.useMutation();
   const trackInteractionMutation = trpc.analytics.trackInteraction.useMutation();
-  const trackBookingEventMutation = trpc.analytics.trackBookingEvent.useMutation();
-  const trackGalleryEventMutation = trpc.analytics.trackGalleryEvent.useMutation();
+  const trackBookingEventMutation = trpc.analytics.trackBooking.useMutation();
+  const trackGalleryEventMutation = trpc.analytics.trackGallery.useMutation();
   const trackConversionMutation = trpc.analytics.trackConversion.useMutation();
   const trackErrorMutation = trpc.analytics.trackError.useMutation();
 
@@ -202,6 +201,7 @@ export const usePageViewTracking = (pageTitle?: string) => {
   const { trackPageView } = useAnalytics();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamsString = searchParams?.toString();
 
   // Track page views
   useEffect(() => {
@@ -216,7 +216,7 @@ export const usePageViewTracking = (pageTitle?: string) => {
       pageTitle: pageTitle || (typeof document !== 'undefined' ? document.title : 'Home'),
       path: pathname,
     });
-  }, [pathname, searchParams, trackPageView, pageTitle]);
+  }, [pathname, searchParamsString, trackPageView, pageTitle]);
 };
 
 /**
@@ -260,6 +260,7 @@ export const useBookingAnalytics = () => {
   const trackDateSelection = useCallback(
     (serviceId: string, serviceName: string, appointmentDate: Date) => {
       trackBookingEvent({
+        timestamp: new Date(),
         action: 'select_date',
         serviceId,
         serviceName,

@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { Database } from '@/types/db-types'
+import { Database } from '@/types/database.types'
 
 export async function updateSession(request: NextRequest) {
   // Create a response to modify

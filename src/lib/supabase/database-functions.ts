@@ -5,8 +5,14 @@
  * on the Supabase backend for appointment booking and management.
  */
 
-import { serverClient } from './server-client';
-import type { UserLike } from './db-function-types';
+import { createClient } from './server';
+
+// Define UserLike type directly instead of importing it
+interface UserLike {
+  id: string;
+  email?: string;
+  user_metadata?: Record<string, any>;
+}
 
 // We'll use dynamic imports for next/headers to prevent client-side errors
 
@@ -41,7 +47,7 @@ export async function createAppointment(
   params: CreateAppointmentParams,
 ): Promise<AppointmentResponse> {
   try {
-    const supabase = await serverClient();
+    const supabase = await createClient();
 
     const { data, error } = await supabase.rpc('create_appointment', {
       p_customer_id: params.customer_id,
@@ -78,7 +84,7 @@ export async function getAvailableSlots(
   duration_minutes: number = 60,
 ): Promise<AvailableSlotsResponse> {
   try {
-    const supabase = serverClient();
+    const supabase = await createClient();
 
     const { data, error } = await supabase.rpc('get_available_slots', {
       p_date: date,
@@ -101,6 +107,11 @@ export async function getAvailableSlots(
   }
 }
 
+// Add this interface before the checkIsAdmin function
+interface CheckUserIsAdminParams {
+  p_user_id: string;
+}
+
 /**
  * Checks if the current user has admin privileges
  * This function works in both client and server contexts
@@ -108,7 +119,7 @@ export async function getAvailableSlots(
 export async function checkIsAdmin(user?: UserLike): Promise<boolean> {
   try {
     const supabase =
-      (await serverClient()) as import('@supabase/supabase-js').SupabaseClient<unknown>;
+      (await createClient()) as import('@supabase/supabase-js').SupabaseClient<unknown>;
 
     // If user is provided, use it directly, otherwise fetch from auth
     let userId: string | undefined;
@@ -134,7 +145,7 @@ export async function checkIsAdmin(user?: UserLike): Promise<boolean> {
     if (!userId) {
       return false;
     }
-    const { data, error } = await supabase.rpc<any, { p_user_id: string }>('check_user_is_admin', {
+    const { data, error } = await supabase.rpc<boolean, CheckUserIsAdminParams>('check_user_is_admin', {
       p_user_id: userId,
     });
 

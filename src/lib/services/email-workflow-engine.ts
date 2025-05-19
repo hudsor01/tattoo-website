@@ -8,7 +8,7 @@
 import { prisma } from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/email-service';
 import type { EmailTemplate } from '@/types/email-types';
-import type { WorkflowDefinition, WorkflowTrigger, WorkflowStep } from '@/types/workflow-types';
+import type { WorkflowDefinition, WorkflowTrigger, WorkflowStep } from '@/types/utility-types';
 
 /**
  * Defines the structure of an email workflow

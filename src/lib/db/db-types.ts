@@ -18,7 +18,7 @@ import type {
   AppointmentScheduleResult,
   CancellationParams,
   CancellationPolicyResult
-} from '@/types/db-function-types';
+} from '@/types/database.types';
 
 export type {
   ExecuteStoredProcedureOptions,

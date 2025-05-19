@@ -4,7 +4,7 @@
  * Configuration settings for Cal.com integration
  */
 
-import type { CalIntegrationConfig } from '@/types/cal-types';
+import type { CalIntegrationConfig } from '@/types/booking-types';
 
 export const calConfig: CalIntegrationConfig = {
   namespace: 'tattoo-booking',

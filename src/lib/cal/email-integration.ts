@@ -6,7 +6,7 @@
 
 import { sendEmail } from '@/lib/email/email-resend';
 import { render } from '@react-email/render';
-import type { CalBookingPayload } from '@/types/cal-types';
+import type { CalBookingPayload } from '@/types/booking-types';
 import type { EmailRecipient } from '@/types/email-types';
 
 // Import email templates

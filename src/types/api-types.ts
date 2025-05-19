@@ -10,10 +10,30 @@ import { z } from 'zod';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AxiosError } from 'axios';
 import { PaymentStatus, PaymentType } from './enum-types';
+import { NextRequest, NextResponse } from 'next/server';
 
-// ApiResponse is exported from base-types and re-exported from here
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { ApiResponse, ID } from './base-types';
+// Import needed types
+import type { ID } from './utility-types';
+
+/**
+ * API response envelope
+ *
+ * This is the standard response format for all API endpoints.
+ * It includes fields for both error and success responses.
+ */
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  details?: { path: string; message: string }[];
+  meta?: {
+    page?: number;
+    perPage?: number;
+    total?: number;
+    totalPages?: number;
+  };
+}
 
 /**
  * Paginated Response
@@ -550,4 +570,213 @@ export interface ApiEndpointConfig {
   responseSchema?: z.ZodType<unknown>;
   requestSchema?: z.ZodType<unknown>;
   mockResponse?: unknown;
+}
+
+/**
+ * Route Handler Types from api-route-types.ts
+ */
+
+// Duplicate of existing ErrorResponse - using existing type instead
+// export type ErrorResponse defined above
+
+// Duplicate of existing SuccessResponse - using existing type instead  
+// export type SuccessResponse<T> defined above
+
+// Generic API Response type already defined in base-types.ts
+// export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
+
+// Route handler config options
+export type RouteHandlerConfig = {
+  requireAuth?: boolean;
+  requireAdmin?: boolean;
+  enableCaching?: boolean;
+  cacheTTL?: number; // in seconds
+  cacheKey?: string | ((req: NextRequest) => string);
+};
+
+/**
+ * Generic handler function type
+ * @template T The type of the validated data
+ * @template U The type of the user, defaults to unknown
+ * @template R The type of the response data, defaults to unknown
+ */
+export type HandlerFunction<T, U = unknown, R = unknown> = (
+  req: NextRequest,
+  context: {
+    params?: Record<string, string>;
+    user?: U;
+    validatedData?: T;
+  }
+) => Promise<ApiResponse<R> | NextResponse>;
+
+/**
+ * ========================================================================
+ * tRPC TYPES (from trpc-types.ts)
+ * ========================================================================
+ */
+
+// tRPC type imports
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
+import type { PrismaClient } from '@prisma/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+/**
+ * Context object passed to all tRPC procedures
+ */
+export interface Context {
+  prisma: PrismaClient;
+  req: Request;
+  headers: Headers;
+  supabase: SupabaseClient;
+  user: unknown | null; // TODO: Replace with proper User type
+}
+
+/**
+ * Creates tRPC context type from createContext function return value
+ * This is designed to be imported from lib/trpc-context.ts
+ */
+export type CreateContextReturn = Context;
+
+/**
+ * tRPC router input types
+ * To be populated by the AppRouter after definition
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
+export interface RouterInputs {}
+
+/**
+ * tRPC router output types
+ * To be populated by the AppRouter after definition
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
+export interface RouterOutputs {}
+
+/**
+ * ========================================================================
+ * QUERY TYPES (FROM REACT QUERY)
+ * ========================================================================
+ */
+
+import type { FilterOptions, RecordObject } from './utility-types';
+
+/**
+ * Options for creating query hooks
+ */
+export interface CreateQueryHooksOptions<
+  TResource extends string,
+  TListParams extends FilterOptions,
+  TDetail,
+  TCreate extends RecordObject,
+  TUpdate extends RecordObject,
+> {
+  /**
+   * Resource name, used in query keys (e.g., 'bookings', 'clients')
+   */
+  resource: TResource;
+
+  /**
+   * API endpoint paths for different operations
+   */
+  endpoints: {
+    list: string;
+    detail: (id: string | number) => string;
+    create?: string;
+    update?: (id: string | number) => string;
+    delete?: (id: string | number) => string;
+  };
+
+  /**
+   * Zod schemas for validation
+   */
+  schemas?: {
+    list?: {
+      params?: z.ZodType<TListParams>;
+      response?: z.ZodType<PaginatedListResponse<TDetail> | ApiResponse<TDetail[]>>;
+    };
+    detail?: {
+      response?: z.ZodType<SuccessResponse<TDetail> | ApiResponse<TDetail>>;
+    };
+    create?: {
+      request?: z.ZodType<TCreate>;
+      response?: z.ZodType<SuccessResponse<TDetail> | ApiResponse<TDetail>>;
+    };
+    update?: {
+      request?: z.ZodType<TUpdate>;
+      response?: z.ZodType<SuccessResponse<TDetail> | ApiResponse<TDetail>>;
+    };
+  };
+
+  /**
+   * Query client configuration
+   */
+  config?: {
+    list?: {
+      staleTime?: number;
+      refetchInterval?: number | false;
+      enabled?: boolean;
+    };
+    detail?: {
+      staleTime?: number;
+      refetchInterval?: number | false;
+    };
+  };
+}
+
+/**
+ * Query keys for a resource
+ */
+export type QueryKeys<TResource extends string, TListParams> = {
+  all: readonly [TResource];
+  lists: () => readonly [TResource, string];
+  list: (params?: TListParams) => readonly [TResource, string, TListParams | undefined];
+  details: () => readonly [TResource, string];
+  detail: (id: string | number) => readonly [TResource, string, string | number];
+};
+
+/**
+ * API request error type
+ */
+export interface ApiRequestError {
+  message: string;
+  status?: number;
+  data?: unknown;
+}
+
+/**
+ * Hook result type for list queries
+ */
+export interface UseListResult<TDetail> {
+  data?: PaginatedListResponse<TDetail> | ApiResponse<TDetail[]>;
+  isLoading: boolean;
+  isError: boolean;
+  error: ApiRequestError | null;
+  isFetching: boolean;
+  refetch: () => void;
+}
+
+/**
+ * Hook result type for detail queries
+ */
+export interface UseDetailResult<TDetail> {
+  data?: SuccessResponse<TDetail> | ApiResponse<TDetail>;
+  isLoading: boolean;
+  isError: boolean;
+  error: ApiRequestError | null;
+  isFetching: boolean;
+  refetch: () => void;
+}
+
+/**
+ * Hook result type for mutations
+ */
+export interface UseMutationResult<TResult, TVariables> {
+  mutate: (variables: TVariables) => void;
+  mutateAsync: (variables: TVariables) => Promise<TResult>;
+  isLoading: boolean;
+  isError: boolean;
+  error: ApiRequestError | null;
+  isSuccess: boolean;
+  data?: TResult;
+  reset: () => void;
 }
