@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { Box, CircularProgress, Typography } from '@mui/material';
 
 // Use dynamic import for the dashboard layout to avoid SSR hydration issues
 const DashboardLayout = dynamic(() => import('@/app/admin-dashboard/components/DashboardLayout'), {

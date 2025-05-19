@@ -56,8 +56,7 @@ const formItemVariants = {
 };
 
 // Success message component
-const SuccessMessage = ({
-  const toast = useToast(); onReset }: { onReset: () => void }) => (
+const SuccessMessage = ({ onReset }: { onReset: () => void }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}

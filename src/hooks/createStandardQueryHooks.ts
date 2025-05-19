@@ -117,7 +117,6 @@ export function createStandardQueryHooks<
   UpdateRequest,
   UpdateResponse,
 >({
-  const toast = useToast();
   resource,
   displayName,
   endpoints,

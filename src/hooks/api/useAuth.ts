@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Session, User } from '@supabase/supabase-js';
-import { useErrorHandling } from '@/hooks/use-error-handling';
+import { Session, User, AuthError } from '@supabase/supabase-js';
 
 /**
  * Hook for authentication functionality
@@ -63,8 +62,9 @@ export function useAuth() {
       setUser(data.user);
       
       return data.user;
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+    } catch (error: Error | AuthError | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+      toast.error(errorMessage);
       throw error;
     } finally {
       setIsAuthenticating(false);
@@ -72,7 +72,7 @@ export function useAuth() {
   };
 
   // Sign up with email and password
-  const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
+  const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
     setIsAuthenticating(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -89,8 +89,9 @@ export function useAuth() {
       }
       
       return data.user;
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign up');
+    } catch (error: Error | AuthError | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign up';
+      toast.error(errorMessage);
       throw error;
     } finally {
       setIsAuthenticating(false);
@@ -104,8 +105,9 @@ export function useAuth() {
       setSession(null);
       setUser(null);
       router.push('/auth/signin');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign out');
+    } catch (error: Error | AuthError | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign out';
+      toast.error(errorMessage);
     }
   };
 
@@ -123,8 +125,9 @@ export function useAuth() {
       
       toast.success('Password reset email sent');
       return true;
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send reset password email');
+    } catch (error: Error | AuthError | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset password email';
+      toast.error(errorMessage);
       throw error;
     } finally {
       setIsAuthenticating(false);
@@ -145,8 +148,9 @@ export function useAuth() {
       
       toast.success('Password updated successfully');
       return true;
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update password');
+    } catch (error: Error | AuthError | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update password';
+      toast.error(errorMessage);
       throw error;
     } finally {
       setIsAuthenticating(false);

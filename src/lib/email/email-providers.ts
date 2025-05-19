@@ -40,7 +40,7 @@ export interface EmailSendResult {
 
 // Default sender email address
 export const DEFAULT_FROM_EMAIL: EmailRecipient = {
-  email: process.env['EMAIL_FROM'] || 'fernando@ink37.com',
+  email: process.env['EMAIL_FROM'] || 'fernando@ink37tattoos.com',
   name: process.env['EMAIL_FROM_NAME'] || 'Fernando Govea | Ink 37',
 };
 

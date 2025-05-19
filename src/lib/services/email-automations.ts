@@ -243,8 +243,8 @@ async function sendAutomatedEmail(appointment: Appointment, config: AutomationCo
       name: process.env.STUDIO_NAME || 'Ink 37 Tattoo Studio',
       address: process.env.STUDIO_ADDRESS || '123 Main St, Dallas, TX 75001',
       phone: process.env.STUDIO_PHONE || '(555) 123-4567',
-      email: process.env.STUDIO_EMAIL || 'studio@ink37.com',
-      website: process.env.NEXT_PUBLIC_DOMAIN || 'ink37.com',
+      email: process.env.STUDIO_EMAIL || 'studio@ink37tattoos.com',
+      website: process.env.NEXT_PUBLIC_DOMAIN || 'ink37tattoos.com',
     },
     // Add current date
     currentDate: new Date().toLocaleDateString(),
@@ -310,7 +310,7 @@ async function sendClientReengagementEmail(
     ...(config.templateData || {}),
     // Add current date
     currentDate: new Date().toLocaleDateString(),
-    studioDomain: process.env.NEXT_PUBLIC_DOMAIN || 'ink37.com',
+    studioDomain: process.env.NEXT_PUBLIC_DOMAIN || 'ink37tattoos.com',
   };
 
   // Track email sending

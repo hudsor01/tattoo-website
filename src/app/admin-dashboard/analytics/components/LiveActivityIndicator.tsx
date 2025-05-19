@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Box, Typography, Chip } from "@mui/material";
+import { Circle as CircleIcon } from "@mui/icons-material";
 
 interface LiveActivityIndicatorProps {
   pulse?: boolean;

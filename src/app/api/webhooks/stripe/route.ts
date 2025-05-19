@@ -355,7 +355,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     try {
       await sendEmail({
         to: {
-          email: process.env.ADMIN_EMAIL || 'fernando@ink37.com',
+          email: process.env.ADMIN_EMAIL || 'fernando@ink37tattoos.com',
           name: 'Fernando Govea',
         },
         subject: `Refund Processed for Booking #${bookingId}`,
@@ -462,7 +462,7 @@ async function handleDisputeCreated(dispute: Stripe.Dispute) {
     try {
       await sendEmail({
         to: {
-          email: process.env.ADMIN_EMAIL || 'fernando@ink37.com',
+          email: process.env.ADMIN_EMAIL || 'fernando@ink37tattoos.com',
           name: 'Fernando Govea',
         },
         subject: `URGENT: Dispute Filed for Booking #${bookingId}`,

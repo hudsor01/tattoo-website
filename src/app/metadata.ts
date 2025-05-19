@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     'Experience custom tattoo artistry in a home-like environment in the Dallas/Fort Worth metroplex. Book your consultation today.',
   keywords:
     'tattoo, custom tattoos, Fernando Govea, Ink 37, Dallas, Fort Worth, tattoo artist, tattoo studio',
-  authors: [{ name: 'Fernando Govea', url: 'https://ink37.com' }],
+  authors: [{ name: 'Fernando Govea', url: 'https://ink37tattoos.com' }],
   creator: 'Fernando Govea',
   publisher: 'Ink 37 Tattoo',
   formatDetection: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://ink37.com'),
+  metadataBase: new URL('https://ink37tattoos.com'),
   alternates: {
     canonical: '/',
   },
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     title: 'Ink 37 - Custom Tattoos by Fernando Govea',
     description:
       'Experience custom tattoo artistry in a home-like environment in the Dallas/Fort Worth metroplex. Book your consultation today.',
-    url: 'https://ink37.com',
+    url: 'https://ink37tattoos.com',
     siteName: 'Ink 37 Tattoo',
     images: [
       {
