@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server-client';
+import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@prisma/client';
 

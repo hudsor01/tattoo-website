@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { createAnalyticsStream } from '@/lib/routers/analytics-router/live-updates';
-import { serverClient } from '@/lib/supabase/server-client';
+import { serverClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 // export const runtime = 'edge';

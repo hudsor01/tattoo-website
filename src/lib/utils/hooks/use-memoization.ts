@@ -7,7 +7,7 @@
  * to improve rendering performance and reduce unnecessary re-renders.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 /**
  * Create a memoized version of a component with better typing than React.memo.
@@ -49,7 +49,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   delay: number,
   deps: React.DependencyList = []
 ): T {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   
   const debouncedCallback = useCallback((...args: Parameters<T>) => {
     if (timeoutRef.current) {
@@ -103,7 +103,7 @@ export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
   deps: React.DependencyList = []
 ): T {
   const lastRunRef = useRef<number>(0);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   
   const throttledCallback = useCallback((...args: Parameters<T>) => {
     const now = Date.now();

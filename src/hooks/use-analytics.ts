@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/lib/trpc/client';
 import type {
   AnalyticsEventType,
   BaseEventType,
@@ -19,9 +19,25 @@ import type {
 } from '@/lib/trpc/routers/types';
 import { EventCategory } from '@/lib/trpc/routers/types';
 import { v4 as uuidv4 } from 'uuid';
-import { getCookie, setCookie } from '@/lib/cookie';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getDeviceInfo } from '@/lib/utils/browser/device-detection';
+
+// Simple cookie utilities for client-side use
+const getCookie = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+};
+
+const setCookie = (name: string, value: string, options: { maxAge?: number; path?: string } = {}) => {
+  if (typeof document === 'undefined') return;
+  let cookieString = `${name}=${value}`;
+  if (options.maxAge) cookieString += `; max-age=${options.maxAge}`;
+  if (options.path) cookieString += `; path=${options.path}`;
+  document.cookie = cookieString;
+};
 
 /**
  * Main analytics hook for tracking events
@@ -497,3 +513,59 @@ export const useErrorTracking = () => {
     handleError,
   };
 };
+
+/**
+ * Hook for retrieving popular designs
+ */
+export function usePopularDesigns(limit = 5, period: 'day' | 'week' | 'month' | 'all' = 'month') {
+  const { data, isLoading, error } = trpc.analytics.getPopularDesigns.useQuery({
+    limit,
+    period,
+  });
+
+  return {
+    designs: data ?? [],
+    isLoading,
+    error,
+  };
+}
+
+/**
+ * Hook for retrieving view analytics
+ */
+export function useViewAnalytics(period: 'day' | 'week' | 'month' | 'year' = 'month') {
+  const { data, isLoading, error } = trpc.analytics.getViewAnalytics.useQuery({
+    period,
+  });
+
+  return {
+    analytics: data ?? {
+      totalViews: 0,
+      uniqueVisitors: 0,
+      pageViews: {},
+      topPages: [],
+      viewsOverTime: [],
+    },
+    isLoading,
+    error,
+  };
+}
+
+/**
+ * Hook for retrieving conversion rates
+ */
+export function useConversionRates(period: 'day' | 'week' | 'month' | 'year' = 'month') {
+  const { data, isLoading, error } = trpc.analytics.getConversionRates.useQuery({
+    period,
+  });
+
+  return {
+    rates: data ?? {
+      overall: 0,
+      byStep: {},
+      dropoffRates: {},
+    },
+    isLoading,
+    error,
+  };
+}

@@ -13,7 +13,7 @@ import {
   getBookingQuerySchema,
   apiRoute,
   handleApiError,
-} from '@/lib/validations/api';
+} from '@/lib/validations/validation-api-utils';
 
 export const dynamic = 'force-dynamic';
 

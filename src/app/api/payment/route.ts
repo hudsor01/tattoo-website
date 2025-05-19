@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NextFetchEvent } from 'next/server';
 import Stripe from 'stripe';
-import { serverClient } from '@/lib/supabase/server-client';
+import { serverClient } from '@/lib/supabase/server';
 import { sendAppointmentConfirmation } from '@/lib/email/email-service';
 
 // Initialize Stripe

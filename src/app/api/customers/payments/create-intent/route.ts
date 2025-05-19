@@ -3,9 +3,9 @@ import {
   apiRoute,
   clientPaymentIntentSchema,
   paymentIntentResponseSchema,
-} from '@/lib/validations/api';
+} from '@/lib/validations/validation-api-utils';
 import { stripe } from '@/lib/services/stripe';
-import { serverClient } from '@/lib/supabase/server-client';
+import { serverClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server-client';
+import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { checkIsAdmin } from '@/lib/supabase/database-functions';
 import { logger } from '@/lib/logger';

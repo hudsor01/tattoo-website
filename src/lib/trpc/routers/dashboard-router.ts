@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { router, procedure } from '@/lib/trpc-server';
+import { router, procedure } from '@/lib/trpc/server';
 import { prisma } from '@/lib/db/db-client';
 import { TRPCError } from '@trpc/server';
 import { formatDateRange } from '@/lib/utils/date';

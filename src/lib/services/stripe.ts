@@ -20,7 +20,7 @@ const getStripe = () => {
   
   if (!stripeInstance) {
     // Using require to prevent bundling issues
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const Stripe = require('stripe');
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2023-10-16',

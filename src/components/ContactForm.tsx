@@ -17,9 +17,9 @@ import {
   defaultContactFormValues,
 } from '@/lib/validations/validation-contact';
 import type { ContactFormValues } from '@/lib/validations/validation-contact';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api-client';
-import { EnhancedErrorBoundary } from '@/components/error/enhanced-error-boundary';
+// import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+// import { EnhancedErrorBoundary } from '@/components/error/enhanced-error-boundary';
 import {
   Form,
   FormField,
@@ -138,12 +138,12 @@ function ContactFormContent() {
         shouldDirty: true,
       });
 
-      toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} added successfully`, {
-        description: 'You can add more or continue filling the form'
-      });
+      // toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} added successfully`, {
+      //   description: 'You can add more or continue filling the form'
+      // });
     } catch (error) {
       console.error('Error uploading files:', error);
-      toast.error('Failed to upload images. Please try again.');
+      // toast.error('Failed to upload images. Please try again.');
     } finally {
       setUploadingImages(false);
     }
@@ -202,7 +202,7 @@ function ContactFormContent() {
           // Mark as successful to show success message
           setSuccessfulSubmission(true);
         } else {
-          toast.error(typedResponse.message || 'Failed to send message. Please try again.');
+          // toast.error(typedResponse.message || 'Failed to send message. Please try again.');
         }
       } else {
         throw new Error('Unexpected response from the server.');
@@ -219,7 +219,7 @@ function ContactFormContent() {
         errorMessage = (error as { message: string }).message;
       }
 
-      toast.error(errorMessage);
+      // toast.error(errorMessage);
 
       console.error('Contact form error:', error);
     } finally {
@@ -600,14 +600,6 @@ function ContactFormContent() {
  */
 export default function ContactForm() {
   return (
-    <EnhancedErrorBoundary
-      componentName="ContactForm"
-      title="Unable to load contact form"
-      description="We're having trouble displaying the contact form. Please refresh the page to try again."
-      showToast={true}
-      severity="high"
-    >
-      <ContactFormContent />
-    </EnhancedErrorBoundary>
+    <ContactFormContent />
   );
 }

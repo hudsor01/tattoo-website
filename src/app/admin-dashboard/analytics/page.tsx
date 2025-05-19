@@ -20,7 +20,7 @@ import {
   Cell,
 } from 'recharts';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/lib/trpc/trpc';
 import { CalendarIcon, DownloadIcon, RefreshCw, Activity } from 'lucide-react';
 import { RealtimeStatUpdater } from './components/RealtimeStatUpdater';
 import { LiveActivityIndicator } from './components/LiveActivityIndicator';

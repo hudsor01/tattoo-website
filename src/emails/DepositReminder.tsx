@@ -1,19 +1,3 @@
-import * as React from 'react';
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Img,
-  Link,
-  Preview,
-  Section,
-  Text,
-  Hr,
-  Button,
-} from '@react-email/components';
-
 interface DepositReminderProps {
   customerName: string;
   appointmentDate: Date;
@@ -25,7 +9,7 @@ interface DepositReminderProps {
   dueDate: Date;
 }
 
-export const DepositReminder: React.FC<DepositReminderProps> = ({
+export function generateDepositReminderEmail({
   customerName,
   appointmentDate,
   appointmentTime,
@@ -34,7 +18,7 @@ export const DepositReminder: React.FC<DepositReminderProps> = ({
   depositAmount,
   paymentLink,
   dueDate,
-}) => {
+}: DepositReminderProps): { subject: string; html: string } {
   const formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -49,241 +33,146 @@ export const DepositReminder: React.FC<DepositReminderProps> = ({
     day: 'numeric',
   });
 
-  return (
-    <Html>
-      <Head />
-      <Preview>Reminder: Deposit needed for your upcoming tattoo appointment</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Img
-            src={`${process.env['WEBSITE_URL']}/images/logo.png`}
-            width="120"
-            height="50"
-            alt={studioName}
-            style={logo}
-          />
+  const websiteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-          <Heading style={h1}>Deposit Reminder</Heading>
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+          }
+          .header {
+            background-color: #9333ea;
+            color: white;
+            padding: 30px;
+            text-align: center;
+          }
+          .content {
+            padding: 30px;
+          }
+          .deposit-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #eaeaea;
+          }
+          .appointment-details {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+          }
+          .detail-row {
+            margin: 10px 0;
+            font-size: 16px;
+          }
+          .policy-section {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+          }
+          .policy-text {
+            font-size: 14px;
+            color: #4f4f4f;
+            line-height: 1.5;
+            margin: 10px 0;
+          }
+          .button {
+            display: inline-block;
+            background-color: #9333ea;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+          }
+          .footer {
+            background-color: #f5f5f5;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+          }
+          .footer a {
+            color: #9333ea;
+            text-decoration: none;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Deposit Reminder</h1>
+          </div>
+          
+          <div class="content">
+            <p>Hello ${customerName},</p>
+            
+            <p>This is a friendly reminder that your deposit for the upcoming tattoo appointment has not been received yet. To secure your appointment, please make your deposit payment as soon as possible.</p>
+            
+            <div class="deposit-section">
+              <h2>Deposit Details</h2>
+              <div class="detail-row"><strong>Amount Due:</strong> $${depositAmount.toFixed(2)}</div>
+              <div class="detail-row"><strong>Due By:</strong> ${formattedDueDate}</div>
+              <a href="${paymentLink}" class="button">Make Payment Now</a>
+            </div>
+            
+            <div class="appointment-details">
+              <h2>Appointment Information</h2>
+              <div class="detail-row"><strong>Date:</strong> ${formattedDate}</div>
+              <div class="detail-row"><strong>Time:</strong> ${appointmentTime}</div>
+              <div class="detail-row"><strong>Type:</strong> ${appointmentType}</div>
+            </div>
+            
+            <div class="policy-section">
+              <h3>Deposit Policy</h3>
+              <p class="policy-text">
+                Deposits are required to secure your appointment time with your artist. If the deposit
+                is not received by the due date, your appointment may be cancelled and the time slot
+                offered to another client.
+              </p>
+              <p class="policy-text">
+                Deposits are non-refundable but will be applied to the total cost of your tattoo.
+              </p>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>If you've already made your payment, please disregard this message. If you have any questions or need assistance with your payment, please reply to this email.</p>
+            <p>&copy; ${new Date().getFullYear()} ${studioName}. All rights reserved.</p>
+            <p>
+              <a href="${websiteUrl}">Website</a> •
+              <a href="${websiteUrl}/faq">FAQ</a> •
+              <a href="${websiteUrl}/policies">Policies</a>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
 
-          <Text style={paragraph}>Hello {customerName},</Text>
+  return {
+    subject: `Deposit Reminder - ${studioName}`,
+    html,
+  };
+}
 
-          <Text style={paragraph}>
-            This is a friendly reminder that your deposit for the upcoming tattoo appointment has
-            not been received yet. To secure your appointment, please make your deposit payment as
-            soon as possible.
-          </Text>
-
-          <Section style={depositSection}>
-            <Heading as="h2" style={h2}>
-              Deposit Details
-            </Heading>
-
-            <Text style={detailText}>
-              <strong>Amount Due:</strong> ${depositAmount.toFixed(2)}
-            </Text>
-
-            <Text style={detailText}>
-              <strong>Due By:</strong> {formattedDueDate}
-            </Text>
-
-            <Button pX={20} pY={12} style={button} href={paymentLink}>
-              Make Payment Now
-            </Button>
-          </Section>
-
-          <Section style={appointmentDetails}>
-            <Heading as="h2" style={h2}>
-              Appointment Information
-            </Heading>
-
-            <Text style={detailText}>
-              <strong>Date:</strong> {formattedDate}
-            </Text>
-
-            <Text style={detailText}>
-              <strong>Time:</strong> {appointmentTime}
-            </Text>
-
-            <Text style={detailText}>
-              <strong>Type:</strong> {appointmentType}
-            </Text>
-          </Section>
-
-          <Section style={policySection}>
-            <Heading as="h3" style={h3}>
-              Deposit Policy
-            </Heading>
-
-            <Text style={policyText}>
-              Deposits are required to secure your appointment time with your artist. If the deposit
-              is not received by the due date, your appointment may be cancelled and the time slot
-              offered to another client.
-            </Text>
-
-            <Text style={policyText}>
-              Deposits are non-refundable but will be applied to the total cost of your tattoo.
-            </Text>
-          </Section>
-
-          <Hr style={hr} />
-
-          <Section style={footer}>
-            <Text style={footerText}>
-              If you've already made your payment, please disregard this message. If you have any
-              questions or need assistance with your payment, please reply to this email.
-            </Text>
-
-            <Text style={footerText}>
-              &copy; {new Date().getFullYear()} {studioName}. All rights reserved.
-            </Text>
-
-            <Text style={footerLinks}>
-              <Link href={`${process.env['WEBSITE_URL']}`} style={link}>
-                Website
-              </Link>{' '}
-              •{' '}
-              <Link href={`${process.env['WEBSITE_URL']}/faq`} style={link}>
-                FAQ
-              </Link>{' '}
-              •{' '}
-              <Link href={`${process.env['WEBSITE_URL']}/policies`} style={link}>
-                Policies
-              </Link>
-            </Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
-  );
-};
-
-// Styles
-const main = {
-  backgroundColor: '#f5f5f5',
-  fontFamily: 'Helvetica, Arial, sans-serif',
-  padding: '20px 0',
-};
-
-const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '20px',
-  maxWidth: '600px',
-  borderRadius: '8px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-};
-
-const logo = {
-  margin: '0 auto 20px',
-  display: 'block',
-};
-
-const h1 = {
-  color: '#333333',
-  fontSize: '26px',
-  fontWeight: 'bold',
-  textAlign: 'center' as const,
-  margin: '30px 0',
-  padding: '0',
-};
-
-const h2 = {
-  color: '#333333',
-  fontSize: '20px',
-  fontWeight: 'bold',
-  margin: '15px 0',
-  padding: '0',
-};
-
-const h3 = {
-  color: '#333333',
-  fontSize: '18px',
-  fontWeight: 'bold',
-  margin: '12px 0',
-  padding: '0',
-};
-
-const paragraph = {
-  color: '#4f4f4f',
-  fontSize: '16px',
-  lineHeight: '1.5',
-  margin: '16px 0',
-};
-
-const depositSection = {
-  backgroundColor: '#f9f9f9',
-  padding: '20px',
-  borderRadius: '6px',
-  margin: '20px 0',
-  textAlign: 'center' as const,
-  border: '1px solid #eaeaea',
-};
-
-const appointmentDetails = {
-  padding: '15px',
-  borderRadius: '6px',
-  margin: '20px 0',
-  backgroundColor: '#f9f9f9',
-};
-
-const detailText = {
-  color: '#4f4f4f',
-  fontSize: '16px',
-  margin: '10px 0',
-};
-
-const policySection = {
-  margin: '20px 0',
-  padding: '15px',
-  backgroundColor: '#f0f0f0',
-  borderRadius: '6px',
-};
-
-const policyText = {
-  color: '#4f4f4f',
-  fontSize: '14px',
-  lineHeight: '1.5',
-  margin: '10px 0',
-};
-
-const button = {
-  backgroundColor: '#9333ea',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'block',
-  margin: '20px auto',
-};
-
-const hr = {
-  borderColor: '#eaeaea',
-  margin: '30px 0 20px',
-};
-
-const footer = {
-  margin: '20px 0',
-};
-
-const footerText = {
-  color: '#6f6f6f',
-  fontSize: '14px',
-  margin: '8px 0',
-  textAlign: 'center' as const,
-};
-
-const footerLinks = {
-  color: '#6f6f6f',
-  fontSize: '14px',
-  margin: '8px 0',
-  textAlign: 'center' as const,
-};
-
-const link = {
-  color: '#9333ea',
-  textDecoration: 'underline',
-};
-
-export default DepositReminder;
+export default generateDepositReminderEmail;

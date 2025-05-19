@@ -1,19 +1,3 @@
-import * as React from 'react';
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Img,
-  Link,
-  Preview,
-  Section,
-  Text,
-  Hr,
-  Button,
-} from '@react-email/components';
-
 interface WelcomeEmailProps {
   firstName: string;
   studioName: string;
@@ -21,214 +5,136 @@ interface WelcomeEmailProps {
   instagramHandle: string;
 }
 
-export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
+export function generateWelcomeEmail({
   firstName,
   studioName,
   studioWebsite,
   instagramHandle,
-}) => {
-  return (
-    <Html>
-      <Head />
-      <Preview>Welcome to {studioName}!</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Img
-            src={`${process.env['WEBSITE_URL']}/images/logo.png`}
-            width="120"
-            height="50"
-            alt={studioName}
-            style={logo}
-          />
+}: WelcomeEmailProps): { subject: string; html: string } {
+  const websiteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-          <Heading style={h1}>Welcome to {studioName}!</Heading>
-
-          <Text style={paragraph}>Hello {firstName},</Text>
-
-          <Text style={paragraph}>
-            Thank you for creating an account with us. We&apos;re excited to have you join our
-            tattoo community! With your new account, you can:
-          </Text>
-
-          <Section style={featuresSection}>
-            <div style={featureItem}>
-              <Text style={featureText}>🗓️ Book appointments online</Text>
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+          }
+          .header {
+            background-color: #9333ea;
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+          }
+          .content {
+            padding: 30px;
+          }
+          .features {
+            margin: 25px 0;
+          }
+          .feature {
+            margin: 12px 0;
+            font-size: 16px;
+            color: #4f4f4f;
+          }
+          .action-section {
+            text-align: center;
+            margin: 30px 0;
+          }
+          .button {
+            display: inline-block;
+            background-color: #9333ea;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+          }
+          .social-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 30px 0;
+          }
+          .footer {
+            background-color: #f5f5f5;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+          }
+          .footer a {
+            color: #9333ea;
+            text-decoration: none;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Welcome to ${studioName}!</h1>
+          </div>
+          
+          <div class="content">
+            <p>Hello ${firstName},</p>
+            
+            <p>Thank you for creating an account with us. We're excited to have you join our tattoo community! With your new account, you can:</p>
+            
+            <div class="features">
+              <div class="feature">🗓️ Book appointments online</div>
+              <div class="feature">📱 Manage your appointments and consultations</div>
+              <div class="feature">💡 Submit tattoo ideas and receive design feedback</div>
+              <div class="feature">📸 Access your tattoo photos and aftercare instructions</div>
             </div>
-
-            <div style={featureItem}>
-              <Text style={featureText}>📱 Manage your appointments and consultations</Text>
+            
+            <div class="action-section">
+              <a href="${studioWebsite}" class="button">Visit Your Account</a>
             </div>
-
-            <div style={featureItem}>
-              <Text style={featureText}>💡 Submit tattoo ideas and receive design feedback</Text>
+            
+            <div class="social-section">
+              <h2>Connect With Us</h2>
+              <p>
+                Follow us on Instagram 
+                <a href="https://instagram.com/${instagramHandle.replace('@', '')}" style="color: #9333ea;">
+                  ${instagramHandle}
+                </a>
+                to see our latest work, flash designs, and studio updates.
+              </p>
             </div>
+          </div>
+          
+          <div class="footer">
+            <p>We look forward to creating amazing tattoos with you!</p>
+            <p>&copy; ${new Date().getFullYear()} ${studioName}. All rights reserved.</p>
+            <p>
+              <a href="${studioWebsite}">Website</a> •
+              <a href="${studioWebsite}/faq">FAQ</a> •
+              <a href="${studioWebsite}/contact">Contact Us</a>
+            </p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
 
-            <div style={featureItem}>
-              <Text style={featureText}>
-                📸 Access your tattoo photos and aftercare instructions
-              </Text>
-            </div>
-          </Section>
+  return {
+    subject: `Welcome to ${studioName}!`,
+    html,
+  };
+}
 
-          <Section style={actionSection}>
-            <Button pX={20} pY={12} style={button} href={studioWebsite}>
-              Visit Your Account
-            </Button>
-          </Section>
-
-          <Section style={socialSection}>
-            <Heading as="h2" style={h2}>
-              Connect With Us
-            </Heading>
-
-            <Text style={paragraph}>
-              Follow us on Instagram{' '}
-              <Link href={`https://instagram.com/${instagramHandle.replace('@', '')}`} style={link}>
-                {instagramHandle}
-              </Link>{' '}
-              to see our latest work, flash designs, and studio updates.
-            </Text>
-          </Section>
-
-          <Hr style={hr} />
-
-          <Section style={footer}>
-            <Text style={footerText}>We look forward to creating amazing tattoos with you!</Text>
-
-            <Text style={footerText}>
-              &copy; {new Date().getFullYear()} {studioName}. All rights reserved.
-            </Text>
-
-            <Text style={footerLinks}>
-              <Link href={studioWebsite} style={link}>
-                Website
-              </Link>{' '}
-              •{' '}
-              <Link href={`${studioWebsite}/faq`} style={link}>
-                FAQ
-              </Link>{' '}
-              •{' '}
-              <Link href={`${studioWebsite}/contact`} style={link}>
-                Contact Us
-              </Link>
-            </Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
-  );
-};
-
-// Styles
-const main = {
-  backgroundColor: '#f5f5f5',
-  fontFamily: 'Helvetica, Arial, sans-serif',
-  padding: '20px 0',
-};
-
-const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '20px',
-  maxWidth: '600px',
-  borderRadius: '8px',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-};
-
-const logo = {
-  margin: '0 auto 20px',
-  display: 'block',
-};
-
-const h1 = {
-  color: '#333333',
-  fontSize: '26px',
-  fontWeight: 'bold',
-  textAlign: 'center' as const,
-  margin: '30px 0',
-  padding: '0',
-};
-
-const h2 = {
-  color: '#333333',
-  fontSize: '20px',
-  fontWeight: 'bold',
-  margin: '15px 0',
-  padding: '0',
-};
-
-const paragraph = {
-  color: '#4f4f4f',
-  fontSize: '16px',
-  lineHeight: '1.5',
-  margin: '16px 0',
-};
-
-const featuresSection = {
-  margin: '25px 0',
-};
-
-const featureItem = {
-  margin: '12px 0',
-};
-
-const featureText = {
-  color: '#4f4f4f',
-  fontSize: '16px',
-  lineHeight: '1.5',
-  margin: '8px 0',
-};
-
-const actionSection = {
-  margin: '30px 0',
-  textAlign: 'center' as const,
-};
-
-const socialSection = {
-  margin: '30px 0',
-  backgroundColor: '#f9f9f9',
-  padding: '15px',
-  borderRadius: '6px',
-};
-
-const button = {
-  backgroundColor: '#9333ea',
-  borderRadius: '6px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'block',
-  margin: '20px auto',
-};
-
-const hr = {
-  borderColor: '#eaeaea',
-  margin: '30px 0 20px',
-};
-
-const footer = {
-  margin: '20px 0',
-};
-
-const footerText = {
-  color: '#6f6f6f',
-  fontSize: '14px',
-  margin: '8px 0',
-  textAlign: 'center' as const,
-};
-
-const footerLinks = {
-  color: '#6f6f6f',
-  fontSize: '14px',
-  margin: '8px 0',
-  textAlign: 'center' as const,
-};
-
-const link = {
-  color: '#9333ea',
-  textDecoration: 'underline',
-};
-
-export default WelcomeEmail;
+export default generateWelcomeEmail;

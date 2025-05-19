@@ -4,6 +4,17 @@
 @import '../styles/fonts.css';
 @import '../styles/utilities.css';
 
+/* HTML and body full height */
+html {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
 /* CSS properties for visual effects */
 @property --glow-opacity {
   syntax: '<number>';
@@ -136,6 +147,18 @@
     }
   }
 
+  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
   /* Easing functions */
   --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
@@ -219,6 +242,10 @@
   opacity: 0;
   transform: scale(0.9);
   animation: var(--animate-scale-in) 0.2s;
+}
+
+@utility animate-pulse-glow {
+  animation: var(--animate-pulse-glow);
 }
 
 /* Form utilities */

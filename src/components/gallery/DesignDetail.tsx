@@ -9,8 +9,8 @@
 
 import { useState, useEffect } from 'react';
 import { useDesign } from '@/hooks/trpc/use-gallery';
-import { usePopularDesigns } from '@/hooks/trpc/use-analytics';
-import { useEventTracking } from '@/hooks/trpc/use-analytics';
+import { usePopularDesigns } from '@/hooks/use-analytics';
+import { useEventTracking } from '@/hooks/use-page-view-tracking';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

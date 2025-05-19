@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAppointmentAvailability, calculateAppointmentDuration } from '@/lib/db-functions';
+import { checkAppointmentAvailability, calculateAppointmentDuration } from '@/lib/db/functions';
 
 /**
  * GET /api/appointments/availability

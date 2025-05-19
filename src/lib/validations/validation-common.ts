@@ -69,3 +69,37 @@ export type SortingParams = z.infer<typeof sortingSchema>;
 export type SearchQueryParams = z.infer<typeof searchQuerySchema>;
 export type SuccessResponse = z.infer<typeof successResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
+// Re-add missing exports
+export const uuidParamSchema = uuidSchema;
+export const searchSchema = paginationSchema;
+
+// Email schema
+export const emailSchema = z.string().email('Invalid email address');
+
+// Phone schema
+export const phoneSchema = z.string().regex(
+  /^\+?[\d\s\-()]+$/,
+  'Invalid phone number format'
+);
+
+// Address schema
+export const addressSchema = z.object({
+  street: z.string().min(1),
+  city: z.string().min(1),
+  state: z.string().min(1),
+  postalCode: z.string().min(1),
+  country: z.string().min(1),
+});
+
+export const contactInfoSchema = emailSchema.extend({
+  phone: phoneSchema.optional(),
+  address: addressSchema.optional(),
+});
+
+// Re-add missing exports
+export const uuidParamSchema = uuidSchema;
+export const searchSchema = paginationSchema;
+export const contactInfoSchema = emailSchema.extend({
+  phone: phoneSchema.optional(),
+  address: addressSchema.optional(),
+});

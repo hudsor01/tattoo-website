@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { serverClient } from '@/lib/supabase/server-client';
-import { apiRoute } from '@/lib/validations/api';
+import { serverClient } from '@/lib/supabase/server';
+import { apiRoute } from '@/lib/validations/validation-api-utils';
 // Import all of Zod as a namespace to avoid tree-shaking issues
 import * as z from 'zod';
 

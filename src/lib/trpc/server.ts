@@ -11,9 +11,7 @@ export {
   protectedProcedure,
   adminProcedure,
   createRootRouter
-} from './unified';
-
-export type { Router } from './unified';
+} from './trpc';
 
 // Export the appRouter for use in API handlers
 export { appRouter, type AppRouter } from './api-router';

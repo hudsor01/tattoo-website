@@ -10,229 +10,263 @@ Tattoo website built with Next.js 15, featuring a client portal, admin dashboard
 
 - **Framework**: Next.js 15.3.2 (App Router)
 - **Language**: TypeScript 5.8.3
-- **UI Components**: 
-  - Material UI v7 
-  - shadcn/ui
-  - Tailwind CSS v4
+- **UI Components**: Material UI v7, shadcn/ui, Tailwind CSS v4
 - **Authentication**: Supabase Auth
-- **Database**: PostgreSQL with Prisma ORM
+- **Database**: SQLite (development) with Prisma ORM
 - **API Layer**: tRPC v11
 - **State Management**: Zustand v5
 - **Data Fetching**: TanStack Query v5 with tRPC integration
 - **Email**: Resend
 - **Payments**: Stripe
 - **Validation**: Zod
-- **Styling**: Tailwind CSS + Shadcn/UI
 
 ## Development Commands
 
 ```bash
 # Start development server
 npm run dev
+npm run dev:clean                  # Clean start (removes .next cache)
 
 # Build for production
 npm run build
-
-# Run production server
 npm start
 
-# Run all tests
-npm test
+# Type checking & linting
+npm run type-check                 # TypeScript type checking
+npm run lint                       # ESLint
+npm run lint:fix                   # ESLint with auto-fix
+npm run format                     # Prettier formatting
+npm run validate                   # Combined lint + type check
 
-# Run E2E tests with UI
-npm run test:e2e:ui
+# Testing
+npm test                           # Run all tests
+npm run test:unit                  # Unit tests only
+npm run test:single <path>         # Run a single test
 
-# Lint the codebase
-npm run lint
+# E2E Testing with Playwright
+npm run test:e2e                   # Standard E2E tests
+npm run test:e2e:ui                # With Playwright UI
+npm run test:e2e:debug             # Debug mode
+npm run test:e2e:headed            # Headed browser
+npm run test:e2e:chrome            # Chrome only
+npm run test:e2e:smoke             # Smoke tests (@smoke tag)
+npm run test:e2e:quick             # Quick test configuration
 
-# Fix linting issues
-npm run lint:fix
+# Enhanced E2E Testing
+npm run test:e2e:enhanced          # Enhanced test suite
+npm run test:e2e:enhanced:visual   # Visual regression testing
+npm run test:e2e:enhanced:perf     # Performance testing
+npm run test:e2e:report            # View test report
 
-# Format code with Prettier
-npm run format
+# Database
+npx prisma migrate dev             # Run migrations in development
+npx prisma migrate reset           # Reset database
+npx prisma generate                # Generate Prisma client
+npx prisma studio                  # Open Prisma Studio GUI
 
-# Type check
-npm run type-check
+# CI/CD specific
+npm run test:e2e:ci                # E2E tests for CI environment
+npm run postinstall                # Runs prisma generate automatically
 
-# Clean development cache
-npm run dev:clean
-
-# Verify MCP servers
-npm run verify-mcp
+# Utilities
+npm run verify-mcp                 # Verify MCP servers
+npm run apply-view-fix             # Apply necessary database view fixes
+npm run fix-fonts                  # Fix font loading issues
 ```
 
 ## Environment Variables
 
-Critical environment variables required:
+Required environment variables (see `.env.example`):
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server-side only)
-- `DATABASE_URL` - PostgreSQL connection string
-- `DIRECT_URL` - PostgreSQL direct connection URL 
+- `DATABASE_URL` - SQLite database path (e.g., file:./prisma/dev.db)
 - `RESEND_API_KEY` - Resend API key for emails
 - `STRIPE_SECRET_KEY` - Stripe secret key
-- `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- `NEXT_PUBLIC_BASE_URL` - Base URL for the application
-- `JWT_SECRET` - Secret for JWT signing
-- `ADMIN_USERNAME` - Admin dashboard username
-- `ADMIN_PASSWORD` - Admin dashboard password
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
+- `NEXT_PUBLIC_APP_URL` - Base URL (http://localhost:3000 in dev)
+- `CAL_API_KEY` - Cal.com API key for booking integration
+- `CAL_WEBHOOK_SECRET` - Cal.com webhook secret
 
-## Project Structure
+## Architecture Overview
 
+### Component Architecture (Next.js 15 App Router)
+
+The project uses Next.js 15 App Router with React 19:
+
+1. **Server Components** (default) - Cannot use browser APIs or React hooks
+2. **Client Components** - Must add `'use client'` directive at the top of the file
+
+Common error: Importing `next/headers` in a Client Component will fail. This must only be used in Server Components.
+
+### API Architecture (tRPC)
+
+The API layer uses tRPC for type-safe communication between client and server:
+
+1. **Routers**: Organized by feature in `/src/lib/trpc/routers/`
+   - `booking-router.ts` - Booking management
+   - `gallery-router.ts` - Gallery operations
+   - `admin-router.ts` - Admin operations
+   - `user-router.ts` - User management
+   - `subscription-router.ts` - Subscription handling
+   - `analytics-router.ts` - Analytics tracking
+
+2. **Main Router**: Combined in `/src/lib/trpc/app-router.ts`
+
+3. **Client Setup**: Initialized in `/src/lib/trpc/client.tsx`
+
+4. **Server Setup**: Configured in `/src/lib/trpc/server.ts`
+
+### Authentication Architecture
+
+The project uses a unified authentication system:
+
+1. **Main Auth System**: `/src/lib/auth/auth-system.ts`
+2. **Middleware Protection**: `/src/middleware.ts` 
+3. **Server Auth**: `/src/lib/supabase/server-auth.ts`
+4. **Role-based Access**: public, protected, admin
+
+### State Management
+
+- **Server State**: TanStack Query + tRPC
+- **Client State**: Zustand stores in `/src/store/`
+- **Form State**: react-hook-form with Zod validation
+
+## Common Development Tasks
+
+### Working with Prisma and Database
+
+```bash
+# Create a new migration after schema changes
+npx prisma migrate dev --name description_of_change
+
+# Push schema changes without migration (development only)
+npx prisma db push
+
+# Open database GUI
+npx prisma studio
+
+# Reset database and reapply all migrations
+npx prisma migrate reset
 ```
-src/
-├── app/                   # Next.js app directory
-│   ├── admin-dashboard/   # Admin dashboard routes
-│   ├── client-portal/     # Client portal routes
-│   └── api/              # API routes and tRPC endpoints
-├── components/           # React components
-│   ├── ui/              # UI components (shared)
-│   ├── auth/            # Authentication components
-│   ├── booking/         # Booking-related components
-│   └── layouts/         # Layout components
-├── hooks/               # Custom React hooks
-│   ├── trpc/           # tRPC-specific hooks
-│   └── api/            # API utility hooks
-├── lib/                # Core utilities and services
-│   ├── auth/           # Authentication logic
-│   ├── supabase/       # Supabase clients
-│   ├── trpc/           # tRPC server/client config
-│   ├── services/       # Business logic services
-│   └── validation/     # Zod schemas
-├── types/              # TypeScript type definitions
-│   ├── declarations/   # Global type declarations
-│   └── ui/            # UI component types
-├── store/              # Zustand store definitions
-└── styles/             # Global styles and themes
+
+### Adding New tRPC Procedures
+
+When creating new API endpoints:
+
+1. Add router in `/src/lib/trpc/routers/` (e.g., `new-feature-router.ts`)
+2. Import and add to app router in `/src/lib/trpc/app-router.ts`
+3. Create hooks in `/src/hooks/trpc/` (e.g., `use-new-feature.ts`)
+4. Use Zod schemas from `/src/lib/validations/`
+5. Types should be imported from `/src/types/`
+
+### File Organization
+
+- **Components**: `/src/components/` - Organized by feature
+- **Hooks**: `/src/hooks/` - Custom React hooks and tRPC hooks
+- **API Routes**: `/src/app/api/` - Next.js API routes
+- **tRPC Routers**: `/src/lib/trpc/routers/` - Type-safe API
+- **Database**: `/src/lib/db/` - Database utilities and queries
+- **Types**: `/src/types/` - All TypeScript types (never in components)
+- **Validations**: `/src/lib/validations/` - Zod schemas
+- **Emails**: `/src/emails/` - React Email templates
+
+### Type Organization Rules
+
+All types must be imported from `/src/types/`:
+```typescript
+// ✅ Correct
+import { BookingType } from '@/types/booking-types';
+import { UserRole } from '@/types/enum-types';
+
+// ❌ Wrong - defining types in component files
+interface BookingType { ... }
+enum UserRole { ... }
 ```
 
-## Architecture Guidelines
+## Performance Considerations
 
-### 1. No Barrel Files
-- Never create index.ts files in any directory
-- Import directly from source files
-- No re-exporting through index files
+1. Use Server Components by default
+2. Implement proper React Query caching strategies
+3. Use Next.js Image component for optimization
+4. Lazy load heavy components with dynamic imports
+5. Implement virtualization for long lists
 
-### 2. Type Organization
-- All types must be defined in `/src/types`
-- Never define types in component files
-- Enums go in `/src/types/enum-types.ts`
-- Keep types organized by domain
+## Security Best Practices
 
-### 3. Component Organization
-- Use React 19 features where appropriate
-- Default to Server Components
-- Add 'use client' only when necessary
-- Name components using kebab-case
-- Follow pattern: `entity-action` (e.g., `booking-form.tsx`)
-
-### 4. Hook Guidelines
-- Prefix all hooks with 'use'
-- Keep hooks focused on single responsibility
-- Use tRPC hooks over direct API calls
-- Store hooks in `/src/hooks`
-
-### 5. tRPC Implementation
-- Routers organized by domain in `/src/lib/trpc/routers`
-- Always use Zod for input validation
-- Implement proper error handling
-- Keep procedures focused
-
-### 6. Authentication
-- Use unified auth system in `/src/lib/auth/auth-system.ts`
-- Always check auth state in protected routes
-- Use proper role-based access control
-
-### 7. Error Handling
-- Use standardized error types
-- Implement error boundaries
-- Log errors server-side
-- Provide user-friendly messages
-
-### 8. Performance
-- Use React Query caching appropriately
-- Implement virtualization for large lists
-- Use dynamic imports for code splitting
-- Optimize images with Next.js Image
-
-### 9. Database Access
-- Use Prisma as primary ORM
-- Keep database logic in services
-- Use proper transaction handling
-- Implement optimistic updates
-
-### 10. Code Quality
-- Run linting before commits
-- Follow TypeScript strict mode
-- Document complex logic
-- Write tests for all functionality
-
-## Common Issues and Solutions
-
-### Hydration Errors
-- Use dynamic imports for client-only components
-- Wrap problematic components with `suppressHydrationWarning`
-- Ensure client/server states match
-
-### Type Errors
-- Verify imports are from `/src/types`
-- Check Prisma generated types are up-to-date
-- Run `npm run type-check` to verify
-
-### Build Errors
-- Clear Next.js cache: `rm -rf .next`
-- Regenerate Prisma client: `npx prisma generate`
-- Verify all environment variables are set
+1. All user inputs validated with Zod schemas
+2. Authentication checks in middleware
+3. Role-based access control implemented  
+4. Environment variables for sensitive data
+5. Server-only operations in Server Components
 
 ## Testing Strategy
 
-### Unit Tests
-- Located in `/tests/unit`
-- Use Jest for testing
-- Run with: `npm run test:unit`
+Run tests in this order:
+1. Type checking: `npm run type-check`
+2. Linting: `npm run lint`
+3. Unit tests: `npm run test:unit`
+4. E2E tests: `npm run test:e2e`
 
-### E2E Tests
-- Use Playwright
-- Run with: `npm run test:e2e`
-- Visual testing: `npm run test:e2e:enhanced:visual`
+For development, use the UI versions:
+- `npm run test:e2e:ui` - Interactive Playwright UI
+- `npm run test:e2e:debug` - Step through tests
 
-### Performance Tests
-- Run with: `npm run test:e2e:enhanced:perf`
-- Check Core Web Vitals
+## Common Issues and Solutions
 
-## Deployment
+### "next/headers" Import Error
+This error occurs when trying to use server-only features in Client Components:
+```
+× You're importing a component that needs "next/headers"
+```
+**Solution**: Remove `'use client'` directive or move the logic to a Server Component.
 
-### Vercel Deployment
-- Configured via `vercel.json`
-- Environment variables must be set in Vercel dashboard
-- Uses standalone output mode
+### Hydration Errors
+These occur when server and client renders don't match.
+**Solutions**:
+- Use `suppressHydrationWarning` on problematic elements
+- Ensure consistent data between server/client
+- Use dynamic imports for client-only components
 
-### Database Migrations
-- Use Prisma migrations
-- Never modify migration files
-- Test migrations locally first
+### Type Errors with Prisma
+After schema changes:
+```bash
+npx prisma generate  # Regenerate types
+npm run type-check   # Verify types are correct
+```
 
-## Important URLs
+### Build Errors
+When builds fail:
+```bash
+rm -rf .next         # Clear Next.js cache
+npm run dev:clean    # Fresh development start
+npx prisma generate  # Ensure Prisma client is up-to-date
+```
 
-- Client Portal: `/client-portal`
-- Admin Dashboard: `/admin-dashboard`
-- API Routes: `/api/`
-- tRPC Endpoint: `/api/trpc/[trpc]`
+## Deployment Notes
 
-## Safety Checks
+- Build outputs to standalone mode for optimal deployment
+- ESLint errors are ignored during builds (check manually with `npm run lint`)
+- TypeScript errors are ignored during builds (check manually with `npm run type-check`)
+- Database migrations must be run manually in production
+- All environment variables must be set in deployment platform
 
-Before making changes:
-1. Verify no index.ts barrel files are created
-2. Ensure types are properly imported from `/src/types`
-3. Check authentication on protected routes
-4. Validate all user inputs with Zod
-5. Test database operations locally
-6. Run linting and type checks
+## Git Hooks & CI
 
-## Notes
+The project uses Husky for pre-commit hooks with lint-staged:
+- Automatically runs ESLint and Prettier on staged files
+- Files are formatted before commit
 
-- The project uses strict TypeScript settings
-- ESLint is configured but ignored during builds
-- Material UI and Tailwind CSS coexist
-- Supabase handles authentication and realtime features
-- Prisma manages database schema and migrations
+## Key Configuration Files
+
+- `/src/middleware.ts` - Route protection and auth checks
+- `/src/lib/trpc/app-router.ts` - Main tRPC router configuration
+- `/src/lib/auth/auth-system.ts` - Unified authentication system
+- `/src/app/api/trpc/[trpc]/route.ts` - tRPC API endpoint
+- `/src/lib/supabase/server.ts` - Server-side Supabase client
+- `/prisma/schema.prisma` - Database schema definition
+- `/eslint.config.mjs` - ESLint configuration
+- `/tailwind.config.js` - Tailwind CSS configuration
+- `/tsconfig.json` - TypeScript configuration
+
+Remember: No barrel files (`index.ts`), types always in `/src/types/`, and follow the established patterns for consistency.

@@ -1,85 +1,127 @@
 /**
- * tRPC server setup
+ * tRPC Configuration
  * 
- * This is your tRPC API configuration with authentication built-in
+ * This file sets up the core tRPC configuration including:
+ * - Router creation
+ * - Middleware setup  
+ * - Procedure builders
  */
 
 import { initTRPC, TRPCError } from '@trpc/server';
+import { TRPCContext } from './context';
 import superjson from 'superjson';
-import { ZodError } from 'zod';
-import { Context } from './context';
+import { logger } from '@/lib/logger';
 
 /**
- * Initialize tRPC with superjson transformer for dates and other complex types
+ * Initialize tRPC with context and transformer
  */
-const t = initTRPC.context<Context>().create({
+export const t = initTRPC.context<TRPCContext>().create({
+  transformer: superjson,
   errorFormatter: ({ shape, error }) => {
     return {
       ...shape,
       data: {
         ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+        zodError: error.cause instanceof Error ? error.cause : null,
       },
     };
   },
 });
 
 /**
- * Export reusable router and procedure helpers
+ * Create a tRPC router
  */
-
-// Base router and procedure
 export const router = t.router;
-export const procedure = t.procedure;
 
-// Public procedure - accessible to all users
-export const publicProcedure = t.procedure;
+/**
+ * Create a middleware that runs before every procedure
+ */
+export const middleware = t.middleware;
 
-// Protected procedure - requires authentication
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
+/**
+ * Reusable middleware for logging requests
+ */
+const loggerMiddleware = middleware(async ({ path, next, type }) => {
+  const start = Date.now();
   
-  return next({
-    ctx: {
-      ...ctx,
-      // Infers the session is non-null
-      session: { ...ctx.session, user: ctx.session.user },
-    },
-  });
+  const result = await next();
+  
+  const duration = Date.now() - start;
+  logger.info(`[tRPC] ${type} ${path} - ${duration}ms`);
+  
+  return result;
 });
 
-// Admin procedure - requires admin role
-export const adminProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
-  
-  const isAdmin = ctx.session.user.roles?.includes('admin') || false;
-  
-  if (!isAdmin) {
-    throw new TRPCError({ 
-      code: 'FORBIDDEN', 
-      message: 'You must be an admin to access this resource'
+/**
+ * Public procedure - accessible without authentication
+ */
+export const publicProcedure = t.procedure
+  .use(loggerMiddleware)
+  .use(middleware(async ({ ctx, next }) => {
+    return next({
+      ctx: {
+        ...ctx,
+        db: ctx.prisma, // Add db alias for Prisma
+      },
     });
-  }
-  
-  return next({
-    ctx: {
-      ...ctx,
-      session: { ...ctx.session, user: ctx.session.user },
-    },
-  });
-});
+  }));
 
-// Utility function to validate user ID matches the requested resource
-export function validateUserAccess(userId: string, requestedUserId: string) {
-  if (userId !== requestedUserId) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You can only access your own resources',
+/**
+ * Protected procedure - requires authentication
+ */
+export const protectedProcedure = t.procedure.use(loggerMiddleware).use(
+  middleware(async ({ ctx, next }) => {
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'You must be logged in to access this resource',
+      });
+    }
+    
+    return next({
+      ctx: {
+        ...ctx,
+        user: ctx.user,
+        db: ctx.prisma, // Add db alias for Prisma
+      },
     });
-  }
-}
+  })
+);
+
+/**
+ * Admin procedure - requires admin role
+ */
+export const adminProcedure = t.procedure.use(loggerMiddleware).use(
+  middleware(async ({ ctx, next }) => {
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'You must be logged in to access this resource',
+      });
+    }
+    
+    // Check if user is admin
+    const isAdmin = ctx.user.user_metadata?.role === 'admin' || 
+                   ctx.user.app_metadata?.role === 'admin';
+    
+    if (!isAdmin) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'You must be an admin to access this resource',
+      });
+    }
+    
+    return next({
+      ctx: {
+        ...ctx,
+        user: ctx.user,
+        db: ctx.prisma, // Add db alias for Prisma
+      },
+    });
+  })
+);
+
+/**
+ * Create the root router type
+ */
+export const createRootRouter = router;

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiRoute } from '@/lib/validations/validation-api-utils';
 import { contactFormSchema } from '@/lib/validations/validation-contact';
 import { prisma } from '@/lib/db/prisma';
-import { sendEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email/email';
 
 export const dynamic = 'force-dynamic';
 

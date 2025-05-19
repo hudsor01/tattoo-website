@@ -688,7 +688,7 @@ import {
   forgotPasswordFormSchema,
   resetPasswordFormSchema,
   updatePasswordFormSchema
-} from '@/lib/validations/auth';
+} from '@/lib/validations/validation-auth';
 
 // Authentication form types
 export type LoginFormValues = z.infer<typeof loginFormSchema>;

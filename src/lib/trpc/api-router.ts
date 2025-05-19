@@ -5,7 +5,7 @@
  * It imports and merges all sub-routers from the router directory.
  */
 
-import { router, adminProcedure, publicProcedure, protectedProcedure } from './unified';
+import { router, adminProcedure, publicProcedure, protectedProcedure } from './trpc';
 import { adminRouter } from './routers/admin-router';
 import { analyticsRouter } from './routers/analytics-router';
 import { appointmentsRouter } from './routers/appointments-router';
