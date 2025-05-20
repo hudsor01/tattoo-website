@@ -119,9 +119,9 @@ export const bookingRouter = router({
         where: {
           OR: [
             // Artist's bookings
-            artist ? { artistId: artist.id } : {},
+            ...(artist ? [{ artistId: artist.id }] : []),
             // Customer's bookings
-            customer ? { customerId: customer.id } : {},
+            ...(customer ? [{ customerId: customer.id }] : []),
           ],
         },
         orderBy: { createdAt: 'desc' },

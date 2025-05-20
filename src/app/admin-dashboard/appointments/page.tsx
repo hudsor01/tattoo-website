@@ -539,7 +539,7 @@ export default function AppointmentsPage() {
   };
 
   // Handle pagination changes
-  const handlePaginationChange = (page: number, pageSize: number) => {
+  const handlePaginationChange = () => {
     // In a real implementation, this would use pagination parameters for API calls
     // Example implementation for server-side pagination:
     /*
@@ -547,8 +547,8 @@ export default function AppointmentsPage() {
       setLoading(true);
       try {
         const res = await fetch(`/api/admin/appointments?${new URLSearchParams({
-          page: page.toString(),
-          limit: pageSize.toString(),
+          page: newPage.toString(),
+          limit: '10', // Fixed page size
           status: statusFilter !== 'all' ? statusFilter : '',
           search: searchValue || '',
         }).toString()}`);

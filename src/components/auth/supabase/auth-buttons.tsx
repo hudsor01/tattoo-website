@@ -1,11 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/styling';
 import { buttonVariants } from '@/components/ui/button';
 import { Icons } from '@/components/ui/icons';
 import { useAuthStore } from '@/lib/auth/auth-system';
-import { useRouter } from 'next/navigation';
 
 /**
  * Props for the OAuth button component
@@ -52,7 +51,7 @@ export function OAuthButton({
 }: OAuthButtonProps) {
   const { signInWithProvider } = useAuthStore();
   const [isLoading, setIsLoading] = React.useState(false);
-  const router = useRouter();
+  // const router = useRouter(); // Unused in this component but may be needed in future
 
   const handleSignIn = async () => {
     try {
@@ -120,14 +119,13 @@ export function OAuthButton({
 export function MagicLinkButton({
   className,
   children,
-  redirectTo,
   ...props
 }: MagicLinkButtonProps) {
   const { sendMagicLink } = useAuthStore();
   const [isLoading, setIsLoading] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [showInput, setShowInput] = React.useState(false);
-  const router = useRouter();
+  // const router = useRouter(); // Unused in this component but may be needed in future
 
   const handleSendMagicLink = async () => {
     if (!email) {
@@ -210,13 +208,13 @@ export function SignOutButton({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const { signOut } = useAuthStore();
   const [isLoading, setIsLoading] = React.useState(false);
-  const router = useRouter();
 
   const handleSignOut = async () => {
     try {
       setIsLoading(true);
       await signOut();
-      router.push('/');
+      // After signing out, redirect happens through auth system
+      window.location.href = '/';
     } catch (error) {
       console.error('Sign out error:', error);
     } finally {

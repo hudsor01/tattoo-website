@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import type { ID, DateString } from './utility-types';
+import type { ID } from './utility-types';
 
 /**
  * ========================================================================
@@ -362,6 +362,22 @@ export type CustomerListResponse = z.infer<typeof CustomerListResponseSchema>;
 export type CustomerSearch = z.infer<typeof CustomerSearchSchema>;
 export type ContactFormValues = z.infer<typeof ContactFormSchema>;
 export type ContactFormResponse = z.infer<typeof ContactFormResponseSchema>;
+
+/**
+ * Result type for customer search from search_customers Supabase function
+ */
+export interface CustomerSearchResult {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  avatarUrl: string | null;
+  city: string | null;
+  state: string | null;
+  createdAt: Date;
+}
 
 // Export form-specific types for React Hook Form
 export type CustomerFormValues = CustomerCreateInput;

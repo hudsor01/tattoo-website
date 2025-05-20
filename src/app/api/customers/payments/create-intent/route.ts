@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   apiRoute,
   clientPaymentIntentSchema,
-  paymentIntentResponseSchema,
 } from '@/lib/validations/validation-api-utils';
 import { stripe } from '@/lib/services/stripe';
-import { serverClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,12 +14,12 @@ export const dynamic = 'force-dynamic';
 export const POST = apiRoute({
   POST: {
     bodySchema: clientPaymentIntentSchema,
-    handler: async (body, request) => {
+    handler: async (body) => {
       try {
         const { appointmentId, clientId, amount, clientEmail, name, description } = body;
 
         // Initialize Supabase client
-        const supabase = serverClient();
+        const supabase = await createClient();
         
         // Verify that the appointment exists and belongs to the client
         const { data: appointment, error } = await supabase

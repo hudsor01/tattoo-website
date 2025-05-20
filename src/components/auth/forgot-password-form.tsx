@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/auth/auth-system';
+// Unused import: import { useAuthStore } from '@/lib/auth/auth-system';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,8 @@ interface ForgotPasswordFormProps {
 }
 
 export function ForgotPasswordForm({ 
-  redirectPath = '/auth/forgot-password-success',
+  // redirectPath is unused but kept for API compatibility
+  // redirectPath = '/auth/forgot-password-success',
   onSuccess 
 }: ForgotPasswordFormProps) {
   const router = useRouter();

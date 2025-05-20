@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { serverClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { sendEmail, generateBookingConfirmationEmail } from '@/lib/email/email';
 // import { processBookingAsCRMContact } from '@/lib/services/crm';
 import { cache } from '@/lib/cache';
 import { logger } from '@/lib/logger';
+import type { PaymentMetadata } from '@/types/payments-types';
 
 // Initialize Stripe dynamically to prevent it from being included in client bundles
 // This is a server-only file so we can safely use dynamic imports
-let stripe: any;
+let stripe: import('stripe').default;
+import type { Stripe } from 'stripe'; // Import Stripe types
 
 // Helper to get the Stripe instance
 async function getStripe() {
@@ -23,20 +25,6 @@ async function getStripe() {
 
 // Webhook secret for signature verification
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-// Metadata types
-interface PaymentMetadata {
-  stripePaymentIntentId?: string;
-  stripePaymentStatus?: string;
-  stripeChargeId?: string;
-  stripeLastError?: string;
-  stripeRefundId?: string;
-  refundAmount?: number;
-  refundReason?: string;
-  disputeReason?: string;
-  disputeStatus?: string;
-  disputeAmount?: number;
-}
 
 /**
  * Handler for Stripe webhook events
@@ -123,7 +111,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     };
 
     // Initialize Supabase client
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     // Update payment status in database
     const { error: paymentError } = await supabase
@@ -230,7 +218,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
     };
 
     // Initialize Supabase client
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     // Update payment status in database
     const { error: paymentError } = await supabase
@@ -323,7 +311,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     };
 
     // Initialize Supabase client
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     // Update payment status in database
     const { error: paymentError } = await supabase
@@ -430,7 +418,7 @@ async function handleDisputeCreated(dispute: Stripe.Dispute) {
     };
 
     // Initialize Supabase client
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     // Update payment status in database
     const { error: paymentError } = await supabase

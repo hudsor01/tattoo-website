@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { NextFetchEvent } from 'next/server';
 import Stripe from 'stripe';
-import { serverClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { sendAppointmentConfirmation } from '@/lib/email/email-service';
 
 // Initialize Stripe
@@ -16,10 +15,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  */
 // export const runtime = 'edge';
 
-export async function POST(request: NextRequest, context: NextFetchEvent) {
+export async function POST(request: NextRequest) {
   try {
     // Initialize Supabase client
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     // Get authenticated session
     const { data: { session } } = await supabase.auth.getSession();
@@ -129,7 +128,7 @@ export async function PUT(request: NextRequest) {
         }
 
         // Initialize Supabase client
-        const supabase = serverClient();
+        const supabase = await createClient();
         
         // Update appointment with deposit paid status
         const { error: updateError } = await supabase
@@ -154,9 +153,9 @@ export async function PUT(request: NextRequest) {
             status: 'completed',
             paymentMethod: 'card',
             transactionId: session.payment_intent as string,
-            receiptUrl: (session as any).receipt_url, // May not be available
+            receiptUrl: (session as Stripe.Checkout.Session & { receipt_url?: string }).receipt_url, // May not be available
             notes: 'Deposit payment via Stripe',
-            customerId: session.metadata?.customerId!,
+            customerId: session.metadata?.customerId || '',
             appointmentId: appointmentId,
           });
           
@@ -177,7 +176,7 @@ export async function PUT(request: NextRequest) {
 
         if (appointmentId) {
           // Initialize Supabase client
-          const supabase = serverClient();
+          const supabase = await createClient();
           
           // Log failed payment attempt
           const { error: transactionError } = await supabase
@@ -189,7 +188,7 @@ export async function PUT(request: NextRequest) {
               paymentMethod: 'card',
               transactionId: paymentIntent.id,
               notes: `Payment failed: ${paymentIntent.last_payment_error?.message || 'Unknown error'}`,
-              customerId: paymentIntent.metadata?.customerId!,
+              customerId: paymentIntent.metadata?.customerId || '',
               appointmentId: appointmentId,
             });
             

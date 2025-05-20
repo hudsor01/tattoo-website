@@ -4,19 +4,16 @@
  * This file provides utilities for using tRPC procedures in Server Actions.
  * It allows for type-safe API calls directly from server components.
  */
-import { experimental_createServerActionHandler } from '@trpc/server/adapters/next';
-import { appRouter } from './routers';
+import { appRouter } from './app-router';
 import { createContextForRSC } from './context';
-import type { AppRouter } from './routers';
-
-// Type definition for router procedure path
-type RouterProcedurePath = keyof AppRouter['_def']['procedures'] & string;
+import type { AppRouter } from './app-router';
+import { createServerActionHandler } from '@trpc/next/server';
 
 /**
  * Create a server action handler for tRPC procedures
  * This allows you to call tRPC procedures directly from server components
- */
-export const serverActionHandler = experimental_createServerActionHandler({
+ */ 
+export const serverActionHandler = createServerActionHandler({
   router: appRouter,
   createContext: createContextForRSC,
 });

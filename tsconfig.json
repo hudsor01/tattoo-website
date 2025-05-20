@@ -18,7 +18,8 @@
       "@store/*": ["./src/store/*"],
       "@types/*": ["./src/types/*"],
       "@admin-dashboard/*": ["src/app/admin-dashboard/*"],
-      "@client-portal/*": ["./src/client-portal/*"]
+      "@client-portal/*": ["./src/client-portal/*"],
+      "@prisma/client": ["./node_modules/@prisma/client/index.d.ts"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,

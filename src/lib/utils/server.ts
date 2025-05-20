@@ -5,8 +5,7 @@
 
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { cookies } from 'next/headers';
-import { serverClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db/prisma';
 
 /**
@@ -23,7 +22,7 @@ export async function checkAdmin(userId?: string): Promise<boolean> {
   if (!userId) {
     try {
       // Get session
-      const supabase = serverClient();
+      const supabase = await createClient();
       const { data: { session } } = await supabase.auth.getSession();
       userId = session?.user?.id;
       if (!userId) return false;
@@ -54,7 +53,7 @@ export async function checkAdmin(userId?: string): Promise<boolean> {
 export async function verifyAdminAccess(): Promise<boolean> {
   try {
     // Get the current session
-    const supabase = serverClient();
+    const supabase = await createClient();
     const { data: { session } } = await supabase.auth.getSession();
     
     // No session means no admin access

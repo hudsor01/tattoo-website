@@ -6,7 +6,7 @@
  */
 
 import { prisma } from '@/lib/db/db-client';
-import { AnalyticsEventType, AnalyticsFilterType, EventCategory } from './types';
+import { AnalyticsEventType, AnalyticsFilterType, EventCategory } from '@/types/analytics-types';
 
 /**
  * Store an analytics event in the database
@@ -196,7 +196,7 @@ export async function getAnalyticsSummary(startDate: Date, endDate: Date) {
       uniqueUsers.size > 0 ? (uniqueConverters.size / uniqueUsers.size) * 100 : 0;
 
     // Calculate session metrics
-    const sessions = new Map<string, any[]>();
+    const sessions = new Map<string, Array<unknown>>();
     events
       .filter(event => event.sessionId)
       .forEach(event => {
@@ -228,7 +228,7 @@ export async function getAnalyticsSummary(startDate: Date, endDate: Date) {
     const averageSessionDuration = sessions.size > 0 ? totalDuration / sessions.size : 0;
 
     // Bounce rate (percentage of sessions with only one page view)
-    const bounceSessions = [...sessions.entries()].filter(([_, sessionEvents]) => {
+    const bounceSessions = [...sessions.entries()].filter(([, sessionEvents]) => {
       const pageViews = sessionEvents.filter(event => event.category === EventCategory.PAGE_VIEW);
       return pageViews.length === 1;
     });

@@ -4,7 +4,7 @@ import '../utils/polyfills';
 import type { Metadata } from 'next';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import Providers from '@/app/providers';
-// Remove unified layout import - not needed
+import NavigationSystem from '@/components/layouts/NavigationSystem';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -102,6 +102,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
         {/* Providers system */}
         <Providers>
+          <NavigationSystem />
           {children}
         </Providers>
       </body>

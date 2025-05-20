@@ -26,7 +26,7 @@ export interface AuthState {
   
   // Auth actions
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
   

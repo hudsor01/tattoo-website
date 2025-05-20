@@ -6,6 +6,8 @@
  */
 
 import { z } from 'zod';
+import { ApiResponse, ErrorResponse } from '@/types/api-types';
+import { RecordObject, FilterParams } from '@/types/utility-types';
 
 /**
  * Common options for all API requests
@@ -22,9 +24,9 @@ interface RequestOptions {
 export class ApiError extends Error {
   status: number;
   statusText: string;
-  data?: any;
+  data?: ErrorResponse;
 
-  constructor(message: string, status: number, statusText: string, data?: any) {
+  constructor(message: string, status: number, statusText: string, data?: ErrorResponse) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
@@ -90,10 +92,10 @@ export const api = {
   /**
    * Make a GET request
    */
-  async get<T = any>(
+  async get<T = RecordObject>(
     url: string,
     options?: RequestOptions,
-    params?: Record<string, string | number | boolean | undefined>,
+    params?: FilterParams,
     schema?: z.ZodType<T>
   ): Promise<T> {
     // Add query parameters if provided
@@ -129,7 +131,7 @@ export const api = {
   /**
    * Make a POST request
    */
-  async post<T = any, D = any>(
+  async post<T = ApiResponse<RecordObject>, D = RecordObject>(
     url: string,
     data?: D,
     options?: RequestOptions,
@@ -153,7 +155,7 @@ export const api = {
   /**
    * Make a PUT request
    */
-  async put<T = any, D = any>(
+  async put<T = ApiResponse<RecordObject>, D = RecordObject>(
     url: string,
     data?: D,
     options?: RequestOptions,
@@ -177,7 +179,7 @@ export const api = {
   /**
    * Make a PATCH request
    */
-  async patch<T = any, D = any>(
+  async patch<T = ApiResponse<RecordObject>, D = RecordObject>(
     url: string,
     data?: D,
     options?: RequestOptions,
@@ -201,7 +203,7 @@ export const api = {
   /**
    * Make a DELETE request
    */
-  async delete<T = any>(
+  async delete<T = ApiResponse<RecordObject>>(
     url: string,
     options?: RequestOptions,
     schema?: z.ZodType<T>
@@ -223,7 +225,7 @@ export const api = {
   /**
    * Make a multipart form data request (for file uploads)
    */
-  async upload<T = any>(
+  async upload<T = ApiResponse<{ url: string }>>(
     url: string,
     formData: FormData,
     options?: RequestOptions,

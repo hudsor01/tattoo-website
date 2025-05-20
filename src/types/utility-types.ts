@@ -7,9 +7,7 @@
 
 import { z } from 'zod';
 import type { Dispatch, SetStateAction } from 'react';
-import type { AxiosRequestConfig } from 'axios';
 import type { UseEmblaCarouselType } from 'embla-carousel-react';
-import { User, Session } from '@supabase/supabase-js';
 
 /**
  * ========================================================================
@@ -64,17 +62,6 @@ export type ApiHandler<T = unknown, R = unknown> = (data: T) => Promise<R>;
 
 // Carousel API type from embla-carousel
 export type CarouselApi = UseEmblaCarouselType[1];
-
-// API function types
-export type ApiGetFn = <T>(url: string, config?: AxiosRequestConfig) => Promise<T>;
-export type ApiPostFn = <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => Promise<T>;
-export type ApiPutFn = <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => Promise<T>;
-export type ApiPatchFn = <T>(
-  url: string,
-  data?: unknown,
-  config?: AxiosRequestConfig,
-) => Promise<T>;
-export type ApiDeleteFn = <T>(url: string, config?: AxiosRequestConfig) => Promise<T>;
 
 // UUID validation schema
 export const uuidParamSchema = z.object({
@@ -681,21 +668,6 @@ export interface WorkflowExecution {
  * VALIDATION UTILITY TYPES
  * ========================================================================
  */
-
-import {
-  loginFormSchema,
-  registerFormSchema,
-  forgotPasswordFormSchema,
-  resetPasswordFormSchema,
-  updatePasswordFormSchema
-} from '@/lib/validations/validation-auth';
-
-// Authentication form types
-export type LoginFormValues = z.infer<typeof loginFormSchema>;
-export type RegisterFormValues = z.infer<typeof registerFormSchema>;
-export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>;
-export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
-export type UpdatePasswordFormValues = z.infer<typeof updatePasswordFormSchema>;
 
 // Basic pagination schema for list endpoints
 export const paginationSchema = z.object({

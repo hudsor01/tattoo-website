@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import api from "@/lib/api-client";
+import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 
 /**
@@ -66,16 +66,16 @@ export function useEventTracking() {
   /**
    * Track a custom event
    */
-  const trackEvent = async (
+  const track = async (
     eventName: string,
-    category: string,
-    properties?: Record<string, any>
+    itemId?: string,
+    properties?: Record<string, unknown>
   ) => {
     try {
       await api.post("/analytics/track", {
         type: "event",
         eventName,
-        category,
+        itemId,
         userId: user?.id,
         properties,
         metadata: {
@@ -88,7 +88,7 @@ export function useEventTracking() {
     }
   };
 
-  return { trackEvent };
+  return { track };
 }
 
 export default { usePageViewTracking, useEventTracking };

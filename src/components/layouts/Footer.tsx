@@ -3,9 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaInstagram, FaTiktok, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import { Instagram, Music2, Mail, Map, MailOpen } from 'lucide-react';
 import Logo from '@/components/ui/logo';
-import { cn } from '@/utils';
+import { cn } from '@/lib/utils/styling';
 
 export function Footer() {
   const currentYear = 2025;
@@ -63,18 +63,18 @@ export function Footer() {
             
             {/* Location */}
             <div className="flex items-center mb-3 text-tattoo-white/70">
-              <FaMapMarkerAlt className="mr-2 text-tattoo-blue" />
+              <Map className="mr-2 text-tattoo-blue" />
               <span className="text-sm">Houston, TX</span>
             </div>
 
             {/* Email */}
-            <a 
+            <Link 
               href="mailto:fennyg83@gmail.com" 
               className="text-sm text-tattoo-white/70 hover:text-tattoo-blue mb-4 transition-colors inline-flex items-center"
             >
-              <FaEnvelope className="mr-2 text-tattoo-blue" />
+              <MailOpen className="mr-2 text-tattoo-blue" />
               fennyg83@gmail.com
-            </a>
+            </Link>
             
             {/* Social Links */}
             <div className="flex space-x-4">
@@ -85,7 +85,7 @@ export function Footer() {
                 className="w-10 h-10 rounded-lg bg-tattoo-white/5 flex items-center justify-center text-tattoo-white hover:bg-tattoo-blue hover:text-white transition-all duration-300"
                 aria-label="Instagram"
               >
-                <FaInstagram size={18} />
+                <Instagram className="h-[18px] w-[18px]" />
               </a>
               <a
                 href="https://tiktok.com/@fennyg83"
@@ -94,14 +94,14 @@ export function Footer() {
                 className="w-10 h-10 rounded-lg bg-tattoo-white/5 flex items-center justify-center text-tattoo-white hover:bg-tattoo-blue hover:text-white transition-all duration-300"
                 aria-label="TikTok"
               >
-                <FaTiktok size={16} />
+                <Music2 className="h-4 w-4" />
               </a>
               <a
                 href="mailto:fennyg83@gmail.com"
                 className="w-10 h-10 rounded-lg bg-tattoo-white/5 flex items-center justify-center text-tattoo-white hover:bg-tattoo-blue hover:text-white transition-all duration-300"
                 aria-label="Email"
               >
-                <FaEnvelope size={16} />
+                <Mail className="h-4 w-4" />
               </a>
             </div>
           </div>

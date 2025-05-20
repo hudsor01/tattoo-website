@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import type { CalWebhookPayload, CalWebhookEvent } from '@/types/booking-types';
+import type { CalWebhookPayload } from '@/types/booking-types';
+import { CalWebhookSchema } from '@/types/booking-types';
 import crypto from 'crypto';
 import { 
   sendCalBookingConfirmation, 
@@ -12,63 +13,19 @@ import {
 // Webhook validation secret from Cal.com (set in environment variables)
 const WEBHOOK_SECRET = process.env.CAL_WEBHOOK_SECRET;
 
-// Schema for webhook payload validation
-const CalWebhookSchema = z.object({
-  event: z.string() as z.ZodType<CalWebhookEvent>,
-  id: z.string(),
-  timestamp: z.number(),
-  payload: z.object({
-    id: z.string(),
-    uid: z.string(),
-    eventTypeId: z.number(),
-    title: z.string(),
-    description: z.string().optional(),
-    additionalNotes: z.string().optional(),
-    customInputs: z.array(z.object({
-      label: z.string(),
-      value: z.union([z.string(), z.number(), z.boolean()]),
-      type: z.string(),
-    })).optional(),
-    startTime: z.string(),
-    endTime: z.string(),
-    attendees: z.array(z.object({
-      email: z.string().email(),
-      name: z.string(),
-      timeZone: z.string(),
-      locale: z.string().optional(),
-      metadata: z.record(z.any()).optional(),
-    })),
-    organizer: z.object({
-      email: z.string().email(),
-      name: z.string(),
-      timeZone: z.string(),
-      username: z.string(),
-    }),
-    status: z.string(),
-    location: z.string().optional(),
-    meetingUrl: z.string().optional(),
-    payment: z.object({
-      amount: z.number(),
-      currency: z.string(),
-      status: z.string(),
-      paymentMethod: z.string().optional(),
-      externalId: z.string().optional(),
-    }).optional(),
-    metadata: z.record(z.any()).optional(),
-    cancellationReason: z.string().optional(),
-    previousBookingId: z.string().optional(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  }),
-});
-
 /**
  * Verify webhook signature from Cal.com
  */
 function verifyWebhookSignature(payload: string, signature: string): boolean {
   if (!WEBHOOK_SECRET) {
     console.warn('Cal.com webhook secret not configured');
-    return true; // Allow in development
+    // In production, always verify signatures
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Missing webhook secret in production environment');
+      return false;
+    }
+    // Allow in development only
+    return process.env.NODE_ENV !== 'production';
   }
 
   const hash = crypto
@@ -83,7 +40,7 @@ function verifyWebhookSignature(payload: string, signature: string): boolean {
  * Extract custom tattoo booking data from Cal.com payload
  */
 function extractTattooData(payload: CalWebhookPayload['payload']) {
-  const customData: Record<string, any> = {};
+  const customData: Record<string, unknown> = {};
   
   // Extract from custom inputs
   if (payload.customInputs) {

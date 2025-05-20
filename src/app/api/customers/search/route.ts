@@ -1,24 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { serverClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { apiRoute } from '@/lib/validations/validation-api-utils';
+import type { CustomerSearchResult } from '@/types/customer-types';
 // Import all of Zod as a namespace to avoid tree-shaking issues
 import * as z from 'zod';
 
 export const dynamic = 'force-dynamic';
-
-// Define search result type based on expected fields from search_customers function
-interface CustomerSearchResult {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  email: string | null;
-  phone: string | null;
-  avatarUrl: string | null;
-  city: string | null;
-  state: string | null;
-  createdAt: Date;
-}
 
 // Search query schema
 const searchQuerySchema = z.object({
@@ -33,10 +20,10 @@ const searchQuerySchema = z.object({
 export const GET = apiRoute({
   GET: {
     querySchema: searchQuerySchema,
-    handler: async (query, request) => {
+    handler: async (query) => {
       try {
         // Get authenticated session from Supabase
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { session } } = await supabase.auth.getSession();
 
         // Check for authentication

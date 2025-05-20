@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAppointment } from '@/lib/db/functions';
-import { serverClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/appointments/schedule
@@ -11,7 +11,7 @@ import { serverClient } from '@/lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated session from Supabase
-    const supabase = serverClient();
+    const supabase = await createClient();
     const { data: { session } } = await supabase.auth.getSession();
 
     // Check for authentication

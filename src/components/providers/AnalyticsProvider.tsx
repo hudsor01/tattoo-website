@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect } from 'react';
-import { useAnalytics, useErrorTracking, usePageViewTracking } from '@/hooks/use-analytics';
+import { useAnalytics, useErrorTracking } from '@/hooks/use-analytics';
 
 // Define context types
 type AnalyticsContextType = ReturnType<typeof useAnalytics> & {
@@ -21,7 +21,8 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const error = useErrorTracking();
 
   // Set up automatic page view tracking
-  usePageViewTracking();
+  // Disabled to prevent duplicate tracking - using PageViewTracker component instead
+  // usePageViewTracking();
 
   // Set up global error tracking
   useEffect(() => {

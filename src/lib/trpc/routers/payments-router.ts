@@ -6,8 +6,8 @@
 
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { publicProcedure, router, protectedProcedure } from '../server';
-import { serverClient } from '@/lib/supabase/server';
+import { router, protectedProcedure } from '../server';
+import { createClient } from '@/lib/supabase/server';
 
 export const paymentsRouter = router({
   /**
@@ -18,9 +18,9 @@ export const paymentsRouter = router({
       limit: z.number().min(1).max(100).default(10),
       cursor: z.number().nullish(),
     }))
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -80,9 +80,9 @@ export const paymentsRouter = router({
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -132,9 +132,9 @@ export const paymentsRouter = router({
       currency: z.string().length(3).default('usd'),
       metadata: z.record(z.string()).optional(),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -194,7 +194,7 @@ export const paymentsRouter = router({
         };
         
         // Record the payment intent in the database
-        const { data: payment, error } = await supabase
+        const { error } = await supabase
           .from('payments')
           .insert({
             client_id: user.id,
@@ -245,9 +245,9 @@ export const paymentsRouter = router({
     .input(z.object({
       paymentIntentId: z.string(),
     }))
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {

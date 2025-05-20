@@ -25,13 +25,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
   const [isSearching, setIsSearching] = useState(false);
 
   // Flatten all FAQ items for searching
-  interface AllFAQ {
-    category: string;
-    id: string;
-    item: FAQItemType;
-  }
-
-  interface AllFAQ {
+  interface AllFAQItem {
     category: string;
     id: string;
     item: FAQItemType;
@@ -43,9 +37,9 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
     items: FAQItemType[];
   }
 
-  const allFAQs: AllFAQ[] = categories.flatMap((category: Category): AllFAQ[] =>
+  const allFAQs: AllFAQItem[] = categories.flatMap((category: Category): AllFAQItem[] =>
     category.items.map(
-      (item: FAQItemType): AllFAQ => ({
+      (item: FAQItemType): AllFAQItem => ({
         category: category.title,
         id: category.id,
         item,

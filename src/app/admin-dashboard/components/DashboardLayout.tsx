@@ -3,12 +3,11 @@
 import React, { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/styling';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Calendar,
-  ChevronLeft,
   CreditCard,
   LogOut,
   Mail,
@@ -19,8 +18,6 @@ import {
   Palette,
   Bell,
 } from 'lucide-react';
-
-const drawerWidth = 240;
 
 const menuItems = [
   {

@@ -2,10 +2,10 @@
 
 // Custom icon component types
 declare module '@/components/icons' {
-  export const CustomIcon: any;
-  export const Logo: any;
-  export const TattooMachine: any;
-  export const TattooNeedle: any;
+  export const CustomIcon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  export const Logo: React.ComponentType<React.HTMLAttributes<HTMLElement>>;
+  export const TattooMachine: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  export const TattooNeedle: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 export {};

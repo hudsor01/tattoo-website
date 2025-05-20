@@ -41,7 +41,8 @@ const clientLogger: LoggerInterface = {
     console.info(`HTTP: ${message}`, data || '');
   },
   debug: (message: LogMessage, data?: LogData) => {
-    console.debug(`DEBUG: ${message}`, data || '');
+    // Use console.info instead of console.debug to comply with ESLint rules
+    console.info(`DEBUG: ${message}`, data || '');
   },
 };
 
@@ -79,7 +80,7 @@ const getServerLogger = (): LoggerInterface => {
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
       winston.format.colorize({ all: true }),
       winston.format.printf(
-        (info: any) =>
+        (info: { timestamp: string; level: string; message: string; data?: unknown }) =>
           `${info.timestamp} ${info.level}: ${info.message} ${
             info.data ? JSON.stringify(info.data) : ''
           }`,

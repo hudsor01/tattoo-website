@@ -1,44 +1,43 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function HomePage() {
+  const [scrollEnabled, setScrollEnabled] = useState(false);
+  
   useEffect(() => {
-    // Prevent scrolling on this page
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.height = '100%';
-    document.body.style.height = '100%';
+    // By default, prevent scrolling on this page
+    if (!scrollEnabled) {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.height = '100%';
+      document.body.style.height = '100%';
+    } else {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.documentElement.style.height = '';
+      document.body.style.height = '';
+    }
     
     return () => {
+      // Clean up when component unmounts
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
       document.documentElement.style.height = '';
       document.body.style.height = '';
     };
-  }, []);
+  }, [scrollEnabled]);
+  
   return (
-    <div className="fixed inset-0 overflow-hidden bg-black">
+    <div className={scrollEnabled ? "bg-black" : "fixed inset-0 overflow-hidden bg-black"}>
       {/* Main container with two columns */}
-      <div className="h-full flex">
-        {/* Left side - Logo and content */}
+      <div className={scrollEnabled ? "min-h-screen flex flex-col md:flex-row" : "h-full flex"}>
+        {/* Left side - Content (Logo removed) */}
         <div className="flex-1 flex flex-col justify-between p-12 relative">
-          {/* Logo at top left */}
-          <div className="relative z-10">
-            <Image
-              src="/logo.png"
-              alt="Ink 37"
-              width={150}
-              height={150}
-              className="mb-8"
-              priority
-            />
-          </div>
-
           {/* Center content */}
-          <div className="relative z-10 max-w-2xl animate-slide-up">
+          <div className="relative z-10 max-w-2xl animate-slide-up mt-20">
             <h1 className="text-6xl md:text-8xl font-bold text-white mb-6 tracking-tight">
               TATTOOS BY<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500">
@@ -47,7 +46,7 @@ export default function HomePage() {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 mb-12 leading-relaxed">
-              Crafting exceptional Japanese-inspired artistry in Dallas/Fort Worth
+              Crafting exceptional custom tattoo artistry in Dallas/Fort Worth
             </p>
 
             {/* CTAs */}
@@ -65,6 +64,21 @@ export default function HomePage() {
                 Book a Consultation
               </Link>
             </div>
+            
+            {/* Scroll toggle (for accessibility) */}
+            <button 
+              onClick={() => setScrollEnabled(!scrollEnabled)}
+              className="mt-8 text-sm text-gray-400 hover:text-white transition flex items-center"
+            >
+              {scrollEnabled ? "Disable Scrolling" : "Enable Scrolling"} 
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                {scrollEnabled ? (
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                ) : (
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
+                )}
+              </svg>
+            </button>
           </div>
 
           {/* Bottom spacing */}
@@ -72,7 +86,7 @@ export default function HomePage() {
         </div>
 
         {/* Center blend effect */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-[200px] -translate-x-1/2 bg-gradient-to-r from-transparent via-black to-transparent blur-[15px]"></div>
+        <div className="absolute md:fixed left-1/2 top-0 bottom-0 w-[200px] -translate-x-1/2 bg-gradient-to-r from-transparent via-black to-transparent blur-[15px]"></div>
 
         {/* Right side - Image */}
         <div className="flex-1 flex items-center justify-center p-12 relative">
@@ -101,11 +115,6 @@ export default function HomePage() {
               {/* Subtle overlay gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none"></div>
             </div>
-
-            {/* Caption */}
-            <p className="text-gray-400 text-sm text-center mt-4">
-              Japanese-inspired artistry
-            </p>
           </div>
         </div>
       </div>

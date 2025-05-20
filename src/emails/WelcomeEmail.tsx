@@ -11,7 +11,6 @@ export function generateWelcomeEmail({
   studioWebsite,
   instagramHandle,
 }: WelcomeEmailProps): { subject: string; html: string } {
-  const websiteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const html = `
     <!DOCTYPE html>

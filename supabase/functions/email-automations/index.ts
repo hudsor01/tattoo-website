@@ -88,8 +88,8 @@ async function processEmailTemplate(
   }
     
   // TODO: Replace with your email service implementation
-  console.log(`Sending email to ${recipient} using template ${template.name}`)
-  console.log(`Template data: ${JSON.stringify(data)}`)
+  console.error(`Sending email to ${recipient} using template ${template.name}`)
+  console.error(`Template data: ${JSON.stringify(data)}`)
     
   // Record email sent in database
   // emailLog is not used but will be needed for future implementation

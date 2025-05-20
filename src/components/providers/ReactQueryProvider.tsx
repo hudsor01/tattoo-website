@@ -2,10 +2,9 @@
 
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
-import type { AppRouter } from '@/lib/trpc-app';
+import type { AppRouter } from '@/lib/trpc/api-router';
 
 // Create the tRPC React hooks
 export const trpc = createTRPCReact<AppRouter>();
@@ -15,7 +14,6 @@ export const trpc = createTRPCReact<AppRouter>();
  */
 interface ReactQueryProviderProps {
   children: React.ReactNode;
-  enableDevtools?: boolean;
 }
 
 // Configure default options for the query client
@@ -43,7 +41,6 @@ function createQueryClient() {
  */
 export function ReactQueryProvider({
   children,
-  enableDevtools = process.env.NODE_ENV === 'development',
 }: ReactQueryProviderProps) {
   // Create a new query client for each request in SSR
   // In client-side rendering, use a ref to maintain the same client
@@ -71,8 +68,6 @@ export function ReactQueryProvider({
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         {children}
-        {/* Only show devtools in development and when enabled */}
-        {enableDevtools && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </trpc.Provider>
   );

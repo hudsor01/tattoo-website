@@ -6,7 +6,6 @@
  */
 
 import { Resend } from 'resend';
-import * as Sentry from '@sentry/nextjs';
 import { EmailRecipient, EmailOptions } from '@/types/email-types';
 
 // Default sender email address
@@ -28,7 +27,6 @@ export function createResend(): Resend | null {
     }
   } catch (error) {
     console.error('Failed to initialize Resend client:', error);
-    Sentry.captureException(error);
     return null;
   }
 }
@@ -109,7 +107,6 @@ export async function sendEmail(
     };
   } catch (error) {
     console.error('Error sending email via Resend:', error);
-    Sentry.captureException(error);
 
     return {
       success: false,

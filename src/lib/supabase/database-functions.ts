@@ -46,8 +46,8 @@ export async function checkIsAdmin(user: User | null): Promise<boolean> {
 
     // You could also check against a database table if needed
     // For example:
-    // const supabase = createClient();
-    // const { data, error } = await supabase
+    // const _supabase = createClient();
+    // const { data, error } = await _supabase
     //   .from('admin_users')
     //   .select('id')
     //   .eq('user_id', user.id)
@@ -116,8 +116,6 @@ export async function getUserRole(userId: string): Promise<string | null> {
  */
 export async function updateUserRole(userId: string, role: string): Promise<boolean> {
   try {
-    const supabase = createClient();
-    
     // Note: admin.updateUserById is only available with service role key
     // For client-side apps, you would need to call an API endpoint that uses server-side Supabase
     // This is just a placeholder that won't work in the browser

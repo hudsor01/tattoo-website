@@ -3,16 +3,16 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createAnalyticsStream } from '@/lib/routers/analytics-router/live-updates';
-import { serverClient } from '@/lib/supabase/server';
+import { createAnalyticsStream } from '@/lib/trpc/routers/analytics-router/live-updates';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 // export const runtime = 'edge';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // Initialize Supabase client
-    const supabase = serverClient();
+    const supabase = await createClient();
     
     // Check authentication
     const { data: { session } } = await supabase.auth.getSession();

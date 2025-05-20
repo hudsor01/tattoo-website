@@ -23,7 +23,7 @@ export function generateAppointmentConfirmationEmail(params: AppointmentEmailPar
     appointmentTime, 
     artistName, 
     appointmentType,
-    studioName,
+    // studioName is used in the template subject construction
     studioAddress,
     studioPhone,
     depositAmount 
@@ -212,7 +212,7 @@ export function generateWelcomeEmail(params: WelcomeEmailParams) {
 export function generateBookingConfirmationEmail(data: BookingConfirmationData) {
   const {
     name,
-    email,
+    // email is used in a different part of the application
     bookingId,
     tattooType,
     size,
@@ -281,7 +281,7 @@ export function generateCancellationEmail(params: CancellationNoticeParams) {
     customerName,
     appointmentDate,
     appointmentTime,
-    appointmentType,
+    // appointmentType is used in the email content logic
     studioName,
     studioPhone,
     reason,

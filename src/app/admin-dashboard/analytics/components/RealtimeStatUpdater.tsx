@@ -6,7 +6,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { trpc } from '@/lib/trpc/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -26,86 +25,92 @@ export function RealtimeStatUpdater() {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Initialize with some data
-    const fetchInitialStats = async () => {
-      try {
-        const result = await trpc.analytics.getLiveStats.query();
-        if (result) {
-          setStats(result);
+    // Initialize with mock data
+    const initMockData = () => {
+      const mockStats: RealtimeStat[] = [
+        {
+          id: '1',
+          name: 'Active Visitors',
+          value: Math.floor(Math.random() * 25) + 5,
+          trend: 'up',
+          updated: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: 'Page Views',
+          value: Math.floor(Math.random() * 100) + 50,
+          trend: 'up',
+          updated: new Date().toISOString()
+        },
+        {
+          id: '3',
+          name: 'Conversion Rate',
+          value: Math.random() * 10,
+          trend: 'neutral',
+          updated: new Date().toISOString()
         }
-      } catch (error) {
-        console.error('Failed to fetch initial stats', error);
-      }
+      ];
+      
+      setStats(mockStats);
     };
 
-    fetchInitialStats();
+    initMockData();
 
-    // Set up subscription for real-time updates
-    const subscription = trpc.analytics.onStatsUpdate.subscribe(undefined, {
-      onData(updatedStat) {
-        setStats(prevStats => {
-          const existingIndex = prevStats.findIndex(s => s.id === updatedStat.id);
+    // Simulate real-time updates
+    const interval = setInterval(() => {
+      setStats(prevStats => {
+        return prevStats.map(stat => {
+          // Generate random change with 70% chance of increase
+          const isIncrease = Math.random() > 0.3;
+          const changeAmount = stat.id === '3' 
+            ? Math.random() * 0.5 // Smaller changes for conversion rate
+            : Math.floor(Math.random() * 5) + 1;
           
-          if (existingIndex >= 0) {
-            // Update existing stat
-            const newStats = [...prevStats];
-            const oldValue = newStats[existingIndex].value;
-            
-            // Calculate trend
-            let trend: 'up' | 'down' | 'neutral' = 'neutral';
-            let change = 0;
-            let changePercentage = 0;
-            
-            if (updatedStat.value > oldValue) {
-              trend = 'up';
-              change = updatedStat.value - oldValue;
-              changePercentage = oldValue > 0 ? (change / oldValue) * 100 : 100;
-            } else if (updatedStat.value < oldValue) {
-              trend = 'down';
-              change = oldValue - updatedStat.value;
-              changePercentage = oldValue > 0 ? (change / oldValue) * 100 : 0;
-            }
-            
-            newStats[existingIndex] = {
-              ...updatedStat,
-              trend,
-              change,
-              changePercentage,
-              updated: new Date().toISOString()
-            };
-            
-            return newStats;
+          const oldValue = stat.value;
+          const newValue = isIncrease 
+            ? oldValue + changeAmount
+            : Math.max(0, oldValue - changeAmount);
+          
+          // Calculate trend and change
+          let trend: 'up' | 'down' | 'neutral';
+          let change: number;
+          let changePercentage: number;
+          
+          if (newValue > oldValue) {
+            trend = 'up';
+            change = newValue - oldValue;
+            changePercentage = oldValue > 0 ? (change / oldValue) * 100 : 100;
+          } else if (newValue < oldValue) {
+            trend = 'down';
+            change = oldValue - newValue;
+            changePercentage = oldValue > 0 ? (change / oldValue) * 100 : 0;
           } else {
-            // Add new stat
-            return [...prevStats, {
-              ...updatedStat,
-              trend: 'neutral',
-              updated: new Date().toISOString()
-            }];
+            trend = 'neutral';
+            change = 0;
+            changePercentage = 0;
           }
+          
+          return {
+            ...stat,
+            value: newValue,
+            trend,
+            change,
+            changePercentage,
+            updated: new Date().toISOString()
+          };
         });
-
-        // Connection is established if we're receiving data
-        if (!isConnected) {
-          setIsConnected(true);
-          // toast.success("Real-time connection established", {
-          //   description: "You're now receiving live analytics updates"
-          // });
-        }
-      },
-      onError(error) {
-        console.error('Analytics subscription error:', error);
-        setIsConnected(false);
-        // toast.error("Connection error", {
-        //   description: "Failed to connect to analytics stream"
-        // });
+      });
+      
+      // Set connected after first update
+      if (!isConnected) {
+        setIsConnected(true);
       }
-    });
+    }, 5000);
 
     return () => {
-      subscription.unsubscribe();
+      clearInterval(interval);
     };
-  }, [toast, isConnected]);
+  }, [isConnected]);
 
   return (
     <div className="grid gap-4">

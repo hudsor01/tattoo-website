@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import { trpc } from '@/lib/trpc/client';
+import { api } from '@/lib/trpc/client';
 import type {
   AnalyticsEventType,
   BaseEventType,
@@ -16,8 +16,8 @@ import type {
   GalleryEventType,
   InteractionEventType,
   PageViewEventType,
-} from '@/lib/trpc/routers/types';
-import { EventCategory } from '@/lib/trpc/routers/types';
+  EventCategory
+} from '@/types/analytics-types';
 import { v4 as uuidv4 } from 'uuid';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getDeviceInfo } from '@/lib/utils/browser/device-detection';
@@ -77,13 +77,13 @@ export const useAnalytics = () => {
 
   // tRPC procedures
   // Check the actual procedure names in your analytics router
-  const trackEventMutation = trpc.analytics.track.useMutation();
-  const trackPageViewMutation = trpc.analytics.trackPageView.useMutation();
-  const trackInteractionMutation = trpc.analytics.trackInteraction.useMutation();
-  const trackBookingEventMutation = trpc.analytics.trackBooking.useMutation();
-  const trackGalleryEventMutation = trpc.analytics.trackGallery.useMutation();
-  const trackConversionMutation = trpc.analytics.trackConversion.useMutation();
-  const trackErrorMutation = trpc.analytics.trackError.useMutation();
+  const trackEventMutation = api.analytics.track.useMutation();
+  const trackPageViewMutation = api.analytics.trackPageView.useMutation();
+  const trackInteractionMutation = api.analytics.trackInteraction.useMutation();
+  const trackBookingEventMutation = api.analytics.trackBooking.useMutation();
+  const trackGalleryEventMutation = api.analytics.trackGallery.useMutation();
+  const trackConversionMutation = api.analytics.trackConversion.useMutation();
+  const trackErrorMutation = api.analytics.trackError.useMutation();
 
   // Add common properties to events
   const enhanceEvent = useCallback(
@@ -446,15 +446,55 @@ export const useGalleryAnalytics = () => {
 
   // Track design share
   const trackDesignShare = useCallback(
-    (designId: string, designType?: string) => {
+    (designId: string, designType?: string, platform?: string) => {
       trackGalleryEvent({
         action: 'share',
+        designId,
+        designType,
+        label: platform ? `platform:${platform}` : undefined,
+      });
+    },
+    [trackGalleryEvent],
+  );
+  
+  // Track design zoom
+  const trackDesignZoom = useCallback(
+    (designId: string, zoomLevel?: number, designType?: string) => {
+      trackGalleryEvent({
+        action: 'zoom',
+        designId,
+        designType,
+        value: zoomLevel,
+      });
+    },
+    [trackGalleryEvent],
+  );
+  
+  // Track design swipe
+  const trackDesignSwipe = useCallback(
+    (designId: string, direction?: string, designType?: string) => {
+      trackGalleryEvent({
+        action: 'swipe',
+        designId,
+        designType,
+        label: direction ? `direction:${direction}` : undefined,
+      });
+    },
+    [trackGalleryEvent],
+  );
+  
+  // Track design download
+  const trackDesignDownload = useCallback(
+    (designId: string, designType?: string) => {
+      trackGalleryEvent({
+        action: 'download',
         designId,
         designType,
       });
     },
     [trackGalleryEvent],
   );
+  
 
   // Track gallery filtering
   const trackGalleryFilter = useCallback(
@@ -484,6 +524,9 @@ export const useGalleryAnalytics = () => {
     trackDesignFavorite,
     trackDesignUnfavorite,
     trackDesignShare,
+    trackDesignZoom,
+    trackDesignSwipe,
+    trackDesignDownload,
     trackGalleryFilter,
     trackGallerySearch,
   };
@@ -518,13 +561,13 @@ export const useErrorTracking = () => {
  * Hook for retrieving popular designs
  */
 export function usePopularDesigns(limit = 5, period: 'day' | 'week' | 'month' | 'all' = 'month') {
-  const { data, isLoading, error } = trpc.analytics.getPopularDesigns.useQuery({
+  const { data, isLoading, error } = api.analytics.getPopularDesigns.useQuery({
     limit,
     period,
   });
 
   return {
-    designs: data ?? [],
+    data: data ?? [],
     isLoading,
     error,
   };
@@ -534,7 +577,7 @@ export function usePopularDesigns(limit = 5, period: 'day' | 'week' | 'month' | 
  * Hook for retrieving view analytics
  */
 export function useViewAnalytics(period: 'day' | 'week' | 'month' | 'year' = 'month') {
-  const { data, isLoading, error } = trpc.analytics.getViewAnalytics.useQuery({
+  const { data, isLoading, error } = api.analytics.getViewAnalytics.useQuery({
     period,
   });
 
@@ -555,7 +598,7 @@ export function useViewAnalytics(period: 'day' | 'week' | 'month' | 'year' = 'mo
  * Hook for retrieving conversion rates
  */
 export function useConversionRates(period: 'day' | 'week' | 'month' | 'year' = 'month') {
-  const { data, isLoading, error } = trpc.analytics.getConversionRates.useQuery({
+  const { data, isLoading, error } = api.analytics.getConversionRates.useQuery({
     period,
   });
 

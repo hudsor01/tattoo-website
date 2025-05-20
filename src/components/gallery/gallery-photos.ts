@@ -1,5 +1,4 @@
 import { Photo } from 'react-photo-album';
-import type { StaticImport } from 'next/dist/shared/lib/get-img-props';
 
 // Define media type interface
 export interface MediaItem extends Photo {
@@ -36,16 +35,16 @@ export const galleryPhotos: MediaItem[] = [
     type: 'image',
   },
   {
-    src: getImagePath('/images/christ-left arm piece.JPG'),
+    src: getImagePath('/images/realism.jpg'),
     width: 1200,
     height: 1200,
-    alt: 'Christ left arm tattoo',
-    title: 'Christ Arm Piece',
-    category: 'Religious',
+    alt: 'Realistic tattoo design',
+    title: 'Realism Work',
+    category: 'Portrait',
     type: 'image',
   },
   {
-    src: getImagePath('/images/clock-lion-left-arm.JPG'),
+    src: getImagePath('/images/clock-lion-left-arm.jpg'),
     width: 1200,
     height: 1200,
     alt: 'Clock with lion on left arm',
@@ -54,12 +53,12 @@ export const galleryPhotos: MediaItem[] = [
     type: 'image',
   },
   {
-    src: getImagePath('/images/clock-roses-left-forearm.jpg'),
+    src: getImagePath('/images/traditional.jpg'),
     width: 1200,
     height: 1200,
-    alt: 'Clock with roses on left forearm',
-    title: 'Clock & Roses',
-    category: 'Sleeve',
+    alt: 'Traditional style tattoo',
+    title: 'Traditional Style',
+    category: 'Traditional',
     type: 'image',
   },
   {
@@ -81,12 +80,12 @@ export const galleryPhotos: MediaItem[] = [
     type: 'image',
   },
   {
-    src: getImagePath('/images/praying-hands-left-arm.JPG'),
+    src: getImagePath('/images/cover-ups.jpg'),
     width: 1200,
     height: 1200,
-    alt: 'Praying hands tattoo on left arm',
-    title: 'Praying Hands',
-    category: 'Religious',
+    alt: 'Cover-up tattoo design',
+    title: 'Cover-Up Work',
+    category: 'Cover-up',
     type: 'image',
   },
   {
@@ -107,7 +106,7 @@ export const galleryPhotos: MediaItem[] = [
     category: 'Sleeve',
     type: 'image',
   },
-  // Video entries
+  // Video entries - using available images as thumbnails
   {
     src: getImagePath('/images/christ-crosses.JPG'), // Thumbnail
     width: 1200,
@@ -119,17 +118,17 @@ export const galleryPhotos: MediaItem[] = [
     videoSrc: getImagePath('/videos/christ-crosses-left-arm-sleeve.mov'),
   },
   {
-    src: getImagePath('/images/christ-left arm piece.JPG'), // Thumbnail
+    src: getImagePath('/images/japanese.jpg'), // Thumbnail
     width: 1200,
     height: 800,
-    alt: 'Christ crosses right arm video',
-    title: 'Christ Crosses Right Arm Process',
+    alt: 'Japanese style tattoo process',
+    title: 'Japanese Style Process',
     category: 'Process',
     type: 'video',
     videoSrc: getImagePath('/videos/christ-crosses-right-arm.mov'),
   },
   {
-    src: getImagePath('/images/clock-lion-left-arm.JPG'), // Thumbnail
+    src: getImagePath('/images/clock-lion-left-arm.jpg'), // Thumbnail
     width: 1200,
     height: 800,
     alt: 'Clock and lion tattoo process video',
@@ -139,11 +138,11 @@ export const galleryPhotos: MediaItem[] = [
     videoSrc: getImagePath('/videos/clock-lion-left-arm.mov'),
   },
   {
-    src: getImagePath('/images/clock-roses-left-forearm.jpg'), // Thumbnail
+    src: getImagePath('/images/traditional.jpg'), // Thumbnail
     width: 1200,
     height: 800,
-    alt: 'Clock and roses tattoo process video',
-    title: 'Clock & Roses Process',
+    alt: 'Traditional tattoo process video',
+    title: 'Traditional Process',
     category: 'Process',
     type: 'video',
     videoSrc: getImagePath('/videos/clock-roses.mov'),
@@ -159,11 +158,11 @@ export const galleryPhotos: MediaItem[] = [
     videoSrc: getImagePath('/videos/dragonballz-left-arm.mov'),
   },
   {
-    src: getImagePath('/images/praying-hands-left-arm.JPG'), // Thumbnail
+    src: getImagePath('/images/realism.jpg'), // Thumbnail
     width: 1200,
     height: 800,
-    alt: 'Praying hands tattoo process video',
-    title: 'Praying Hands Process',
+    alt: 'Realism tattoo process video',
+    title: 'Realism Process',
     category: 'Process',
     type: 'video',
     videoSrc: getImagePath('/videos/praying-hands-left-arm.mov'),

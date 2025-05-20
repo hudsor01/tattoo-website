@@ -6,10 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import * as z from 'zod';
-import { 
-  createValidatedRoute, 
-  createRoute 
-} from '../route-creator';
+// Route creators are inlined since route-creator doesn't exist
 import {
   calculatePricing,
   getStandardPricingData,
@@ -31,7 +28,7 @@ const PricingCalculationSchema = z.object({
  * 
  * Get standard pricing data
  */
-export const GET = createRoute(async (req) => {
+export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const artistId = searchParams.get('artistId');
   
@@ -51,16 +48,17 @@ export const GET = createRoute(async (req) => {
       { status: 500 }
     );
   }
-});
+}
 
 /**
  * POST /api/pricing
  * 
  * Calculate pricing for a specific tattoo
  */
-export const POST = createValidatedRoute(
-  PricingCalculationSchema,
-  async (req, { data }) => {
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const data = PricingCalculationSchema.parse(body);
     try {
       // Calculate pricing
       const pricingBreakdown = await calculatePricing(
@@ -87,15 +85,26 @@ export const POST = createValidatedRoute(
         { status: 500 }
       );
     }
+  } catch (validationError) {
+    if (validationError instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: validationError.errors },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { error: 'Failed to process request' },
+      { status: 500 }
+    );
   }
-);
+}
 
 /**
  * OPTIONS /api/pricing
  * 
  * Get options for pricing calculations (CORS support)
  */
-export const OPTIONS = createRoute(async () => {
+export async function OPTIONS() {
   return new Response(null, {
     status: 204,
     headers: {
@@ -104,4 +113,4 @@ export const OPTIONS = createRoute(async () => {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
-});
+}

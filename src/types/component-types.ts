@@ -8,7 +8,7 @@
 import type { ReactNode, ButtonHTMLAttributes, ComponentType, HTMLAttributes } from 'react';
 import type { VariantProps } from 'class-variance-authority';
 import type { buttonVariants } from '@/components/ui/button';
-import type { FieldValues, FieldPath, UseFormReturn, ControllerProps } from 'react-hook-form';
+import type { FieldValues, FieldPath, UseFormReturn } from 'react-hook-form';
 import type { ThemeColor } from './enum-types';
 import { z } from 'zod';
 

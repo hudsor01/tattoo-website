@@ -17,7 +17,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Activity,
-  BarChart3,
   Circle,
   Eye,
   AlertTriangle,
@@ -29,8 +28,8 @@ import {
   Sparkles,
   Info,
 } from 'lucide-react';
-import { AnalyticsStreamEvents } from '@/lib/trpc/routers/analytics-router/live-updates';
-import { EventCategory } from '@/lib/trpc/routers/types';
+import { AnalyticsStreamEvents } from '@/types/analytics-stream-types';
+import { useLiveAnalytics } from '@/hooks/use-live-analytics';
 
 // Live updating counter component
 const LiveCounter = ({
@@ -53,6 +52,7 @@ const LiveCounter = ({
       const timer = setTimeout(() => setIsHighlighted(false), 1000);
       return () => clearTimeout(timer);
     }
+    return undefined; // Explicit return for when value is not > 0
   }, [value]);
 
   return (
@@ -77,37 +77,63 @@ const LiveCounter = ({
 };
 
 // Format the event category for display
-const formatCategory = (category: string) => {
+const formatCategory = (category: string): string => {
   return category
-    .replace('_', ' ')
+    .replace(/_/g, ' ')
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
 
 // Get the icon for an event type
-const getEventIcon = (category: string) => {
+const getEventIcon = (category: string): React.ElementType => {
   switch (category) {
-    case EventCategory.PAGE_VIEW:
+    case 'page_view':
       return Eye;
-    case EventCategory.ERROR:
+    case 'error':
       return AlertTriangle;
-    case EventCategory.CONVERSION:
+    case 'conversion':
       return ShoppingCart;
-    case EventCategory.GALLERY:
+    case 'gallery':
       return Sparkles;
-    case EventCategory.BOOKING:
+    case 'booking':
       return Clock;
     default:
       return Info;
   }
 };
 
+// Define the event type interfaces
+interface BaseAnalyticsEvent {
+  type: string;
+  timestamp: string | number;
+  data: {
+    category: string;
+    action: string;
+    label?: string;
+    path?: string;
+    deviceType?: string;
+    [key: string]: unknown;
+  };
+}
+
+interface ErrorEvent extends BaseAnalyticsEvent {
+  type: string;
+  data: {
+    category: string;
+    action: string;
+    errorMessage: string;
+    componentName?: string;
+    path?: string;
+    [key: string]: unknown;
+  };
+}
+
 // Live events feed component
-const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
+const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
   return (
     <ScrollArea className="h-[500px] pr-4">
-      {events.length === 0 ? (
+      {!events || events.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
           <Activity className="h-8 w-8 mb-2" />
           <p>Waiting for events...</p>
@@ -123,12 +149,12 @@ const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
               return (
                 <Card key={index} className="relative overflow-hidden">
                   <div
-                    className={`absolute top-0 left-0 w-1 h-full bg-${
-                      analyticsEvent.category === EventCategory.ERROR
-                        ? 'destructive'
-                        : analyticsEvent.category === EventCategory.CONVERSION
-                          ? 'green-500'
-                          : 'primary'
+                    className={`absolute top-0 left-0 w-1 h-full ${
+                      analyticsEvent.category === 'error'
+                        ? 'bg-destructive'
+                        : analyticsEvent.category === 'conversion'
+                          ? 'bg-green-500'
+                          : 'bg-primary'
                     }`}
                   />
                   <CardHeader className="pb-2">
@@ -140,7 +166,7 @@ const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
                         </CardTitle>
                       </div>
                       <Badge variant="outline">
-                        {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(event.timestamp.toString()), { addSuffix: true })}
                       </Badge>
                     </div>
                     <CardDescription>
@@ -164,7 +190,7 @@ const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
                   </CardContent>
                 </Card>
               );
-            } else if (event.type === AnalyticsStreamEvents.STATS_UPDATE) {
+            } else if (event.type === 'stats_update') {
               return (
                 <Card key={index} className="relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
@@ -175,7 +201,7 @@ const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
                         <CardTitle className="text-sm font-medium">Stats Updated</CardTitle>
                       </div>
                       <Badge variant="outline">
-                        {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(event.timestamp.toString()), { addSuffix: true })}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -184,8 +210,8 @@ const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
                   </CardContent>
                 </Card>
               );
-            } else if (event.type === AnalyticsStreamEvents.ERROR_OCCURRED) {
-              const errorEvent = event.data;
+            } else if (event.type === 'error_occurred') {
+              const errorEvent = event.data as ErrorEvent['data'];
 
               return (
                 <Card key={index} className="relative overflow-hidden border-red-200">
@@ -197,7 +223,7 @@ const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
                         <CardTitle className="text-sm font-medium">Error Detected</CardTitle>
                       </div>
                       <Badge variant="outline" className="text-red-500 border-red-200">
-                        {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(event.timestamp.toString()), { addSuffix: true })}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -229,13 +255,13 @@ const LiveEventsFeed = ({ events }: { events: unknown[] }) => {
                     <div className="flex justify-between">
                       <CardTitle className="text-sm font-medium">{event.type}</CardTitle>
                       <Badge variant="outline">
-                        {formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(event.timestamp.toString()), { addSuffix: true })}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm">
-                      Event received at {new Date(event.timestamp).toLocaleTimeString()}
+                      Event received at {new Date(event.timestamp.toString()).toLocaleTimeString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -400,40 +426,40 @@ export default function LiveAnalyticsDashboard() {
               <CardContent>
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-4">
-                    {recentEvents.slice(0, 5).map((event, index) => {
-                      if (event.type === AnalyticsStreamEvents.NEW_EVENT) {
-                        const analyticsEvent = event.data;
-                        const EventIcon = getEventIcon(analyticsEvent.category);
+                    {recentEvents && recentEvents.length > 0 ? (
+                      recentEvents.slice(0, 5).map((event, index) => {
+                        if (event.type === AnalyticsStreamEvents.NEW_EVENT) {
+                          const analyticsEvent = event.data;
+                          const EventIcon = getEventIcon(analyticsEvent.category);
 
-                        return (
-                          <div key={index} className="flex items-start gap-3">
-                            <div className="mt-0.5">
-                              <EventIcon className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="space-y-1">
-                              <p className="font-medium leading-none">
-                                {formatCategory(analyticsEvent.category)} - {analyticsEvent.action}
-                              </p>
-                              {analyticsEvent.path && (
-                                <p className="text-sm text-muted-foreground">
-                                  {analyticsEvent.path.length > 40
-                                    ? `${analyticsEvent.path.substring(0, 37)}...`
-                                    : analyticsEvent.path}
+                          return (
+                            <div key={index} className="flex items-start gap-3">
+                              <div className="mt-0.5">
+                                <EventIcon className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="space-y-1">
+                                <p className="font-medium leading-none">
+                                  {formatCategory(analyticsEvent.category)} - {analyticsEvent.action}
                                 </p>
-                              )}
-                              <p className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(new Date(event.timestamp), {
-                                  addSuffix: true,
-                                })}
-                              </p>
+                                {analyticsEvent.path && (
+                                  <p className="text-sm text-muted-foreground">
+                                    {analyticsEvent.path && analyticsEvent.path.length > 40
+                                      ? `${analyticsEvent.path.substring(0, 37)}...`
+                                      : analyticsEvent.path}
+                                  </p>
+                                )}
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDistanceToNow(new Date(event.timestamp), {
+                                    addSuffix: true,
+                                  })}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
-
-                    {recentEvents.length === 0 && (
+                          );
+                        }
+                        return null;
+                      })
+                    ) : (
                       <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
                         <Activity className="h-8 w-8 mb-2" />
                         <p>Waiting for events...</p>

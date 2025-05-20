@@ -4,8 +4,7 @@
  * Loading skeleton for the gallery grid to improve perceived performance.
  */
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardFooter } from '@/components/ui/card';
 
 export function GallerySkeleton() {
   return (

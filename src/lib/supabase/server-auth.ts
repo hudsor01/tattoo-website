@@ -5,7 +5,8 @@
  */
 
 import { createClient } from './server';
-import { cookies } from 'next/headers';
+// Remove unused import
+// import { cookies } from 'next/headers';
 import { cache } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
