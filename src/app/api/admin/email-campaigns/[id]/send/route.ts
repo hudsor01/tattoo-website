@@ -133,7 +133,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
           );
 
           // Add tracking pixels and click tracking (simplified)
-          const trackingPixel = `<img src="${process.env.NEXT_PUBLIC_APP_URL}/api/email/track?rid=${recipient.id}" width="1" height="1" />`;
+          const trackingPixel = `<img src="${process.env['NEXT_PUBLIC_APP_URL']}/api/email/track?rid=${recipient.id}" width="1" height="1" />`;
           processedContent += trackingPixel;
 
           // Send email

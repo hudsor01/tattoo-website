@@ -304,7 +304,7 @@ export const usePageViewTracking = (pageTitle?: string) => {
   // Track page views
   useEffect(() => {
     // Skip tracking during development if needed
-    if (process.env.NODE_ENV === 'development' && process.env.SKIP_ANALYTICS_IN_DEV === 'true') {
+    if (process.env.NODE_ENV === 'development' && process.env['SKIP_ANALYTICS_IN_DEV']=== 'true') {
       return;
     }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { AnalyticsStreamEvent, EventCountsState, AnalyticsStreamEventType } from '@/types/analytics-types';
+import { type AnalyticsStreamEvent, type EventCountsState, AnalyticsStreamEventType, EventCategory } from '@/types/analytics-types';
 
 export function useLiveAnalytics() {
   const [isConnected, setIsConnected] = useState(false);
@@ -40,7 +40,6 @@ export function useLiveAnalytics() {
       eventSource.onopen = () => {
         setIsConnected(true);
         setIsConnecting(false);
-        // Initialize heartbeat timestamp when connection opens
         setLastHeartbeat(new Date());
       };
       
@@ -58,7 +57,6 @@ export function useLiveAnalytics() {
       eventSource.addEventListener('connection', (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('Connected to analytics stream:', data);
           try {
             if (data.timestamp) {
               setLastHeartbeat(new Date(data.timestamp));
@@ -113,9 +111,9 @@ export function useLiveAnalytics() {
           // Update event counts
           setEventCounts(prev => {
             const category = analyticsEvent.data.category;
-            const isPageView = category === 'page_view';
-            const isConversion = category === 'conversion';
-            const isError = category === 'error';
+            const isPageView = category === EventCategory.PAGE_VIEW;
+            const isConversion = category === EventCategory.CONVERSION;
+            const isError = category === EventCategory.ERROR;
             
             return {
               ...prev,
@@ -145,7 +143,7 @@ export function useLiveAnalytics() {
           const statsEvent: AnalyticsStreamEvent = {
             type: 'stats_update',
             data: {
-              category: 'system',
+              category: EventCategory.ERROR, // Changed from string literal to enum value
               action: 'stats_update',
             },
             timestamp: stats.timestamp || new Date().toISOString(),
@@ -178,14 +176,15 @@ export function useLiveAnalytics() {
       // Handle error events
       eventSource.addEventListener('error', (event) => {
         try {
-          const errorData = JSON.parse(event.data);
+          // Cast the event to MessageEvent to access the data property
+          const errorData = JSON.parse((event as MessageEvent).data);
           console.error('Error event from server:', errorData);
           
           // Create an error event
           const errorEvent: AnalyticsStreamEvent = {
             type: AnalyticsStreamEventType.ERROR_OCCURRED,
             data: {
-              category: 'error',
+              category: EventCategory.ERROR,
               action: 'server_error',
               label: errorData.message,
             },
@@ -205,7 +204,7 @@ export function useLiveAnalytics() {
             errors: prev.errors + 1,
             byCategory: {
               ...prev.byCategory,
-              error: (prev.byCategory.error || 0) + 1,
+              [EventCategory.ERROR]: (prev.byCategory[EventCategory.ERROR] || 0) + 1, // Updated to use enum
             },
           }));
         } catch (error) {
