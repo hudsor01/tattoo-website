@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod';
-import { ApiResponse, ErrorResponse } from '@/types/api-types';
-import { RecordObject, FilterParams } from '@/types/utility-types';
+import type { ApiResponse, ErrorResponse } from '@/types/api-types';
+import { type RecordObject } from '@/types/utility-types';
 
 /**
  * Common options for all API requests
@@ -16,6 +16,13 @@ interface RequestOptions {
   headers?: Record<string, string>;
   signal?: AbortSignal;
   cache?: RequestCache;
+}
+
+/**
+ * Parameters for filtering API results
+ */
+export interface FilterParams {
+  [key: string]: string | number | boolean | undefined;
 }
 
 /**
@@ -86,6 +93,44 @@ async function validateResponse<T>(
 }
 
 /**
+ * Helper function to create fetch options with only defined properties
+ */
+function createFetchOptions(
+  method: string,
+  options?: RequestOptions,
+  body?: any
+): RequestInit {
+  // Start with required properties
+  const fetchOptions: RequestInit = {
+    method,
+    credentials: 'include', // Always include cookies
+  };
+
+  // Add headers
+  fetchOptions.headers = {
+    'Content-Type': 'application/json',
+    ...options?.headers,
+  };
+
+  // Only add body if it exists
+  if (body !== undefined) {
+    fetchOptions.body = body;
+  }
+
+  // Only add signal if it exists
+  if (options?.signal) {
+    fetchOptions.signal = options.signal;
+  }
+
+  // Only add cache if it exists
+  if (options?.cache) {
+    fetchOptions.cache = options.cache;
+  }
+
+  return fetchOptions;
+}
+
+/**
  * Main API client object with methods for different HTTP verbs
  */
 export const api = {
@@ -114,16 +159,8 @@ export const api = {
     }
 
     // Make request
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      signal: options?.signal,
-      cache: options?.cache,
-      credentials: 'include', // Always include cookies
-    });
+    const fetchOptions = createFetchOptions('GET', options);
+    const response = await fetch(url, fetchOptions);
 
     return validateResponse(response, schema);
   },
@@ -137,17 +174,9 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      body: data ? JSON.stringify(data) : undefined,
-      signal: options?.signal,
-      cache: options?.cache,
-      credentials: 'include', // Always include cookies
-    });
+    const body = data ? JSON.stringify(data) : undefined;
+    const fetchOptions = createFetchOptions('POST', options, body);
+    const response = await fetch(url, fetchOptions);
 
     return validateResponse(response, schema);
   },
@@ -161,17 +190,9 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      body: data ? JSON.stringify(data) : undefined,
-      signal: options?.signal,
-      cache: options?.cache,
-      credentials: 'include', // Always include cookies
-    });
+    const body = data ? JSON.stringify(data) : undefined;
+    const fetchOptions = createFetchOptions('PUT', options, body);
+    const response = await fetch(url, fetchOptions);
 
     return validateResponse(response, schema);
   },
@@ -185,17 +206,9 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      body: data ? JSON.stringify(data) : undefined,
-      signal: options?.signal,
-      cache: options?.cache,
-      credentials: 'include', // Always include cookies
-    });
+    const body = data ? JSON.stringify(data) : undefined;
+    const fetchOptions = createFetchOptions('PATCH', options, body);
+    const response = await fetch(url, fetchOptions);
 
     return validateResponse(response, schema);
   },
@@ -208,16 +221,8 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      signal: options?.signal,
-      cache: options?.cache,
-      credentials: 'include', // Always include cookies
-    });
+    const fetchOptions = createFetchOptions('DELETE', options);
+    const response = await fetch(url, fetchOptions);
 
     return validateResponse(response, schema);
   },
@@ -231,17 +236,29 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const response = await fetch(url, {
+    // For uploads, we need a different approach since we don't want to set Content-Type
+    const fetchOptions: RequestInit = {
       method: 'POST',
-      headers: {
-        // Don't set Content-Type - browser will set it with boundary
-        ...options?.headers,
-      },
       body: formData,
-      signal: options?.signal,
-      cache: options?.cache,
       credentials: 'include', // Always include cookies
-    });
+    };
+
+    // Only add headers if they exist
+    if (options?.headers) {
+      fetchOptions.headers = options.headers;
+    }
+
+    // Only add signal if it exists
+    if (options?.signal) {
+      fetchOptions.signal = options.signal;
+    }
+
+    // Only add cache if it exists
+    if (options?.cache) {
+      fetchOptions.cache = options.cache;
+    }
+
+    const response = await fetch(url, fetchOptions);
 
     return validateResponse(response, schema);
   },

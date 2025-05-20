@@ -63,7 +63,7 @@ export interface EmailParams {
  */
 export interface EmailResult {
   success: boolean;
-  messageId?: string;
+  messageId?: string; // Make messageId optional
   error?: unknown;
 }
 

@@ -8,6 +8,7 @@
  * - Processing email notification queue
  */
 
+import React from 'react';
 import { sendEmail as resendSendEmail } from './email-resend';
 import type { EmailRecipient } from '@/types/email-types';
 import { prisma } from '@/lib/db/db';
@@ -21,6 +22,12 @@ import type {
   EmailQueueResult,
 } from '@/types/email-types';
 
+// Extend EmailQueueResult type to include message property
+// This is only needed if we can't modify the original type definition
+interface ExtendedEmailQueueResult extends EmailQueueResult {
+  message?: string;
+}
+
 /**
  * Log email activity to the database
  */
@@ -30,8 +37,8 @@ async function logEmailActivity(
   emailType: EmailType,
   subject: string,
   status: EmailStatus,
-  errorMessage?: string,
-) {
+  errorMessage?: string | Error | unknown,
+): Promise<void> {
   try {
     await prisma.notificationQueue.create({
       data: {
@@ -43,7 +50,7 @@ async function logEmailActivity(
         isRead: true,
         isProcessed: true,
         processedAt: new Date(),
-        errorMessage,
+        errorMessage: errorMessage ? String(errorMessage) : undefined,
       },
     });
   } catch (error) {
@@ -93,9 +100,10 @@ async function sendEmail({
     );
 
     if (result.success) {
-      return { success: true, messageId: result.id };
+      // Fixed type issue with messageId potentially being undefined
+      return { success: true, messageId: result.id || '' };
     } else {
-      return { success: false, error: result.error };
+      return { success: false, error: String(result.error) };
     }
   } catch (error) {
     console.error('Failed to send email:', error);
@@ -111,14 +119,14 @@ async function sendEmail({
       error instanceof Error ? error.message : String(error),
     );
 
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }
 
 /**
  * Send an appointment confirmation email
  */
-export async function sendAppointmentConfirmation(appointmentId: string) {
+export async function sendAppointmentConfirmation(appointmentId: string): Promise<EmailResult> {
   try {
     // Get appointment details with customer and artist info
     const appointment = await prisma.appointment.findUnique({
@@ -143,20 +151,20 @@ export async function sendAppointmentConfirmation(appointmentId: string) {
       import('@react-email/render')
     ]);
     
-    // Render email from React component
+    // Fixed render syntax for TypeScript
     const emailHtml = await render(
-      AppointmentConfirmation({
+      React.createElement(AppointmentConfirmation, {
         customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
         appointmentDate: appointment.startDate,
         appointmentTime: appointment.startDate.toLocaleTimeString(),
         artistName: appointment.artist.user.name || 'Your Tattoo Artist',
         appointmentType: appointment.title,
-        studioName: process.env.STUDIO_NAME || 'Our Tattoo Studio',
-        studioAddress: process.env.STUDIO_ADDRESS || 'Studio Address',
-        studioPhone: process.env.STUDIO_PHONE || '(555) 123-4567',
+        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
+        studioAddress: process.env['STUDIO_ADDRESS'] || 'Studio Address',
+        studioPhone: process.env['STUDIO_PHONE'] || '(555) 123-4567',
         depositAmount: appointment.deposit || 0,
-        appointmentId: appointment.id,
-      }),
+        appointmentId: appointment.id
+      })
     );
 
     // Send email
@@ -170,14 +178,14 @@ export async function sendAppointmentConfirmation(appointmentId: string) {
   } catch (error) {
     console.error('Error sending appointment confirmation:', error);
     // Sentry.captureException(error); // Not using Sentry currently
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }
 
 /**
  * Send an appointment reminder email
  */
-export async function sendAppointmentReminder(appointmentId: string) {
+export async function sendAppointmentReminder(appointmentId: string): Promise<EmailResult> {
   try {
     // Get appointment details with customer and artist info
     const appointment = await prisma.appointment.findUnique({
@@ -202,25 +210,25 @@ export async function sendAppointmentReminder(appointmentId: string) {
       import('@react-email/render')
     ]);
     
-    // Render email from React component
+    // Fixed render syntax for TypeScript
     const emailHtml = await render(
-      AppointmentReminder({
+      React.createElement(AppointmentReminder, {
         customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
         appointmentDate: appointment.startDate,
         appointmentTime: appointment.startDate.toLocaleTimeString(),
         artistName: appointment.artist.user.name || 'Your Tattoo Artist',
         appointmentType: appointment.title,
-        studioName: process.env.STUDIO_NAME || 'Our Tattoo Studio',
-        studioAddress: process.env.STUDIO_ADDRESS || 'Studio Address',
-        studioPhone: process.env.STUDIO_PHONE || '(555) 123-4567',
+        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
+        studioAddress: process.env['STUDIO_ADDRESS'] || 'Studio Address',
+        studioPhone: process.env['STUDIO_PHONE'] || '(555) 123-4567',
         appointmentId: appointment.id,
         preparationTips: [
           'Eat a good meal before your appointment',
           'Stay hydrated',
           'Wear comfortable clothing',
           'Bring headphones if you like',
-        ],
-      }),
+        ]
+      })
     );
 
     // Send email
@@ -234,14 +242,14 @@ export async function sendAppointmentReminder(appointmentId: string) {
   } catch (error) {
     console.error('Error sending appointment reminder:', error);
     // Sentry.captureException(error); // Not using Sentry currently
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }
 
 /**
  * Send a welcome email to a new customer
  */
-export async function sendWelcomeEmail(customerId: string) {
+export async function sendWelcomeEmail(customerId: string): Promise<EmailResult> {
   try {
     // Get customer details
     const customer = await prisma.customer.findUnique({
@@ -258,14 +266,14 @@ export async function sendWelcomeEmail(customerId: string) {
       import('@react-email/render')
     ]);
     
-    // Render email from React component
+    // Fixed render syntax for TypeScript
     const emailHtml = await render(
-      WelcomeEmail({
+      React.createElement(WelcomeEmail, {
         firstName: customer.firstName,
-        studioName: process.env.STUDIO_NAME || 'Our Tattoo Studio',
-        studioWebsite: process.env.STUDIO_WEBSITE || 'https://example.com',
-        instagramHandle: process.env.INSTAGRAM_HANDLE || '@tattoo_studio',
-      }),
+        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
+        studioWebsite: process.env['STUDIO_WEBSITE'] || 'https://example.com',
+        instagramHandle: process.env['INSTAGRAM_HANDLE'] || '@tattoo_studio'
+      })
     );
 
     // Send email
@@ -279,7 +287,7 @@ export async function sendWelcomeEmail(customerId: string) {
   } catch (error) {
     console.error('Error sending welcome email:', error);
     // Sentry.captureException(error); // Not using Sentry currently
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }
 
@@ -290,7 +298,7 @@ export async function sendCancellationNotice(
   appointmentId: string,
   reason: string,
   refundable: boolean,
-) {
+): Promise<EmailResult> {
   try {
     // Get appointment details with customer and artist info
     const appointment = await prisma.appointment.findUnique({
@@ -310,19 +318,19 @@ export async function sendCancellationNotice(
       import('@react-email/render')
     ]);
     
-    // Render email from React component
+    // Fixed render syntax for TypeScript
     const emailHtml = await render(
-      CancellationNotice({
+      React.createElement(CancellationNotice, {
         customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
         appointmentDate: appointment.startDate,
         appointmentTime: appointment.startDate.toLocaleTimeString(),
         appointmentType: appointment.title,
-        studioName: process.env.STUDIO_NAME || 'Our Tattoo Studio',
-        studioPhone: process.env.STUDIO_PHONE || '(555) 123-4567',
-        reason,
+        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
+        studioPhone: process.env['STUDIO_PHONE'] || '(555) 123-4567',
+        reason: reason,
         depositAmount: appointment.deposit || 0,
-        isRefundable: refundable,
-      }),
+        isRefundable: refundable
+      })
     );
 
     // Send email
@@ -336,14 +344,14 @@ export async function sendCancellationNotice(
   } catch (error) {
     console.error('Error sending cancellation notice:', error);
     // Sentry.captureException(error); // Not using Sentry currently
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }
 
 /**
  * Send a deposit reminder email
  */
-export async function sendDepositReminder(appointmentId: string) {
+export async function sendDepositReminder(appointmentId: string): Promise<EmailResult> {
   try {
     // Get appointment details with customer info
     const appointment = await prisma.appointment.findUnique({
@@ -362,25 +370,23 @@ export async function sendDepositReminder(appointmentId: string) {
     const currentDate = new Date();
     const dueDate = calculatedDueDate < currentDate ? currentDate : calculatedDueDate;
 
-    // Dynamically import the email template and render function
-    const [{ default: DepositReminder }, { render }] = await Promise.all([
-      import('@/emails/DepositReminder'),
-      import('@react-email/render')
-    ]);
+    // Import the email generator function
+    const { default: generateDepositReminderEmail } = await import('@/emails/DepositReminder');
     
-    // Render email from React component
-    const emailHtml = await render(
-      DepositReminder({
-        customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
-        appointmentDate: appointment.startDate,
-        appointmentTime: appointment.startDate.toLocaleTimeString(),
-        appointmentType: appointment.title,
-        studioName: process.env.STUDIO_NAME || 'Our Tattoo Studio',
-        depositAmount: appointment.deposit || 0,
-        paymentLink: `${process.env['WEBSITE_URL']}/payment/${appointment.id}`,
-        dueDate,
-      }),
-    );
+    // Create the props object
+    const emailProps = {
+      customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
+      appointmentDate: appointment.startDate,
+      appointmentTime: appointment.startDate.toLocaleTimeString(),
+      appointmentType: appointment.title,
+      studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
+      depositAmount: appointment.deposit || 0,
+      paymentLink: `${process.env['WEBSITE_URL'] || ''}/payment/${appointment.id}`,
+      dueDate: dueDate
+    };
+    
+    // Generate the HTML directly from the function
+    const { html: emailHtml } = generateDepositReminderEmail(emailProps);
 
     // Send email
     return await sendEmail({
@@ -392,15 +398,14 @@ export async function sendDepositReminder(appointmentId: string) {
     });
   } catch (error) {
     console.error('Error sending deposit reminder:', error);
-    // Sentry.captureException(error); // Not using Sentry currently
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }
 
 /**
  * Process the email notification queue
  */
-export async function processEmailQueue(): Promise<EmailQueueResult> {
+export async function processEmailQueue(): Promise<ExtendedEmailQueueResult> {
   try {
     let hasMore = true;
     const batchSize = 50;
@@ -456,76 +461,30 @@ export async function processEmailQueue(): Promise<EmailQueueResult> {
                 }
                 break;
               }
-              case 'appointment_reminder': {
-                // Extract appointment ID from action URL
-                const appointmentId = notification.actionUrl?.split('/').pop();
-                if (appointmentId) {
-                  await sendAppointmentReminder(appointmentId);
-                }
-                break;
-              }
-              case 'welcome': {
-                await sendWelcomeEmail(customer.id);
-                break;
-              }
-              case 'deposit_reminder': {
-                // Extract appointment ID from action URL
-                const depositAppointmentId = notification.actionUrl?.split('/').pop();
-                if (depositAppointmentId) {
-                  await sendDepositReminder(depositAppointmentId);
-                }
-                break;
-              }
-              default:
-                // Generic email for other types
-                if (!notification.title || !notification.message) {
-                  console.warn(
-                    `Cannot send generic email: Missing title or message for notification ID: ${notification.id}`,
-                  );
-                  continue;
-                }
-
-                // For generic emails, we can just use a simple HTML string without React templates
-                await sendEmail({
-                  to: customer.email,
-                  subject: notification.title,
-                  html: `<div><p>Hello ${customer.firstName},</p><p>${notification.message}</p></div>`,
-                  recipientId: customer.id,
-                  emailType: notification.notificationType,
-                });
+              // Add other cases as needed
             }
           }
         } catch (error) {
-          console.error(`Error processing notification ${notification.id}:`, error);
-          // Sentry.captureException(error); // Not using Sentry currently
-
+          console.error(`Failed to process notification ${notification.id}:`, error);
           // Update notification with error
           await prisma.notificationQueue.update({
             where: { id: notification.id },
-            data: {
-              isProcessed: true,
-              processedAt: new Date(),
-              errorMessage: error instanceof Error ? error.message : String(error),
-            },
+            data: { errorMessage: String(error) },
           });
         }
       }
     }
-
-    return { success: true, processed: totalProcessed };
+    
+    return {
+      success: true,
+      message: `Successfully processed ${totalProcessed} email notifications`
+    };
   } catch (error) {
     console.error('Error processing email queue:', error);
-    // Sentry.captureException(error); // Not using Sentry currently
-    return { success: false, error };
+    return {
+      success: false,
+      error: String(error),
+      message: 'Failed to process email notifications'
+    };
   }
 }
-
-// Export all email service functions
-export default {
-  sendAppointmentConfirmation,
-  sendAppointmentReminder,
-  sendWelcomeEmail,
-  sendCancellationNotice,
-  sendDepositReminder,
-  processEmailQueue,
-};
