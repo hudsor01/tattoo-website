@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -17,7 +17,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Activity,
-  Circle,
   Eye,
   AlertTriangle,
   RefreshCw,
@@ -27,54 +26,15 @@ import {
   ShoppingCart,
   Sparkles,
   Info,
+  Layers,
+  BarChart3,
+  LineChart,
+  PieChart,
 } from 'lucide-react';
-import { AnalyticsStreamEvents } from '@/types/analytics-stream-types';
+import { AnalyticsStreamEventType } from '@/types/analytics-types';
 import { useLiveAnalytics } from '@/hooks/use-live-analytics';
-
-// Live updating counter component
-const LiveCounter = ({
-  value,
-  label,
-  icon: Icon,
-  className = '',
-}: {
-  value: number;
-  label: string;
-  icon: React.ElementType;
-  className?: string;
-}) => {
-  const [isHighlighted, setIsHighlighted] = useState(false);
-
-  // Flash animation on value change
-  useEffect(() => {
-    if (value > 0) {
-      setIsHighlighted(true);
-      const timer = setTimeout(() => setIsHighlighted(false), 1000);
-      return () => clearTimeout(timer);
-    }
-    return undefined; // Explicit return for when value is not > 0
-  }, [value]);
-
-  return (
-    <Card
-      className={`${className} ${isHighlighted ? 'shadow-lg border-primary' : ''} transition-all duration-500`}
-    >
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl">{label}</CardTitle>
-          <Icon className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div
-          className={`text-3xl font-bold ${isHighlighted ? 'text-primary' : ''} transition-colors duration-500`}
-        >
-          {value.toLocaleString()}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+import { LiveActivityIndicator } from '../components/LiveActivityIndicator';
+import RealtimeStatUpdater from '../components/RealtimeStatUpdater';
 
 // Format the event category for display
 const formatCategory = (category: string): string => {
@@ -98,6 +58,8 @@ const getEventIcon = (category: string): React.ElementType => {
       return Sparkles;
     case 'booking':
       return Clock;
+    case 'system':
+      return Layers;
     default:
       return Info;
   }
@@ -122,7 +84,7 @@ interface ErrorEvent extends BaseAnalyticsEvent {
   data: {
     category: string;
     action: string;
-    errorMessage: string;
+    errorMessage?: string;
     componentName?: string;
     path?: string;
     [key: string]: unknown;
@@ -142,7 +104,7 @@ const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
         <div className="space-y-4">
           {events.map((event, index) => {
             // Different rendering based on event type
-            if (event.type === AnalyticsStreamEvents.NEW_EVENT) {
+            if (event.type === AnalyticsStreamEventType.NEW_EVENT) {
               const analyticsEvent = event.data;
               const EventIcon = getEventIcon(analyticsEvent.category);
 
@@ -154,7 +116,9 @@ const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
                         ? 'bg-destructive'
                         : analyticsEvent.category === 'conversion'
                           ? 'bg-green-500'
-                          : 'bg-primary'
+                          : analyticsEvent.category === 'system'
+                            ? 'bg-blue-500'
+                            : 'bg-primary'
                     }`}
                   />
                   <CardHeader className="pb-2">
@@ -210,7 +174,7 @@ const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
                   </CardContent>
                 </Card>
               );
-            } else if (event.type === 'error_occurred') {
+            } else if (event.type === AnalyticsStreamEventType.ERROR_OCCURRED) {
               const errorEvent = event.data as ErrorEvent['data'];
 
               return (
@@ -229,9 +193,11 @@ const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm">
-                      <div>
-                        <span className="font-medium">Message:</span> {errorEvent.errorMessage}
-                      </div>
+                      {errorEvent.errorMessage && (
+                        <div>
+                          <span className="font-medium">Message:</span> {errorEvent.errorMessage}
+                        </div>
+                      )}
                       {errorEvent.componentName && (
                         <div>
                           <span className="font-medium">Component:</span> {errorEvent.componentName}
@@ -279,12 +245,14 @@ const ConnectionStatus = ({
   isConnected,
   isConnecting,
   connectionError,
+  lastHeartbeat,
   onConnect,
   onDisconnect,
 }: {
   isConnected: boolean;
   isConnecting: boolean;
   connectionError: string | null;
+  lastHeartbeat: Date | null;
   onConnect: () => void;
   onDisconnect: () => void;
 }) => {
@@ -293,8 +261,16 @@ const ConnectionStatus = ({
       <div className="flex items-center gap-2">
         {isConnected ? (
           <>
-            <Circle className="h-3 w-3 fill-green-500 text-green-500" />
-            <span className="font-medium">Connected</span>
+            <LiveActivityIndicator 
+              isConnected={isConnected} 
+              variant="compact" 
+              pulse={true} 
+            />
+            {lastHeartbeat && (
+              <span className="text-sm text-muted-foreground">
+                Last update: {formatDistanceToNow(lastHeartbeat, { addSuffix: true })}
+              </span>
+            )}
           </>
         ) : isConnecting ? (
           <>
@@ -303,8 +279,12 @@ const ConnectionStatus = ({
           </>
         ) : (
           <>
-            <Circle className="h-3 w-3 fill-red-500 text-red-500" />
-            <span className="font-medium">Disconnected</span>
+            <LiveActivityIndicator 
+              isConnected={false} 
+              variant="compact" 
+              pulse={false} 
+            />
+            <span className="text-sm text-muted-foreground">Disconnected from analytics stream</span>
           </>
         )}
 
@@ -326,6 +306,167 @@ const ConnectionStatus = ({
   );
 };
 
+// Event distribution chart component
+const EventDistributionChart = ({ 
+  eventCounts 
+}: { 
+  eventCounts: { 
+    total: number; 
+    byCategory: Record<string, number>; 
+  } 
+}) => {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Event Categories</CardTitle>
+            <CardDescription>Distribution of events by category</CardDescription>
+          </div>
+          <PieChart className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {Object.entries(eventCounts.byCategory).length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+              <BarChart3 className="h-8 w-8 mb-2" />
+              <p>No events received yet</p>
+            </div>
+          ) : (
+            Object.entries(eventCounts.byCategory).map(([category, count]) => {
+              const percentage =
+                eventCounts.total > 0 ? (count / eventCounts.total) * 100 : 0;
+
+              return (
+                <div key={category} className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">{formatCategory(category)}</span>
+                    <span className="text-sm">
+                      {count} ({percentage.toFixed(1)}%)
+                    </span>
+                  </div>
+                  <div className="h-2 bg-secondary overflow-hidden rounded-full">
+                    <div 
+                      className={`h-full ${
+                        category === 'error' 
+                          ? 'bg-destructive' 
+                          : category === 'conversion' 
+                            ? 'bg-green-500' 
+                            : 'bg-primary'
+                      }`} 
+                      style={{ width: `${percentage}%` }} 
+                    />
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Recent activity component
+const RecentActivity = ({ 
+  recentEvents, 
+  isConnected, 
+  lastHeartbeat 
+}: { 
+  recentEvents: BaseAnalyticsEvent[];
+  isConnected: boolean;
+  lastHeartbeat: Date | null;
+}) => {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest events across the platform</CardDescription>
+          </div>
+          <Activity className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[300px]">
+          <div className="space-y-4">
+            {recentEvents && recentEvents.length > 0 ? (
+              recentEvents.slice(0, 5).map((event, index) => {
+                if (event.type === AnalyticsStreamEventType.NEW_EVENT) {
+                  const analyticsEvent = event.data;
+                  const EventIcon = getEventIcon(analyticsEvent.category);
+
+                  return (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <EventIcon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-medium leading-none">
+                          {formatCategory(analyticsEvent.category)} - {analyticsEvent.action}
+                        </p>
+                        {analyticsEvent.path && (
+                          <p className="text-sm text-muted-foreground">
+                            {analyticsEvent.path && analyticsEvent.path.length > 40
+                              ? `${analyticsEvent.path.substring(0, 37)}...`
+                              : analyticsEvent.path}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(event.timestamp.toString()), {
+                            addSuffix: true,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+                <Activity className="h-8 w-8 mb-2" />
+                <p>Waiting for events...</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </CardContent>
+      <CardFooter>
+        <div className="w-full flex justify-between items-center text-sm text-muted-foreground">
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 mr-1" />
+            {lastHeartbeat ? (
+              <span>
+                Last updated:{' '}
+                {formatDistanceToNow(new Date(lastHeartbeat), { addSuffix: true })}
+              </span>
+            ) : (
+              <span>Waiting for update...</span>
+            )}
+          </div>
+
+          <div className="flex items-center">
+            {isConnected ? (
+              <>
+                <CheckCircle2 className="h-4 w-4 text-green-500 mr-1" />
+                <span>Live</span>
+              </>
+            ) : (
+              <>
+                <XCircle className="h-4 w-4 text-red-500 mr-1" />
+                <span>Offline</span>
+              </>
+            )}
+          </div>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
 // Main live analytics dashboard
 export default function LiveAnalyticsDashboard() {
   const {
@@ -340,14 +481,39 @@ export default function LiveAnalyticsDashboard() {
     clearEvents,
   } = useLiveAnalytics();
 
+  // Connect to analytics stream on mount
+  useEffect(() => {
+    // Auto-connect if not already connected
+    if (!isConnected && !isConnecting) {
+      connect();
+    }
+    
+    // Disconnect on unmount
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect, isConnected, isConnecting]);
+  
   return (
     <div className="container py-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Live Analytics</h1>
+        <div className="flex items-end gap-2">
+          <h1 className="text-3xl font-bold">Live Analytics</h1>
+          <LiveActivityIndicator 
+            isConnected={isConnected}
+            lastUpdated={lastHeartbeat}
+            variant="compact"
+          />
+        </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={clearEvents}>
             Clear Events
           </Button>
+          {!isConnected && (
+            <Button onClick={connect} disabled={isConnecting}>
+              {isConnecting ? 'Connecting...' : 'Connect'}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -355,6 +521,7 @@ export default function LiveAnalyticsDashboard() {
         isConnected={isConnected}
         isConnecting={isConnecting}
         connectionError={connectionError}
+        lastHeartbeat={lastHeartbeat}
         onConnect={connect}
         onDisconnect={disconnect}
       />
@@ -368,144 +535,40 @@ export default function LiveAnalyticsDashboard() {
           </AlertDescription>
         </Alert>
       )}
+      
+      {/* Realtime stats component */}
+      <div className="mb-6">
+        <RealtimeStatUpdater />
+      </div>
 
       <Tabs defaultValue="overview">
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="events">Live Events</TabsTrigger>
+          <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <LiveCounter value={eventCounts.total} label="Total Events" icon={Activity} />
-            <LiveCounter value={eventCounts.pageViews} label="Page Views" icon={Eye} />
-            <LiveCounter value={eventCounts.conversions} label="Conversions" icon={ShoppingCart} />
-            <LiveCounter
-              value={eventCounts.errors}
-              label="Errors"
-              icon={AlertTriangle}
-              className={eventCounts.errors > 0 ? 'border-red-300' : ''}
-            />
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Categories</CardTitle>
-                <CardDescription>Distribution of events by category</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(eventCounts.byCategory).map(([category, count]) => {
-                    const percentage =
-                      eventCounts.total > 0 ? (count / eventCounts.total) * 100 : 0;
-
-                    return (
-                      <div key={category} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium">{formatCategory(category)}</span>
-                          <span className="text-sm">
-                            {count} ({percentage.toFixed(1)}%)
-                          </span>
-                        </div>
-                        <div className="h-2 bg-secondary overflow-hidden rounded-full">
-                          <div className="h-full bg-primary" style={{ width: `${percentage}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest events across the platform</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-4">
-                    {recentEvents && recentEvents.length > 0 ? (
-                      recentEvents.slice(0, 5).map((event, index) => {
-                        if (event.type === AnalyticsStreamEvents.NEW_EVENT) {
-                          const analyticsEvent = event.data;
-                          const EventIcon = getEventIcon(analyticsEvent.category);
-
-                          return (
-                            <div key={index} className="flex items-start gap-3">
-                              <div className="mt-0.5">
-                                <EventIcon className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                              <div className="space-y-1">
-                                <p className="font-medium leading-none">
-                                  {formatCategory(analyticsEvent.category)} - {analyticsEvent.action}
-                                </p>
-                                {analyticsEvent.path && (
-                                  <p className="text-sm text-muted-foreground">
-                                    {analyticsEvent.path && analyticsEvent.path.length > 40
-                                      ? `${analyticsEvent.path.substring(0, 37)}...`
-                                      : analyticsEvent.path}
-                                  </p>
-                                )}
-                                <p className="text-xs text-muted-foreground">
-                                  {formatDistanceToNow(new Date(event.timestamp), {
-                                    addSuffix: true,
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
-                        <Activity className="h-8 w-8 mb-2" />
-                        <p>Waiting for events...</p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-              <CardFooter>
-                <div className="w-full flex justify-between items-center text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {lastHeartbeat ? (
-                      <span>
-                        Last updated:{' '}
-                        {formatDistanceToNow(new Date(lastHeartbeat), { addSuffix: true })}
-                      </span>
-                    ) : (
-                      <span>Waiting for update...</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center">
-                    {isConnected ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 text-green-500 mr-1" />
-                        <span>Live</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-4 w-4 text-red-500 mr-1" />
-                        <span>Offline</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardFooter>
-            </Card>
+            <EventDistributionChart eventCounts={eventCounts} />
+            <RecentActivity 
+              recentEvents={recentEvents} 
+              isConnected={isConnected}
+              lastHeartbeat={lastHeartbeat}
+            />
           </div>
         </TabsContent>
 
         <TabsContent value="events">
           <Card>
             <CardHeader>
-              <CardTitle>Live Event Stream</CardTitle>
-              <CardDescription>Real-time events as they happen</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Live Event Stream</CardTitle>
+                  <CardDescription>Real-time events as they happen</CardDescription>
+                </div>
+                <LineChart className="h-4 w-4 text-muted-foreground" />
+              </div>
             </CardHeader>
             <CardContent>
               <LiveEventsFeed events={recentEvents} />
@@ -530,6 +593,40 @@ export default function LiveAnalyticsDashboard() {
               </div>
             </CardFooter>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="insights">
+          <div className="grid grid-cols-1 gap-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Analytics Insights</CardTitle>
+                    <CardDescription>
+                      Key metrics and trends from your analytics data
+                    </CardDescription>
+                  </div>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Coming Soon</AlertTitle>
+                    <AlertDescription>
+                      Advanced analytics insights and visualizations will be available in a future update.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <p className="text-sm text-muted-foreground">
+                    This section will provide in-depth analysis of user behavior, conversion funnels,
+                    and other key metrics to help you understand your website's performance.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -77,7 +77,7 @@ export function Navbar() {
   return (
     <>
       {/* Spacer div to prevent content from being hidden under navbar */}
-      <div className="h-[70px] sm:h-[78px] w-full"></div>
+      <div className="nav-spacer"></div>
       
       <header 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${

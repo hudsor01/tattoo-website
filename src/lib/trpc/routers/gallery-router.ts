@@ -361,8 +361,8 @@ export const galleryRouter = router({
       
       // Extract unique design types
       const designTypes = designs
-        .map(design => design.designType)
-        .filter((type): type is string => type !== null);
+        .map((design: { designType?: string | null }) => design.designType)
+        .filter((type): type is string => type !== null && type !== undefined);
         
       return designTypes;
     }),

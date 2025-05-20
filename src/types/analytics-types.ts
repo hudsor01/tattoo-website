@@ -360,47 +360,72 @@ export const AnalyticsFilterSchema = z.object({
 });
 
 /**
- * Analytics stream event type corresponding to AnalyticsEvent model
+ * Unified Analytics Event Interface
+ * 
+ * This interface represents both stored events and streamed events,
+ * providing a single source of truth for analytics event structure.
+ */
+export interface AnalyticsEvent {
+  // Core metadata
+  id?: string;               // Database ID (only for stored events)
+  timestamp: Date | string;  // Event timestamp
+  userId?: string;           // User identifier if logged in
+  sessionId?: string;        // Anonymous session ID
+  
+  // Event categorization
+  category: EventCategory;   // Main category (page_view, interaction, etc.)
+  action: string;            // Specific action (view, click, etc.)
+  label?: string;            // Additional context
+  value?: number;            // Numeric value if applicable
+  
+  // Context information
+  path?: string;             // Current page path
+  referrer?: string;         // Referring URL
+  deviceType?: 'desktop' | 'tablet' | 'mobile';
+  browser?: string;          // Browser info
+  os?: string;               // Operating system
+  
+  // Extended data
+  metadata?: Record<string, unknown>; // Additional event-specific data
+}
+
+/**
+ * Analytics Stream Event Interface
+ * 
+ * Used for Server-Sent Events (SSE) communication
  */
 export interface AnalyticsStreamEvent {
   type: string;
-  data: {
-    category: string;
-    action: string;
-    label?: string;
-    value?: number;
-    path?: string;
-    referrer?: string;
-    deviceType?: string;
-    browser?: string;
-    os?: string;
+  data: Omit<AnalyticsEvent, 'id' | 'timestamp'> & {
     metadata?: Record<string, unknown>;
   };
   timestamp: number | string;
 }
 
 /**
- * Analytics stream event types enum
+ * Standardized stream event types
  */
 export enum AnalyticsStreamEventType {
-  NEW_EVENT = 'new_event',
-  PAGE_VIEW = 'page_view',
-  USER_INTERACTION = 'user_interaction',
-  BOOKING_CREATED = 'booking_created',
-  PAYMENT_PROCESSED = 'payment_processed',
-  CONTACT_SUBMITTED = 'contact_submitted',
-  SESSION_STARTED = 'session_started',
-  SESSION_ENDED = 'session_ended',
-  ERROR_OCCURRED = 'error_occurred',
+  NEW_EVENT = 'new_event',             // Generic event
+  PAGE_VIEW = 'page_view',             // Page view event
+  USER_INTERACTION = 'user_interaction', // User interaction event
+  BOOKING_CREATED = 'booking_created',   // Booking creation event
+  PAYMENT_PROCESSED = 'payment_processed', // Payment event
+  CONTACT_SUBMITTED = 'contact_submitted', // Contact form submission
+  SESSION_STARTED = 'session_started',    // New session start
+  SESSION_ENDED = 'session_ended',        // Session timeout or end
+  ERROR_OCCURRED = 'error_occurred',      // Error event
+  STATS_UPDATE = 'stats_update',          // Analytics stats update
+  HEARTBEAT = 'heartbeat',                // Connection heartbeat
 }
 
 /**
- * Event counts state for live analytics
+ * Event counts state for live analytics dashboard
  */
 export interface EventCountsState {
-  total: number;
-  pageViews: number;
-  conversions: number;
-  errors: number;
-  byCategory: Record<string, number>;
+  total: number;               // Total events received
+  pageViews: number;           // Page view count
+  conversions: number;         // Conversion count
+  errors: number;              // Error count
+  byCategory: Record<string, number>; // Events by category
 }

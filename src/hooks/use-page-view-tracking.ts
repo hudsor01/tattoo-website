@@ -1,94 +1,107 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect, useRef } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useAnalyticsContext } from '@/components/providers/AnalyticsProvider';
 
 /**
- * Hook for tracking page views in the application
+ * Enhanced hook for tracking page views in the application
+ * 
+ * This hook automatically tracks page views when the route changes.
+ * It uses the analytics context from AnalyticsProvider.
  */
-export function usePageViewTracking() {
+export function usePageViewTracking(options?: {
+  /** Optional custom page title (defaults to document.title) */
+  pageTitle?: string;
+  /** Delay in ms before tracking the page view (default 200ms) */
+  delay?: number;
+  /** Skip automatic tracking (useful for custom tracking implementation) */
+  disableAutoTracking?: boolean;
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user } = useAuthStore();
-  const [pageLoaded, setPageLoaded] = useState(false);
-
-  useEffect(() => {
-    // Set pageLoaded to true after component mounts
-    setPageLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    // Only track page views after component has mounted
-    if (!pageLoaded) return;
-
-    // Construct full URL with query parameters
-    const queryString = searchParams ? `?${searchParams.toString()}` : "";
-    const url = `${pathname}${queryString}`;
-
-    // Track page view
-    const trackPageView = async () => {
-      try {
-        await api.post("/analytics/track", {
-          type: "page_view",
-          url,
-          userId: user?.id,
-          metadata: {
-            referrer: document.referrer || null,
-            title: document.title,
-            userAgent: window.navigator.userAgent,
-          },
-        });
-      } catch (error) {
-        // Silently handle errors to avoid breaking the user experience
-        console.error("Failed to track page view:", error);
-      }
-    };
-
-    // Add slight delay to ensure page is fully loaded
-    const timeout = setTimeout(() => {
-      trackPageView();
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [pathname, searchParams, user, pageLoaded]);
-
-  return null;
-}
-
-/**
- * Hook for tracking specific events in the application
- */
-export function useEventTracking() {
-  const { user } = useAuthStore();
-
-  /**
-   * Track a custom event
-   */
-  const track = async (
-    eventName: string,
-    itemId?: string,
-    properties?: Record<string, unknown>
-  ) => {
-    try {
-      await api.post("/analytics/track", {
-        type: "event",
-        eventName,
-        itemId,
-        userId: user?.id,
-        properties,
-        metadata: {
-          url: window.location.href,
-          userAgent: window.navigator.userAgent,
-        },
-      });
-    } catch (error) {
-      console.error("Failed to track event:", error);
-    }
+  const { trackPageView } = useAnalyticsContext();
+  const lastTrackedRef = useRef<string | null>(null);
+  
+  // Determine page type from path
+  const getPageType = (path: string): string => {
+    if (path === '/') return 'home';
+    if (path.startsWith('/gallery')) return 'gallery';
+    if (path.startsWith('/booking')) return 'booking';
+    if (path.startsWith('/admin')) return 'admin';
+    if (path.startsWith('/admin-dashboard')) return 'admin-dashboard';
+    if (path.startsWith('/client-portal')) return 'client-portal';
+    if (path.startsWith('/about')) return 'about';
+    if (path.startsWith('/contact')) return 'contact';
+    if (path.startsWith('/services')) return 'services';
+    if (path.startsWith('/faq')) return 'faq';
+    return 'other';
   };
-
-  return { track };
+  
+  // Function to track page view that can be called manually
+  const trackCurrentPageView = () => {
+    // Skip tracking during development if needed
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_ANALYTICS_IN_DEV === 'true') {
+      return;
+    }
+    
+    if (!pathname) return; // Guard against undefined pathname
+    
+    // Get page title
+    const pageTitle = options?.pageTitle || (typeof document !== 'undefined' ? document.title : 'Untitled Page');
+    
+    // Get page type from path structure
+    const pageType = getPageType(pathname);
+    
+    // Track page view with page title and full path including query params
+    const fullPath = searchParams?.toString() 
+      ? `${pathname}?${searchParams.toString()}` 
+      : pathname;
+    
+    // Prevent duplicate tracking for the same path
+    if (lastTrackedRef.current === fullPath) {
+      return;
+    }
+    
+    // Measure load time
+    const loadTime = 
+      typeof window !== 'undefined' && 
+      window.performance && 
+      window.performance.timing && 
+      window.performance.timing.loadEventEnd > 0
+        ? window.performance.timing.loadEventEnd - window.performance.timing.navigationStart
+        : undefined;
+    
+    // Track the page view
+    trackPageView({
+      pageTitle,
+      pageType,
+      path: fullPath,
+      loadTime,
+      referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
+    });
+    
+    // Update last tracked path
+    lastTrackedRef.current = fullPath;
+  };
+  
+  // Automatic tracking effect
+  useEffect(() => {
+    // Skip if auto-tracking is disabled
+    if (options?.disableAutoTracking) {
+      return;
+    }
+    
+    // Add a small delay to ensure page is fully loaded and prevent rapid-fire tracking
+    const delay = options?.delay ?? 200;
+    const timeoutId = setTimeout(trackCurrentPageView, delay);
+    
+    // Cleanup function
+    return () => clearTimeout(timeoutId);
+  }, [pathname, searchParams, options?.disableAutoTracking, options?.delay]);
+  
+  // Return the function for manual tracking
+  return { trackCurrentPageView };
 }
 
-export default { usePageViewTracking, useEventTracking };
+export default usePageViewTracking;

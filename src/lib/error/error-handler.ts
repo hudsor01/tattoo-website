@@ -2,7 +2,6 @@
 
 import { enhancedToast, ErrorSeverity, extractErrorMessage } from '@/lib/toast/enhanced-toast';
 import { logger } from '@/lib/logger';
-import { AxiosError } from 'axios';
 import { TRPCClientError } from '@trpc/client';
 import { ZodError } from 'zod';
 

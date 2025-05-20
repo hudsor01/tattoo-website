@@ -10,19 +10,16 @@
 
 import { sendEmail as resendSendEmail } from './email-resend';
 import type { EmailRecipient } from '@/types/email-types';
-// import * as Sentry from '@sentry/nextjs'; // Not using Sentry currently
 import { prisma } from '@/lib/db/db';
 
 // Import type definitions
-import {
+import type {
   EmailStatus,
   EmailType,
   EmailParams,
   EmailResult,
   EmailQueueResult,
 } from '@/types/email-types';
-
-// Using the singleton PrismaClient instance from '@/lib/database/prisma'
 
 /**
  * Log email activity to the database

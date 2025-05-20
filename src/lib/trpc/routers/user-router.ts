@@ -169,7 +169,7 @@ export const userRouter = router({
       const { includeUnavailable } = input;
       
       // Build where clause
-      const where: Prisma.ArtistWhereInput = {};
+      const where: Prisma.ArtistWhereUniqueInput = {};
       
       // Only include available artists unless specified
       if (!includeUnavailable) {
@@ -318,8 +318,8 @@ export const userRouter = router({
       if (search) {
         where = {
           OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search } },
+            { email: { contains: search } },
           ],
         };
       }
@@ -487,7 +487,15 @@ export const userRouter = router({
         }
         
         // Create Supabase user
-        const { data: authUser, error } = await ctx.supabase.auth.admin.createUser({
+        const supabase = ctx.supabase;
+        if (!supabase) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Supabase client not available',
+          });
+        }
+        
+        const { data: authUser, error } = await supabase.auth.admin.createUser({
           email: userData.email,
           password,
           email_confirm: true,
@@ -547,7 +555,15 @@ export const userRouter = router({
         });
         
         // Delete user in Supabase
-        const { error } = await ctx.supabase.auth.admin.deleteUser(input.id);
+        const supabase = ctx.supabase;
+        if (!supabase) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Supabase client not available',
+          });
+        }
+        
+        const { error } = await supabase.auth.admin.deleteUser(input.id);
         
         if (error) {
           console.error('Failed to delete auth user:', error);

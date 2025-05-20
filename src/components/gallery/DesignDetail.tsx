@@ -7,9 +7,10 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDesign } from '@/hooks/use-gallery';
-import { usePopularDesigns, useGalleryAnalytics } from '@/hooks/use-analytics';
+import { usePopularDesigns } from '@/hooks/use-analytics';
+import { useAnalyticsContext } from '@/components/providers/AnalyticsProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,11 +24,10 @@ import {
   InfoIcon, 
   RulerIcon, 
   ShareIcon,
-  // CheckCircleIcon is imported but not used
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-// cn utility is imported but not used
+import { cn } from '@/lib/utils/styling';
 
 interface DesignDetailProps {
   id: string;
@@ -36,9 +36,10 @@ interface DesignDetailProps {
 export function DesignDetail({ id }: DesignDetailProps) {
   const router = useRouter();
   const [showShareModal, setShowShareModal] = useState(false);
+  const viewStartTimeRef = useRef<Date | null>(null);
   
-  // Get gallery analytics hooks
-  const { trackDesignView, trackDesignShare } = useGalleryAnalytics();
+  // Get analytics context
+  const { trackGalleryEvent, trackConversion } = useAnalyticsContext();
   
   // Fetch the design data
   const { design, isLoading } = useDesign(id);
@@ -46,17 +47,37 @@ export function DesignDetail({ id }: DesignDetailProps) {
   // Get related designs (popular designs in the same category)
   const { data: popularDesigns } = usePopularDesigns(4);
   
-  // Track design view
+  // Track design view when component mounts
   useEffect(() => {
     if (design && !isLoading) {
-      trackDesignView(
-        id, 
-        design.designType, 
-        design.artist?.user?.name, 
-        design.tags?.map(tag => tag.name) || []
-      );
+      // Record view start time for duration tracking
+      viewStartTimeRef.current = new Date();
+      
+      // Track the design view
+      trackGalleryEvent({
+        action: 'view',
+        designId: id,
+        designType: design.designType,
+        artist: design.artist?.user?.name,
+        tags: design.tags?.map(tag => tag.name),
+      });
     }
-  }, [design, id, isLoading, trackDesignView]);
+    
+    // Track view ended when component unmounts
+    return () => {
+      if (viewStartTimeRef.current && design) {
+        const viewTime = new Date().getTime() - viewStartTimeRef.current.getTime();
+        
+        // Track view with duration
+        trackGalleryEvent({
+          action: 'view',
+          designId: id,
+          designType: design.designType,
+          viewTime,
+        });
+      }
+    };
+  }, [design, id, isLoading, trackGalleryEvent]);
   
   // Handle back navigation
   const handleBack = () => {
@@ -67,7 +88,12 @@ export function DesignDetail({ id }: DesignDetailProps) {
   const handleShare = () => {
     // Track share event
     if (design) {
-      trackDesignShare(id, design.designType);
+      trackGalleryEvent({
+        action: 'share',
+        designId: id,
+        designType: design.designType,
+        label: 'share_button_click',
+      });
     }
     
     if (navigator.share) {
@@ -88,14 +114,14 @@ export function DesignDetail({ id }: DesignDetailProps) {
   
   // Handle booking click
   const handleBooking = () => {
-    // Track booking started using trackConversion
+    // Track booking started as a conversion
     if (design) {
-      const { trackConversion } = useGalleryAnalytics();
       trackConversion({
         action: 'book_appointment',
         conversionId: id,
         label: `Booking started: ${design.name}`,
         conversionValue: design.price || 0,
+        conversionSource: 'gallery_detail',
       });
     }
     

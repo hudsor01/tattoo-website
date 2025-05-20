@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -52,52 +51,72 @@ async function performCleanupTasks(supabase: ReturnType<typeof createClient>, op
   // Clean up old notifications
   if (options.cleanupNotifications) {
     try {
-      const { count: notificationCount } = options.dryRun
-        ? await supabase
-            .from('Notification')
-            .select('id', { count: 'exact', head: true })
-            .eq('read', true)
-            .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-        : await supabase
-            .from('Notification')
-            .delete()
-            .eq('read', true)
-            .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      let notificationCount = 0;
+      
+      if (options.dryRun) {
+        const { count, error } = await supabase
+          .from('Notification')
+          .select('id', { count: 'exact', head: true })
+          .eq('read', true)
+          .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+          
+        if (error) throw error;
+        notificationCount = count || 0;
+      } else {
+        const { data, error } = await supabase
+          .from('Notification')
+          .delete({ count: 'exact' })
+          .eq('read', true)
+          .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+          
+        if (error) throw error;
+        notificationCount = data?.length || 0;
+      }
       
       results['notifications'] = {
         success: true,
         cleaned: options.dryRun ? 0 : notificationCount,
         would_clean: options.dryRun ? notificationCount : 0
-      }
+      };
     } catch (error) {
-      console.error('Error cleaning notifications:', error)
-      results['notifications'] = { success: false, error: error.message }
+      console.error('Error cleaning notifications:', error);
+      results['notifications'] = { success: false, error: error.message };
     }
   }
   
   // Clean up old bookings
   if (options.cleanupOldBookings) {
     try {
-      const { count: bookingsCount } = options.dryRun
-        ? await supabase
-            .from('Booking')
-            .select('id', { count: 'exact', head: true })
-            .eq('status', 'cancelled')
-            .lt('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
-        : await supabase
-            .from('Booking')
-            .delete()
-            .eq('status', 'cancelled')
-            .lt('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+      let bookingsCount = 0;
+      
+      if (options.dryRun) {
+        const { count, error } = await supabase
+          .from('Booking')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'cancelled')
+          .lt('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+          
+        if (error) throw error;
+        bookingsCount = count || 0;
+      } else {
+        const { data, error } = await supabase
+          .from('Booking')
+          .delete({ count: 'exact' })
+          .eq('status', 'cancelled')
+          .lt('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+          
+        if (error) throw error;
+        bookingsCount = data?.length || 0;
+      }
       
       results['old_bookings'] = {
         success: true,
         cleaned: options.dryRun ? 0 : bookingsCount,
         would_clean: options.dryRun ? bookingsCount : 0
-      }
+      };
     } catch (error) {
-      console.error('Error cleaning old bookings:', error)
-      results['old_bookings'] = { success: false, error: error.message }
+      console.error('Error cleaning old bookings:', error);
+      results['old_bookings'] = { success: false, error: error.message };
     }
   }
   
@@ -114,6 +133,16 @@ async function performCleanupTasks(supabase: ReturnType<typeof createClient>, op
         })
       
       if (listError) throw listError
+      
+      // Guard against null data
+      if (!tempFiles) {
+        results['temporary_files'] = {
+          success: true,
+          cleaned: 0,
+          would_clean: 0,
+        }
+        return
+      }
       
       const now = new Date()
       const filesToDelete = tempFiles.filter(file => {
@@ -145,24 +174,34 @@ async function performCleanupTasks(supabase: ReturnType<typeof createClient>, op
   // Clean up logs
   if (options.cleanupLogs) {
     try {
-      const { count: logsCount } = options.dryRun
-        ? await supabase
-            .from('ErrorLog')
-            .select('id', { count: 'exact', head: true })
-            .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-        : await supabase
-            .from('ErrorLog')
-            .delete()
-            .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      let logsCount = 0;
+      
+      if (options.dryRun) {
+        const { count, error } = await supabase
+          .from('ErrorLog')
+          .select('id', { count: 'exact', head: true })
+          .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+          
+        if (error) throw error;
+        logsCount = count || 0;
+      } else {
+        const { data, error } = await supabase
+          .from('ErrorLog')
+          .delete({ count: 'exact' })
+          .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+          
+        if (error) throw error;
+        logsCount = data?.length || 0;
+      }
       
       results['error_logs'] = {
         success: true,
         cleaned: options.dryRun ? 0 : logsCount,
         would_clean: options.dryRun ? logsCount : 0
-      }
+      };
     } catch (error) {
-      console.error('Error cleaning logs:', error)
-      results['error_logs'] = { success: false, error: error.message }
+      console.error('Error cleaning logs:', error);
+      results['error_logs'] = { success: false, error: error.message };
     }
   }
   

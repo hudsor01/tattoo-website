@@ -167,3 +167,33 @@ export interface LeadMagnetData {
   leadMagnetTitle: string;
   downloadUrl: string;
 }
+
+export interface BulkEmailOptions extends Omit<EmailOptions, 'to'> {
+  to: EmailRecipient[];
+  useBcc?: boolean;
+  batchSize?: number;
+}
+
+export interface EmailAttachment {
+  filename: string;
+  content: string | Buffer;
+  contentType?: string;
+  disposition?: 'attachment' | 'inline';
+  contentId?: string;
+}
+
+export interface TemplateData {
+  [key: string]: unknown;
+}
+
+export interface EmailProvider {
+  send(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }>;
+  sendTemplate(
+    templateId: string,
+    data: TemplateData,
+    options: Omit<EmailOptions, 'html' | 'text'>
+  ): Promise<{ success: boolean; messageId?: string; error?: string }>;
+  sendBulk(
+    options: BulkEmailOptions
+  ): Promise<Array<{ success: boolean; messageId?: string; error?: string }>>;
+}

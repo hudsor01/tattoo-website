@@ -20,13 +20,17 @@ export async function sendCalBookingConfirmation(booking: CalBookingPayload) {
   const attendee = booking.attendees[0];
   
   try {
+    if (!attendee) {
+      throw new Error('No attendee found in booking');
+    }
+    
     // Render the email template
     const emailHtml = await render(
       AppointmentConfirmation({
         customerName: attendee.name,
         appointmentDate: new Date(booking.startTime),
         appointmentTime: new Date(booking.startTime).toLocaleTimeString(),
-        artistName: booking.organizer.name,
+        artistName: booking.organizer?.name || 'Your Artist',
         appointmentType: booking.title,
         studioName: process.env.STUDIO_NAME || 'Fernando Govea Tattoo',
         studioAddress: process.env.STUDIO_ADDRESS || 'Dallas/Fort Worth, TX',
@@ -61,6 +65,10 @@ export async function sendCalBookingCancellation(booking: CalBookingPayload) {
   const attendee = booking.attendees[0];
   
   try {
+    if (!attendee) {
+      throw new Error('No attendee found in booking');
+    }
+    
     // Render the email template
     const emailHtml = await render(
       CancellationNotice({
@@ -104,6 +112,10 @@ export async function sendCalBookingReschedule(
   const attendee = booking.attendees[0];
   
   try {
+    if (!attendee) {
+      throw new Error('No attendee found in booking');
+    }
+    
     // Render a custom reschedule email
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -164,6 +176,14 @@ export async function sendArtistNotification(booking: CalBookingPayload) {
   const tattooData = extractTattooData(booking);
   
   try {
+    if (!attendee) {
+      throw new Error('No attendee found in booking');
+    }
+    
+    if (!booking.organizer?.email) {
+      throw new Error('No organizer email found in booking');
+    }
+    
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>New Booking: ${booking.title}</h2>
@@ -210,7 +230,7 @@ export async function sendArtistNotification(booking: CalBookingPayload) {
 
     const artistEmail: EmailRecipient = {
       email: booking.organizer.email,
-      name: booking.organizer.name,
+      name: booking.organizer.name || 'Artist',
     };
 
     // Send the email

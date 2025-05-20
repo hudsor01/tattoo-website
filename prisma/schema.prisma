@@ -7,7 +7,7 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
-model Booking {
+model Appointment {
   id               Int          @id @default(autoincrement())
   name             String
   email            String
@@ -21,7 +21,8 @@ model Booking {
   status           String       @default("pending")
   deposit          Float?        
   estimatedPrice   Float?
-  appointmentDate  DateTime?
+  startDate        DateTime?
+  endDate          DateTime?
   artistNotes      String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
@@ -31,6 +32,22 @@ model Booking {
   calRescheduleUid String?
   calUserId        String?
   customerId       String?
+}
+
+model Booking {
+  id          String    @id @default(uuid())
+  title       String
+  details     String?
+  status      String    @default("requested")  // requested, scheduled, confirmed, completed, cancelled
+  customerId  String
+  appointmentId Int?     // Reference to the appointment after confirmed
+  depositAmount Float?
+  finalPrice  Float?
+  bookingDate DateTime  @default(now())
+  scheduledDate DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Customer {
@@ -116,6 +133,21 @@ model PricingTier {
   customOptions String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Payment {
+  id             String    @id @default(uuid())
+  amount         Float
+  status         String    @default("pending")  // pending, paid, refunded, failed
+  paymentMethod  String    @default("card")
+  customerId     String
+  appointmentId  Int?      // May be associated with an appointment (which is now Int type)
+  bookingId      String?   // May be associated with a booking (which is now String type)
+  stripePaymentId String?  // For Stripe integration
+  receiptUrl     String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model AnalyticsEvent {
