@@ -5,8 +5,6 @@
  * Should not be imported by client components.
  */
 
-'use server';
-
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { logger } from '@/lib/logger';

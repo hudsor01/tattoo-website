@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Circle, Users, Activity } from "lucide-react";
 import { cn } from "@/lib/utils/styling";
-import { formatTimestamp } from "@/lib/utils/analytics-format";
-// Ensure we properly handle different types of timestamp data
+import { formatTimestamp, parseTimestamp, standardizeTimestamp } from "@/lib/utils/analytics-format";
+// Use the standardized timestamp utilities for consistent date handling
 
 interface LiveActivityIndicatorProps {
   pulse?: boolean;
@@ -118,9 +118,7 @@ export function LiveActivityIndicator({
         
         {lastUpdated && (
           <div className="text-xs text-muted-foreground">
-            Last updated: {typeof lastUpdated === 'string' 
-              ? formatTimestamp(new Date(lastUpdated)) 
-              : formatTimestamp(lastUpdated)}
+            Last updated: {formatTimestamp(lastUpdated)}
           </div>
         )}
       </div>
@@ -165,9 +163,7 @@ export function LiveActivityIndicator({
       
       {lastUpdated && variant === 'default' && (
         <div className="text-xs text-muted-foreground hidden md:block">
-          Last: {typeof lastUpdated === 'string' 
-            ? formatTimestamp(new Date(lastUpdated)) 
-            : formatTimestamp(lastUpdated)}
+          Last: {formatTimestamp(lastUpdated)}
         </div>
       )}
     </div>

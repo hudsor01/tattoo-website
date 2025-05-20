@@ -15,7 +15,7 @@ interface UpdatePasswordFormProps {
 }
 
 export function UpdatePasswordForm({ 
-  redirectPath = '/auth/login',
+  redirectPath = '/admin-dashboard/auth/login',
   onSuccess 
 }: UpdatePasswordFormProps) {
   const router = useRouter();
@@ -151,7 +151,7 @@ export function UpdatePasswordForm({
       <CardFooter className="flex justify-center">
         <div className="text-center text-sm">
           <a
-            href="/auth/login"
+            href="/admin-dashboard/auth/login"
             className="text-primary hover:underline"
           >
             Cancel and return to Login

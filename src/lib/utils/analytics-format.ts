@@ -1,6 +1,6 @@
 'use client';
 
-import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
+import { formatDistanceToNow, format, isToday, isYesterday, parseISO } from 'date-fns';
 import { cn } from './styling';
 
 /**
@@ -50,10 +50,76 @@ export function calculateChangePercentage(current: number, previous?: number): n
 }
 
 /**
+ * Standardize timestamp to ISO string format
+ * This function ensures all timestamps are in a consistent ISO string format
+ */
+export function standardizeTimestamp(timestamp: string | number | Date | undefined | null): string | null {
+  if (timestamp === undefined || timestamp === null) {
+    return null;
+  }
+  
+  try {
+    // If timestamp is already a Date object
+    if (timestamp instanceof Date) {
+      return timestamp.toISOString();
+    }
+    
+    // If timestamp is a number that looks like a Unix timestamp in milliseconds
+    if (typeof timestamp === 'number' || (!isNaN(Number(timestamp)) && Number(timestamp) > 1000000000000)) {
+      return new Date(Number(timestamp)).toISOString();
+    }
+    
+    // If timestamp is a string that's already an ISO format
+    if (typeof timestamp === 'string' && timestamp.includes('T') && timestamp.includes('Z')) {
+      // Verify it's a valid ISO string by parsing and re-formatting
+      return new Date(timestamp).toISOString();
+    }
+    
+    // Otherwise, try to create a Date object and convert to ISO string
+    return new Date(timestamp).toISOString();
+  } catch (error) {
+    console.error('Error standardizing timestamp:', error);
+    return null;
+  }
+}
+
+/**
+ * Parse a timestamp to a Date object
+ * This function handles various timestamp formats and returns a consistent Date object
+ */
+export function parseTimestamp(timestamp: string | number | Date | undefined | null): Date | null {
+  if (timestamp === undefined || timestamp === null) {
+    return null;
+  }
+  
+  try {
+    // If already a Date object
+    if (timestamp instanceof Date) {
+      return timestamp;
+    }
+    
+    // If timestamp is a string in ISO format
+    if (typeof timestamp === 'string' && timestamp.includes('T') && timestamp.includes('Z')) {
+      return parseISO(timestamp);
+    }
+    
+    // Otherwise, create a new Date object
+    return new Date(timestamp);
+  } catch (error) {
+    console.error('Error parsing timestamp:', error);
+    return null;
+  }
+}
+
+/**
  * Format a timestamp for display in a user-friendly way
  */
-export function formatTimestamp(timestamp: string | number | Date): string {
-  const date = new Date(timestamp);
+export function formatTimestamp(timestamp: string | number | Date | undefined | null): string {
+  const date = parseTimestamp(timestamp);
+  
+  if (!date) {
+    return 'Invalid date';
+  }
   
   if (isToday(date)) {
     return `Today, ${format(date, 'h:mm a')}`;

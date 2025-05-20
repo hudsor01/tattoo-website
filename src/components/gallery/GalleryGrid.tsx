@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { galleryPhotos, categories } from './gallery-photos';
+import { motion, type Variants } from 'framer-motion';
+import { galleryPhotos } from './gallery-photos';
 import Image from 'next/image';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
@@ -12,23 +11,76 @@ import Video from 'yet-another-react-lightbox/plugins/video';
 import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
 import 'yet-another-react-lightbox/plugins/thumbnails.css';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
-import { Play } from 'lucide-react';
-// Import analytics tracking hook
+import Share from 'yet-another-react-lightbox/plugins/share';
+import 'yet-another-react-lightbox/plugins/share.css';
+import { Play, ImageIcon, Film } from 'lucide-react';
 import { useGalleryAnalytics } from '@/hooks/use-analytics';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+// Media item interfaces
+interface BaseGalleryItem {
+  src: string;
+  alt?: string;
+  title?: string;
+  category?: string;
+  width?: number;
+  height?: number;
+  type: 'image' | 'video';
+}
+
+interface ImageGalleryItem extends BaseGalleryItem {
+  type: 'image';
+}
+
+interface VideoGalleryItem extends BaseGalleryItem {
+  type: 'video';
+  videoSrc?: string;
+}
+
+type GalleryItem = ImageGalleryItem | VideoGalleryItem;
+
+// Lightbox slide interfaces
+interface BaseLightboxSlide {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  title: string;
+}
+
+interface VideoLightboxSlide {
+  type: 'video';
+  poster: string;
+  width: number;
+  height: number;
+  sources: {
+    src: string;
+    type: string;
+  }[];
+  alt: string;
+  title: string;
+}
+
+// Analytics hooks interfaces
+interface GalleryAnalytics {
+  trackGalleryFilter: (filterType: string, value: string) => void;
+  trackDesignView: (title: string, category?: string, designId?: string, tags?: string[]) => void;
+  trackDesignViewEnded: (title: string) => void;
+  trackDesignShare: (title: string, category?: string) => void;
+  trackDesignZoom: (title: string, zoomLevel: number) => void;
+  trackDesignSwipe: (title: string, direction: 'left' | 'right') => void;
+}
 
 type GalleryGridProps = {
-  fullPage?: boolean;
   limit?: number;
   mediaType?: 'image' | 'video' | 'all';
 };
 
 export function GalleryGrid({
-  fullPage = false,
   limit,
-  mediaType = 'all',
 }: GalleryGridProps) {
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [lightboxIndex, setLightboxIndex] = useState(-1);
+  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
+  const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   // Get gallery analytics tracking hooks
@@ -39,24 +91,20 @@ export function GalleryGrid({
     trackDesignShare,
     trackDesignZoom,
     trackDesignSwipe,
-    trackDesignDownload
-  } = useGalleryAnalytics();
+  } = useGalleryAnalytics() as GalleryAnalytics;
 
-  // Filter gallery items based on active category and media type
-  const filteredPhotos = galleryPhotos
-    .filter(photo => activeCategory === 'All' || photo.category === activeCategory)
-    .filter(photo => {
-      if (mediaType === 'all') return true;
-      if (mediaType === 'image') return photo.type !== 'video';
-      if (mediaType === 'video') return photo.type === 'video';
-      return true;
-    });
+  // Filter gallery items based on active tab (images or videos)
+  const filteredPhotos: GalleryItem[] = galleryPhotos.filter(photo => {
+    if (activeTab === 'images') return photo.type === 'image';
+    if (activeTab === 'videos') return photo.type === 'video';
+    return true;
+  }) as GalleryItem[];
 
   // Limit the number of items if specified
-  const displayPhotos = limit ? filteredPhotos.slice(0, limit) : filteredPhotos;
+  const displayPhotos: GalleryItem[] = limit ? filteredPhotos.slice(0, limit) : filteredPhotos;
 
   // Animation variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -67,7 +115,7 @@ export function GalleryGrid({
   };
 
   // Item variants for animation
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -81,13 +129,11 @@ export function GalleryGrid({
 
   // Track currently viewed design in lightbox
   useEffect(() => {
-    // When lightbox is closed or index is -1, end tracking for current design
     if (lightboxIndex === -1) return;
     
-    // Get the current design
     const currentDesign = displayPhotos[lightboxIndex];
+    if (!currentDesign) return;
     
-    // Track the view
     trackDesignView(
       currentDesign.title || 'Untitled', 
       currentDesign.category,
@@ -95,125 +141,210 @@ export function GalleryGrid({
       [currentDesign.category || 'uncategorized']
     );
     
-    // Clean up when lightbox closes or design changes
     return () => {
       trackDesignViewEnded(currentDesign.title || 'Untitled');
     };
   }, [lightboxIndex, displayPhotos, trackDesignView, trackDesignViewEnded]);
 
-  // Handle category change with smooth animation
-  const handleCategoryChange = (category: string) => {
-    // Track category filter change
-    trackGalleryFilter('category', category);
-    
-    // Update active category
-    setActiveCategory(category);
-
-    // Scroll back to top of gallery when changing categories
-    if (galleryRef.current) {
-      galleryRef.current.scrollIntoView({ behavior: 'smooth' });
+  // Handle tab change
+  const handleTabChange = (value: string): void => {
+    if (value === 'images' || value === 'videos') {
+      trackGalleryFilter('mediaType', value);
+      setActiveTab(value);
+      
+      if (galleryRef.current) {
+        galleryRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
-  // Handle media type filter tracking
-  useEffect(() => {
-    if (mediaType !== 'all') {
-      trackGalleryFilter('mediaType', mediaType);
+  // Handle share event
+  const handleShare = () => {
+    if (lightboxIndex >= 0 && displayPhotos[lightboxIndex]) {
+      const currentDesign = displayPhotos[lightboxIndex];
+      trackDesignShare(currentDesign.title || 'Untitled', currentDesign.category);
     }
-  }, [mediaType, trackGalleryFilter]);
+    return window.location.href;
+  };
 
   return (
-    <div ref={galleryRef}>
-      {/* Category Filters */}
-      <motion.div
-        className="flex flex-wrap justify-center gap-4 mb-12"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        {categories.map((category, index) => (
-          <motion.div key={index} whileHover={{ y: -2 }} whileTap={{ y: 0 }}>
-            <Button
-              variant={activeCategory === category ? 'default' : 'secondary'}
-              size="sm"
-              onClick={() => handleCategoryChange(category)}
-              className={`rounded-full font-semibold ${
-                activeCategory === category
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-black/30 text-white/80 border border-white/10 hover:bg-blue-600/80 hover:text-white'
-              }`}
-            >
-              {category}
-            </Button>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Gallery Grid - Custom Implementation */}
-      <motion.div
-        className={`grid gap-6 grid-cols-1 ${
-          fullPage
-            ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-            : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-        }`}
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {displayPhotos.map((photo, index) => (
-          <motion.div
-            key={index}
-            className="relative overflow-hidden rounded-lg aspect-square group"
-            variants={itemVariants}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setLightboxIndex(index)}
+    <div ref={galleryRef} className="animate-fade-in">
+      {/* Hero Section */}
+      <div className="flex flex-col items-center mb-12">
+        <h1 className="text-5xl font-bold mb-6 text-center bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 animate-gradient">Tattoo Portfolio</h1>
+        <p className="text-center max-w-2xl mx-auto mb-6 text-zinc-300 text-lg leading-relaxed">
+          Browse our collection of custom tattoo designs showcasing a diverse range of styles. From 
+          traditional to Japanese, portraits to custom pieces - each design reflects our commitment to 
+          quality, creativity, and personal expression.
+        </p>
+        
+        <div className="mb-8">
+          <a href="/booking" className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 animate-gradient text-white font-medium transition-all hover:shadow-lg hover:shadow-red-500/25 hover:scale-105">
+            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Book a Consultation
+          </a>
+        </div>
+      </div>
+      
+      {/* Gallery Section with Centered Tabs */}
+      <div className="max-w-5xl mx-auto px-4">
+        <div className="flex justify-center mb-8">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={handleTabChange}
+            className="w-full max-w-md"
           >
-            <div className="relative h-full w-full">
-              <Image
-                src={photo.src}
-                alt={photo.alt || ''}
-                fill
-                priority={index < 6} 
-                quality={80}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
-                onError={(e) => {
-                  console.error(`Failed to load image: ${photo.src}`);
-                  e.currentTarget.src = '/images/placeholder.jpg';
-                }}
-              />
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8 bg-zinc-800/50 backdrop-blur-sm">
+            <TabsTrigger 
+              value="images" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:via-orange-500 data-[state=active]:to-amber-500 data-[state=active]:animate-gradient data-[state=active]:text-white"
+            >
+              <ImageIcon className="h-4 w-4 mr-2" />
+              <span>Tattoo Gallery</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="videos" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:via-orange-500 data-[state=active]:to-amber-500 data-[state=active]:animate-gradient data-[state=active]:text-white"
+            >
+              <Film className="h-4 w-4 mr-2" />
+              <span>Process Videos</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="images" className="mt-6">
+            {/* Images Gallery Grid Component */}
+            <motion.div
+              className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {displayPhotos.map((photo, index) => (
+                <motion.div
+                  key={index}
+                  className="relative overflow-hidden rounded-lg aspect-[2/3] group shadow-lg"
+                  variants={itemVariants}
+                  whileHover={{ 
+                    scale: 1.03,
+                    transition: { duration: 0.4, ease: 'easeOut' }
+                  }}
+                  onClick={() => setLightboxIndex(index)}
+                >
+                  <div className="relative h-full w-full">
+                    {/* Image Container with Border and Glow Effect */}
+                    <div className="absolute inset-0 rounded-lg overflow-hidden shadow-md">
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt || ''}
+                        fill
+                        priority={index < 6} 
+                        quality={95}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
+                        onError={(e) => {
+                          console.error(`Failed to load image: ${photo.src}`);
+                          e.currentTarget.src = '/images/placeholder.jpg';
+                        }}
+                      />
+                    </div>
 
-              {/* Video Indicator */}
-              {photo.type === 'video' && (
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div className="bg-red-500/70 rounded-full p-4 animate-pulse shadow-lg">
-                    <Play className="text-white h-6 w-6" />
+                    {/* Video Indicator */}
+                    {photo.type === 'video' && (
+                      <div className="absolute inset-0 flex items-center justify-center z-10">
+                        <div className="bg-primary/70 shadow-md rounded-full p-3 transition-all duration-300 group-hover:bg-primary group-hover:scale-110">
+                          <Play className="text-white h-5 w-5" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"></div>
+                      </div>
+                    )}
+
+                    {/* Enhanced Info Overlay with Title */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end">
+                      <div className="p-3 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <h3 className="text-sm font-medium text-white truncate">{photo.title}</h3>
+                        <p className="text-xs text-white/70 mt-1">{photo.category}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                </motion.div>
+              ))}
+            </motion.div>
+          </TabsContent>
+          
+          <TabsContent value="videos" className="mt-6">
+            {/* Videos Gallery Grid */}
+            <motion.div
+              className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {displayPhotos.map((photo, index) => (
+                <motion.div
+                  key={index}
+                  className="relative overflow-hidden rounded-lg aspect-[2/3] group shadow-lg"
+                  variants={itemVariants}
+                  whileHover={{ 
+                    scale: 1.03,
+                    transition: { duration: 0.4, ease: 'easeOut' }
+                  }}
+                  onClick={() => setLightboxIndex(index)}
+                >
+                  <div className="relative h-full w-full">
+                    {/* Image Container with Border and Glow Effect */}
+                    <div className="absolute inset-0 rounded-lg overflow-hidden shadow-md">
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt || ''}
+                        fill
+                        priority={index < 6} 
+                        quality={95}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
+                        onError={(e) => {
+                          console.error(`Failed to load image: ${photo.src}`);
+                          e.currentTarget.src = '/images/placeholder.jpg';
+                        }}
+                      />
+                    </div>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-white">{photo.title}</h3>
-                  <p className="text-sm text-white/70">{photo.category}</p>
-                  {photo.type === 'video' && (
-                    <p className="text-xs text-white/50 mt-1">Click to play video</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+                    {/* Video Indicator */}
+                    {photo.type === 'video' && (
+                      <div className="absolute inset-0 flex items-center justify-center z-10">
+                        <div className="bg-primary/70 shadow-md rounded-full p-3 transition-all duration-300 group-hover:bg-primary group-hover:scale-110">
+                          <Play className="text-white h-5 w-5" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"></div>
+                      </div>
+                    )}
 
-      {/* Lightbox for fullscreen viewing */}
+                    {/* Enhanced Info Overlay with Title */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end">
+                      <div className="p-3 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <h3 className="text-sm font-medium text-white truncate">{photo.title}</h3>
+                        <p className="text-xs text-white/70 mt-1">{photo.category}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </TabsContent>
+        </Tabs>
+        </div>
+      </div>
+
+      {/* Lightbox for fullscreen viewing - Enhanced Styling */}
       <Lightbox
         open={lightboxIndex >= 0}
         index={lightboxIndex}
         close={() => setLightboxIndex(-1)}
-        plugins={[Video, Thumbnails, Zoom]}
+        plugins={[Video, Thumbnails, Zoom, Share]}
         carousel={{
           finite: displayPhotos.length <= 1,
           preload: 3
@@ -221,52 +352,68 @@ export function GalleryGrid({
         thumbnails={{
           width: 120,
           height: 80,
-          padding: 4
+          padding: 4,
+          border: 0,
+          borderRadius: 8,
+          gap: 12
+        }}
+        styles={{
+          root: {
+            "--yarl__color_backdrop": "rgba(0, 0, 0, 0.9)",
+            "--yarl__slide_title_color": "#fff",
+            "--yarl__color_button": "#f97316", // orange-500 to match the gradient theme
+            "--yarl__color_button_active": "#f97316",
+            "--yarl__color_button_hover": "#f97316",
+            "--yarl__thumbnails_selected_border_color": "#f97316"
+          }
         }}
         zoom={{
           maxZoomPixelRatio: 5,
           zoomInMultiplier: 2,
-          onChange: (zoomLevel) => {
-            if (lightboxIndex >= 0 && displayPhotos[lightboxIndex]) {
-              const currentDesign = displayPhotos[lightboxIndex];
-              trackDesignZoom(currentDesign.title || 'Untitled', zoomLevel);
-            }
-          }
+          doubleTapDelay: 300,
+          doubleClickDelay: 300,
         }}
         controller={{
-          closeOnBackdropClick: true
+          closeOnBackdropClick: true,
+          touchAction: "pan-y"
         }}
         share={{
-          buttons: [
-            { id: 'facebook', label: 'Facebook' },
-            { id: 'twitter', label: 'Twitter' },
-            { id: 'pinterest', label: 'Pinterest' }
-          ],
-          url: (slide) => {
-            const currentDesign = displayPhotos[lightboxIndex];
-            // Track share event
-            if (currentDesign) {
-              trackDesignShare(currentDesign.title || 'Untitled', currentDesign.category);
-            }
-            return window.location.href;
-          }
+          share: handleShare
+        }}
+        render={{
+          buttonNext: () => {
+            const state = { isLast: lightboxIndex === displayPhotos.length - 1 };
+            return state.isLast ? null : undefined;
+          },
+          buttonPrev: () => {
+            const state = { isFirst: lightboxIndex === 0 };
+            return state.isFirst ? null : undefined;
+          },
+          iconNext: () => <span className="text-white text-2xl font-light">›</span>,
+          iconPrev: () => <span className="text-white text-2xl font-light">‹</span>,
         }}
         on={{
-          view: ({ index }) => {
+          view: ({ index }: { index: number }) => {
             if (index !== lightboxIndex && index >= 0 && displayPhotos[index]) {
               const prevDesign = displayPhotos[lightboxIndex];
               const newDesign = displayPhotos[index];
               if (prevDesign && newDesign) {
-                const direction = index > lightboxIndex ? 'right' : 'left';
+                const direction: 'left' | 'right' = index > lightboxIndex ? 'right' : 'left';
                 trackDesignSwipe(prevDesign.title || 'Untitled', direction);
                 // Note: don't call setLightboxIndex here to avoid infinite loop
                 // The lightbox component will handle index management internally
               }
             }
+          },
+          zoom: (props) => {
+            if (lightboxIndex >= 0 && displayPhotos[lightboxIndex]) {
+              const currentDesign = displayPhotos[lightboxIndex];
+              trackDesignZoom(currentDesign.title || 'Untitled', props.zoom);
+            }
           }
         }}
         slides={displayPhotos.map(item => {
-          if (item.type === 'video' && item.videoSrc) {
+          if (item.type === 'video' && (item as VideoGalleryItem).videoSrc) {
             return {
               type: 'video',
               poster: item.src,
@@ -274,13 +421,13 @@ export function GalleryGrid({
               height: typeof item.height === 'number' ? item.height : 800,
               sources: [
                 {
-                  src: item.videoSrc,
+                  src: (item as VideoGalleryItem).videoSrc as string,
                   type: 'video/quicktime',
                 },
               ],
               alt: item.alt || item.title || '',
               title: item.title || '',
-            };
+            } as VideoLightboxSlide;
           }
 
           return {
@@ -289,7 +436,7 @@ export function GalleryGrid({
             width: typeof item.width === 'number' ? item.width : 1200,
             height: typeof item.height === 'number' ? item.height : 800,
             title: item.title || '',
-          };
+          } as BaseLightboxSlide;
         })}
       />
     </div>

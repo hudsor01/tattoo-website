@@ -149,7 +149,7 @@ export const useAnalytics = () => {
         console.error('Error tracking event:', error);
       }
     },
-    [enhanceEvent, trackEventMutation, eventSchema],
+    [enhanceEvent, trackEventMutation, validateBaseEvent],
   );
 
   /**

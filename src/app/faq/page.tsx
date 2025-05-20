@@ -1,6 +1,6 @@
 import React from 'react';
-import { FAQAccordion } from '@/components/FAQAccordion';
-import FAQSearch from '@/components/FAQSearch';
+import { FAQAccordion } from '@/components/faq/FAQAccordion';
+import FAQSearch from '@/components/faq/FAQSearch';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -221,9 +221,9 @@ export default function FAQPage() {
                 items={[
                   faqCategories[0]?.items[0],
                   faqCategories[1]?.items[0],
-                  faqCategories[2]?.items?.[0],
+                  faqCategories[2]?.items[0],
                   faqCategories[3]?.items[0],
-                ].filter(Boolean)}
+                ].filter((item): item is {question: string; answer: string} => item !== undefined)}
               />
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function FAQPage() {
               about my services, please don&apos;t hesitate to reach out.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button asChild variant="blue" size="lg" className="min-w-[180px]">
+              <Button asChild variant="default" size="lg" className="min-w-[180px]">
                 <Link href="/booking" className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
                   Book a Consultation

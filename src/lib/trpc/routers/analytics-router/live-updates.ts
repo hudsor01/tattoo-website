@@ -5,6 +5,7 @@ import { EventEmitter } from "events";
 import type { AnalyticsEvent, AnalyticsStreamEvent } from "@/types/analytics-types";
 import { AnalyticsStreamEventType, EventCategory } from "@/types/analytics-types";
 import { PrismaClient } from '@prisma/client';
+import { standardizeTimestamp } from "@/lib/utils/analytics-format";
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -84,7 +85,7 @@ export const emitAnalyticsEvent = adminProcedure
     const event: AnalyticsStreamEvent = {
       type: input.type,
       data: input.data,
-      timestamp: Date.now().toString(),
+      timestamp: standardizeTimestamp(new Date()) || new Date().toISOString(),
     };
 
     ee.emit("analytics", event);
@@ -220,7 +221,7 @@ async function getTodayStats() {
       conversions,
       conversionRate: conversionRate.toFixed(2),
       recentEvents,
-      timestamp: new Date().toISOString(), // Always return ISO string format for consistency
+      timestamp: standardizeTimestamp(new Date()) || new Date().toISOString(), // Always use standardized timestamp utility
     };
   } catch (error) {
     console.error('Error getting today stats:', error);
@@ -249,14 +250,14 @@ export async function createAnalyticsStream(res: StreamResponse): Promise<Readab
       // Send initial connection event
       sendEvent('connection', { 
         status: 'connected', 
-        timestamp: new Date().toISOString(),  // Consistent ISO string format
+        timestamp: standardizeTimestamp(new Date()) || new Date().toISOString(),
         type: AnalyticsStreamEventType.SESSION_STARTED 
       });
       
       // Setup heartbeat to keep connection alive
       const heartbeatInterval = setInterval(() => {
         sendEvent('heartbeat', { 
-          timestamp: new Date().toISOString(),  // Consistent ISO string format
+          timestamp: standardizeTimestamp(new Date()) || new Date().toISOString(),
           type: AnalyticsStreamEventType.HEARTBEAT
         });
       }, 30000); // Send heartbeat every 30 seconds
@@ -278,7 +279,7 @@ export async function createAnalyticsStream(res: StreamResponse): Promise<Readab
           // Send stats update with consistent timestamp format
           sendEvent('stats_update', {
             ...stats,
-            timestamp: stats.timestamp || new Date().toISOString(), // Ensure timestamp exists and is in ISO format
+            timestamp: standardizeTimestamp(stats.timestamp) || standardizeTimestamp(new Date()) || new Date().toISOString(),
             type: AnalyticsStreamEventType.STATS_UPDATE
           });
         } catch (error) {
@@ -286,7 +287,7 @@ export async function createAnalyticsStream(res: StreamResponse): Promise<Readab
           // Send error event
           sendEvent('error', { 
             message: 'Failed to update stats', 
-            timestamp: new Date().toISOString(), // Consistent ISO string format
+            timestamp: standardizeTimestamp(new Date()) || new Date().toISOString(),
             type: AnalyticsStreamEventType.ERROR_OCCURRED
           });
         }
@@ -313,7 +314,7 @@ export async function createAnalyticsStream(res: StreamResponse): Promise<Readab
               category: EventCategory.INTERACTION,
               action: 'connection_closed'
             },
-            timestamp: new Date().toISOString() // Consistent ISO string format
+            timestamp: standardizeTimestamp(new Date()) || new Date().toISOString()
           });
         });
       }

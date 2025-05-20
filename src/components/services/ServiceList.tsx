@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { ServiceCard } from '@/shared/components/ServiceCard';
+import { ServiceCard } from '@/components/services/ServiceCard';
 import { CTASection } from '@/components/CTASection';
-import { Service } from '@/types/component-types';
+import type { Service } from '@/types/component-types';
 
 interface ServiceListProps {
   services: Service[];

@@ -1,12 +1,11 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
-import { TrpcClientProvider } from '@/components/providers/TrpcProvider';
+import { type ReactNode, useEffect } from 'react';
+import { TrpcClientProvider } from '@/components/providers/TRPCProvider';
 import { ThemeProvider } from 'next-themes';
 import dynamic from 'next/dynamic';
 import { PageViewTracker } from '@/components/PageViewTracker';
 import { AnalyticsProvider } from '@/components/providers/AnalyticsProvider';
-// Theme is now handled by next-themes and Tailwind CSS
 import { useAuthStore } from '@/lib/auth/auth-system';
 import { createClient } from '@/lib/supabase/client';
 
@@ -34,9 +33,9 @@ export default function Providers({ children }: ProvidersProps) {
   useEffect(() => {
     if (!initialized) {
       // Skip auth initialization if Supabase is not configured
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || 
-          process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co') {
-        return;
+      if (!process.env['NEXT_PUBLIC_SUPABASE_URL'] || 
+          process.env['NEXT_PUBLIC_SUPABASE_URL'] === 'NEXT_PUBLIC_SUPABASE_URL') {
+        return undefined;
       }
       
       // Set up auth state
@@ -71,6 +70,8 @@ export default function Providers({ children }: ProvidersProps) {
       // Clean up subscription on unmount
       return () => subscription.unsubscribe();
     }
+    
+    return undefined; // Explicit return for when initialized is true
   }, [initialized, refreshUser]);
   
   return (

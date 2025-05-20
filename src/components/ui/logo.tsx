@@ -22,27 +22,31 @@ export function Logo({
   };
 
   const sizePixels = {
-    sm: { width: 80, height: 40 },
-    md: { width: 120, height: 60 },
-    lg: { width: 160, height: 80 },
+    sm: { width: 100, height: 50 },
+    md: { width: 180, height: 90 },
+    lg: { width: 240, height: 120 },
   };
 
   const content =
     variant === 'image' ? (
       <motion.div
-        className={cn('relative', className)}
+        className={cn('relative glow-red-hover', className)}
         initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.05, "--glow-opacity": 0.5, "--glow-spread": "25px" } as any}
       >
-        <Image
-          src="/logo.png"
-          alt="Ink 37 Logo"
-          width={sizePixels[size].width}
-          height={sizePixels[size].height}
-          priority
-        />
+        <div className="relative overflow-hidden rounded-md">
+          <Image
+            src="/logo.png"
+            alt="Ink 37 Logo"
+            width={sizePixels[size].width}
+            height={sizePixels[size].height}
+            priority
+            className="relative z-10"
+          />
+          <div className="absolute inset-0 bg-gradient-fancy opacity-40 mix-blend-overlay"></div>
+        </div>
       </motion.div>
     ) : (
       <motion.span
@@ -53,10 +57,10 @@ export function Logo({
         whileHover={{ scale: 1.05 }}
       >
         <span className="text-tattoo-white">Ink</span>{' '}
-        <span className="text-tattoo-red relative">
-          37
+        <span className="relative">
+          <span className="bg-gradient-fancy bg-clip-text text-transparent">37</span>
           <motion.span
-            className="absolute -bottom-1 -left-1 -right-1 h-0.5 bg-tattoo-red/60"
+            className="absolute -bottom-1 -left-1 -right-1 h-0.5 bg-gradient-to-r from-primary to-secondary"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ delay: 0.5, duration: 0.6, ease: 'easeOut' }}

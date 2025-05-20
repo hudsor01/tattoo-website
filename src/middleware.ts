@@ -17,7 +17,7 @@ const authRoutes = [
   '/client-portal/login',
   '/client-portal/register',
   '/client-portal/forgot-password',
-  '/admin/auth/login',
+  '/admin-dashboard/auth/login',
 ];
 
 /**
@@ -32,7 +32,14 @@ const clientPortalRoutes = [
 /**
  * Admin routes
  */
-const adminRoutes = ['/admin', '/admin/dashboard', '/admin/customers', '/admin/analytics'];
+const adminRoutes = [
+  '/admin-dashboard',
+  '/admin-dashboard/analytics',
+  '/admin-dashboard/bookings',
+  '/admin-dashboard/appointments',
+  '/admin-dashboard/cal-bookings',
+  '/admin-dashboard/email-campaigns',
+];
 
 /**
  * Check if a path matches any route in an array
@@ -104,7 +111,7 @@ export async function middleware(request: NextRequest) {
     if (matchesRoute(pathname, clientPortalRoutes)) {
       loginUrl = '/client-portal/login';
     } else if (matchesRoute(pathname, adminRoutes)) {
-      loginUrl = '/admin/auth/login';
+      loginUrl = '/admin-dashboard/auth/login';
     }
 
     const redirectUrl = new URL(loginUrl, request.nextUrl.origin);

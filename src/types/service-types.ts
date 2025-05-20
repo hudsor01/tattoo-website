@@ -1,16 +1,6 @@
 /**
- * service-types.ts
- *
  * Type definitions for various service integrations like Google Calendar, 
  * email services, and other external APIs.
- */
-
-// Using calendar_v3 type for reference only
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { calendar_v3 } from 'googleapis';
-
-/**
- * Google Calendar types
  */
 
 /**
