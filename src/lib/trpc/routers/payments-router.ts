@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../server';
 import { createClient } from '@/lib/supabase/server';
+import crypto from 'crypto';
 
 export const paymentsRouter = router({
   /**
@@ -186,8 +187,8 @@ export const paymentsRouter = router({
         // Create a payment intent (for build, we'll stub this)
         // In a real implementation, this would call Stripe API
         const paymentIntent = {
-          id: `pi_${Date.now()}${Math.floor(Math.random() * 1000)}`,
-          client_secret: `pi_${Date.now()}${Math.floor(Math.random() * 1000)}_secret_${Math.floor(Math.random() * 1000)}`,
+          id: `pi_${Date.now()}${crypto.randomBytes(4).toString('hex')}`,
+          client_secret: `pi_${Date.now()}_${crypto.randomBytes(8).toString('hex')}_secret`,
           amount: input.amount,
           currency: input.currency,
           status: 'requires_payment_method',
