@@ -13,7 +13,7 @@ import { useMobile } from "@/hooks/use-mobile"
 import { VideoPlayer } from "./video-player"
 import { ShareDialog } from "./share-dialog"
 import { toast } from "@/hooks/use-toast"
-import { fetchTattooImages, fetchVideoProcesses, likeTattoo, bookmarkTattoo, getUserInteractions } from "@/lib/api"
+import { fetchTattooImages, fetchVideoProcesses, likeTattoo, bookmarkTattoo, getUserInteractions } from "@/lib/api/gallery"
 import { useRealTimeUpdates, formatNumber } from "@/lib/real-time"
 import type { TattooImage, VideoProcess } from "@/types/gallery"
 
@@ -695,7 +695,7 @@ export function TattooGallery() {
 														{tattooImages[selectedImage].artist && (
 															<p className="text-zinc-500 text-sm mt-1">Artist: {tattooImages[selectedImage].artist}</p>
 														)}
-													</div>
+														</div>
 													<div className="flex gap-3">
 														<Button
 															size="sm"
