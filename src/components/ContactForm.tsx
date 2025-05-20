@@ -130,8 +130,16 @@ function ContactFormContent() {
       // Simulated upload delay for UX demonstration
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // In a real implementation, this would upload files to a server/storage
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+      // Validate file types and create blob URLs for valid images
+      const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+      const newImages = Array.from(files)
+        .filter(file => validImageTypes.includes(file.type))
+        .map(file => URL.createObjectURL(file));
+
+      if (newImages.length === 0) {
+        console.warn('No valid image files were uploaded.');
+        return;
+      }
 
       setUploadedImages([...uploadedImages, ...newImages]);
       setValue('referenceImages', [...uploadedImages, ...newImages], {
