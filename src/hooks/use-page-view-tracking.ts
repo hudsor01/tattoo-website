@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAnalyticsContext } from '@/components/providers/AnalyticsProvider';
 
@@ -39,9 +39,9 @@ export function usePageViewTracking(options?: {
   };
   
   // Function to track page view that can be called manually
-  const trackCurrentPageView = () => {
+  const trackCurrentPageView = useCallback(() => {
     // Skip tracking during development if needed
-    if (process.env.NODE_ENV === 'development' && process.env.SKIP_ANALYTICS_IN_DEV === 'true') {
+    if (process.env.NODE_ENV === 'development' && process.env['SKIP_ANALYTICS_IN_DEV'] === 'true') {
       return;
     }
     
@@ -77,17 +77,16 @@ export function usePageViewTracking(options?: {
       pageTitle,
       pageType,
       path: fullPath,
-      loadTime,
-      referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
+      loadTime: loadTime ?? 0,
+      referrer: typeof document !== 'undefined' ? document.referrer || "" : "",
     });
     
     // Update last tracked path
     lastTrackedRef.current = fullPath;
-  };
+  }, [pathname, searchParams, options?.pageTitle, trackPageView]);
   
   // Automatic tracking effect
   useEffect(() => {
-    // Skip if auto-tracking is disabled
     if (options?.disableAutoTracking) {
       return;
     }
@@ -98,7 +97,7 @@ export function usePageViewTracking(options?: {
     
     // Cleanup function
     return () => clearTimeout(timeoutId);
-  }, [pathname, searchParams, options?.disableAutoTracking, options?.delay]);
+  }, [options?.disableAutoTracking, options?.delay, trackCurrentPageView]);
   
   // Return the function for manual tracking
   return { trackCurrentPageView };

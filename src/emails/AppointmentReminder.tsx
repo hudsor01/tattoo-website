@@ -35,7 +35,7 @@ export function generateAppointmentReminderEmail({
   const aptDate = new Date(appointmentDate);
   const daysRemaining = Math.ceil((aptDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-  const websiteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const websiteUrl = process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000';
 
   const html = `
     <!DOCTYPE html>

@@ -716,11 +716,15 @@ export interface Service {
   id: string;
   title: string;
   description: string;
-  imageUrl?: string;
-  features?: string[];
-  price?: string;
-  duration?: string;
-  category?: string;
+  shortDescription: string; // Add this new property
+  process: string[];
+  detailedProcess: {
+    title: string;
+    description: string;
+  }[];
+  image: string;
+  icon: LucideIcon;
+  color: string;
 }
 
 export interface FAQAccordionProps {

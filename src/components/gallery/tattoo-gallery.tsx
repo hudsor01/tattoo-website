@@ -643,7 +643,7 @@ export function TattooGallery() {
 													</Button>
 													<Button
 														variant="ghost"
-														size="icon"
+													size="icon"
 														className="text-white bg-black/50 hover:bg-black/70"
 														onClick={resetZoom}
 														aria-label="Reset zoom"
@@ -695,7 +695,7 @@ export function TattooGallery() {
 														{tattooImages[selectedImage].artist && (
 															<p className="text-zinc-500 text-sm mt-1">Artist: {tattooImages[selectedImage].artist}</p>
 														)}
-														</div>
+													</div>
 													<div className="flex gap-3">
 														<Button
 															size="sm"

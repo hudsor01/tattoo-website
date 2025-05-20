@@ -50,7 +50,7 @@ export function usePublicDesigns(params: {
 
   return {
     designs: data?.designs ?? [],
-    total: data?.total ?? 0,
+    total: data?.totalCount ?? 0,
     isLoading,
     error,
   };
@@ -69,26 +69,13 @@ export function useDesignTypes() {
   };
 }
 
-/**
- * Hook to track design interactions
- */
-export function useTrackDesignInteraction() {
-  const mutation = api.gallery.trackInteraction.useMutation();
-
-  return {
-    track: (designId: string, action: string) => {
-      return mutation.mutate({ designId, action });
-    },
-    isLoading: mutation.isLoading,
-    error: mutation.error,
-  };
-}
 
 /**
  * Hook to like/unlike a design
  */
 export function useToggleDesignLike() {
-  const mutation = api.gallery.toggleLike.useMutation();
+  // Update to use the correct endpoint name from your tRPC router
+  const mutation = api.gallery.toggleDesignLike.useMutation();
 
   return {
     toggle: (designId: string) => {

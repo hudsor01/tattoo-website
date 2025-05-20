@@ -13,7 +13,7 @@ export const ContactConfirmation = ({
   phone,
   message,
 }: ContactConfirmationEmailProps) => {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fernandogoveatatoo.com';
+  const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] || 'https://fernandogoveatatoo.com';
   
   return `
     <!DOCTYPE html>

@@ -2,7 +2,6 @@
 
 /**
  * React Memoization Utilities
- * 
  * This module provides utilities for memoizing components and values
  * to improve rendering performance and reduce unnecessary re-renders.
  */
@@ -49,7 +48,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   delay: number,
   deps: React.DependencyList = []
 ): T {
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   
   const debouncedCallback = useCallback((...args: Parameters<T>) => {
     if (timeoutRef.current) {
@@ -103,7 +102,7 @@ export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
   deps: React.DependencyList = []
 ): T {
   const lastRunRef = useRef<number>(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   
   const throttledCallback = useCallback((...args: Parameters<T>) => {
     const now = Date.now();
@@ -123,7 +122,11 @@ export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
         timeoutRef.current = undefined;
         callback(...args);
       }, remaining);
+      return undefined as ReturnType<T>;
     }
+    
+    // Add this return statement to handle the case where a timeout is already scheduled
+    return undefined as ReturnType<T>;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, ...deps]);
   

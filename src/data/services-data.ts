@@ -1,5 +1,5 @@
 import { Palette, Camera, Gem, RefreshCw } from 'lucide-react';
-import { Service } from '@/types/component-types';
+import { type Service } from '@/types/component-types';
 
 /**
  * Shared services data

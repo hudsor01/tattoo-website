@@ -28,7 +28,7 @@ export function generateCancellationNoticeEmail({
     day: 'numeric',
   });
 
-  const websiteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const websiteUrl = process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000';
 
   const html = `
     <!DOCTYPE html>
