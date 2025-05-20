@@ -5,7 +5,7 @@
  * It abstracts away the details of how functions are executed (Prisma, Supabase, etc.)
  */
 
-import { prisma } from './client';
+import { prisma } from './prisma';
 import type { ExecuteStoredProcedureOptions, DatabaseResult } from '../types/database.types';
 import { getErrorMessage } from '@/lib/utils/server';
 
@@ -34,7 +34,7 @@ export async function executeStoredProcedure<T = unknown>(
 
   try {
     if (logParams) {
-      console.log(`Executing ${functionName} with params:`, params);
+      console.error(`Executing ${functionName} with params:`, params);
     }
 
     // Create the query string - we use the ANY parameter syntax for flexibility
@@ -73,7 +73,7 @@ export async function executeStoredProcedure<T = unknown>(
  * @param options Additional options for execution
  * @returns A standardized result object with data and error fields
  */
-export async function executeDbFunction<T = any>(
+export async function executeDbFunction<T = unknown>(
   functionName: string,
   params: unknown[] = [],
   options: ExecuteStoredProcedureOptions = {},

@@ -54,7 +54,7 @@ export default function Providers({ children }: ProvidersProps) {
           if (session?.user) {
             // Check if user is admin by querying the User table
             const userId = session.user.id;
-            const { data, error } = await supabase
+            const { data } = await supabase
               .from('User')
               .select('role')
               .eq('id', userId)

@@ -2,7 +2,7 @@
 
 // shadcn/ui component types
 declare module '@/components/ui/*' {
-  const component: any;
+  const component: unknown;
   export default component;
   export * from 'component';
 }

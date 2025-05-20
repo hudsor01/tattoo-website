@@ -17,7 +17,7 @@ import {
   defaultContactFormValues,
 } from '@/lib/validations/validation-contact';
 import type { ContactFormValues } from '@/lib/validations/validation-contact';
-// import { useToast } from '@/hooks/use-toast';
+// import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/lib/api';
 // import { EnhancedErrorBoundary } from '@/components/error/enhanced-error-boundary';
 import {
@@ -29,7 +29,7 @@ import {
   FormMessage,
   FormDescription,
 } from '@/components/ui/form';
-import { useErrorHandling } from '@/hooks/use-error-handling';
+// Unused import: import { useErrorHandling } from '@/hooks/use-error-handling';
 
 // Animation variants
 const formVariants = {
@@ -87,7 +87,8 @@ function ContactFormContent() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [successfulSubmission, setSuccessfulSubmission] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
-  const { toast } = useToast();
+  // Using toast commented out in this component
+  // const { toast } = useToast();
 
   // Initialize form with validation schema
   const form = useForm<ContactFormValues>({
@@ -208,16 +209,17 @@ function ContactFormContent() {
         throw new Error('Unexpected response from the server.');
       }
     } catch (error: unknown) {
-      let errorMessage = 'Failed to send message. Please try again.';
+      // Error message is unused but useful for debugging
+      // let errorMessage = 'Failed to send message. Please try again.';
 
-      if (
-        error &&
-        typeof error === 'object' &&
-        'message' in error &&
-        typeof (error as { message?: unknown }).message === 'string'
-      ) {
-        errorMessage = (error as { message: string }).message;
-      }
+      // if (
+      //   error &&
+      //   typeof error === 'object' &&
+      //   'message' in error &&
+      //   typeof (error as { message?: unknown }).message === 'string'
+      // ) {
+      //   errorMessage = (error as { message: string }).message;
+      // }
 
       // toast.error(errorMessage);
 

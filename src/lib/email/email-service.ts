@@ -10,7 +10,7 @@
 
 import { sendEmail as resendSendEmail } from './email-resend';
 import type { EmailRecipient } from '@/types/email-types';
-import * as Sentry from '@sentry/nextjs';
+// import * as Sentry from '@sentry/nextjs'; // Not using Sentry currently
 import { prisma } from '@/lib/db/db';
 
 // Import type definitions
@@ -20,11 +20,6 @@ import {
   EmailParams,
   EmailResult,
   EmailQueueResult,
-  AppointmentEmailParams,
-  AppointmentReminderParams,
-  WelcomeEmailParams,
-  CancellationNoticeParams,
-  DepositReminderParams,
 } from '@/types/email-types';
 
 // Using the singleton PrismaClient instance from '@/lib/database/prisma'
@@ -56,7 +51,7 @@ async function logEmailActivity(
     });
   } catch (error) {
     console.error('Failed to log email activity:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
   }
 }
 
@@ -107,7 +102,7 @@ async function sendEmail({
     }
   } catch (error) {
     console.error('Failed to send email:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
 
     // Log the failure
     await logEmailActivity(
@@ -177,7 +172,7 @@ export async function sendAppointmentConfirmation(appointmentId: string) {
     });
   } catch (error) {
     console.error('Error sending appointment confirmation:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
     return { success: false, error };
   }
 }
@@ -241,7 +236,7 @@ export async function sendAppointmentReminder(appointmentId: string) {
     });
   } catch (error) {
     console.error('Error sending appointment reminder:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
     return { success: false, error };
   }
 }
@@ -286,7 +281,7 @@ export async function sendWelcomeEmail(customerId: string) {
     });
   } catch (error) {
     console.error('Error sending welcome email:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
     return { success: false, error };
   }
 }
@@ -343,7 +338,7 @@ export async function sendCancellationNotice(
     });
   } catch (error) {
     console.error('Error sending cancellation notice:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
     return { success: false, error };
   }
 }
@@ -400,7 +395,7 @@ export async function sendDepositReminder(appointmentId: string) {
     });
   } catch (error) {
     console.error('Error sending deposit reminder:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
     return { success: false, error };
   }
 }
@@ -505,7 +500,7 @@ export async function processEmailQueue(): Promise<EmailQueueResult> {
           }
         } catch (error) {
           console.error(`Error processing notification ${notification.id}:`, error);
-          Sentry.captureException(error);
+          // Sentry.captureException(error); // Not using Sentry currently
 
           // Update notification with error
           await prisma.notificationQueue.update({
@@ -523,7 +518,7 @@ export async function processEmailQueue(): Promise<EmailQueueResult> {
     return { success: true, processed: totalProcessed };
   } catch (error) {
     console.error('Error processing email queue:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error); // Not using Sentry currently
     return { success: false, error };
   }
 }

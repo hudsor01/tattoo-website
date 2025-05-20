@@ -20,7 +20,7 @@ import {
   Cell,
 } from 'recharts';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
-import { trpc } from '@/lib/trpc/trpc';
+import { api } from '@/lib/trpc/client';
 import { CalendarIcon, DownloadIcon, RefreshCw, Activity } from 'lucide-react';
 import { RealtimeStatUpdater } from './components/RealtimeStatUpdater';
 import { LiveActivityIndicator } from './components/LiveActivityIndicator';
@@ -48,7 +48,7 @@ const AnalyticsPage = () => {
     data: summaryData,
     isLoading: isSummaryLoading,
     refetch: refetchSummary,
-  } = trpc.analytics.getSummary.useQuery(
+  } = api.analytics.getSummary.useQuery(
     {
       startDate: dateRange.from,
       endDate: dateRange.to,
@@ -61,7 +61,7 @@ const AnalyticsPage = () => {
 
   // Get top designs data
   const { data: topDesignsData, isLoading: isTopDesignsLoading } =
-    trpc.analytics.getTopDesigns.useQuery(
+    api.analytics.getTopDesigns.useQuery(
       {
         limit: 10,
       },
@@ -73,7 +73,7 @@ const AnalyticsPage = () => {
 
   // Get booking funnel data
   const { data: bookingFunnelData, isLoading: isBookingFunnelLoading } =
-    trpc.analytics.getBookingFunnel.useQuery(
+    api.analytics.getBookingFunnel.useQuery(
       {
         startDate: dateRange.from,
         endDate: dateRange.to,

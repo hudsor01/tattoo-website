@@ -1,4 +1,4 @@
-import { FaPaintBrush, FaPortrait, FaRegGem, FaRedoAlt } from 'react-icons/fa';
+import { Palette, Camera, Gem, RefreshCw } from 'lucide-react';
 import { Service } from '@/types/component-types';
 
 /**
@@ -32,7 +32,7 @@ export const services: Service[] = [
       }
     ],
     image: '/images/custom-designs.jpg',
-    icon: FaPaintBrush,
+    icon: Palette,
     color: 'blue',
   },
   {
@@ -58,7 +58,7 @@ export const services: Service[] = [
       }
     ],
     image: '/images/traditional.jpg',
-    icon: FaPortrait,
+    icon: Camera,
     color: 'purple',
   },
   {
@@ -84,7 +84,7 @@ export const services: Service[] = [
       }
     ],
     image: '/images/realism.jpg',
-    icon: FaRegGem,
+    icon: Gem,
     color: 'teal',
   },
   {
@@ -110,7 +110,7 @@ export const services: Service[] = [
       }
     ],
     image: '/images/cover-ups.jpg',
-    icon: FaRedoAlt,
+    icon: RefreshCw,
     color: 'red',
   },
 ];

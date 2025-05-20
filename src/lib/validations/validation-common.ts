@@ -91,15 +91,8 @@ export const addressSchema = z.object({
   country: z.string().min(1),
 });
 
-export const contactInfoSchema = emailSchema.extend({
-  phone: phoneSchema.optional(),
-  address: addressSchema.optional(),
-});
-
-// Re-add missing exports
-export const uuidParamSchema = uuidSchema;
-export const searchSchema = paginationSchema;
-export const contactInfoSchema = emailSchema.extend({
+export const contactInfoSchema = z.object({
+  email: emailSchema,
   phone: phoneSchema.optional(),
   address: addressSchema.optional(),
 });

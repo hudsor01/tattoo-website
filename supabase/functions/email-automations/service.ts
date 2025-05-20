@@ -36,13 +36,33 @@ interface EmailAutomation {
   template_id: string;
 }
 
+// Define specific result types for handleRequest
+interface SendTemplateResult {
+  sent: boolean;
+  recipient: string;
+  templateId: string;
+}
+
+interface DailyAutomationsResultItem {
+  automation_id: string;
+  recipient?: string;
+  error?: string;
+}
+
+interface RunDailyAutomationsResult {
+  processed: number;
+  automations: DailyAutomationsResultItem[];
+}
+
+type HandleRequestResultPayload = SendTemplateResult | RunDailyAutomationsResult;
+
 /**
  * Handle an email request from the Edge Function
  */
 export async function handleRequest(
   supabase: SupabaseClient,
   request: EmailRequest
-): Promise<{ success: boolean; result?: any; error?: string }> {
+): Promise<{ success: boolean; result?: HandleRequestResultPayload; error?: string }> {
   try {
     const { action, recipient, templateId, data } = request;
     
@@ -69,8 +89,8 @@ export async function handleRequest(
         return { success: false, error: 'Invalid action' };
     }
   } catch (error) {
-    console.error('Error handling email request:', error);
-    return { success: false, error: error.message || 'Unknown error occurred' };
+    console.error('Error handling email request:', error);    
+    return { success: false, error: (error as { message: string }).message || 'Unknown error occurred' };
   }
 }
 
@@ -82,11 +102,11 @@ async function processEmailTemplate(
   recipient: string,
   templateId: string,
   data: Record<string, unknown> = {}
-): Promise<{ sent: boolean; recipient: string; templateId: string }> {
+): Promise<SendTemplateResult> { // Updated return type to be more specific
   try {
     // Get template from database
     const { data: template, error } = await supabase
-      .from('EmailTemplate')
+      .from<EmailTemplate>('EmailTemplate') // Use EmailTemplate type
       .select('*')
       .eq('id', templateId)
       .single();
@@ -122,7 +142,7 @@ async function processEmailTemplate(
       
     return { sent: true, recipient, templateId };
   } catch (error) {
-    console.error(`Error processing email template:`, error);
+    console.error(`Error processing email template:`, error); // error is already logged
     throw error;
   }
 }
@@ -132,11 +152,11 @@ async function processEmailTemplate(
  */
 async function processDailyAutomations(
   supabase: SupabaseClient
-): Promise<Array<{ automation_id: string; recipient?: string; error?: string }>> {
+): Promise<DailyAutomationsResultItem[]> { // Updated return type
   try {
     // Get automations to process
-    const { data: automations, error } = await supabase
-      .from('EmailAutomation')
+    const { data: automationsData, error } = await supabase
+      .from<EmailAutomation>('EmailAutomation') // Use EmailAutomation type
       .select('*')
       .eq('active', true)
       .eq('trigger_type', 'scheduled');
@@ -145,19 +165,30 @@ async function processDailyAutomations(
       throw new Error(`Error fetching automations: ${error.message}`);
     }
       
-    const results = [];
+    const results: DailyAutomationsResultItem[] = []; // Type the results array
+    
+    // Handle cases where automationsData might be null or undefined, though Supabase usually returns []
+    const automations = automationsData || [];
+
+    if (automations.length === 0) {
+        console.warn('No active scheduled automations found.');
+        return results;
+    }
       
     for (const automation of automations) {
       try {
         // Process each automation based on its criteria
-        const { data: recipients, error: recipientsError } = await supabase
-          .from('Client')
+        const { data: recipientsData, error: recipientsError } = await supabase
+          .from<Client>('Client') // Use Client type
           .select('email, id, first_name, last_name')
           .eq('status', 'active');
           
         if (recipientsError) {
           throw new Error(`Error fetching recipients: ${recipientsError.message}`);
         }
+
+        // Handle cases where recipientsData might be null or undefined
+        const recipients = recipientsData || [];
           
         for (const recipient of recipients) {
           await processEmailTemplate(
@@ -175,7 +206,7 @@ async function processDailyAutomations(
         }
       } catch (error) {
         console.error(`Error processing automation ${automation.id}:`, error);
-        results.push({ automation_id: automation.id, error: error.message });
+        results.push({ automation_id: automation.id, error: (error as { message: string }).message || 'Unknown error processing automation' });
       }
     }
       

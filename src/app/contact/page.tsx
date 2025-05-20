@@ -6,7 +6,7 @@ import Footer from '@/components/layouts/Footer';
 import ContactForm from '@/components/ContactForm';
 import EmailLink from '@/emails/EmailLink';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaInstagram, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { Mail, Instagram, MapPin, Clock } from 'lucide-react';
 
 export default function ContactPage() {
   // FAQ items for the contact page
@@ -146,7 +146,7 @@ export default function ContactPage() {
                   {/* Email */}
                   <div className="flex items-start">
                     <div className="w-10 h-10 rounded-full bg-tattoo-red/20 flex items-center justify-center text-tattoo-red mr-4">
-                      <FaEnvelope />
+                      <Mail className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-tattoo-white mb-1">Email</h3>
@@ -166,7 +166,7 @@ export default function ContactPage() {
                   {/* Instagram */}
                   <div className="flex items-start">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center text-white mr-4">
-                      <FaInstagram />
+                      <Instagram className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-tattoo-white mb-1">Instagram</h3>
@@ -185,7 +185,7 @@ export default function ContactPage() {
                   {/* Working Hours */}
                   <div className="flex items-start">
                     <div className="w-10 h-10 rounded-full bg-tattoo-red/20 flex items-center justify-center text-tattoo-red mr-4">
-                      <FaClock />
+                      <Clock className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-tattoo-white mb-1">
@@ -201,7 +201,7 @@ export default function ContactPage() {
                   {/* Location */}
                   <div className="flex items-start">
                     <div className="w-10 h-10 rounded-full bg-tattoo-red/20 flex items-center justify-center text-tattoo-red mr-4">
-                      <FaMapMarkerAlt />
+                      <MapPin className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-tattoo-white mb-1">Location</h3>

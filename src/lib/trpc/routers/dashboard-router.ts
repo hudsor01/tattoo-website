@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod';
-import { router, procedure } from '@/lib/trpc/server';
-import { prisma } from '@/lib/db/db-client';
+import { router, publicProcedure } from '@/lib/trpc/procedures';
+import { prisma } from '@/lib/db/prisma';
 import { TRPCError } from '@trpc/server';
 import { formatDateRange } from '@/lib/utils/date';
 
@@ -42,7 +42,7 @@ export const dashboardRouter = router({
   /**
    * Get all dashboard statistics and summary data
    */
-  getStats: procedure.input(StatsFilterSchema.optional()).query(async ({ input }) => {
+  getStats: publicProcedure.input(StatsFilterSchema.optional()).query(async ({ input }) => {
     // Default to current month if no period specified
     const period = input?.period || 'month';
     const compareToPrevious = input?.compareToPrevious ?? true;
@@ -259,7 +259,7 @@ export const dashboardRouter = router({
   /**
    * Get upcoming appointments for the dashboard
    */
-  getUpcomingAppointments: procedure.input(AppointmentsFilterSchema).query(async ({ input }) => {
+  getUpcomingAppointments: publicProcedure.input(AppointmentsFilterSchema).query(async ({ input }) => {
     const { status, limit, page, startDate, endDate } = input;
     const skip = (page - 1) * limit;
 
@@ -366,7 +366,7 @@ export const dashboardRouter = router({
   /**
    * Get recent payments for the dashboard
    */
-  getRecentPayments: procedure.input(PaymentsFilterSchema).query(async ({ input }) => {
+  getRecentPayments: publicProcedure.input(PaymentsFilterSchema).query(async ({ input }) => {
     const { status, limit, page, period } = input;
     const skip = (page - 1) * limit;
 
@@ -483,7 +483,7 @@ export const dashboardRouter = router({
     }
   }),
 
-  getNotifications: procedure
+  getNotifications: publicProcedure
     .input(
       z.object({
         limit: z.number().min(1).max(50).optional().default(5),
@@ -634,7 +634,7 @@ export const dashboardRouter = router({
         });
       }
     }),
-  confirmAppointment: procedure.input(z.string()).mutation(async ({ input: appointmentId }) => {
+  confirmAppointment: publicProcedure.input(z.string()).mutation(async ({ input: appointmentId }) => {
     try {
       // Get the appointment first to validate it exists
       const appointment = await prisma.appointment.findUnique({

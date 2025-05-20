@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { apiRoute } from '@/lib/validations/validation-api-utils';
 import { contactFormSchema } from '@/lib/validations/validation-contact';
 import { prisma } from '@/lib/db/prisma';
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export const POST = apiRoute({
   POST: {
     bodySchema: contactFormSchema,
-    handler: async (body, request) => {
+    handler: async (body) => {
       try {
         const {
           name,

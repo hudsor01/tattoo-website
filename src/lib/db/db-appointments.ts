@@ -6,9 +6,7 @@
 
 import { prisma, executeStoredProcedure } from './prisma';
 import { 
-  AppointmentStatus, 
-  AppointmentCreateInput, 
-  AppointmentUpdateInput 
+  AppointmentCreateInput 
 } from '@/types/booking-types';
 
 /**

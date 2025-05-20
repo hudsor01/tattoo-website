@@ -150,17 +150,6 @@ export interface Transaction {
 }
 
 /**
- * Payment Schema Definitions
- *
- * This file provides the single source of truth for all payment-related types
- * using Zod schemas. All types related to payments should be derived from
- * these schemas to ensure consistency across the application.
- */
-
-// Define ID schema here since it's not available in the common module
-const IDSchema = z.string().min(1);
-
-/**
  * Payment type options
  */
 export const PaymentTypeSchema = z.enum([
@@ -193,9 +182,9 @@ export const PaymentBaseSchema = z.object({
  * Schema for creating a new payment
  */
 export const PaymentCreateSchema = PaymentBaseSchema.extend({
-  bookingId: ID.optional(),
-  appointmentId: ID.optional(),
-  customerId: ID.optional(),
+  bookingId: z.string().optional(),
+  appointmentId: z.string().optional(),
+  customerId: z.string().optional(),
   transactionId: z.string().optional(),
   receiptUrl: z.string().url().optional(),
   status: PaymentStatusSchema.optional().default('pending'),
@@ -219,10 +208,10 @@ export const PaymentUpdateSchema = z.object({
  * Schema for a payment in the database
  */
 export const PaymentSchema = PaymentBaseSchema.extend({
-  id: ID,
-  bookingId: ID.optional(),
-  appointmentId: ID.optional(),
-  customerId: ID.optional(),
+  id: z.string(),
+  bookingId: z.string().optional(),
+  appointmentId: z.string().optional(),
+  customerId: z.string().optional(),
   status: PaymentStatusSchema,
   transactionId: z.string().optional(),
   receiptUrl: z.string().url().optional(),
@@ -240,9 +229,9 @@ export const PaymentSchema = PaymentBaseSchema.extend({
  */
 export const PaymentIntentCreateSchema = z.object({
   amount: z.number().positive(),
-  bookingId: ID.optional(),
-  appointmentId: ID.optional(),
-  customerId: ID.optional(),
+  bookingId: z.string().optional(),
+  appointmentId: z.string().optional(),
+  customerId: z.string().optional(),
   customerEmail: z.string().email(),
   customerName: z.string(),
   paymentType: PaymentTypeSchema,
@@ -274,10 +263,10 @@ export const PaymentListParamsSchema = z.object({
   paymentMethod: PaymentMethodSchema.optional(),
   paymentType: PaymentTypeSchema.optional(),
   startDate: z.date().optional(),
-  endDate: z.date().optional(),
-  customerId: ID.optional(),
-  bookingId: ID.optional(),
-  appointmentId: ID.optional(),
+    endDate: z.date().optional(),
+    customerId: z.string().optional(),
+    bookingId: z.string().optional(),
+    appointmentId: z.string().optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
   searchTerm: z.string().optional(),
@@ -308,7 +297,7 @@ export const PaymentListResponseSchema = z.object({
  * Schema for payment refund
  */
 export const PaymentRefundSchema = z.object({
-  paymentId: ID,
+  paymentId: z.string(),
   amount: z.number().positive().optional(), // If not provided, full amount is refunded
   reason: z.string().optional(),
   sendEmail: z.boolean().optional().default(true),
@@ -446,4 +435,20 @@ export interface PaymentStats {
   byMonth?: Record<string, number>;
   refundedAmount?: number;
   averageAmount?: number;
+}
+
+/**
+ * Stripe payment metadata interface
+ */
+export interface PaymentMetadata {
+  stripePaymentIntentId?: string;
+  stripePaymentStatus?: string;
+  stripeChargeId?: string;
+  stripeLastError?: string;
+  stripeRefundId?: string;
+  refundAmount?: number;
+  refundReason?: string;
+  disputeReason?: string;
+  disputeStatus?: string;
+  disputeAmount?: number;
 }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { apiRoute, trackingSchema } from '@/lib/validations/validation-api-utils';
 import { prisma } from '@/lib/db/prisma';
 
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export const POST = apiRoute({
   POST: {
     bodySchema: trackingSchema,
-    handler: async (body, request) => {
+    handler: async (body) => {
       try {
         const { leadId, event, data } = body;
 
@@ -30,7 +30,7 @@ export const POST = apiRoute({
         }
 
         // Record tracking event
-        const trackingEvent = await prisma.leadEvent.create({
+        await prisma.leadEvent.create({
           data: {
             leadId,
             eventType: event,

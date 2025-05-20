@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   apiRoute,
   createPaymentIntentSchema,
-  paymentIntentResponseSchema,
 } from '@/lib/validations/validation-api-utils';
 import { stripe } from '@/lib/services/stripe';
 
@@ -14,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const POST = apiRoute({
   POST: {
     bodySchema: createPaymentIntentSchema,
-    handler: async (body, request) => {
+    handler: async (body) => {
       try {
         const {
           amount,

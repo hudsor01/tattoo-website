@@ -1,176 +1,96 @@
 /* Cal.com Embed Custom Styles */
 
-/* Override Cal.com default styling to match tattoo website theme */
-
-/* Main calendar container */
-.cal-embed {
-  --cal-primary-color: #000000;
-  --cal-primary-darker-color: #1a1a1a;
-  --cal-secondary-color: #dc2626;
-  --cal-bg-color: #f8f8f8;
-  --cal-text-color: #000000;
-  --cal-text-light-color: #666666;
-  --cal-border-color: #e5e5e5;
-  --cal-border-radius: 8px;
+/* Fix for Cal.com container size issues */
+.cal-embed-container {
+  min-height: 800px;
+  height: auto;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #000000;
+  margin-bottom: 40px;
 }
 
-/* Dark mode support */
-[data-theme="dark"] .cal-embed {
-  --cal-bg-color: #1a1a1a;
-  --cal-text-color: #ffffff;
-  --cal-text-light-color: #a0a0a0;
-  --cal-border-color: #333333;
+/* Fix for Cal.com iframe responsiveness */
+iframe[data-cal-embed] {
+  width: 100% !important;
+  min-height: 800px !important;
+  border: none;
 }
 
-/* Calendar grid styling */
-.cal-embed .calendar-grid {
-  background-color: var(--cal-bg-color);
-  border-radius: var(--cal-border-radius);
+/* Dynamic cal iframe style overrides */
+[data-cal-namespace] iframe {
+  width: 100% !important;
+  min-height: 800px !important;
+  border: none !important;
+}
+
+/* Loading Skeleton Animation */
+.booking-loading-skeleton {
+  position: relative;
   overflow: hidden;
 }
 
-/* Day cells */
-.cal-embed .day-cell {
-  border-color: var(--cal-border-color);
-  transition: all 0.2s ease;
+.booking-loading-skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
 }
 
-.cal-embed .day-cell:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
-/* Available time slots */
-.cal-embed .time-slot {
-  background-color: #ffffff;
-  border: 2px solid var(--cal-border-color);
-  color: var(--cal-text-color);
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.cal-embed .time-slot:hover {
-  border-color: var(--cal-primary-color);
-  background-color: var(--cal-primary-color);
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Selected time slot */
-.cal-embed .time-slot.selected {
-  background-color: var(--cal-primary-color);
-  border-color: var(--cal-primary-color);
-  color: #ffffff;
-}
-
-/* Form fields */
-.cal-embed input,
-.cal-embed textarea,
-.cal-embed select {
-  background-color: #ffffff;
-  border: 2px solid var(--cal-border-color);
-  border-radius: 6px;
-  color: var(--cal-text-color);
-  font-size: 16px;
-  padding: 12px 16px;
-  transition: border-color 0.2s ease;
-}
-
-.cal-embed input:focus,
-.cal-embed textarea:focus,
-.cal-embed select:focus {
-  border-color: var(--cal-primary-color);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Labels */
-.cal-embed label {
-  color: var(--cal-text-color);
-  font-weight: 600;
-  margin-bottom: 8px;
+/* Fallback form styles */
+.fallback-booking label {
   display: block;
-}
-
-/* Submit button */
-.cal-embed button[type="submit"],
-.cal-embed .confirm-button {
-  background-color: var(--cal-primary-color);
-  border: none;
-  border-radius: 6px;
-  color: #ffffff;
-  font-weight: 600;
-  padding: 14px 24px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cal-embed button[type="submit"]:hover,
-.cal-embed .confirm-button:hover {
-  background-color: var(--cal-primary-darker-color);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Back button */
-.cal-embed .back-button {
-  color: var(--cal-text-light-color);
+  margin-bottom: 0.5rem;
   font-weight: 500;
-  transition: color 0.2s ease;
 }
 
-.cal-embed .back-button:hover {
-  color: var(--cal-primary-color);
+.fallback-booking input,
+.fallback-booking textarea,
+.fallback-booking select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid;
+  border-color: rgba(156, 163, 175, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: border-color 0.2s;
 }
 
-/* Loading states */
-.cal-embed .loading-spinner {
-  border-color: var(--cal-primary-color);
-  border-top-color: transparent;
+.fallback-booking input:focus,
+.fallback-booking textarea:focus,
+.fallback-booking select:focus {
+  outline: none;
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
-/* Error messages */
-.cal-embed .error-message {
-  background-color: #fee;
-  border: 1px solid #fcc;
-  color: #c33;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* Success messages */
-.cal-embed .success-message {
-  background-color: #efe;
-  border: 1px solid #cfc;
-  color: #363;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* Custom tattoo-specific fields */
-.cal-embed .custom-fields-container {
-  background-color: rgba(0, 0, 0, 0.02);
-  padding: 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-/* Responsive adjustments */
+/* Mobile responsiveness for booking form */
 @media (max-width: 640px) {
-  .cal-embed {
-    padding: 10px;
+  .cal-embed-container {
+    min-height: 600px;
   }
   
-  .cal-embed .calendar-grid {
-    font-size: 14px;
-  }
-  
-  .cal-embed button[type="submit"],
-  .cal-embed .confirm-button {
-    width: 100%;
-    padding: 16px;
+  iframe[data-cal-link],
+  iframe[data-cal-embed],
+  [data-cal-namespace] iframe {
+    min-height: 600px !important;
   }
 }

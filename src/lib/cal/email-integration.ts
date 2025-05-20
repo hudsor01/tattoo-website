@@ -11,7 +11,6 @@ import type { EmailRecipient } from '@/types/email-types';
 
 // Import email templates
 import AppointmentConfirmation from '@/emails/AppointmentConfirmation';
-import AppointmentReminder from '@/emails/AppointmentReminder';
 import CancellationNotice from '@/emails/CancellationNotice';
 
 /**
@@ -19,7 +18,6 @@ import CancellationNotice from '@/emails/CancellationNotice';
  */
 export async function sendCalBookingConfirmation(booking: CalBookingPayload) {
   const attendee = booking.attendees[0];
-  const tattooData = extractTattooData(booking);
   
   try {
     // Render the email template
@@ -232,7 +230,7 @@ export async function sendArtistNotification(booking: CalBookingPayload) {
  * Extract tattoo-specific data from Cal.com booking
  */
 function extractTattooData(booking: CalBookingPayload) {
-  const customData: Record<string, any> = {};
+  const customData: Record<string, unknown> = {};
   
   // Extract from custom inputs
   if (booking.customInputs) {
@@ -353,7 +351,7 @@ function getPlainTextVersion(booking: CalBookingPayload, type: string): string {
         ${process.env.STUDIO_NAME || 'Fernando Govea Tattoo'}
       `;
       
-    case 'artist-notification':
+    case 'artist-notification': {
       const tattooData = extractTattooData(booking);
       return `
         New Booking: ${booking.title}
@@ -372,6 +370,7 @@ function getPlainTextVersion(booking: CalBookingPayload, type: string): string {
         
         View in dashboard: ${process.env.NEXT_PUBLIC_SITE_URL}/admin-dashboard/cal-bookings
       `;
+    }
       
     default:
       return `${booking.title} - ${new Date(booking.startTime).toLocaleString()}`;

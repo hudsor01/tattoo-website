@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAnalyticsContext } from './providers/AnalyticsProvider';
 
 /**
@@ -14,6 +14,7 @@ export function PageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { trackPageView } = useAnalyticsContext();
+  const lastTrackedRef = useRef<string | null>(null);
   
   useEffect(() => {
     // Skip tracking during development if needed
@@ -48,6 +49,11 @@ export function PageViewTracker() {
       ? `${pathname}?${searchParams.toString()}` 
       : pathname;
     
+    // Prevent duplicate tracking for the same path
+    if (lastTrackedRef.current === fullPath) {
+      return;
+    }
+    
     // Measure load time
     const loadTime = 
       window.performance && 
@@ -56,14 +62,23 @@ export function PageViewTracker() {
         ? window.performance.timing.loadEventEnd - window.performance.timing.navigationStart
         : undefined;
     
-    // Track the page view
-    trackPageView({
-      pageTitle,
-      pageType,
-      path: fullPath,
-      loadTime,
-      referrer: document.referrer || undefined,
-    });
+    // Add a small delay to ensure page is fully loaded and prevent rapid-fire tracking
+    const timeoutId = setTimeout(() => {
+      // Track the page view
+      trackPageView({
+        pageTitle,
+        pageType,
+        path: fullPath,
+        loadTime,
+        referrer: document.referrer || undefined,
+      });
+      
+      // Update last tracked path
+      lastTrackedRef.current = fullPath;
+    }, 100);
+    
+    // Cleanup function
+    return () => clearTimeout(timeoutId);
     
   }, [pathname, searchParams, trackPageView]);
   

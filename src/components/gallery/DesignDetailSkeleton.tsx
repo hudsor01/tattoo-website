@@ -4,8 +4,6 @@
  * Loading skeleton for the design detail page to improve perceived performance.
  */
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
 export function DesignDetailSkeleton() {
   return (

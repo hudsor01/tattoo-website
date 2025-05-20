@@ -3,7 +3,8 @@
  * Provides templates for contact form confirmation and admin notifications
  */
 
-import { DEFAULT_FROM_EMAIL } from './email-resend';
+// Remove unused import
+// import { DEFAULT_FROM_EMAIL } from './email-resend';
 
 import type { ContactFormData } from '@/types/component-types';
 

@@ -8,9 +8,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDesign } from '@/hooks/trpc/use-gallery';
-import { usePopularDesigns } from '@/hooks/use-analytics';
-import { useEventTracking } from '@/hooks/use-page-view-tracking';
+import { useDesign } from '@/hooks/use-gallery';
+import { usePopularDesigns, useGalleryAnalytics } from '@/hooks/use-analytics';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,11 +23,11 @@ import {
   InfoIcon, 
   RulerIcon, 
   ShareIcon,
-  CheckCircleIcon,
+  // CheckCircleIcon is imported but not used
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { cn } from '@/lib/utils/styling';
+// cn utility is imported but not used
 
 interface DesignDetailProps {
   id: string;
@@ -38,8 +37,8 @@ export function DesignDetail({ id }: DesignDetailProps) {
   const router = useRouter();
   const [showShareModal, setShowShareModal] = useState(false);
   
-  // Track page view
-  const { track } = useEventTracking();
+  // Get gallery analytics hooks
+  const { trackDesignView, trackDesignShare } = useGalleryAnalytics();
   
   // Fetch the design data
   const { design, isLoading } = useDesign(id);
@@ -50,13 +49,14 @@ export function DesignDetail({ id }: DesignDetailProps) {
   // Track design view
   useEffect(() => {
     if (design && !isLoading) {
-      track('design_view', id, { 
-        designName: design.name,
-        designType: design.designType,
-        artistId: design.artistId
-      });
+      trackDesignView(
+        id, 
+        design.designType, 
+        design.artist?.user?.name, 
+        design.tags?.map(tag => tag.name) || []
+      );
     }
-  }, [design, id, isLoading, track]);
+  }, [design, id, isLoading, trackDesignView]);
   
   // Handle back navigation
   const handleBack = () => {
@@ -65,6 +65,11 @@ export function DesignDetail({ id }: DesignDetailProps) {
   
   // Handle share button click
   const handleShare = () => {
+    // Track share event
+    if (design) {
+      trackDesignShare(id, design.designType);
+    }
+    
     if (navigator.share) {
       navigator.share({
         title: design?.name || 'Tattoo Design',
@@ -83,11 +88,14 @@ export function DesignDetail({ id }: DesignDetailProps) {
   
   // Handle booking click
   const handleBooking = () => {
-    // Track booking started
+    // Track booking started using trackConversion
     if (design) {
-      track('booking_started', id, {
-        designName: design.name,
-        designType: design.designType,
+      const { trackConversion } = useGalleryAnalytics();
+      trackConversion({
+        action: 'book_appointment',
+        conversionId: id,
+        label: `Booking started: ${design.name}`,
+        conversionValue: design.price || 0,
       });
     }
     

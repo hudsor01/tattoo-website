@@ -7,8 +7,6 @@
 'use client';
 
 import { TRPCProvider } from '@/lib/trpc/client';
-import { useState } from 'react';
-import superjson from 'superjson';
 
 interface TrpcProviderProps {
   children: React.ReactNode;

@@ -1,29 +1,14 @@
-import { publicProcedure, adminProcedure } from "../../api-router";
+import { publicProcedure, adminProcedure } from "../../procedures";
 import { observable } from "@trpc/server/observable";
-import { z, safeArray } from "../../utils/safe-zod";
+import { z } from "zod";
 import { EventEmitter } from "events";
+import { AnalyticsStreamEvent, AnalyticsStreamEventType } from "@/types/analytics-types";
 
 // Event emitter for live updates
 const ee = new EventEmitter();
 
-// Define interface for analytics event
-interface AnalyticsEvent {
-  type: string;
-  data: Record<string, any>;
-  timestamp: number;
-}
-
-// Event types for analytics stream
-export enum AnalyticsStreamEvents {
-  PAGE_VIEW = 'page_view',
-  USER_INTERACTION = 'user_interaction',
-  BOOKING_CREATED = 'booking_created',
-  PAYMENT_PROCESSED = 'payment_processed',
-  CONTACT_SUBMITTED = 'contact_submitted',
-  SESSION_STARTED = 'session_started',
-  SESSION_ENDED = 'session_ended',
-  ERROR_OCCURRED = 'error_occurred',
-}
+// Re-export the enum for backwards compatibility
+export const AnalyticsStreamEvents = AnalyticsStreamEventType;
 
 /**
  * Subscribe to live analytics events
@@ -31,12 +16,12 @@ export enum AnalyticsStreamEvents {
 export const liveAnalyticsSubscription = adminProcedure
   .input(
     z.object({
-      types: safeArray(z.string()).optional(),
+      types: z.array(z.string()).optional(),
     })
   )
   .subscription(({ input }) => {
-    return observable<AnalyticsEvent>((emit) => {
-      const onAnalyticsEvent = (event: AnalyticsEvent) => {
+    return observable<AnalyticsStreamEvent>((emit) => {
+      const onAnalyticsEvent = (event: AnalyticsStreamEvent) => {
         // Filter by event types if specified
         if (input.types && !input.types.includes(event.type)) {
           return;
@@ -62,11 +47,25 @@ export const emitAnalyticsEvent = adminProcedure
   .input(
     z.object({
       type: z.string(),
-      data: z.record(z.any()).optional().default({}),
+      data: z.object({
+        category: z.string(),
+        action: z.string(),
+        label: z.string().optional(),
+        value: z.number().optional(),
+        path: z.string().optional(),
+        referrer: z.string().optional(),
+        deviceType: z.string().optional(),
+        browser: z.string().optional(),
+        os: z.string().optional(),
+        metadata: z.record(z.unknown()).optional(),
+      }).optional().default({
+        category: 'unknown',
+        action: 'unknown'
+      }),
     })
   )
   .mutation(({ input }) => {
-    const event: AnalyticsEvent = {
+    const event: AnalyticsStreamEvent = {
       type: input.type,
       data: input.data,
       timestamp: Date.now(),

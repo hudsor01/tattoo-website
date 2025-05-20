@@ -3,7 +3,8 @@
  * Provides templates for lead magnet delivery emails
  */
 
-import { DEFAULT_FROM_EMAIL } from './email-resend';
+// Remove unused import
+// import { DEFAULT_FROM_EMAIL } from './email-resend';
 import type { LeadMagnetData } from '@/types/email-types';
 
 /**

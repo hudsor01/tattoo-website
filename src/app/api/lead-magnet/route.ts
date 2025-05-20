@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { apiRoute, leadMagnetSchema, leadMagnetResponseSchema } from '@/lib/validations/validation-api-utils';
+import { NextResponse } from 'next/server';
+import { apiRoute, leadMagnetSchema } from '@/lib/validations/validation-api-utils';
 import { prisma } from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/email';
 
@@ -9,7 +9,7 @@ import { sendEmail } from '@/lib/email/email';
 export const POST = apiRoute({
   POST: {
     bodySchema: leadMagnetSchema,
-    handler: async (body, request) => {
+    handler: async (body) => {
       try {
         const { name, email, phone, magnet, sourceInfo } = body;
 

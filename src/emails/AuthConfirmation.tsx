@@ -9,12 +9,11 @@ interface AuthConfirmationProps {
 
 const AuthConfirmation: React.FC<AuthConfirmationProps> & { name: string } = ({
   confirmationUrl,
-  userEmail: _userEmail,
+  // userEmail parameter is unused but required by interface
   siteUrl,
   siteName,
 }) => {
-  /* eslint-disable @next/next/no-head-element */
-  /* eslint-disable @next/next/no-img-element */
+  // Email templates need head and img elements
   return (
     <html>
       <head>

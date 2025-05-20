@@ -5,8 +5,11 @@
  * - Router creation
  * - Middleware setup  
  * - Procedure builders
+ * 
+ * THIS IS A SERVER-SIDE ONLY FILE
  */
 
+import 'server-only';
 import { initTRPC, TRPCError } from '@trpc/server';
 import { TRPCContext } from './context';
 import superjson from 'superjson';

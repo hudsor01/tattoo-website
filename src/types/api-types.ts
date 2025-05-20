@@ -692,7 +692,7 @@ export interface CreateQueryHooksOptions<
   schemas?: {
     list?: {
       params?: z.ZodType<TListParams>;
-      response?: z.ZodType<PaginatedListResponse<TDetail> | ApiResponse<TDetail[]>>;
+      response?: z.ZodType<PaginatedResponse<TDetail> | ApiResponse<TDetail[]>>;
     };
     detail?: {
       response?: z.ZodType<SuccessResponse<TDetail> | ApiResponse<TDetail>>;
@@ -747,7 +747,7 @@ export interface ApiRequestError {
  * Hook result type for list queries
  */
 export interface UseListResult<TDetail> {
-  data?: PaginatedListResponse<TDetail> | ApiResponse<TDetail[]>;
+  data?: PaginatedResponse<TDetail> | ApiResponse<TDetail[]>;
   isLoading: boolean;
   isError: boolean;
   error: ApiRequestError | null;

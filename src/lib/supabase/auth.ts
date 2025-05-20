@@ -6,14 +6,12 @@
 
 import { createClient } from './client';
 import { User, Session } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
-import { useErrorHandling } from '@/hooks/use-error-handling';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Sign in with email and password
  */
 export async function signIn(email: string, password: string) {
-  const toast = useToast();
   try {
     const supabase = createClient();
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -28,7 +26,7 @@ export async function signIn(email: string, password: string) {
     return { user: data.user, session: data.session };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign in';
-    toast.error(message);
+    toast({ title: "Error", description: message, variant: "destructive" });
     throw error;
   }
 }
@@ -53,7 +51,7 @@ export async function signInWithProvider(provider: 'google' | 'facebook' | 'twit
     return data;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign in';
-    toast.error(message);
+    toast({ title: "Error", description: message, variant: "destructive" });
     throw error;
   }
 }
@@ -61,7 +59,7 @@ export async function signInWithProvider(provider: 'google' | 'facebook' | 'twit
 /**
  * Sign up with email and password
  */
-export async function signUp(email: string, password: string, metadata?: Record<string, any>) {
+export async function signUp(email: string, password: string, metadata?: Record<string, unknown>) {
   try {
     const supabase = createClient();
     const { data, error } = await supabase.auth.signUp({
@@ -80,7 +78,7 @@ export async function signUp(email: string, password: string, metadata?: Record<
     return { user: data.user, session: data.session };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign up';
-    toast.error(message);
+    toast({ title: "Error", description: message, variant: "destructive" });
     throw error;
   }
 }
@@ -100,7 +98,7 @@ export async function signOut() {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign out';
-    toast.error(message);
+    toast({ title: "Error", description: message, variant: "destructive" });
     throw error;
   }
 }
@@ -122,7 +120,7 @@ export async function resetPassword(email: string) {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to send reset password email';
-    toast.error(message);
+    toast({ title: "Error", description: message, variant: "destructive" });
     throw error;
   }
 }
@@ -144,7 +142,7 @@ export async function updateUserPassword(password: string) {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update password';
-    toast.error(message);
+    toast({ title: "Error", description: message, variant: "destructive" });
     throw error;
   }
 }
@@ -166,7 +164,7 @@ export async function updateUserEmail(email: string) {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update email';
-    toast.error(message);
+    toast({ title: "Error", description: message, variant: "destructive" });
     throw error;
   }
 }

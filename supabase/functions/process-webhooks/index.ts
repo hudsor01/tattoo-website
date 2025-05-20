@@ -37,7 +37,7 @@ serve(async (req) => {
         break
         
       default:
-        console.log(`Received webhook from unknown source: ${source}`)
+        console.error(`Received webhook from unknown source: ${source}`)
         result = { processed: false, reason: 'Unknown source' }
     }
     
@@ -59,7 +59,7 @@ async function processStripeWebhook(supabase: ReturnType<typeof createClient>, d
     const eventType = data.type
     const eventObject = data.data.object
     
-    console.log(`Processing Stripe event: ${eventType}`)
+    console.error(`Processing Stripe event: ${eventType}`)
     
     switch (eventType) {
       case 'payment_intent.succeeded':
@@ -107,7 +107,7 @@ async function processGoogleCalendarWebhook(
 ) {
   try {
     // Implementation depends on how Google Calendar webhooks are structured
-    console.log('Processing Google Calendar webhook')
+    console.error('Processing Google Calendar webhook')
     
     // This is a simplified example
     return { processed: true, source: 'google_calendar' }

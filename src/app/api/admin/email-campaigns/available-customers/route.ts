@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { verifyAdminAccess } from '@/lib/utils';
-import { Prisma } from '@/prisma/client';
+import { verifyAdminAccess } from '@/lib/utils/server';
 
 /**
  * GET /api/admin/email-campaigns/available-clients
@@ -77,7 +76,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format response
-    const formattedClients = clients.map(client => ({
+    const formattedClients = customer.map(client => ({
       id: client.id,
       name: client.name,
       email: client.email,

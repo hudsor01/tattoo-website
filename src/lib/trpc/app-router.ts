@@ -3,7 +3,10 @@
  * 
  * This file combines all the feature-specific routers into a single app router.
  * It serves as the main entry point for all tRPC procedures.
+ * 
+ * THIS IS A SERVER-SIDE ONLY FILE
  */
+import 'server-only';
 import { router } from './server';
 import { bookingRouter } from './routers/booking-router';
 import { galleryRouter } from './routers/gallery-router';

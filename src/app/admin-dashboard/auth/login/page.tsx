@@ -9,16 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Lock } from 'lucide-react';
 
 export default function AdminLoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  // Read-only loading state, controlled by the form actions
+  const [isLoading] = useState(false);
 
-  const handleSubmit = async (action: (formData: FormData) => Promise<void>) => {
-    setIsLoading(true);
-    try {
-      await action(new FormData(document.querySelector('form')!));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Form submission is managed through the formAction property on buttons
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

@@ -25,7 +25,6 @@ Tattoo website built with Next.js 15, featuring a client portal, admin dashboard
 ```bash
 # Start development server
 npm run dev
-npm run dev:clean                  # Clean start (removes .next cache)
 
 # Build for production
 npm run build
@@ -36,42 +35,22 @@ npm run type-check                 # TypeScript type checking
 npm run lint                       # ESLint
 npm run lint:fix                   # ESLint with auto-fix
 npm run format                     # Prettier formatting
-npm run validate                   # Combined lint + type check
 
-# Testing
-npm test                           # Run all tests
-npm run test:unit                  # Unit tests only
-npm run test:single <path>         # Run a single test
-
-# E2E Testing with Playwright
-npm run test:e2e                   # Standard E2E tests
-npm run test:e2e:ui                # With Playwright UI
-npm run test:e2e:debug             # Debug mode
-npm run test:e2e:headed            # Headed browser
-npm run test:e2e:chrome            # Chrome only
-npm run test:e2e:smoke             # Smoke tests (@smoke tag)
-npm run test:e2e:quick             # Quick test configuration
-
-# Enhanced E2E Testing
-npm run test:e2e:enhanced          # Enhanced test suite
-npm run test:e2e:enhanced:visual   # Visual regression testing
-npm run test:e2e:enhanced:perf     # Performance testing
-npm run test:e2e:report            # View test report
-
-# Database
+# Database (Prisma)
 npx prisma migrate dev             # Run migrations in development
+npx prisma migrate dev --name=     # Create a new migration 
 npx prisma migrate reset           # Reset database
 npx prisma generate                # Generate Prisma client
 npx prisma studio                  # Open Prisma Studio GUI
+npx prisma db push                 # Push schema changes without migration (dev only)
 
-# CI/CD specific
-npm run test:e2e:ci                # E2E tests for CI environment
-npm run postinstall                # Runs prisma generate automatically
+# Clean development start
+rm -rf .next                       # Clear Next.js cache
+npm run dev                        # Start fresh
 
-# Utilities
-npm run verify-mcp                 # Verify MCP servers
-npm run apply-view-fix             # Apply necessary database view fixes
-npm run fix-fonts                  # Fix font loading issues
+# Verify environment setup
+npx prisma generate                # Ensure Prisma client is up-to-date
+npm run type-check && npm run lint # Verify code quality before commit
 ```
 
 ## Environment Variables
@@ -104,16 +83,16 @@ Common error: Importing `next/headers` in a Client Component will fail. This mus
 The API layer uses tRPC for type-safe communication between client and server:
 
 1. **Routers**: Organized by feature in `/src/lib/trpc/routers/`
-   - `booking-router.ts` - Booking management
+   - `booking-router.ts` - Booking management 
    - `gallery-router.ts` - Gallery operations
    - `admin-router.ts` - Admin operations
-   - `user-router.ts` - User management
+   - `user-router.ts` - User management 
    - `subscription-router.ts` - Subscription handling
    - `analytics-router.ts` - Analytics tracking
 
 2. **Main Router**: Combined in `/src/lib/trpc/app-router.ts`
 
-3. **Client Setup**: Initialized in `/src/lib/trpc/client.tsx`
+3. **Client Setup**: Initialized in `/src/lib/trpc/client.tsx`  
 
 4. **Server Setup**: Configured in `/src/lib/trpc/server.ts`
 
@@ -123,7 +102,7 @@ The project uses a unified authentication system:
 
 1. **Main Auth System**: `/src/lib/auth/auth-system.ts`
 2. **Middleware Protection**: `/src/middleware.ts` 
-3. **Server Auth**: `/src/lib/supabase/server-auth.ts`
+3. **Server Auth**: `/src/lib/supabase/server-auth.ts`  
 4. **Role-based Access**: public, protected, admin
 
 ### State Management
@@ -131,6 +110,42 @@ The project uses a unified authentication system:
 - **Server State**: TanStack Query + tRPC
 - **Client State**: Zustand stores in `/src/store/`
 - **Form State**: react-hook-form with Zod validation
+
+## Data Models
+
+The application uses the following main data models:
+
+1. **Booking**: Represents a tattoo appointment booking with details like customer information, appointment time, and booking status.
+
+2. **Customer**: Stores customer information including contact details, preferences, and history.
+
+3. **GalleryItem**: Represents a tattoo design in the gallery with images and metadata.
+
+4. **User**: Represents system users (admin, artist) with authentication details.
+
+5. **BlogPost**: Blog content with metadata for the website.
+
+6. **PricingTier**: Different service tiers and pricing options.
+
+7. **AnalyticsEvent**: Tracks user interactions, page views, and other analytics events.
+
+## Analytics System
+
+The application includes a real-time analytics system:
+
+1. **Event Tracking**: Different event types (pageviews, conversions, errors) through tRPC procedures.
+
+2. **Live Dashboard**: Real-time monitoring of site activity at `/admin-dashboard/analytics/live`.
+
+3. **Event Categories**:
+   - Page views
+   - Interactions 
+   - Bookings
+   - Gallery views
+   - Conversions
+   - Errors
+
+4. **Implementation**: Uses EventEmitter for real-time updates, Prisma for storage.
 
 ## Common Development Tasks
 
@@ -156,7 +171,7 @@ When creating new API endpoints:
 
 1. Add router in `/src/lib/trpc/routers/` (e.g., `new-feature-router.ts`)
 2. Import and add to app router in `/src/lib/trpc/app-router.ts`
-3. Create hooks in `/src/hooks/trpc/` (e.g., `use-new-feature.ts`)
+3. Create hooks in `/src/hooks/` (e.g., `use-new-feature.ts`)
 4. Use Zod schemas from `/src/lib/validations/`
 5. Types should be imported from `/src/types/`
 
@@ -269,4 +284,89 @@ The project uses Husky for pre-commit hooks with lint-staged:
 - `/tailwind.config.js` - Tailwind CSS configuration
 - `/tsconfig.json` - TypeScript configuration
 
-Remember: No barrel files (`index.ts`), types always in `/src/types/`, and follow the established patterns for consistency.
+## Core Development Principles
+
+1. **No Barrel Files**: 
+   - Do not create index.ts files in any directory
+   - No barrel exports or re-exporting through index files
+   - Import directly from source files, never from directories
+
+2. **Type Organization**:
+   - No type definitions in source files - always import from `/src/types` directory
+   - No enum definitions in source files - always import from `/src/types/enum-types.ts`
+   - No interface definitions in source files - always import from `/src/types`
+   - Keep types organized by domain (auth-types.ts, booking-types.ts, etc.)
+
+3. **Code Organization**:
+   - Organize by feature, not by technical role
+   - Keep implementation details close to their usage
+   - Consolidate duplicate implementations; prefer unified implementations
+   - Use a flat directory structure where possible
+
+4. **Coding Standards**:
+   - No duplicated code, features, or functionality
+   - No mock implementations - production-ready code only
+   - Thorough error handling with proper error types
+   - Always validate inputs with Zod schemas
+
+5. **Tech Stack Consistency**:
+   - Next.js 15 with App Router
+   - React 19 with Server Components where appropriate
+   - tRPC for type-safe API layer
+   - Tailwind CSS v4 for styling
+   - Material UI and shadcn/ui for components
+   - Supabase for auth and database
+   - Prisma as ORM
+   - Zustand for state management
+   - TanStack/React-Query with tRPC for data fetching
+   - Zod for validation
+
+## Implementation Guidelines
+
+1. **File Structure**:
+   - Component files should follow kebab-case naming (e.g., `booking-form.tsx`)
+   - Hook files should use hyphenated naming (e.g., `use-booking-form.ts`)
+   - Utility files should be domain-specific (e.g., `date-utils.ts`)
+   - No index files in any directory
+
+2. **Component Guidelines**:
+   - Use the new React 19 model
+   - Default to Server Components
+   - Only add 'use client' directive when necessary
+   - Keep components focused and small
+   - Follow naming convention: `entity-action` (e.g., `booking-form`)
+
+3. **Hook Guidelines**:
+   - Prefix with 'use'
+   - Keep hooks focused on a single responsibility
+   - Use tRPC hooks over direct API calls
+   - Consolidate related functionality into a single hook
+
+4. **tRPC Implementation**:
+   - Organize routers by domain (booking-router.ts, gallery-router.ts)
+   - Use Zod for input validation
+   - Implement proper error handling in each procedure
+   - Keep procedures focused on single responsibilities
+   - Ensure proper authentication checks
+ 
+5. **Authentication**:
+   - Use the unified auth system in `src/lib/auth/auth-system.ts`
+   - Implement proper role-based access control
+   - Validate auth state in components and API endpoints
+   - Keep sensitive auth logic server-side
+
+6. **Performance Optimization**:
+   - Implement proper React Query caching strategies
+   - Use Server Components where possible
+   - Optimize image loading with Next.js Image component
+   - Implement proper pagination and virtualization for large lists
+   - Use dynamic imports for code splitting
+
+7. **Error Handling**:
+   - Implement standardized error handling
+   - Use error boundaries where appropriate
+   - Provide user-friendly error messages
+   - Log detailed errors server-side
+   - Implement proper fallbacks for failed data fetching
+
+Remember: Follow these patterns consistently throughout the codebase.

@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   apiRoute,
   paymentStatusCheckSchema,
-  paymentStatusResponseSchema,
+  // paymentStatusResponseSchema is defined but unused
 } from '@/lib/validations/validation-api-utils';
-import { serverClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/services/stripe';
 
 /**
@@ -13,13 +13,13 @@ import { stripe } from '@/lib/services/stripe';
 export const GET = apiRoute({
   GET: {
     querySchema: paymentStatusCheckSchema,
-    handler: async (query, request) => {
+    handler: async (query) => {
       try {
         const { id, source } = query;
 
         // Check payment status from database
         if (source === 'db') {
-          const supabase = serverClient();
+          const supabase = await createClient();
           
           const { data: payment, error } = await supabase
             .from('Payment')

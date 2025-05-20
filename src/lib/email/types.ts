@@ -37,7 +37,7 @@ export interface EmailAttachment {
 }
 
 export interface TemplateData {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface EmailProvider {

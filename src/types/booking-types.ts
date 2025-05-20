@@ -8,7 +8,6 @@
 import { z } from 'zod';
 import type { DateString, ID } from './utility-types';
 import type { BaseEntity } from './database.types';
-import type { ApiResponse } from './api-types';
 import { BookingSource } from './enum-types';
 import { paginationSchema, dateRangeSchema } from './validation-types';
 
@@ -39,9 +38,9 @@ export const BookingFormSchema = z.object({
 });
 
 /**
- * Type for booking form data
+ * Type for booking form data from Zod schema
  */
-export type BookingFormData = z.infer<typeof BookingFormSchema>;
+export type BookingFormValues = z.infer<typeof BookingFormSchema>;
 
 /**
  * Booking entity interface
@@ -82,7 +81,7 @@ export interface Booking extends BaseEntity {
   calEventTypeId?: number;
   calStatus?: string;
   calMeetingUrl?: string;
-  calMetadata?: Record<string, any>;
+  calMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -112,7 +111,7 @@ export interface BookingCreateRequest {
   calEventTypeId?: number;
   calStatus?: string;
   calMeetingUrl?: string;
-  calMetadata?: Record<string, any>;
+  calMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -481,8 +480,8 @@ export interface CalBookingPayload {
     integration: string;
     externalId: string;
   };
-  metadata?: Record<string, any>;
-  customInputs?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+  customInputs?: Record<string, unknown>;
   payment?: {
     amount: number;
     currency: string;
@@ -586,8 +585,8 @@ export const getBookingQuerySchema = z.object({
   id: z.string().optional(),
   ...paginationSchema.shape,
   status: z.enum(['paid', 'pending', 'all']).optional().default('all'),
-  startDate: dateRangeSchema.shape.startDate,
-  endDate: dateRangeSchema.shape.endDate,
+  startDate: dateRangeSchema.shape.start,
+  endDate: dateRangeSchema.shape.end,
 });
 
 export type GetBookingQueryParams = z.infer<typeof getBookingQuerySchema>;
@@ -731,7 +730,7 @@ export const BookingListParamsSchema = z.object({
 /**
  * Infer types from Zod schemas
  */
-export type BookingFormValues = z.infer<typeof BookingBaseSchema>;
+// Removed duplicate - already defined above
 export type BookingCreateInput = z.infer<typeof BookingCreateSchema>;
 export type BookingUpdateInput = z.infer<typeof BookingUpdateSchema>;
 export type BookingListParams = z.infer<typeof BookingListParamsSchema>;
@@ -774,6 +773,54 @@ export interface BookingFormData {
   calEventTypeId?: number;
 }
 
-// These exports will be resolved when the schemas are properly imported
-export const BookingSchema = BookingBaseSchema; // Aliased for compatibility
-export const DepositUpdateData = DepositUpdateSchema;
+/**
+ * Schema for Cal.com webhook payload validation
+ */
+export const CalWebhookSchema = z.object({
+  event: z.string() as z.ZodType<CalWebhookEvent>,
+  id: z.string(),
+  timestamp: z.number(),
+  payload: z.object({
+    id: z.string(),
+    uid: z.string(),
+    eventTypeId: z.number(),
+    title: z.string(),
+    description: z.string().optional(),
+    additionalNotes: z.string().optional(),
+    customInputs: z.array(z.object({
+      label: z.string(),
+      value: z.union([z.string(), z.number(), z.boolean()]),
+      type: z.string(),
+    })).optional(),
+    startTime: z.string(),
+    endTime: z.string(),
+    attendees: z.array(z.object({
+      email: z.string().email(),
+      name: z.string(),
+      timeZone: z.string(),
+      locale: z.string().optional(),
+      metadata: z.record(z.unknown()).optional(),
+    })),
+    organizer: z.object({
+      email: z.string().email(),
+      name: z.string(),
+      timeZone: z.string(),
+      username: z.string(),
+    }),
+    status: z.string(),
+    location: z.string().optional(),
+    meetingUrl: z.string().optional(),
+    payment: z.object({
+      amount: z.number(),
+      currency: z.string(),
+      status: z.string(),
+      paymentMethod: z.string().optional(),
+      externalId: z.string().optional(),
+    }).optional(),
+    metadata: z.record(z.any()).optional(),
+    cancellationReason: z.string().optional(),
+    previousBookingId: z.string().optional(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  }),
+});

@@ -78,6 +78,9 @@ const baseConfig = {
 
     // Next.js type definitions which are auto-generated
     '.next/types/**/*.ts',
+    '.next/types/**/*.d.ts',
+    '.next/**/*.ts',
+    '.next/**/*.js',
   ],
   languageOptions: {
     ecmaVersion: 2022,
@@ -142,6 +145,13 @@ const reactConfig = {
 const typeScriptConfig = [
   {
     files: ['**/*.{ts,tsx}'],
+    ignores: [
+      '**/.next/**',
+      '.next/types/**/*.ts',
+      '.next/types/**/*.d.ts',
+      '.next/**/*.ts',
+      '.next/**/*.js',
+    ],
     languageOptions: {
       parser: tseslintParser,
       parserOptions: {
@@ -253,21 +263,6 @@ const prismaClientConfig = {
   },
 };
 
-// Special config for Next.js generated types
-const nextGeneratedTypesConfig = {
-  files: ['.next/types/**/*.ts'],
-  rules: {
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-unused-vars': 'off',
-    '@typescript-eslint/no-empty-interface': 'off',
-    '@typescript-eslint/no-empty-object-type': 'off',
-    '@typescript-eslint/no-unnecessary-type-constraint': 'off',
-    '@typescript-eslint/no-unsafe-function-type': 'off',
-    '@typescript-eslint/ban-types': 'off',
-    'no-undef': 'off',
-  },
-};
-
 // Export the complete configuration
 export default [
   baseConfig,
@@ -277,5 +272,4 @@ export default [
   testsDirectoryConfig,
   testFilesConfig,
   prismaClientConfig,
-  nextGeneratedTypesConfig,
 ];

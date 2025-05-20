@@ -6,13 +6,13 @@
 if (typeof window === 'undefined') {
   // Polyfill global self if it doesn't exist (used by many libraries)
   if (typeof global.self === 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error - Global self polyfill for server-side
     global.self = global;
   }
 
   // Mock window for libraries that expect it
   if (typeof global.window === 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error - Window mock for server-side rendering
     global.window = {
       addEventListener: () => {},
       removeEventListener: () => {},
@@ -36,7 +36,7 @@ if (typeof window === 'undefined') {
   
   // Mock document for libraries that expect it
   if (typeof global.document === 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error - Document mock for server-side rendering
     global.document = {
       createElement: () => ({}),
       addEventListener: () => {},

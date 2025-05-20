@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/styling';
 import { StatusBadgeProps } from '@/types/Components';
 
 type StatusType = 'success' | 'warning' | 'error' | 'info';

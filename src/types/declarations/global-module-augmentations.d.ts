@@ -3,9 +3,9 @@
 // Extend Window interface
 declare global {
   interface Window {
-    dataLayer?: any[];
-    gtag?: (...args: any[]) => void;
-    _paq?: any[];
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+    _paq?: unknown[];
   }
 }
 

@@ -27,7 +27,7 @@ export interface ErrorContext {
   component?: string;
   action?: string;
   userId?: string;
-  additionalData?: Record<string, any>;
+  additionalData?: Record<string, unknown>;
   displayToUser?: boolean;
   severity?: ErrorSeverity;
 }

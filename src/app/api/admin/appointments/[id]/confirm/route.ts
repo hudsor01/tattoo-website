@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * Confirm an appointment using Supabase functions and triggers

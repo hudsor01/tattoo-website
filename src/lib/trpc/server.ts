@@ -3,15 +3,19 @@
  * 
  * This file re-exports the unified tRPC implementation for server-side use.
  */
+import 'server-only';
 
+// Import from procedures
 export {
   router,
   middleware,
   publicProcedure,
   protectedProcedure,
-  adminProcedure,
-  createRootRouter
-} from './trpc';
+  adminProcedure
+} from './procedures';
 
-// Export the appRouter for use in API handlers
-export { appRouter, type AppRouter } from './api-router';
+// Import server-specific items from trpc.ts
+export { createRootRouter } from './trpc';
+
+// Export the appRouter directly from app-router for use in API handlers
+export { appRouter, type AppRouter } from './app-router';

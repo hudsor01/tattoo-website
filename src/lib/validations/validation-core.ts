@@ -6,6 +6,7 @@
  */
 
 // Import Zod as a namespace to avoid tree-shaking issues in Edge runtime
+import { toast } from 'sonner';
 import * as z from 'zod';
 
 // Check if we're in production build mode
@@ -88,10 +89,6 @@ export const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
 
 // Configure Zod to use our custom error map
 z.setErrorMap(customErrorMap);
-
-/**
- * Reusable schemas for common field types
- */
 
 // Common name validation (first name, last name, etc.)
 export const nameSchema = z.string()
@@ -186,7 +183,7 @@ export const formatZodErrors = formatValidationErrors;
  */
 export function showValidationErrors(error: z.ZodError): void {
   error.errors.forEach((err) => {
-    // toast.error(err.message);
+    toast.error(err.message);
   });
 }
 
@@ -208,7 +205,7 @@ export const createSafeString = (
 /**
  * Utility to create a schema with multiple fields
  */
-export function createSchema(fields: Record<string, z.ZodType<any>>) {
+export function createSchema(fields: Record<string, z.ZodType<unknown>>) {
   // Simple passthrough that just creates an object schema
   return z.ZodObject.create(fields);
 }
@@ -220,7 +217,7 @@ export const createField = {
   // Helper for array fields that's safe across environments
   array: <T extends z.ZodTypeAny>(schema: T, options = {}) => {
     const { required = true } = options;
-    return required ? safeArray(schema) : z.optional(safeArray(schema));
+    return required ? safeArray(schema) : safeArray(schema).optional();
   },
   
   // Name field
@@ -264,7 +261,7 @@ export const createField = {
       required = true, 
       minLength = 1, 
       maxLength = 1000,
-      fieldName = 'Text'
+      fieldName = 'This field'
     } = options;
     
     const schema = z.string()

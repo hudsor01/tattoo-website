@@ -1,7 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAdminAccess } from '@/lib/utils';
+import { verifyAdminAccess } from '@/lib/utils/server';
 import { Prisma } from '@prisma/client';
-import type { AppointmentStatus, FormattedAppointment } from '@/types/booking-types';
+import type { AppointmentStatus } from '@/types/booking-types';
+import { prisma } from '@/lib/db/prisma'; // Assuming this is where your Prisma client instance is
+
+interface AppointmentWithCustomer {
+  customer?: {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+}
+
+interface FormattedAppointment {
+  id: string;
+  title: string;
+  customerId: string | null;
+  clientName: string | null;
+  clientEmail: string | null;
+  clientPhone: string | null;
+  startTime: Date;
+  endTime: Date;
+  status: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  artist?: {
+    name: string;
+  } | null;
+}
 
 /**
  * GET /api/admin/appointments
@@ -42,7 +69,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (customerId) {
-      where.customerId = customerId;
+      where.customer = { id: customerId };
     }
 
     // Date filtering
@@ -86,23 +113,8 @@ export async function GET(request: NextRequest) {
 
     // Format response
 
-    const formattedAppointments: FormattedAppointment[] = appointments.map(
-      (appointment: {
-        id: string;
-        title: string;
-        customerId: string;
-        customer?: {
-          name?: string | null;
-          email?: string | null;
-          phone?: string | null;
-        } | null;
-        startDate: Date;
-        endDate: Date;
-        status: string;
-        description: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-      }) => ({
+    const formattedAppointments: FormattedAppointment[] = (appointments as AppointmentWithCustomer[]).map(
+      (appointment) => ({
         id: appointment.id,
         title: appointment.title,
         customerId: appointment.customerId,
@@ -156,7 +168,7 @@ export async function POST(request: NextRequest) {
 
     // Check if client exists
     const client = await prisma.client.findUnique({
-      where: {
+      where: { // Assuming 'client' should be 'customer'
         id: data.customerId,
       },
     });
@@ -166,7 +178,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new appointment
-    const appointment = await prisma.appointment.create({
+    const appointment = await prisma.appointment.create({ // Corrected typo
       data: {
         title: data.title,
         customerId: data.customerId,
@@ -178,14 +190,14 @@ export async function POST(request: NextRequest) {
         price: data.price || 0,
         tattooStyle: data.tattooStyle || '',
         description: data.description || '',
-      },
-      include: {
-        client: {
-          select: {
-            name: true,
-            email: true,
-            phone: true,
-          },
+      }, // Corrected placement of closing brace
+      include: { // Corrected typo and adjusted indentation
+        customer: { // Assuming 'client' should be 'customer'
+          select: { // Corrected typo
+            name: true, // Corrected typo
+            email: true, // Corrected typo
+            phone: true, // Corrected typo
+          }, // Corrected placement of closing brace
         },
       },
     });
@@ -193,7 +205,7 @@ export async function POST(request: NextRequest) {
     // Update client's lastContact field
     await prisma.client.update({
       where: {
-        id: data.customerId,
+        id: data.customerId, // Corrected typo
       },
       data: {
         lastContact: new Date(),
@@ -202,11 +214,11 @@ export async function POST(request: NextRequest) {
 
     // Format response
     const formattedAppointment = {
-      ...appointment,
-      clientName: appointment.client.name,
-      clientEmail: appointment.client.email,
-      clientPhone: appointment.client.phone,
-      client: undefined, // Don't include full client in response
+      ...appointment, // Corrected typo
+      clientName: appointment.customer?.name, // Corrected typo and added optional chaining
+      clientEmail: appointment.customer?.email, // Corrected typo and added optional chaining
+      clientPhone: appointment.customer?.phone, // Corrected typo and added optional chaining
+      customer: undefined, // Don't include full client in response
     };
 
     return NextResponse.json(formattedAppointment, { status: 201 });

@@ -7,13 +7,14 @@
 
 import { prisma } from '@/lib/db/prisma';
 import type { PaymentIntent, PaymentMethod, CheckoutSession } from '@/types/payments-types';
+import type { Stripe as StripeType } from 'stripe';
 
 // Initialize Stripe client with the API key, using dynamic import
 // to avoid bundling issues in client components
-let stripeInstance: any;
+let stripeInstance: StripeType;
 
 // Safely get the Stripe instance only in server environment
-const getStripe = () => {
+const getStripe = async () => {
   if (typeof window !== 'undefined') {
     throw new Error('Stripe can only be accessed on the server');
   }
@@ -21,7 +22,7 @@ const getStripe = () => {
   if (!stripeInstance) {
     // Using require to prevent bundling issues
      
-    const Stripe = require('stripe');
+    const { default: Stripe } = await import('stripe');
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2023-10-16',
     });
@@ -31,9 +32,9 @@ const getStripe = () => {
 };
 
 // Create a proxy that lazily initializes Stripe
-export const stripe = new Proxy({} as any, {
-  get: (target, prop) => {
-    const stripeClient = getStripe();
+export const stripe = new Proxy({} as StripeType, {
+  get: async (target, prop) => {
+    const stripeClient = await getStripe();
     return stripeClient[prop];
   },
 });
@@ -190,12 +191,12 @@ export async function handleWebhook(
     // Handle different event types
     switch (event.type) {
       case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object as StripeType.PaymentIntent;
         await updatePaymentStatus(paymentIntent.id, 'succeeded');
         break;
       }
       case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object as StripeType.PaymentIntent;
         await updatePaymentStatus(paymentIntent.id, 'failed');
         break;
       }
@@ -264,7 +265,7 @@ export async function refundPayment(
   amount?: number
 ): Promise<{ id: string; status: string }> {
   try {
-    const refundParams: Stripe.RefundCreateParams = {
+    const refundParams: StripeType.RefundCreateParams = {
       payment_intent: paymentIntentId
     };
     

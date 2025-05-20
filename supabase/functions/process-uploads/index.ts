@@ -53,7 +53,7 @@ async function processImage(payload: WebhookPayload) {
     
     // Ignore if not an image or not a supported file type
     if (!record.metadata.mimetype || !ALLOWED_MIME_TYPES.includes(record.metadata.mimetype)) {
-      console.log(`Unsupported file type: ${record.metadata.mimetype}`);
+      console.error(`Unsupported file type: ${record.metadata.mimetype}`);
       return {
         success: false,
         message: 'Unsupported file type'

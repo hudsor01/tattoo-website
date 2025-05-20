@@ -15,17 +15,19 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/styling';
 
 export default function BookingsPage() {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('all');
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  // We need to keep this state even though the setter isn't directly used in this file
+  // because the VirtualizedBookingsList component likely uses it via props
+  const [selectedBooking, /*setSelectedBooking*/] = useState<Booking | null>(null);
 
   // Get the status based on tab value
   const getStatusFilter = () => {
@@ -41,11 +43,7 @@ export default function BookingsPage() {
     }
   };
 
-  // Handle viewing booking details
-  const handleViewBooking = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setDialogOpen(true);
-  };
+  // Set selected booking directly using state setters when needed
 
   return (
     <div className="p-6 bg-gray-950 min-h-screen">

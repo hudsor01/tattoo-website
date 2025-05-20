@@ -6,17 +6,17 @@
 
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { publicProcedure, router, protectedProcedure } from '../server';
-import { serverClient } from '@/lib/supabase/server';
+import { router, protectedProcedure } from '../server';
+import { createClient } from '@/lib/supabase/server';
 
 export const appointmentsRouter = router({
   /**
    * Get all appointments for the authenticated user
    */
   getAll: protectedProcedure
-    .query(async ({ ctx }) => {
+    .query(async () => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -58,9 +58,9 @@ export const appointmentsRouter = router({
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -112,9 +112,9 @@ export const appointmentsRouter = router({
       status: z.enum(['scheduled', 'confirmed', 'completed', 'cancelled']).default('scheduled'),
       deposit_paid: z.boolean().default(false),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -177,9 +177,9 @@ export const appointmentsRouter = router({
       status: z.enum(['scheduled', 'confirmed', 'completed', 'cancelled']).optional(),
       deposit_paid: z.boolean().optional(),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -221,7 +221,7 @@ export const appointmentsRouter = router({
         }
         
         // Prepare update data
-        const updateData: Record<string, any> = {};
+        const updateData: Record<string, unknown> = {};
         if (input.title) updateData.title = input.title;
         if (input.description !== undefined) updateData.description = input.description;
         if (input.start_date) updateData.start_date = input.start_date.toISOString();
@@ -267,9 +267,9 @@ export const appointmentsRouter = router({
       id: z.string().uuid(),
       reason: z.string().optional(),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
-        const supabase = serverClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyAdminAccess } from '@/lib/utils';
+import { verifyAdminAccess } from '@/lib/utils/server';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@prisma/client';
 

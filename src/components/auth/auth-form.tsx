@@ -51,7 +51,7 @@ export function AuthForm({
   const [activeTab, setActiveTab] = React.useState<string>('signin');
 
   // Get auth methods from auth-system
-  const { signIn, signUp, signInWithProvider, sendMagicLink } = useAuthStore();
+  const { signIn, signUp } = useAuthStore();
 
   // Form state
   const [email, setEmail] = React.useState('');
@@ -127,34 +127,34 @@ export function AuthForm({
     }
   };
 
-  // Handle magic link
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+  // Handle magic link - currently unused but kept for future reference
+  // const handleMagicLink = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
 
-    try {
-      await sendMagicLink(email);
-      setSuccess('Check your email for a magic link!');
-    } catch (error) {
-      console.error('Magic link error:', error);
-      setError('An error occurred sending the magic link');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     await sendMagicLink(email);
+  //     setSuccess('Check your email for a magic link!');
+  //   } catch (error) {
+  //     console.error('Magic link error:', error);
+  //     setError('An error occurred sending the magic link');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  // Handle OAuth provider sign in
-  const handleProviderSignIn = async (provider: 'google' | 'github' | 'twitter' | 'discord') => {
-    setError(null);
-    try {
-      await signInWithProvider(provider, window.location.origin + (returnTo || ''));
-    } catch (error) {
-      console.error(`${provider} sign in error:`, error);
-      setError(`An error occurred during ${provider} sign in`);
-    }
-  };
+  // Handle OAuth provider sign in - currently unused but kept for future reference
+  // const handleProviderSignIn = async (provider: 'google' | 'github' | 'twitter' | 'discord') => {
+  //   setError(null);
+  //   try {
+  //     await signInWithProvider(provider, window.location.origin + (returnTo || ''));
+  //   } catch (error) {
+  //     console.error(`${provider} sign in error:`, error);
+  //     setError(`An error occurred during ${provider} sign in`);
+  //   }
+  // };
 
   return (
     <Card className="w-full max-w-md mx-auto">

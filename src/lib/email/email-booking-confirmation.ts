@@ -3,11 +3,11 @@
  * Provides templates for booking confirmation emails
  */
 
-import { DEFAULT_FROM_EMAIL } from './email-resend';
+// No external imports needed
 import { BookingConfirmationData } from '@/types/email-types';
 
-// Expanded booking data types
-interface PaymentMethod {
+// Payment method type definition
+type PaymentMethodInfo = {
   name: string;
   account: string;
   color: string;
@@ -16,7 +16,7 @@ interface PaymentMethod {
 
 
 // PaymentMethod display information
-const PAYMENT_METHODS = {
+const PAYMENT_METHODS: Record<string, PaymentMethodInfo> = {
   cashapp: {
     name: 'Cash App',
     account: '$Fernando-Govea',
