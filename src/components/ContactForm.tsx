@@ -132,9 +132,24 @@ function ContactFormContent() {
 
       // Validate file types and create blob URLs for valid images
       const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
-      const newImages = Array.from(files)
-        .filter(file => validImageTypes.includes(file.type))
-        .map(file => URL.createObjectURL(file));
+      const validateImage = async (file: File): Promise<boolean> => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const arr = new Uint8Array(reader.result as ArrayBuffer).subarray(0, 4);
+            const header = arr.reduce((acc, byte) => acc + byte.toString(16), '');
+            const isValid = ['89504e47', 'ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8', '47494638'].some(sig => header.startsWith(sig));
+            resolve(isValid);
+          };
+          reader.onerror = () => resolve(false);
+          reader.readAsArrayBuffer(file);
+        });
+      };
+      const newImages = await Promise.all(
+        Array.from(files)
+          .filter(file => validImageTypes.includes(file.type))
+          .map(async file => (await validateImage(file)) ? URL.createObjectURL(file) : null)
+      ).then(images => images.filter(Boolean) as string[]);
 
       if (newImages.length === 0) {
         console.warn('No valid image files were uploaded.');
