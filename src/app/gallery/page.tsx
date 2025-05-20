@@ -1,4 +1,4 @@
-import { TattooGallery } from "@/components/gallery/tattoo-gallery.tsx"
+import { TattooGallery } from "@/components/gallery/tattoo-gallery"
 
 export default function GalleryPage() {
   return (
