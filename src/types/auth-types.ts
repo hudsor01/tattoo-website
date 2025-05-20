@@ -7,7 +7,11 @@
 
 import { z } from 'zod';
 import { UserRole } from './enum-types';
-import type { ID } from './api-types';
+
+/**
+ * ID type for database records
+ */
+export type ID = string;
 
 /**
  * Authentication error interface
@@ -389,7 +393,48 @@ export interface AuthContextMethods {
 /**
  * Auth context interface
  */
-export interface AuthContextInterface extends AuthState, AuthContextMethods {}
+export interface AuthContextInterface {
+  // State properties from AuthState
+  user: User | null;
+  session: Session | null;
+  isInitialized: boolean;
+  isLoading: boolean;
+  isAdmin: boolean;
+  initialized: boolean;
+  error: Error | null;
+  token?: string | null;
+  refreshTokenValue?: string | null;
+  isAuthenticated?: boolean;
+
+  // State methods from AuthState
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  setError: (error: Error | null) => void;
+  setIsInitialized: (initialized: boolean) => void;
+  setIsLoading: (loading: boolean) => void;
+  setIsAdmin: (isAdmin: boolean) => void;
+  setInitialized: (initialized: boolean) => void;
+
+  // Common methods (choosing implementation from AuthContextMethods)
+  resetPassword: (email: string) => Promise<boolean>;
+
+  // Remaining methods from AuthState
+  initialize: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User | null | { error: Error | null }>;
+  signInWithProvider: (provider: 'google' | 'github' | 'facebook') => Promise<void>;
+  signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<User | null | { error: Error | null }>;
+  signOut: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
+  updatePassword: (password: string) => Promise<void>;
+  sendMagicLink: (email: string) => Promise<void>;
+
+  // Remaining methods from AuthContextMethods
+  login: (email: string, password: string, remember?: boolean) => Promise<boolean>;
+  register: (data: RegistrationRequest) => Promise<boolean>;
+  logout: () => void;
+  updateProfile: (data: Partial<UserWithProfile>) => Promise<boolean>;
+  refreshToken: () => Promise<boolean>;
+}
 
 /**
  * Auth Context Value for Supabase implementation

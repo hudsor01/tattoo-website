@@ -41,6 +41,7 @@ prisma/*.db-journal
 
 # Prisma client (generated artifacts)
 prisma/client/
+*.sql
 
 # Supabase temp & branch state
 supabase/.temp/
@@ -56,3 +57,7 @@ supabase/migrations.bak/
 
 # MCP config files
 mcp.*
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

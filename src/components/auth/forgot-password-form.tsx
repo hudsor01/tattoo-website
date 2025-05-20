@@ -35,7 +35,7 @@ export function ForgotPasswordForm({
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+        redirectTo: `${window.location.origin}/admin-dashboard/auth/update-password`,
       });
 
       if (!error) {
@@ -71,7 +71,7 @@ export function ForgotPasswordForm({
           </p>
           <Button 
             className="w-full"
-            onClick={() => router.push('/auth/login')}
+            onClick={() => router.push('/admin-dashboard/auth/login')}
           >
             Return to Login
           </Button>
@@ -121,7 +121,7 @@ export function ForgotPasswordForm({
         <div className="text-center text-sm">
           Remember your password?{' '}
           <a
-            href="/auth/login"
+            href="/admin-dashboard/auth/login"
             className="text-primary hover:underline"
           >
             Back to Login

@@ -73,7 +73,7 @@ export function AuthForm({
 
       if (!error) {
         // Redirect to returnTo param or default path
-        const defaultPath = isAdmin ? '/admin' : '/client-portal';
+        const defaultPath = isAdmin ? '/admin-dashboard' : '/client-portal';
         const finalRedirectPath = redirectPath || returnTo || defaultPath;
 
         router.push(finalRedirectPath);
@@ -112,7 +112,7 @@ export function AuthForm({
         setSuccess('Check your email for a confirmation link!');
         
         // Auto-confirm enabled in Supabase, redirect user
-        const defaultPath = isAdmin ? '/admin/welcome' : '/client-portal/register-success';
+        const defaultPath = isAdmin ? '/admin-dashboard/auth/sign-up-success' : '/client-portal/register-success';
         const finalRedirectPath = redirectPath || returnTo || defaultPath;
 
         router.push(finalRedirectPath);
@@ -194,7 +194,7 @@ export function AuthForm({
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password-signin">Password</Label>
                   <a
-                    href={isAdmin ? '/admin/forgot-password' : '/client-portal/forgot-password'}
+                    href={isAdmin ? '/admin-dashboard/auth/forgot-password' : '/client-portal/forgot-password'}
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot password?
@@ -345,7 +345,7 @@ export function AuthForm({
           <div className="text-center text-sm">
             Don&apos;t have an account?{' '}
             <a
-              href={isAdmin ? '/admin/contact' : '/client-portal/register'}
+              href={isAdmin ? '/admin-dashboard/contact' : '/client-portal/register'}
               className="text-primary hover:underline"
             >
               {isAdmin ? 'Contact us' : 'Register'}

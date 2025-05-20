@@ -120,8 +120,8 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
                               <ThumbsDown className="h-3.5 w-3.5 mr-2 text-tattoo-red" />
                               Sorry this wasn't helpful. Need more information?
                             </p>
-                            <Button variant="blue" size="sm" asChild className="mt-2">
-                              <Link href="/contact">Contact Me</Link>
+                            <Button variant="default" size="sm" asChild className="mt-2">
+                              <Link href="/contact" >Contact Me</Link>
                             </Button>
                           </div>
                         )}

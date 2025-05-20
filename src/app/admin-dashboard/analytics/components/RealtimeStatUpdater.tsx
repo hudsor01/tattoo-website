@@ -19,7 +19,9 @@ import {
   calculateChangePercentage,
   getTrendClasses,
   getTrendBorderClasses,
-  getTrendBadgeVariant
+  getTrendBadgeVariant,
+  standardizeTimestamp,
+  parseTimestamp
 } from '@/lib/utils/analytics-format';
 import { AnalyticsStreamEventType } from '@/types/analytics-types';
 
@@ -100,7 +102,7 @@ export function RealtimeStatUpdater() {
           trend: calculateTrend(liveStats.visitors || 0, prevValues['activeUsers']),
           change: Math.abs((liveStats.visitors || 0) - (prevValues['activeUsers'] || 0)),
           changePercentage: calculateChangePercentage(liveStats.visitors || 0, prevValues['activeUsers']),
-          updated: new Date().toISOString(),
+          updated: standardizeTimestamp(new Date()) || new Date().toISOString(),
         },
         {
           id: 'pageViews',
@@ -110,7 +112,7 @@ export function RealtimeStatUpdater() {
           trend: calculateTrend(liveStats.pageViews, prevValues['pageViews']),
           change: Math.abs(liveStats.pageViews - (prevValues['pageViews'] || 0)),
           changePercentage: calculateChangePercentage(liveStats.pageViews, prevValues['pageViews']),
-          updated: new Date().toISOString(),
+          updated: standardizeTimestamp(new Date()) || new Date().toISOString(),
         },
         {
           id: 'conversionRate',
@@ -121,7 +123,7 @@ export function RealtimeStatUpdater() {
           trend: calculateTrend(liveStats.conversionRate, prevValues['conversionRate']),
           change: Math.abs(liveStats.conversionRate - (prevValues['conversionRate'] || 0)),
           changePercentage: calculateChangePercentage(liveStats.conversionRate, prevValues['conversionRate']),
-          updated: new Date().toISOString(),
+          updated: standardizeTimestamp(new Date()) || new Date().toISOString(),
         },
         {
           id: 'bookingRequests',
@@ -131,7 +133,7 @@ export function RealtimeStatUpdater() {
           trend: calculateTrend(liveStats.bookings || 0, prevValues['bookingRequests']),
           change: Math.abs((liveStats.bookings || 0) - (prevValues['bookingRequests'] || 0)),
           changePercentage: calculateChangePercentage(liveStats.bookings || 0, prevValues['bookingRequests']),
-          updated: new Date().toISOString(),
+          updated: standardizeTimestamp(new Date()) || new Date().toISOString(),
         },
       ];
       

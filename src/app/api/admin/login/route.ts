@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { login } from '@/lib/admin-auth-simple';
+import { adminLogin } from '@/lib/auth/auth-system';
 import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const token = await login(email, password);
+    const token = await adminLogin(email, password);
     
     if (!token) {
       return NextResponse.json(

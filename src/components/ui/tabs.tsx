@@ -7,7 +7,7 @@ import { cn } from '@/utils';
 const Tabs = TabsPrimitive.Root;
 
 const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
@@ -22,30 +22,28 @@ const TabsList = React.forwardRef<
 TabsList.displayName = TabsPrimitive.List.displayName;
 
 const TabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentRef<typeof TabsPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      'inline-flex items-center justify-center whitespace-nowrap rounded-md px-5 py-2.5 text-sm font-medium relative transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-      'data-[state=inactive]:text-white/70 data-[state=inactive]:hover:bg-white/5 data-[state=inactive]:hover:text-white',
-      'data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md',
+      'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-5 py-3 text-sm font-medium relative transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+      'data-[state=inactive]:text-white/80 data-[state=inactive]:hover:bg-white/5 data-[state=inactive]:hover:text-white data-[state=inactive]:hover:glow-red',
+      'data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:glow-red',
       className
     )}
     {...props}
   >
     {children}
-    {/* Simple underline without animation */}
-    {props['data-state'] === 'active' && (
-      <div className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-blue-500"></div>
-    )}
+    {/* Animated underline for active state */}
+    <div className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-secondary data-[state=inactive]:hidden"></div>
   </TabsPrimitive.Trigger>
 ));
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
 const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentRef<typeof TabsPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Content

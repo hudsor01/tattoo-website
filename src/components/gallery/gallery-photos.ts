@@ -23,12 +23,13 @@ const getImagePath = (path: string): string => {
   return `${cdnPrefix}${path}`;
 };
 
-// Define the photos array with the real images from the public folder
+// Define the photos array with the verified existing images from the public folder
 export const galleryPhotos: MediaItem[] = [
+  // Images - Verified paths
   {
-    src: getImagePath('/images/christ-crosses.JPG'),
+    src: getImagePath('/images/christ-crosses.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Christ crosses tattoo design',
     title: 'Christ Crosses',
     category: 'Religious',
@@ -37,7 +38,7 @@ export const galleryPhotos: MediaItem[] = [
   {
     src: getImagePath('/images/realism.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Realistic tattoo design',
     title: 'Realism Work',
     category: 'Portrait',
@@ -46,7 +47,7 @@ export const galleryPhotos: MediaItem[] = [
   {
     src: getImagePath('/images/clock-lion-left-arm.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Clock with lion on left arm',
     title: 'Clock & Lion',
     category: 'Sleeve',
@@ -55,25 +56,16 @@ export const galleryPhotos: MediaItem[] = [
   {
     src: getImagePath('/images/traditional.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Traditional style tattoo',
     title: 'Traditional Style',
     category: 'Traditional',
     type: 'image',
   },
   {
-    src: getImagePath('/images/dragonballz-left-arm.JPG'),
-    width: 1200,
-    height: 1200,
-    alt: 'Dragon Ball Z themed tattoo on left arm',
-    title: 'Dragon Ball Z',
-    category: 'Anime',
-    type: 'image',
-  },
-  {
     src: getImagePath('/images/japanese.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Japanese style tattoo',
     title: 'Japanese Art',
     category: 'Japanese',
@@ -82,16 +74,16 @@ export const galleryPhotos: MediaItem[] = [
   {
     src: getImagePath('/images/cover-ups.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Cover-up tattoo design',
     title: 'Cover-Up Work',
     category: 'Cover-up',
     type: 'image',
   },
   {
-    src: getImagePath('/images/praying-nun-left-arm.JPG'),
+    src: getImagePath('/images/praying-nun-left-arm.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Praying nun tattoo on left arm',
     title: 'Praying Nun',
     category: 'Religious',
@@ -100,15 +92,33 @@ export const galleryPhotos: MediaItem[] = [
   {
     src: getImagePath('/images/leg-piece.jpg'),
     width: 1200,
-    height: 1200,
+    height: 1800,
     alt: 'Detailed leg tattoo artwork',
     title: 'Leg Piece',
     category: 'Sleeve',
     type: 'image',
   },
-  // Video entries - using available images as thumbnails
   {
-    src: getImagePath('/images/christ-crosses.JPG'), // Thumbnail
+    src: getImagePath('/images/custom-designs.jpg'),
+    width: 1200,
+    height: 1800,
+    alt: 'Custom tattoo design',
+    title: 'Custom Design',
+    category: 'Custom',
+    type: 'image',
+  },
+  {
+    src: getImagePath('/images/dragonballz-left-arm.jpg'),
+    width: 1200,
+    height: 1800,
+    alt: 'Dragon Ball Z themed tattoo',
+    title: 'Anime Inspired',
+    category: 'Custom',
+    type: 'image',
+  },
+  // Video entries with corresponding thumbnails
+  {
+    src: getImagePath('/images/christ-crosses.jpg'), // Thumbnail
     width: 1200,
     height: 800,
     alt: 'Christ crosses tattoo video',
@@ -148,11 +158,11 @@ export const galleryPhotos: MediaItem[] = [
     videoSrc: getImagePath('/videos/clock-roses.mov'),
   },
   {
-    src: getImagePath('/images/dragonballz-left-arm.JPG'), // Thumbnail
+    src: getImagePath('/images/dragonballz-left-arm.jpg'), // Using a different image
     width: 1200,
     height: 800,
     alt: 'Dragon Ball Z tattoo process video',
-    title: 'Dragon Ball Z Process',
+    title: 'Anime Tattoo Process',
     category: 'Process',
     type: 'video',
     videoSrc: getImagePath('/videos/dragonballz-left-arm.mov'),
@@ -168,7 +178,7 @@ export const galleryPhotos: MediaItem[] = [
     videoSrc: getImagePath('/videos/praying-hands-left-arm.mov'),
   },
   {
-    src: getImagePath('/images/praying-nun-left-arm.JPG'), // Thumbnail
+    src: getImagePath('/images/praying-nun-left-arm.jpg'), // Thumbnail
     width: 1200,
     height: 800,
     alt: 'Praying nun tattoo process video',
@@ -194,18 +204,10 @@ export const galleryPhotos: MediaItem[] = [
  * }
  */
 
-// Categories for filtering
-export const categories = [
-  'All',
-  'Sleeve',
-  'Portrait',
-  'Traditional',
-  'Blackwork',
-  'Watercolor',
-  'Japanese',
-  'Fine Line',
-  'Cover-up',
-  'Process',
+// Tab types for the gallery
+export const mediaTypes = [
+  { id: 'images', label: 'Tattoo Gallery' },
+  { id: 'videos', label: 'Process Videos' },
 ];
 
 // Add custom fields to the Photo type from react-photo-album

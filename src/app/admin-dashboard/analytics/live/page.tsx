@@ -15,6 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
+import { formatTimestamp, parseTimestamp, standardizeTimestamp } from '@/lib/utils/analytics-format';
 import {
   Activity,
   Eye,
@@ -130,7 +131,7 @@ const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
                         </CardTitle>
                       </div>
                       <Badge variant="outline">
-                        {formatDistanceToNow(new Date(event.timestamp.toString()), { addSuffix: true })}
+                        {formatTimestamp(event.timestamp)}
                       </Badge>
                     </div>
                     <CardDescription>
@@ -165,7 +166,7 @@ const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
                         <CardTitle className="text-sm font-medium">Stats Updated</CardTitle>
                       </div>
                       <Badge variant="outline">
-                        {formatDistanceToNow(new Date(event.timestamp.toString()), { addSuffix: true })}
+                        {formatTimestamp(event.timestamp)}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -221,7 +222,7 @@ const LiveEventsFeed = ({ events }: { events: BaseAnalyticsEvent[] }) => {
                     <div className="flex justify-between">
                       <CardTitle className="text-sm font-medium">{event.type}</CardTitle>
                       <Badge variant="outline">
-                        {formatDistanceToNow(new Date(event.timestamp.toString()), { addSuffix: true })}
+                        {formatTimestamp(event.timestamp)}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -268,7 +269,7 @@ const ConnectionStatus = ({
             />
             {lastHeartbeat && (
               <span className="text-sm text-muted-foreground">
-                Last update: {formatDistanceToNow(lastHeartbeat, { addSuffix: true })}
+                Last update: {formatTimestamp(lastHeartbeat)}
               </span>
             )}
           </>
@@ -415,9 +416,7 @@ const RecentActivity = ({
                           </p>
                         )}
                         <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(event.timestamp.toString()), {
-                            addSuffix: true,
-                          })}
+                          {formatTimestamp(event.timestamp)}
                         </p>
                       </div>
                     </div>
@@ -441,7 +440,7 @@ const RecentActivity = ({
             {lastHeartbeat ? (
               <span>
                 Last updated:{' '}
-                {formatDistanceToNow(new Date(lastHeartbeat), { addSuffix: true })}
+                {formatTimestamp(lastHeartbeat)}
               </span>
             ) : (
               <span>Waiting for update...</span>
@@ -580,7 +579,7 @@ export default function LiveAnalyticsDashboard() {
                   {lastHeartbeat ? (
                     <span>
                       Last updated:{' '}
-                      {formatDistanceToNow(new Date(lastHeartbeat), { addSuffix: true })}
+                      {formatTimestamp(lastHeartbeat)}
                     </span>
                   ) : (
                     <span>Waiting for update...</span>

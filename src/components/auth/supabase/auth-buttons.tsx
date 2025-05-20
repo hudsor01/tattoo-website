@@ -49,14 +49,14 @@ export function OAuthButton({
   redirectTo,
   ...props
 }: OAuthButtonProps) {
-  const { signInWithProvider } = useAuthStore();
+  const { signInWithOAuth } = useAuthStore(); // Changed to the correct method name
   const [isLoading, setIsLoading] = React.useState(false);
   // const router = useRouter(); // Unused in this component but may be needed in future
 
   const handleSignIn = async () => {
     try {
       setIsLoading(true);
-      await signInWithProvider(provider, redirectTo);
+      await signInWithOAuth(provider, redirectTo);
     } catch (error) {
       console.error(`Sign in with ${provider} failed:`, error);
     } finally {

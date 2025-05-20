@@ -250,3 +250,39 @@ export function checkAccess(options: { requireAdmin?: boolean } = {}) {
   // Allow access otherwise
   return true;
 }
+
+/**
+ * Admin Authentication
+ * 
+ * For simple admin authentication when Supabase is not available or for development
+ */
+
+// Simple admin credentials check - in production, use a secure authentication system
+export async function adminLogin(email: string, password: string): Promise<string | null> {
+  // Check if credentials match the admin user
+  if (email === 'admin@example.com' && password === 'admin123') {
+    // Generate a simple token - in production, use JWT or other secure token method
+    return generateAdminToken();
+  }
+  
+  return null;
+}
+
+// Simple token verification - in production, use proper JWT verification
+export function verifyAdminToken(token: string): boolean {
+  // Basic check - in production, verify signature, expiration, etc.
+  return token.length > 20 && token.startsWith('admin_');
+}
+
+// Simple token generation - in production, use proper JWT generation
+function generateAdminToken(): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2);
+  return `admin_${timestamp}_${random}`;
+}
+
+// Simple middleware to verify admin access from token in cookies
+export async function verifyAdminAccess(token: string | undefined): Promise<boolean> {
+  if (!token) return false;
+  return verifyAdminToken(token);
+}

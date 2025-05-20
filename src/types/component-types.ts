@@ -1,6 +1,4 @@
 /**
- * component-types.ts
- *
  * Comprehensive consolidated UI component, form, and theme type definitions for the application.
  * This file contains all types related to UI components, forms, themes, and UI utilities.
  */
@@ -11,6 +9,9 @@ import type { buttonVariants } from '@/components/ui/button';
 import type { FieldValues, FieldPath, UseFormReturn } from 'react-hook-form';
 import type { ThemeColor } from './enum-types';
 import { z } from 'zod';
+import type { Target, TargetAndTransition } from 'framer-motion';
+
+import type { FixedSizeList } from 'react-window';
 
 /**
  * ========================================================================
@@ -42,36 +43,28 @@ export interface UIElementProps extends BaseComponentProps {
  * React Window Infinite Loader Type Declarations
  */
 
-declare module 'react-window-infinite-loader' {
-  import { ComponentType, ReactNode } from 'react';
-  import { FixedSizeList } from 'react-window';
-
-  interface InfiniteLoaderProps {
-    isItemLoaded: (index: number) => boolean;
-    itemCount: number;
-    loadMoreItems: (startIndex: number, stopIndex: number) => Promise<void> | void;
-    threshold?: number;
-    minimumBatchSize?: number;
-    children: (props: {
-      onItemsRendered: (params: {
-        visibleStartIndex: number;
-        visibleStopIndex: number;
-        overscanStartIndex: number;
-        overscanStopIndex: number;
-      }) => void;
-      ref: React.RefObject<FixedSizeList>;
-    }) => ReactNode;
-  }
-
-  declare const InfiniteLoader: ComponentType<InfiniteLoaderProps>;
-  export default InfiniteLoader;
+export interface InfiniteLoaderProps {
+  isItemLoaded: (index: number) => boolean;
+  itemCount: number;
+  loadMoreItems: (startIndex: number, stopIndex: number) => Promise<void> | void;
+  threshold?: number;
+  minimumBatchSize?: number;
+  children: (props: {
+    onItemsRendered: (params: {
+      visibleStartIndex: number;
+      visibleStopIndex: number;
+      overscanStartIndex: number;
+      overscanStopIndex: number;
+    }) => void;
+    ref: React.RefObject<FixedSizeList>;
+  }) => ReactNode;
 }
 
 /**
  * Framer Motion Type Declarations
  */
 
-import { Target, TargetAndTransition } from 'framer-motion';
+
 
 // Simple variant with just target properties
 export interface SimpleVariant {
@@ -717,3 +710,22 @@ export type SelectField = z.infer<typeof SelectFieldSchema>;
 export type CheckboxField = z.infer<typeof CheckboxFieldSchema>;
 export type DatePickerField = z.infer<typeof DatePickerFieldSchema>;
 export type FileUploadField = z.infer<typeof FileUploadFieldSchema>;
+
+// Service type for the ServiceCard component
+export interface Service {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  features?: string[];
+  price?: string;
+  duration?: string;
+  category?: string;
+}
+
+export interface FAQAccordionProps {
+  items: {
+    question: string;
+    answer: string;
+  }[];
+}
