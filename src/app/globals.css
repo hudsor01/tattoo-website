@@ -1,9 +1,10 @@
-/* Global styles for the tattoo website */
-@layer base, components, utilities;
 @import 'tailwindcss';
+
 @import '../styles/fonts.css';
 @import '../styles/utilities.css';
 @import '../styles/navbar.css';
+
+@layer base, components, utilities;
 
 /* HTML and body full height */
 html {

@@ -1,48 +1,58 @@
-# dependencies
+# Dependencies
 node_modules/
-node_modules
-docs/
-.next/
-.claude/
-public/
-.pnp
-.pnp.js
 
-# testing
-coverage/
-
-# next.js
-.next/
-out/
-
-# production
-build/
-dist/
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
+# Local env files
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env*
-env.*
+!.env.example
 
-# vercel
-.vercel/
+# Next.js build output
+.next/
+out/
 
-# prisma
+# Generated SQL exports
+output/
+
+# General build output
+build/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
+
+# SQLite databases (Prisma dev DB)
+prisma/*.db
+prisma/*.db-journal
+
+# Prisma client (generated artifacts)
 prisma/client/
 
-# Supabase
-supabase/.branches/
+# Supabase temp & branch state
 supabase/.temp/
+supabase/.branches/
+supabase/migrations.bak/
+
+# Vercel deployment files
+.vercel/
+
+# Yarn PnP
+.pnp
+.pnp.js
+
+# MCP config files
+mcp.*

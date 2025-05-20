@@ -1,11 +1,9 @@
-// Import polyfills at the very top for SSR
-import '../utils/polyfills';
-
 import type { Metadata } from 'next';
-import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
-import Providers from '@/app/providers';
-import NavigationSystem from '@/components/layouts/NavigationSystem';
+import { inter, montserrat, pacifico, satisfy } from '../styles/fonts.ts';
+import Providers from '@/providers';
+import NavigationSystem from '../components/layouts/NavigationSystem';
 import './globals.css';
+import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env['NEXT_PUBLIC_BASE_URL'] || 'https://ink37tattoos.com'),
@@ -80,7 +78,9 @@ const businessSchema = {
   sameAs: ['https://www.instagram.com/fennyg83/', 'https://www.facebook.com/fennyg83/'],
 };
 
-import type { RootLayoutProps } from '@/types/component-types';
+type RootLayoutProps = {
+  children: ReactNode;
+};
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
