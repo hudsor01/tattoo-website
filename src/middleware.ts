@@ -60,11 +60,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Temporarily bypass Supabase auth until environment variables are set
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://your-project.supabase.co') {
-    return NextResponse.next();
-  }
-
   // Update Supabase auth session
   const response = await updateSession(request);
 
@@ -88,11 +83,20 @@ export async function middleware(request: NextRequest) {
     process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll: (name?: string) => {
+          if (name) {
+            const cookie = request.cookies.get(name);
+            return cookie ? [{ name, value: cookie.value }] : [];
+          }
+          return request.cookies.getAll().map(cookie => ({
+            name: cookie.name,
+            value: cookie.value,
+          }));
         },
-        set() {}, // We don't need to set cookies here in middleware
-        remove() {}, // We don't need to remove cookies here in middleware
+        setAll: () => {
+          // We don't need to set cookies here in middleware
+          // The updateSession function already handles this
+        },
       },
     },
   );

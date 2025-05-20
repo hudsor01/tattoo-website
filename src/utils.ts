@@ -1,18 +1,10 @@
 /**
  * Client-safe utilities
- * 
  * This file exports utilities that are safe to use in both client and server components.
- * This is a convenience file to make imports easier from the root level.
  */
 
 // Re-export styling utilities
 export { cn, parseColorVar } from './lib/utils/styling';
-
-// Re-export toast functionality
-// export { toast, success, error, warning, info } from '@/hooks/use-toast';
-
-// Export browser utilities
-// export * from '@/lib/browser';
 
 // Export common utilities
 export * from './lib/utils/common';
@@ -32,5 +24,5 @@ export const formatCurrency = formatUtils.formatCurrency;
 export const formatPhoneNumber = formatUtils.formatPhoneNumber;
 
 // Rename the conflicting formatDate functions
-export const formatDisplayDate = formatUtils.formatDate; // Basic date formatter
-export const formatDateWithOptions = dateUtils.formatDate; // Advanced date formatter with options
+export const formatDisplayDate = formatUtils.formatDate;
+export const formatDateWithOptions = dateUtils.formatDate;
