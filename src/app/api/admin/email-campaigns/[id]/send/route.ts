@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import sanitizeHtml from 'sanitize-html';
 import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils/server';
 import { sendEmail } from '@/lib/email/email';
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
             to: recipient.client.email,
             subject: campaign.subject,
             html: processedContent,
-            text: processedContent.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+            text: sanitizeHtml(processedContent, { allowedTags: [], allowedAttributes: {} }), // Strip all HTML for text version
           });
 
           // Update recipient status
