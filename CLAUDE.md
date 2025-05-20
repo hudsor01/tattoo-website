@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Tattoo website built with Next.js 15, featuring a client portal, admin dashboard, and booking system.
+Tattoo website built with Next.js 15, featuring a client portal, admin dashboard, booking system, and real-time analytics.
 
 ## Tech Stack
 
@@ -19,6 +19,7 @@ Tattoo website built with Next.js 15, featuring a client portal, admin dashboard
 - **Email**: Resend
 - **Payments**: Stripe
 - **Validation**: Zod
+- **Booking Integration**: Cal.com
 
 ## Development Commands
 
@@ -111,41 +112,49 @@ The project uses a unified authentication system:
 - **Client State**: Zustand stores in `/src/store/`
 - **Form State**: react-hook-form with Zod validation
 
+### Analytics System
+
+The application includes a comprehensive real-time analytics system:
+
+1. **Event Tracking**: Client-side hooks capture various event types:
+   - Page views
+   - User interactions
+   - Booking events
+   - Gallery interactions
+   - Conversions
+   - Errors
+
+2. **Real-Time Dashboard**: Live monitoring at `/admin-dashboard/analytics/live` with:
+   - Active users indicator
+   - Recent events stream
+   - Metrics visualization
+
+3. **Implementation**:
+   - `AnalyticsProvider` for app-wide tracking
+   - `PageViewTracker` for automatic page tracking
+   - `useLiveAnalytics` hook for real-time data
+   - Server-Sent Events (SSE) for streaming updates
+   - Prisma for data storage (`AnalyticsEvent` model)
+
 ## Data Models
 
 The application uses the following main data models:
 
-1. **Booking**: Represents a tattoo appointment booking with details like customer information, appointment time, and booking status.
+1. **Booking**: High-level booking record linked to a customer and appointment.
 
-2. **Customer**: Stores customer information including contact details, preferences, and history.
+2. **Appointment**: Detailed appointment information including customer details, tattoo specifications, and scheduling information.
 
-3. **GalleryItem**: Represents a tattoo design in the gallery with images and metadata.
+3. **Customer**: Stores customer information including contact details, preferences, and history.
 
-4. **User**: Represents system users (admin, artist) with authentication details.
+4. **GalleryItem**: Represents a tattoo design in the gallery with images and metadata.
 
-5. **BlogPost**: Blog content with metadata for the website.
+5. **User**: Represents system users (admin, artist) with authentication details.
 
-6. **PricingTier**: Different service tiers and pricing options.
+6. **BlogPost**: Blog content with metadata for the website.
 
-7. **AnalyticsEvent**: Tracks user interactions, page views, and other analytics events.
+7. **Payment**: Tracks payment information linked to bookings and appointments.
 
-## Analytics System
-
-The application includes a real-time analytics system:
-
-1. **Event Tracking**: Different event types (pageviews, conversions, errors) through tRPC procedures.
-
-2. **Live Dashboard**: Real-time monitoring of site activity at `/admin-dashboard/analytics/live`.
-
-3. **Event Categories**:
-   - Page views
-   - Interactions 
-   - Bookings
-   - Gallery views
-   - Conversions
-   - Errors
-
-4. **Implementation**: Uses EventEmitter for real-time updates, Prisma for storage.
+8. **AnalyticsEvent**: Tracks user interactions, page views, and other analytics events.
 
 ## Common Development Tasks
 
@@ -174,6 +183,16 @@ When creating new API endpoints:
 3. Create hooks in `/src/hooks/` (e.g., `use-new-feature.ts`)
 4. Use Zod schemas from `/src/lib/validations/`
 5. Types should be imported from `/src/types/`
+
+### Adding Analytics Tracking
+
+To track new types of events:
+
+1. Add the event type to `EventCategory` enum in `analytics-types.ts`
+2. Create an interface for the event extending `BaseEventType`
+3. Add a Zod schema for validation in `validation-analytics.ts`
+4. Add a tracking method to the `useAnalytics` hook
+5. Add a tRPC procedure in the analytics router if needed
 
 ### File Organization
 
@@ -258,6 +277,13 @@ npm run dev:clean    # Fresh development start
 npx prisma generate  # Ensure Prisma client is up-to-date
 ```
 
+### Analytics Tracking Failures
+If analytics events aren't being tracked:
+1. Check that `AnalyticsProvider` is properly wrapping the app
+2. Verify that the database has the `AnalyticsEvent` table
+3. Check network requests for API errors
+4. Ensure proper event category and action names are used
+
 ## Deployment Notes
 
 - Build outputs to standalone mode for optimal deployment
@@ -266,11 +292,13 @@ npx prisma generate  # Ensure Prisma client is up-to-date
 - Database migrations must be run manually in production
 - All environment variables must be set in deployment platform
 
-## Git Hooks & CI
+## Recent Changes
 
-The project uses Husky for pre-commit hooks with lint-staged:
-- Automatically runs ESLint and Prettier on staged files
-- Files are formatted before commit
+The most recent changes to the codebase include:
+- Restructuring the booking and appointment models (separation of concerns)
+- Adding analytics event tracking and real-time dashboard
+- Implementing Cal.com integration for appointment scheduling
+- Refining payment processing with Stripe
 
 ## Key Configuration Files
 
@@ -369,4 +397,9 @@ The project uses Husky for pre-commit hooks with lint-staged:
    - Log detailed errors server-side
    - Implement proper fallbacks for failed data fetching
 
-Remember: Follow these patterns consistently throughout the codebase.
+8. **Analytics Implementation**:
+   - Use the `useAnalytics` hook for tracking events
+   - Wrap page components with `PageViewTracker` for automatic page view tracking
+   - Follow consistent naming conventions for event categories and actions
+   - Include relevant metadata with events for better insights
+   - Minimize tracking frequency to avoid performance impact
