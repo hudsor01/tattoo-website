@@ -3,6 +3,7 @@
 @import 'tailwindcss';
 @import '../styles/fonts.css';
 @import '../styles/utilities.css';
+@import '../styles/navbar.css';
 
 /* HTML and body full height */
 html {
@@ -95,6 +96,11 @@ body {
   --backdrop-blur-md: 12px;
   --backdrop-blur-lg: 16px;
   --backdrop-blur-xl: 24px;
+  
+  /* Navbar dimensions */
+  --navbar-height: 4.5rem;
+  --navbar-height-mobile: 4rem;
+  --navbar-height-desktop: 5rem;
 }
 /* Animation keyframes definitions */
 :root {

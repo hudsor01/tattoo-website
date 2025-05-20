@@ -7,36 +7,48 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { api } from '@/lib/trpc/client';
-import type {
-  AnalyticsEventType,
-  BaseEventType,
-  BookingEventType,
-  ConversionEventType,
-  ErrorEventType,
-  GalleryEventType,
-  InteractionEventType,
-  PageViewEventType,
-  EventCategory
+import { 
+  EventCategory,
+  type AnalyticsEvent,
+  type BaseEventType,
+  type BookingEventType,
+  type ConversionEventType,
+  type ErrorEventType,
+  type GalleryEventType,
+  type InteractionEventType,
+  type PageViewEventType,
+  type AnalyticsEventType
 } from '@/types/analytics-types';
 import { v4 as uuidv4 } from 'uuid';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getDeviceInfo } from '@/lib/utils/browser/device-detection';
+import { useBaseEventSchema } from '@/lib/validations/validation-analytics';
 
-// Simple cookie utilities for client-side use
-const getCookie = (name: string): string | null => {
-  if (typeof document === 'undefined') return null;
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
-};
+/**
+ * Cookie utilities for client-side session tracking
+ */
+export const cookieUtils = {
+  /**
+   * Get a cookie value by name
+   */
+  getCookie: (name: string): string | null => {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  },
 
-const setCookie = (name: string, value: string, options: { maxAge?: number; path?: string } = {}) => {
-  if (typeof document === 'undefined') return;
-  let cookieString = `${name}=${value}`;
-  if (options.maxAge) cookieString += `; max-age=${options.maxAge}`;
-  if (options.path) cookieString += `; path=${options.path}`;
-  document.cookie = cookieString;
+  /**
+   * Set a cookie with optional expiration and path
+   */
+  setCookie: (name: string, value: string, options: { maxAge?: number; path?: string } = {}) => {
+    if (typeof document === 'undefined') return;
+    let cookieString = `${name}=${value}`;
+    if (options.maxAge) cookieString += `; max-age=${options.maxAge}`;
+    if (options.path) cookieString += `; path=${options.path}`;
+    document.cookie = cookieString;
+  }
 };
 
 /**
@@ -44,19 +56,22 @@ const setCookie = (name: string, value: string, options: { maxAge?: number; path
  */
 export const useAnalytics = () => {
   const pathname = usePathname();
+  const { validateBaseEvent } = useBaseEventSchema();
 
-  // Get the current session ID from cookie or create a new one
+  /**
+   * Get or create a session ID for tracking
+   */
   const getSessionId = useCallback(() => {
-    const existingSessionId = getCookie('tattoo_session_id');
+    const existingSessionId = cookieUtils.getCookie('tattoo_session_id');
 
     if (existingSessionId) {
-      return existingSessionId as string;
+      return existingSessionId;
     }
 
     const newSessionId = uuidv4();
 
-    // Set session ID cookie, expires in 30 minutes
-    setCookie('tattoo_session_id', newSessionId, {
+    // Set session ID cookie, expires in 30 minutes of inactivity
+    cookieUtils.setCookie('tattoo_session_id', newSessionId, {
       maxAge: 30 * 60, // 30 minutes
       path: '/',
     });
@@ -64,19 +79,28 @@ export const useAnalytics = () => {
     return newSessionId;
   }, []);
 
-  // Get device information
+  /**
+   * Get device information for analytics
+   */
   const getDeviceInfoForAnalytics = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return {
+        deviceType: undefined,
+        browser: undefined,
+        os: undefined,
+      };
+    }
+    
     const deviceInfo = getDeviceInfo();
     
     return {
-      deviceType: deviceInfo.deviceType || undefined,
+      deviceType: deviceInfo.deviceType as 'desktop' | 'tablet' | 'mobile' | undefined,
       browser: deviceInfo.browser || undefined,
       os: deviceInfo.os || undefined,
     };
   }, []);
 
-  // tRPC procedures
-  // Check the actual procedure names in your analytics router
+  // tRPC procedure hooks for tracking different event types
   const trackEventMutation = api.analytics.track.useMutation();
   const trackPageViewMutation = api.analytics.trackPageView.useMutation();
   const trackInteractionMutation = api.analytics.trackInteraction.useMutation();
@@ -85,116 +109,174 @@ export const useAnalytics = () => {
   const trackConversionMutation = api.analytics.trackConversion.useMutation();
   const trackErrorMutation = api.analytics.trackError.useMutation();
 
-  // Add common properties to events
+  /**
+   * Enhance an event with common properties
+   */
   const enhanceEvent = useCallback(
     <T extends BaseEventType>(event: T): T => {
       const sessionId = getSessionId();
       const { deviceType, browser, os } = getDeviceInfoForAnalytics();
 
-      return {
+      // Create enhanced event with all required properties
+      const enhancedEvent = {
         ...event,
         timestamp: event.timestamp || new Date(),
         sessionId: event.sessionId || sessionId,
-        path: event.path || pathname,
+        path: event.path || pathname || undefined,
         deviceType: event.deviceType || deviceType,
         browser: event.browser || browser,
         os: event.os || os,
       };
+      
+      return enhancedEvent;
     },
     [pathname, getSessionId, getDeviceInfoForAnalytics],
   );
 
-  // Track a generic event
+  /**
+   * Track a generic event
+   */
   const trackEvent = useCallback(
     (event: AnalyticsEventType) => {
-      const enhancedEvent = enhanceEvent(event);
-      trackEventMutation.mutate(enhancedEvent);
+      try {
+        const enhancedEvent = enhanceEvent(event);
+        
+        // Validate event using Zod schema
+        validateBaseEvent(enhancedEvent);
+        
+        trackEventMutation.mutate(enhancedEvent);
+      } catch (error) {
+        console.error('Error tracking event:', error);
+      }
     },
-    [enhanceEvent, trackEventMutation],
+    [enhanceEvent, trackEventMutation, eventSchema],
   );
 
-  // Track a page view
+  /**
+   * Track a page view event
+   */
   const trackPageView = useCallback(
     (event: Omit<PageViewEventType, 'category' | 'action'>) => {
-      const pageViewEvent: PageViewEventType = {
-        ...event,
-        category: EventCategory.PAGE_VIEW,
-        action: 'view',
-      };
+      try {
+        const pageViewEvent: PageViewEventType = {
+          ...event,
+          category: EventCategory.PAGE_VIEW,
+          action: 'view',
+        };
 
-      const enhancedEvent = enhanceEvent(pageViewEvent);
-      trackPageViewMutation.mutate(enhancedEvent);
+        const enhancedEvent = enhanceEvent(pageViewEvent);
+        trackPageViewMutation.mutate(enhancedEvent);
+        
+        // Refresh session timeout
+        const sessionId = getSessionId();
+        cookieUtils.setCookie('tattoo_session_id', sessionId, {
+          maxAge: 30 * 60, // 30 minutes
+          path: '/',
+        });
+      } catch (error) {
+        console.error('Error tracking page view:', error);
+      }
     },
-    [enhanceEvent, trackPageViewMutation],
+    [enhanceEvent, trackPageViewMutation, getSessionId],
   );
 
-  // Track an interaction
+  /**
+   * Track an interaction event
+   */
   const trackInteraction = useCallback(
     (event: Omit<InteractionEventType, 'category'>) => {
-      const interactionEvent: InteractionEventType = {
-        ...event,
-        category: EventCategory.INTERACTION,
-      };
+      try {
+        const interactionEvent: InteractionEventType = {
+          ...event,
+          category: EventCategory.INTERACTION,
+        };
 
-      const enhancedEvent = enhanceEvent(interactionEvent);
-      trackInteractionMutation.mutate(enhancedEvent);
+        const enhancedEvent = enhanceEvent(interactionEvent);
+        trackInteractionMutation.mutate(enhancedEvent);
+      } catch (error) {
+        console.error('Error tracking interaction:', error);
+      }
     },
     [enhanceEvent, trackInteractionMutation],
   );
 
-  // Track a booking event
+  /**
+   * Track a booking event
+   */
   const trackBookingEvent = useCallback(
     (event: Omit<BookingEventType, 'category'>) => {
-      const bookingEvent: BookingEventType = {
-        ...event,
-        category: EventCategory.BOOKING,
-      };
+      try {
+        const bookingEvent: BookingEventType = {
+          ...event,
+          category: EventCategory.BOOKING,
+        };
 
-      const enhancedEvent = enhanceEvent(bookingEvent);
-      trackBookingEventMutation.mutate(enhancedEvent);
+        const enhancedEvent = enhanceEvent(bookingEvent);
+        trackBookingEventMutation.mutate(enhancedEvent);
+      } catch (error) {
+        console.error('Error tracking booking event:', error);
+      }
     },
     [enhanceEvent, trackBookingEventMutation],
   );
 
-  // Track a gallery event
+  /**
+   * Track a gallery event
+   */
   const trackGalleryEvent = useCallback(
     (event: Omit<GalleryEventType, 'category'>) => {
-      const galleryEvent: GalleryEventType = {
-        ...event,
-        category: EventCategory.GALLERY,
-      };
+      try {
+        const galleryEvent: GalleryEventType = {
+          ...event,
+          category: EventCategory.GALLERY,
+        };
 
-      const enhancedEvent = enhanceEvent(galleryEvent);
-      trackGalleryEventMutation.mutate(enhancedEvent);
+        const enhancedEvent = enhanceEvent(galleryEvent);
+        trackGalleryEventMutation.mutate(enhancedEvent);
+      } catch (error) {
+        console.error('Error tracking gallery event:', error);
+      }
     },
     [enhanceEvent, trackGalleryEventMutation],
   );
 
-  // Track a conversion
+  /**
+   * Track a conversion event
+   */
   const trackConversion = useCallback(
     (event: Omit<ConversionEventType, 'category'>) => {
-      const conversionEvent: ConversionEventType = {
-        ...event,
-        category: EventCategory.CONVERSION,
-      };
+      try {
+        const conversionEvent: ConversionEventType = {
+          ...event,
+          category: EventCategory.CONVERSION,
+        };
 
-      const enhancedEvent = enhanceEvent(conversionEvent);
-      trackConversionMutation.mutate(enhancedEvent);
+        const enhancedEvent = enhanceEvent(conversionEvent);
+        trackConversionMutation.mutate(enhancedEvent);
+      } catch (error) {
+        console.error('Error tracking conversion:', error);
+      }
     },
     [enhanceEvent, trackConversionMutation],
   );
 
-  // Track an error
+  /**
+   * Track an error event
+   */
   const trackError = useCallback(
     (event: Omit<ErrorEventType, 'category' | 'action'>) => {
-      const errorEvent: ErrorEventType = {
-        ...event,
-        category: EventCategory.ERROR,
-        action: 'error',
-      };
+      try {
+        const errorEvent: ErrorEventType = {
+          ...event,
+          category: EventCategory.ERROR,
+          action: 'error',
+        };
 
-      const enhancedEvent = enhanceEvent(errorEvent);
-      trackErrorMutation.mutate(enhancedEvent);
+        const enhancedEvent = enhanceEvent(errorEvent);
+        trackErrorMutation.mutate(enhancedEvent);
+      } catch (error) {
+        console.error('Error tracking error event:', error);
+      }
     },
     [enhanceEvent, trackErrorMutation],
   );

@@ -4,7 +4,7 @@
  */
 
 // No external imports needed
-import { BookingConfirmationData } from '@/types/email-types';
+import type { BookingConfirmationData } from '@/types/email-types';
 
 // Payment method type definition
 type PaymentMethodInfo = {
@@ -41,6 +41,16 @@ const PAYMENT_METHODS: Record<string, PaymentMethodInfo> = {
 };
 
 /**
+ * Helper function to safely get payment method information
+ */
+function getPaymentMethodInfo(methodKey: string | undefined): PaymentMethodInfo | null {
+  if (!methodKey || !PAYMENT_METHODS[methodKey]) {
+    return null;
+  }
+  return PAYMENT_METHODS[methodKey];
+}
+
+/**
  * Generate a booking confirmation email
  */
 export function generateBookingConfirmationEmail(data: BookingConfirmationData) {
@@ -52,6 +62,12 @@ export function generateBookingConfirmationEmail(data: BookingConfirmationData) 
     month: 'long',
     day: 'numeric',
   });
+
+  // Get payment method info safely
+  const paymentMethodInfo = getPaymentMethodInfo(data.paymentMethod);
+  const paymentMethodName = paymentMethodInfo?.name || 'your payment method';
+  const paymentMethodAccount = paymentMethodInfo?.account || 'Contact us for payment details';
+  const paymentMethodColor = paymentMethodInfo?.color || '#333333';
 
   // Build the subject line
   const subject = data.depositConfirmed
@@ -139,7 +155,7 @@ export function generateBookingConfirmationEmail(data: BookingConfirmationData) 
     html += `
         <p>Great news! Your tattoo consultation has been confirmed for <strong>${formattedDate}</strong> during the <strong>${data.preferredTime}</strong> time slot.</p>
 
-        <p>I've received your $50 deposit via ${PAYMENT_METHODS[data.paymentMethod].name} and have reserved your spot. This deposit will be applied to your final tattoo cost.</p>
+        <p>I've received your $50 deposit via ${paymentMethodName} and have reserved your spot. This deposit will be applied to your final tattoo cost.</p>
 
         <div class="details">
           <h3>Your Consultation Details:</h3>
@@ -171,9 +187,9 @@ export function generateBookingConfirmationEmail(data: BookingConfirmationData) 
 
         <div class="payment-method">
           <h3>How to Pay Your Deposit:</h3>
-          <p>Please send $50 via ${PAYMENT_METHODS[data.paymentMethod].name} to:</p>
-          <p style="font-size: 18px; font-weight: bold; color: ${PAYMENT_METHODS[data.paymentMethod].color};">
-            ${PAYMENT_METHODS[data.paymentMethod].account}
+          <p>Please send $50 via ${paymentMethodName} to:</p>
+          <p style="font-size: 18px; font-weight: bold; color: ${paymentMethodColor};">
+            ${paymentMethodAccount}
           </p>
           <p><strong>Important:</strong> Include your name in the payment note so I can match it to your booking.</p>
           <p>After sending the deposit, please reply to this email to confirm your payment.</p>
@@ -214,7 +230,7 @@ export function generateBookingConfirmationEmail(data: BookingConfirmationData) 
 
   if (data.depositConfirmed) {
     text += `Great news! Your tattoo consultation has been confirmed for ${formattedDate} during the ${data.preferredTime} time slot.\n\n`;
-    text += `I've received your $50 deposit via ${PAYMENT_METHODS[data.paymentMethod].name} and have reserved your spot. This deposit will be applied to your final tattoo cost.\n\n`;
+    text += `I've received your $50 deposit via ${paymentMethodName} and have reserved your spot. This deposit will be applied to your final tattoo cost.\n\n`;
     text += `YOUR CONSULTATION DETAILS:\n`;
     text += `Date: ${formattedDate}\n`;
     text += `Time: ${data.preferredTime}\n`;
@@ -233,7 +249,7 @@ export function generateBookingConfirmationEmail(data: BookingConfirmationData) 
     text += `Thank you for requesting a tattoo consultation at Ink 37. I've received your request for ${formattedDate} during the ${data.preferredTime} time slot.\n\n`;
     text += `To secure your consultation, a $50 non-refundable deposit is required. This deposit will be applied toward your final tattoo cost.\n\n`;
     text += `HOW TO PAY YOUR DEPOSIT:\n`;
-    text += `Please send $50 via ${PAYMENT_METHODS[data.paymentMethod].name} to: ${PAYMENT_METHODS[data.paymentMethod].account}\n\n`;
+    text += `Please send $50 via ${paymentMethodName} to: ${paymentMethodAccount}\n\n`;
     text += `IMPORTANT: Include your name in the payment note so I can match it to your booking.\n`;
     text += `After sending the deposit, please reply to this email to confirm your payment.\n\n`;
     text += `YOUR CONSULTATION REQUEST:\n`;

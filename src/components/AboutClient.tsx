@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import Header from '@/components/layouts/Header';
 import Footer from '@/components/layouts/Footer';
 import { ChevronRight } from 'lucide-react';
 
@@ -49,8 +48,7 @@ const staggerContainer = {
 export default function AboutClient() {
   return (
     <>
-      <Header />
-      <main className="bg-tattoo-black min-h-screen pt-24">
+      <main className="bg-tattoo-black min-h-screen">
         <section id="about" className="py-16 md:py-24 bg-gradient-to-b from-tattoo-black to-tattoo-black/90">
           <div className="container mx-auto px-4">
             <motion.div 
