@@ -178,14 +178,14 @@ export function GalleryGrid({
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:via-orange-500 data-[state=active]:to-amber-500 data-[state=active]:animate-gradient data-[state=active]:text-white"
             >
               <ImageIcon className="h-4 w-4 mr-2" />
-              <span>Tattoo Gallery</span>
+              <span>Images</span>
             </TabsTrigger>
             <TabsTrigger 
               value="videos" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:via-orange-500 data-[state=active]:to-amber-500 data-[state=active]:animate-gradient data-[state=active]:text-white"
             >
               <Film className="h-4 w-4 mr-2" />
-              <span>Process Videos</span>
+              <span>Videos</span>
             </TabsTrigger>
           </TabsList>
           
