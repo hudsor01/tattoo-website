@@ -82,6 +82,17 @@ export function GalleryGrid({
   // Limit the number of items if specified
   const displayPhotos: GalleryItem[] = limit ? filteredPhotos.slice(0, limit) : filteredPhotos;
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Gallery Debug Info:', {
+      activeTab,
+      totalPhotos: galleryPhotos.length,
+      filteredPhotos: filteredPhotos.length,
+      displayPhotos: displayPhotos.length,
+      galleryPhotos: galleryPhotos.slice(0, 3) // Show first 3 items
+    });
+  }, [activeTab, filteredPhotos.length, displayPhotos.length]);
+
   // Animation variants
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
