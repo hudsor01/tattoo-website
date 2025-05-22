@@ -96,12 +96,12 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
         clearTimeout(controlsTimeout)
       }
 
-      // Hide controls after 3 seconds of inactivity
+      // Hide controls after 1 second of inactivity
       const timeout = setTimeout(() => {
         if (isPlaying) {
           setShowControls(false)
         }
-      }, 3000)
+      }, 1000)
 
       setControlsTimeout(timeout)
     }

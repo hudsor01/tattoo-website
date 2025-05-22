@@ -19,10 +19,8 @@ export default function BookingClient() {
 
   // Direct Cal.com embed with more reliable approach
   useEffect(() => {
-    // Show loading state for at least 1.5 seconds
-    const loadingTimer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    // Remove artificial loading delay - show content immediately
+    setIsLoading(false);
     
     // Set a timeout to check if Cal.com embed loaded properly
     const calCheckTimer = setTimeout(() => {
@@ -34,7 +32,6 @@ export default function BookingClient() {
 
     // Clean up timers
     return () => {
-      clearTimeout(loadingTimer);
       clearTimeout(calCheckTimer);
     };
   }, [isCalLoaded, calError]);
