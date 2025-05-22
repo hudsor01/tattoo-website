@@ -15,6 +15,12 @@ export const services: Service[] = [
     description:
       'Every tattoo I create is a unique, personalized piece of art. I work collaboratively with you to transform your ideas into a design that perfectly captures your vision while incorporating artistic elements that will ensure your tattoo looks exceptional for years to come.',
     shortDescription: 'Unique, personalized tattoo designs created collaboratively with you to bring your vision to life with precision and artistry.',
+    features: [
+      'Fully personalized designs',
+      'Collaborative design process',
+      'Multiple revisions included',
+      'Detailed consultation'
+    ],
     process: [
       'Initial consultation to discuss your vision',
       'Reference collection and inspiration sharing',
@@ -41,6 +47,12 @@ export const services: Service[] = [
     description:
       'I specialize in capturing the essence and likeness of your loved ones, pets, or iconic figures through realistic portrait tattoos. My attention to detail and shading techniques helps create depth and dimensionality that brings portraits to life on your skin.',
     shortDescription: 'Realistic portrait tattoos that capture the essence and detail of your loved ones, celebrities, or other meaningful subjects.',
+    features: [
+      'Realistic portrait techniques',
+      'Photo reference optimization',
+      'Advanced shading methods',
+      'Detailed facial features'
+    ],
     process: [
       'Consultation to discuss subject and reference photos',
       'Photo selection and enhancement for optimal results',
@@ -67,6 +79,12 @@ export const services: Service[] = [
     description:
       'For those who appreciate subtlety and precision, my fine line work offers delicate, intricate designs with clean, precise lines. From minimalist tattoos to complex geometric patterns, I take pride in creating meticulous art that maintains clarity over time.',
     shortDescription: 'Intricate designs with clean lines and meticulous attention to detail, perfect for minimalist tattoos or complex geometric patterns.',
+    features: [
+      'Precision line work',
+      'Minimalist designs',
+      'Geometric patterns',
+      'Long-lasting clarity'
+    ],
     process: [
       'Detailed planning of line placement and flow',
       'Precision outlining with specialized needles',
@@ -93,6 +111,12 @@ export const services: Service[] = [
     description:
       'Transform or refresh existing tattoos that no longer represent you. I am skilled at working with what you already have to create something new and beautiful. Whether you are looking to completely cover an old tattoo or rework it into a fresh design, I will develop a solution that works with your existing ink.',
     shortDescription: 'Transform or refresh existing tattoos with expert cover-ups or creative reworks that breathe new life into old art.',
+    features: [
+      'Existing tattoo assessment',
+      'Strategic color theory',
+      'Advanced concealment techniques',
+      'Creative transformation'
+    ],
     process: [
       'Assessment of your existing tattoo',
       'Discussion of cover-up possibilities',

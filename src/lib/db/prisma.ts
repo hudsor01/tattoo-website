@@ -8,3 +8,29 @@ export const prisma = globalForPrisma.prisma || new PrismaClient();
 
 // In development, save the client to avoid multiple instances
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+/**
+ * Execute a stored procedure with parameters
+ */
+export async function executeStoredProcedure<T = any>(
+  procedureName: string,
+  params: any[] = []
+): Promise<T> {
+  try {
+    // Format parameters for SQL query
+    const paramPlaceholders = params.map((_, index) => `$${index + 1}`).join(', ');
+    const query = `SELECT * FROM ${procedureName}(${paramPlaceholders})`;
+    
+    // Execute the query with parameters
+    const result = await prisma.$queryRawUnsafe(query, ...params);
+    
+    // Return the first result or the entire result set
+    if (Array.isArray(result) && result.length > 0) {
+      return result[0] as T;
+    }
+    return result as T;
+  } catch (error) {
+    console.error(`Error executing stored procedure ${procedureName}:`, error);
+    throw error;
+  }
+}

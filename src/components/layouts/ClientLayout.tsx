@@ -3,7 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import DashboardLayout from './DashboardLayout';
+import DashboardLayout from '../../app/admin-dashboard/components/DashboardLayout';
 
 interface ClientLayoutProps {
   children: React.ReactNode;

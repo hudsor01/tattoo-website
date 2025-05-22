@@ -5,10 +5,8 @@
  */
 
 import { createClient } from './server';
-// Remove unused import
-// import { cookies } from 'next/headers';
 import { cache } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { redirect } from 'next/navigation';
 
@@ -17,7 +15,7 @@ import { redirect } from 'next/navigation';
  */
 export async function getUser(): Promise<User | null> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
     
     if (error) {
@@ -37,7 +35,7 @@ export async function getUser(): Promise<User | null> {
  */
 export const getSession = cache(async (): Promise<Session | null> => {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data, error } = await supabase.auth.getSession();
     
     if (error) {
@@ -56,7 +54,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
  */
 export async function hasRole(role: string): Promise<boolean> {
   const user = await getUser();
-  return user?.user_metadata?.role === role;
+  return user?.user_metadata?.['role'] === role;
 }
 
 /**
@@ -88,7 +86,7 @@ export async function requireAdmin(redirectTo: string = '/unauthorized'): Promis
   const user = await requireAuth('/login');
   
   // Check user metadata for admin role
-  if (user.user_metadata?.role !== 'admin') {
+  if (user.user_metadata?.['role'] !== 'admin') {
     redirect(redirectTo);
   }
   
@@ -105,7 +103,7 @@ export async function handleAuthCallback(request: NextRequest): Promise<NextResp
     const code = requestUrl.searchParams.get('code');
     
     if (code) {
-      const supabase = createClient();
+      const supabase = await createClient();
       await supabase.auth.exchangeCodeForSession(code);
     }
     

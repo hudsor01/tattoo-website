@@ -58,7 +58,7 @@ export interface CalendarApiConfig {
  * Email Template Variables
  */
 export interface EmailTemplateVars {
-  [key: string]: string | number | boolean | null | undefined;
+  [key: string]: string | number | boolean | null | null;
 }
 
 /**

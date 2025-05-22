@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { MediaItem } from './gallery-photos';
+import type { MediaItem } from './gallery-photos';
 
 interface GalleryPreviewCardProps {
   mediaItem: MediaItem;

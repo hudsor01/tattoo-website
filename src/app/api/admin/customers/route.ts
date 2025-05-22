@@ -26,22 +26,23 @@ export async function GET(request: NextRequest) {
     const where: unknown = {};
 
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
+      (where as any).OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search, mode: 'insensitive' } },
-        { tattooStyle: { contains: search, mode: 'insensitive' } },
       ];
     }
 
-    if (status && status !== 'all') {
-      where.status = status;
-    }
+    // Note: Customer model doesn't have status field
+    // if (status && status !== 'all') {
+    //   (where as any).status = status;
+    // }
 
     // Get clients with count
     const [clients, totalCount] = await Promise.all([
       prisma.customer.findMany({
-        where,
+        where: where as any,
         orderBy: {
           createdAt: 'desc',
         },
@@ -53,10 +54,10 @@ export async function GET(request: NextRequest) {
           lastName: true,
           email: true,
           phone: true,
-          personalNotes: true,
+          notes: true,
           createdAt: true,
           updatedAt: true,
-          appointments: {
+          Appointment: {
             select: {
               id: true,
               startDate: true,
@@ -67,28 +68,10 @@ export async function GET(request: NextRequest) {
             },
             take: 1,
           },
-          notes: {
-            select: {
-              id: true,
-              content: true,
-              type: true,
-              createdAt: true,
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 5,
-          },
-          tags: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
-          },
+          tags: true,
         },
       }),
-      prisma.customer.count({ where }),
+      prisma.customer.count({ where: where as any }),
     ]);
 
     // Format response
@@ -97,21 +80,14 @@ export async function GET(request: NextRequest) {
       const name = `${client.firstName} ${client.lastName}`.trim();
 
       // Extract tattoo style preference from notes if available
-      const tattooStyleNote = client.notes.find(note =>
-        note.content.toLowerCase().includes('tattoo style preference'),
-      );
-      const tattooStyle = tattooStyleNote
-        ? tattooStyleNote.content.replace('Tattoo style preference:', '').trim()
-        : '';
+      const tattooStyle = client.notes?.includes('tattoo style') ? 
+        client.notes.split('tattoo style preference:')[1]?.trim() || '' : '';
 
       // Determine status based on tags (default to 'new')
-      const statusTag = client.tags.find(tag =>
-        ['active', 'new', 'inactive', 'vip'].includes(tag.name.toLowerCase()),
-      );
-      const status = statusTag ? statusTag.name.toLowerCase() : 'new';
+      const status = client.tags.length > 0 ? 'active' : 'new';
 
       // Determine last contact from appointments
-      const lastContact = client.appointments[0]?.startDate || null;
+      const lastContact = client.Appointment[0]?.startDate || null;
 
       return {
         id: client.id,
@@ -120,7 +96,7 @@ export async function GET(request: NextRequest) {
         phone: client.phone || '',
         status,
         tattooStyle,
-        notes: client.personalNotes || '',
+        notes: client.notes || '',
         createdAt: client.createdAt,
         updatedAt: client.updatedAt,
         lastContact,
@@ -191,18 +167,7 @@ export async function POST(request: NextRequest) {
         lastName,
         email: data.email,
         phone: data.phone || '',
-        personalNotes: data.notes || '',
-        // Add a note for tattoo style preference
-        notes: {
-          create: data.tattooStyle
-            ? [
-                {
-                  content: `Tattoo style preference: ${data.tattooStyle}`,
-                  type: 'manual',
-                },
-              ]
-            : [],
-        },
+        notes: data.notes || (data.tattooStyle ? `Tattoo style preference: ${data.tattooStyle}` : ''),
       },
     });
 

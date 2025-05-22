@@ -18,11 +18,11 @@ import type { UseEmblaCarouselType } from 'embla-carousel-react';
 // Common primitive types
 export type ID = string | number;
 export type DateString = string;
-export type OptionalString = string | null | undefined;
-export type OptionalNumber = number | null | undefined;
-export type OptionalBoolean = boolean | null | undefined;
-export type OptionalArray<T> = T[] | null | undefined;
-export type OptionalRecord<K extends string | number | symbol, V> = Record<K, V> | null | undefined;
+export type OptionalString = string | null | null;
+export type OptionalNumber = number | null | null;
+export type OptionalBoolean = boolean | null | null;
+export type OptionalArray<T> = T[] | null | null;
+export type OptionalRecord<K extends string | number | symbol, V> = Record<K, V> | null | null;
 
 // For general record objects with string keys
 export type RecordObject = Record<string, unknown>;
@@ -37,7 +37,7 @@ export type NumericKeyObject = Record<number, unknown>;
 export type ConfigObject = Record<string, unknown>;
 
 // For filter/query objects
-export type FilterOptions = Record<string, string | number | boolean | null | undefined>;
+export type FilterOptions = Record<string, string | number | boolean | null | null>;
 
 // For event handlers
 export type EventHandler<T = Element> = React.EventHandler<React.SyntheticEvent<T>>;
@@ -640,12 +640,31 @@ export interface ActionConfig {
   recipient?: string;
 }
 
+// Step in a workflow
+export interface WorkflowStep {
+  id: string;
+  type: ActionType;
+  to: string | ((context: Record<string, unknown>) => string);
+  subject: string | ((context: Record<string, unknown>) => string);
+  template: string;
+  delay?: number;
+}
+
+// Trigger for a workflow
+export interface WorkflowTrigger {
+  type: TriggerType;
+  condition: TriggerCondition;
+  timeframe?: Timeframe;
+  status?: string;
+  date?: string;
+}
+
 // Complete workflow definition
 export interface WorkflowDefinition {
   id: string;
   name: string;
   description: string;
-  trigger: TriggerConfig;
+  trigger: WorkflowTrigger;
   action: ActionConfig;
   isActive: boolean;
   lastRun?: string;

@@ -1,35 +1,22 @@
-'use client';
+import type { Metadata } from 'next';
+import ServicesClient from '@/components/services/ServicesClient';
 
-import React from 'react';
-import Header from '@/components/layouts/Header';
-import Footer from '@/components/layouts/Footer';
-import { ServicesHeader } from '@/components/services/ServicesHeader';
-import { ServiceList } from '@/components/services/ServiceList';
-import { services } from '@/data/services-data';
+export const metadata: Metadata = {
+  title: 'Services | Ink 37 Tattoos',
+  description: 'Explore our range of tattoo services including custom designs, cover-ups, portrait work, and Japanese style tattoos. Book your consultation today.',
+  keywords: ['tattoo services', 'custom tattoos', 'Fernando Govea', 'Dallas tattoo', 'Fort Worth tattoo'],
+  openGraph: {
+    title: 'Tattoo Services | Ink 37',
+    description: 'Explore our range of premium tattoo services tailored to your vision. From custom designs to cover-ups, we bring your ideas to life.',
+    images: ['/images/traditional.jpg'],
+  },
+};
 
 /**
  * Services Page
  * 
- * Displays all services offered by the tattoo studio.
+ * Server Component that provides SEO metadata and wraps the client component.
  */
 export default function ServicesPage() {
-  return (
-    <>
-      <Header />
-      <main className="bg-tattoo-black">
-        <section className="pt-24 pb-16">
-          <div className="container mx-auto px-4">
-            <ServicesHeader
-              title="Tattoo Services"
-              description="From custom designs to portrait work, I offer a range of specialized tattooing 
-                services to bring your vision to life. Each service is delivered with meticulous 
-                attention to detail and artistic excellence."
-            />
-            <ServiceList services={services} />
-          </div>
-        </section>
-      </main>
-      <Footer />
-    </>
-  );
+  return <ServicesClient />;
 }

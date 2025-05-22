@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     siteName: 'Fernando Govea Tattoo',
     images: [
       {
-        url: '/images/booking-hero.jpg',
+        url: '/images/cover-ups.jpg',
         width: 1200,
         height: 630,
         alt: 'Book Your Tattoo Consultation',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Book Your Tattoo Consultation',
     description: 'Schedule your custom tattoo consultation with Fernando Govea in Austin, TX.',
-    images: ['/images/booking-hero.jpg'],
+    images: ['/images/cover-ups.jpg'],
   },
   alternates: {
     canonical: '/booking',

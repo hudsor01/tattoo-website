@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { publicProcedure, protectedProcedure, adminProcedure, router } from '../server';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
+import { sanitizeForPrisma, emailWhereCondition, createPrismaUpdate } from '@/lib/utils/prisma-helper';
 
 // Profile update validator
 export const profileUpdateValidator = z.object({
@@ -53,10 +54,10 @@ export const userRouter = router({
       
       // Get customer profile if it exists
       const customerProfile = await ctx.db.customer.findFirst({
-        where: { email: user.email },
+        where: emailWhereCondition(user.email),
         include: {
-          bookings: true,
-          appointments: {
+          Booking: true,
+          Appointment: {
             orderBy: { startDate: 'asc' },
             where: {
               startDate: {
@@ -64,11 +65,11 @@ export const userRouter = router({
               },
             },
           },
-          designs: {
+          TattooDesign: {
             include: {
-              artist: {
+              Artist: {
                 include: {
-                  user: {
+                  User: {
                     select: {
                       name: true,
                     },
@@ -92,9 +93,12 @@ export const userRouter = router({
     .input(profileUpdateValidator)
     .mutation(async ({ input, ctx }) => {
       try {
+        // Use createPrismaUpdate to ensure type compatibility
+        const updateData = createPrismaUpdate(input);
+        
         const updatedUser = await ctx.db.user.update({
           where: { id: ctx.user.id },
-          data: input,
+          data: updateData,
         });
         
         return updatedUser;
@@ -134,16 +138,26 @@ export const userRouter = router({
         
         // Create or update artist profile
         if (existingProfile) {
+          // Use createPrismaUpdate to ensure type compatibility
+          const updateData = createPrismaUpdate(input);
+          
           artistProfile = await ctx.db.artist.update({
             where: { userId: user.id },
-            data: input,
+            data: updateData,
           });
         } else {
           artistProfile = await ctx.db.artist.create({
-            data: {
-              ...input,
+            data: sanitizeForPrisma({
               userId: user.id,
-            },
+              id: user.id, // Set the id field to match the userId
+              updatedAt: new Date(),
+              createdAt: new Date(),
+              specialty: input.specialty || null,
+              bio: input.bio || null,
+              portfolio: input.portfolio || null,
+              availableForBooking: input.availableForBooking ?? true,
+              hourlyRate: input.hourlyRate || null,
+            }),
           });
         }
         
@@ -169,7 +183,7 @@ export const userRouter = router({
       const { includeUnavailable } = input;
       
       // Build where clause
-      const where: Prisma.ArtistWhereUniqueInput = {};
+      const where: Prisma.ArtistWhereInput = {};
       
       // Only include available artists unless specified
       if (!includeUnavailable) {
@@ -180,7 +194,7 @@ export const userRouter = router({
       const artists = await ctx.db.artist.findMany({
         where,
         include: {
-          user: {
+          User: {
             select: {
               id: true,
               name: true,
@@ -200,7 +214,7 @@ export const userRouter = router({
       const artist = await ctx.db.artist.findUnique({
         where: { id: input.id },
         include: {
-          user: {
+          User: {
             select: {
               id: true,
               name: true,
@@ -208,7 +222,7 @@ export const userRouter = router({
             },
           },
           // Include public designs
-          designs: {
+          TattooDesign: {
             where: {
               isApproved: true,
             },
@@ -237,7 +251,7 @@ export const userRouter = router({
     .query(async ({ ctx }) => {
       // Find customer profile for current user
       const customer = await ctx.db.customer.findFirst({
-        where: { email: ctx.user.email },
+        where: emailWhereCondition(ctx.user.email),
       });
       
       if (!customer) {
@@ -249,9 +263,9 @@ export const userRouter = router({
         where: { customerId: customer.id },
         orderBy: { startDate: 'asc' },
         include: {
-          artist: {
+          Artist: {
             include: {
-              user: {
+              User: {
                 select: {
                   name: true,
                   image: true,
@@ -270,7 +284,7 @@ export const userRouter = router({
     .query(async ({ ctx }) => {
       // Find customer profile for current user
       const customer = await ctx.db.customer.findFirst({
-        where: { email: ctx.user.email },
+        where: emailWhereCondition(ctx.user.email),
       });
       
       if (!customer) {
@@ -282,9 +296,9 @@ export const userRouter = router({
         where: { customerId: customer.id },
         orderBy: { createdAt: 'desc' },
         include: {
-          artist: {
+          Artist: {
             include: {
-              user: {
+              User: {
                 select: {
                   name: true,
                   image: true,
@@ -334,7 +348,7 @@ export const userRouter = router({
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          artist: true,
+          Artist: true,
         },
       });
       
@@ -359,8 +373,8 @@ export const userRouter = router({
       const user = await ctx.db.user.findUnique({
         where: { id: input.id },
         include: {
-          artist: true,
-          sessions: true,
+          Artist: true,
+          Session: true,
         },
       });
       
@@ -374,10 +388,10 @@ export const userRouter = router({
       // Get customer profile if it exists
       const customerProfile = user.email ? 
         await ctx.db.customer.findFirst({
-          where: { email: user.email },
+          where: emailWhereCondition(user.email),
           include: {
-            bookings: true,
-            appointments: true,
+            Booking: true,
+            Appointment: true,
           },
         }) : null;
         
@@ -426,10 +440,12 @@ export const userRouter = router({
           }
         }
         
-        // Update user
+        // Use createPrismaUpdate to ensure type compatibility
+        const updateData = createPrismaUpdate(data);
+        
         const updatedUser = await ctx.db.user.update({
           where: { id },
-          data,
+          data: updateData,
         });
         
         // If role changed to artist and no artist profile, create one
@@ -440,10 +456,17 @@ export const userRouter = router({
           
           if (!existingArtist) {
             await ctx.db.artist.create({
-              data: {
+              data: sanitizeForPrisma({
                 userId: id,
+                id: id, // Set the id field to match the userId
                 availableForBooking: true,
-              },
+                updatedAt: new Date(),
+                createdAt: new Date(),
+                specialty: null,
+                bio: null,
+                portfolio: null,
+                hourlyRate: null,
+              }),
             });
           }
         }
@@ -515,19 +538,27 @@ export const userRouter = router({
         
         // Create user in database
         const user = await ctx.db.user.create({
-          data: {
+          data: sanitizeForPrisma({
             id: authUser.user.id,
             ...userData,
-          },
+            image: userData.image || null,
+          }),
         });
         
         // If role is artist, create artist profile
         if (userData.role === 'artist') {
           await ctx.db.artist.create({
-            data: {
+            data: sanitizeForPrisma({
               userId: user.id,
+              id: user.id, // Set the id field to match the userId
               availableForBooking: true,
-            },
+              updatedAt: new Date(),
+              createdAt: new Date(),
+              specialty: null,
+              bio: null,
+              portfolio: null,
+              hourlyRate: null,
+            }),
           });
         }
         
@@ -579,6 +610,35 @@ export const userRouter = router({
           });
         }
         throw error;
+      }
+    }),
+  
+  // Submit contact form
+  submitContact: publicProcedure
+    .input(z.object({
+      name: z.string().min(1, "Name is required"),
+      email: z.string().email("Valid email is required"),
+      phone: z.string().optional(),
+      message: z.string().min(1, "Message is required"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const contact = await ctx.db.contact.create({
+          data: {
+            name: input.name,
+            email: input.email,
+            message: input.message,
+            updatedAt: new Date(),
+          },
+        });
+        
+        return { success: true, contactId: contact.id };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to submit contact form',
+          cause: error,
+        });
       }
     }),
 });

@@ -19,22 +19,24 @@ export function Logo({
     sm: 'text-xl',
     md: 'text-3xl md:text-4xl',
     lg: 'text-4xl md:text-5xl',
+    xl: 'text-5xl md:text-6xl',
   };
 
   const sizePixels = {
     sm: { width: 100, height: 50 },
     md: { width: 180, height: 90 },
     lg: { width: 240, height: 120 },
+    xl: { width: 300, height: 150 },
   };
 
   const content =
-    variant === 'image' ? (
+    variant === 'full' ? (
       <motion.div
         className={cn('relative glow-red-hover', className)}
         initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        whileHover={{ scale: 1.05, "--glow-opacity": 0.5, "--glow-spread": "25px" } as any}
+        whileHover={{ scale: 1.05, "--glow-opacity": 0.5, "--glow-spread": "25px" }}
       >
         <div className="relative overflow-hidden rounded-md">
           <Image

@@ -83,7 +83,7 @@ export type SimpleIconProps = React.SVGProps<SVGSVGElement> & BaseIconProps;
 /**
  * Enhanced Icon props for the new Icon component
  */
-export interface EnhancedIconProps extends React.HTMLAttributes<HTMLDivElement>, BaseIconProps {
+export interface EnhancedIconProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'className'>, BaseIconProps {
   /**
    * The icon component to render (from lucide-react)
    */
@@ -180,7 +180,7 @@ export const IconEnhanced = forwardRef<HTMLDivElement, EnhancedIconProps>(({
     >
       <IconComponent 
         size={sizePixels[size as IconSize] || sizePixels.md}
-        strokeWidth={strokeWidth} 
+        {...(strokeWidth !== undefined ? { strokeWidth } : {})}
         className="transition-colors duration-[--transition-fast]"
       />
     </div>
@@ -188,12 +188,5 @@ export const IconEnhanced = forwardRef<HTMLDivElement, EnhancedIconProps>(({
 });
 
 IconEnhanced.displayName = 'IconEnhanced';
-
-// Add animation keyframes to globals.css in the correct format
-// @keyframes spin-slow {
-//   to {
-//     transform: rotate(360deg);
-//   }
-// }
 
 export default Icon;

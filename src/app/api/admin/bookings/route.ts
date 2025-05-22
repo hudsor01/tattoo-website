@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db/prisma';
 import { cache } from '@/lib/cache';
+import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
 
 /**
  * GET endpoint for retrieving all bookings (admin only)
@@ -10,18 +11,18 @@ import { cache } from '@/lib/cache';
 export async function GET(request: NextRequest) {
   try {
     // Check if user is authenticated and is an admin
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { session },
       error,
-    } = await (await supabase).auth.getSession();
+    } = await supabase.auth.getSession();
 
     if (error || !session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user has admin role
-    const isAdmin = session.user.user_metadata?.role === 'admin';
+    const isAdmin = session.user.user_metadata?.['role'] === 'admin';
 
     if (!isAdmin) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
       take: validatedLimit,
       skip,
       include: {
-        payment: {
+        Payment: {
           select: {
             id: true,
             amount: true,
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
       preferredTime: booking.preferredTime,
       depositPaid: booking.depositPaid,
       createdAt: booking.createdAt,
-      payment: booking.payment,
+      Payment: booking.Payment,
     }));
 
     const responseData = {
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check if user is authenticated and is an admin
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { session },
       error,
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has admin role
-    const isAdmin = session.user.user_metadata?.role === 'admin';
+    const isAdmin = session.user.user_metadata?.['role'] === 'admin';
 
     if (!isAdmin) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
 
     // Create booking in database
     const booking = await prisma.booking.create({
-      data: {
+      data: sanitizeForPrisma({
         name: body.name,
         email: body.email,
         phone: body.phone,
@@ -182,11 +183,11 @@ export async function POST(request: NextRequest) {
         preferredTime: body.preferredTime,
         paymentMethod: body.paymentMethod,
         depositPaid: body.depositPaid || false,
-      },
+      }),
     });
 
-    // Invalidate cache after creating a new booking
-    cache.invalidateAll();
+    // Clear cache after creating a new booking
+    cache.clear();
 
     return NextResponse.json(
       {

@@ -142,7 +142,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
 
   // Handle volume change
   const handleVolumeChange = (value: number[]) => {
-    const newVolume = value[0]
+    const newVolume = value[0] ?? 0
     setVolume(newVolume)
 
     if (videoRef.current) {
@@ -153,7 +153,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
 
   // Handle seeking
   const handleSeek = (value: number[]) => {
-    const newTime = value[0]
+    const newTime = value[0] ?? 0
     setCurrentTime(newTime)
 
     if (videoRef.current) {

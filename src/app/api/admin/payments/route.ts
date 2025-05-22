@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
 
     if (clientId) {
       filter.OR = [
-        { booking: { customerId: clientId } },
-        { booking: { customer: { id: clientId } } }
+        { Booking: { customerId: clientId } },
+        { Booking: { Customer: { id: clientId } } }
       ];
     }
 
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       take: validatedLimit,
       skip,
       include: {
-        booking: {
+        Booking: {
           select: {
             id: true,
             name: true,

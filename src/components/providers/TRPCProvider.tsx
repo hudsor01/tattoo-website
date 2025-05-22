@@ -24,7 +24,7 @@ export function TrpcClientProvider({
   headers,
 }: TrpcProviderProps) {
   return (
-    <TRPCProvider cookies={cookies} headers={headers}>
+    <TRPCProvider cookies={cookies || {}} headers={headers || {}}>
       {children}
     </TRPCProvider>
   );

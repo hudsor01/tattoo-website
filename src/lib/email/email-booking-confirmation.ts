@@ -43,7 +43,7 @@ const PAYMENT_METHODS: Record<string, PaymentMethodInfo> = {
 /**
  * Helper function to safely get payment method information
  */
-function getPaymentMethodInfo(methodKey: string | undefined): PaymentMethodInfo | null {
+function getPaymentMethodInfo(methodKey: string | null): PaymentMethodInfo | null {
   if (!methodKey || !PAYMENT_METHODS[methodKey]) {
     return null;
   }

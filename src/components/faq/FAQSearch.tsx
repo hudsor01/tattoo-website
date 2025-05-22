@@ -3,41 +3,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, HelpCircle, ArrowRight } from 'lucide-react';
-
-interface FAQItemType {
-  question: string;
-  answer: string;
-}
-
-interface FAQSearchProps {
-  categories: Array<{
-    id: string;
-    title: string;
-    items: FAQItemType[];
-  }>;
-}
+import type { FAQItemType, FAQSearchProps, FAQCategory, AllFAQItem } from '@/types/component-types';
 
 export default function FAQSearch({ categories }: FAQSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState<
-    Array<{ category: string; id: string; item: FAQItemType }>
-  >([]);
+  const [results, setResults] = useState<AllFAQItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Flatten all FAQ items for searching
-  interface AllFAQItem {
-    category: string;
-    id: string;
-    item: FAQItemType;
-  }
-
-  interface Category {
-    id: string;
-    title: string;
-    items: FAQItemType[];
-  }
-
-  const allFAQs: AllFAQItem[] = categories.flatMap((category: Category): AllFAQItem[] =>
+  const allFAQs: AllFAQItem[] = categories.flatMap((category: FAQCategory): AllFAQItem[] =>
     category.items.map(
       (item: FAQItemType): AllFAQItem => ({
         category: category.title,
@@ -163,7 +136,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
                             <p className="text-white font-medium mb-1 group-hover:text-tattoo-blue transition-colors">
                               {highlightMatch(result.item.question)}
                             </p>
-                            <ArrowRight className="h-4 w-4 text-tattoo-blue opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-0 group-hover:translate-x-1 transition-transform duration-300" />
+                            <ArrowRight className="h-4 w-4 text-tattoo-blue opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all duration-300" />
                           </div>
                           <p className="text-white/60 text-sm line-clamp-2">
                             {highlightMatch(result.item.answer.slice(0, 120))}
@@ -196,7 +169,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
                   browse the categories below.
                 </p>
                 <div className="flex flex-wrap items-center gap-2 justify-center">
-                  {categories.map((category: Category, index: number) => (
+                  {categories.map((category: FAQCategory, index: number) => (
                     <a
                       key={index}
                       href={`#${category.id}`}

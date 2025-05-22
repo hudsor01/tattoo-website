@@ -70,7 +70,7 @@ export async function GET() {
         },
         take: 5,
         include: {
-          customer: {
+          Customer: {
             select: {
               id: true,
               firstName: true,
@@ -104,7 +104,7 @@ export async function GET() {
         },
         take: 5,
         include: {
-          customer: {
+          Customer: {
             select: {
               id: true,
               firstName: true,
@@ -164,7 +164,7 @@ export async function GET() {
           startDate: 'asc',
         },
         include: {
-          customer: {
+          Customer: {
             select: {
               id: true,
               firstName: true,
@@ -182,8 +182,8 @@ export async function GET() {
       startTime: appointment.startDate,
       endTime: appointment.endDate,
       status: appointment.status,
-      client: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
-      clientId: appointment.customer.id,
+      client: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
+      clientId: appointment.Customer.id,
       deposit: appointment.deposit || 0,
       depositPaid: appointment.deposit ? true : false,
       service: appointment.description || appointment.title,

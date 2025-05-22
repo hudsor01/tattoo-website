@@ -1,9 +1,5 @@
 @import 'tailwindcss';
 
-@import '../styles/fonts.css';
-@import '../styles/utilities.css';
-@import '../styles/navbar.css';
-
 @layer base, components, utilities;
 
 /* HTML and body full height */
@@ -205,6 +201,77 @@ body {
 
 @utility font-satisfy {
   font-family: var(--font-satisfy);
+}
+
+/* Tattoo studio typography utilities for consistent styling */
+@utility gradient-text {
+  color: transparent;
+  background-clip: text;
+  background-image: linear-gradient(to right, #ef4444, #f97316);
+}
+
+@utility gradient-text-muted {
+  color: transparent;
+  background-clip: text;
+  background-image: linear-gradient(to right, #ef4444, #f97316, #f59e0b);
+}
+
+@utility heading-large {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  font-weight: 700;
+  
+  @media (min-width: 768px) {
+    font-size: 3rem;
+    line-height: 1;
+  }
+}
+
+@utility heading-medium {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+}
+
+@utility heading-small {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+}
+
+@utility artist-name {
+  font-size: 3.75rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  
+  @media (min-width: 768px) {
+    font-size: 6rem;
+    line-height: 1;
+  }
+}
+
+@utility paragraph-large {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  color: rgb(209 213 219);
+  
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+@utility paragraph-medium {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@utility paragraph-small {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Animation utilities */

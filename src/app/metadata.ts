@@ -4,7 +4,7 @@
  * we need to store metadata in a separate server file
  */
 
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Ink 37 - Custom Tattoos by Fernando Govea',

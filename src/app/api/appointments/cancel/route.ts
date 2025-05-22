@@ -33,8 +33,10 @@ export async function POST(request: NextRequest) {
     const result = await cancelAppointment(appointmentId);
 
     // Check for cancellation success
-    if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+    if (!result || !result.success) {
+      return NextResponse.json({ 
+        error: result?.error || 'Failed to cancel appointment' 
+      }, { status: 400 });
     }
 
     // Return cancellation details

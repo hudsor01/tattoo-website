@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 /**
  * About Page - Server Component that wraps the client component
  * This pattern separates server and client concerns for better performance
+ * UpdateNote: AboutClient component will now use the SharedLayout for consistency
  */
 export default function AboutPage() {
   return <AboutClient />;

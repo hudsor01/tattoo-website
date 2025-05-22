@@ -20,22 +20,21 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         id: params.id,
       },
       include: {
-        appointments: {
+        Appointment: {
           orderBy: {
-            startTime: 'desc',
+            startDate: 'desc',
           },
           select: {
             id: true,
             title: true,
-            startTime: true,
-            endTime: true,
+            startDate: true,
+            endDate: true,
             status: true,
-            depositPaid: true,
-            depositAmount: true,
-            price: true,
+            deposit: true,
+            totalPrice: true,
           },
         },
-        payments: {
+        Transaction: {
           orderBy: {
             createdAt: 'desc',
           },
@@ -44,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             amount: true,
             status: true,
             createdAt: true,
-            description: true,
+            notes: true,
           },
         },
       },
@@ -77,7 +76,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const data = await request.json();
 
     // Check if client exists
-    const existingClient = await prisma.client.findUnique({
+    const existingClient = await prisma.customer.findUnique({
       where: {
         id: params.id,
       },
@@ -89,7 +88,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Check if email is being changed and if it already exists
     if (data.email && data.email !== existingClient.email) {
-      const emailExists = await prisma.client.findUnique({
+      const emailExists = await prisma.customer.findUnique({
         where: {
           email: data.email,
         },
@@ -104,18 +103,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Update client
-    const client = await prisma.client.update({
+    const client = await prisma.customer.update({
       where: {
         id: params.id,
       },
       data: {
-        name: data.name,
+        firstName: data.firstName || data.name?.split(' ')[0] || '',
+        lastName: data.lastName || data.name?.split(' ').slice(1).join(' ') || '',
         email: data.email,
         phone: data.phone,
-        status: data.status,
-        tattooStyle: data.tattooStyle,
         notes: data.notes,
-        lastContact: data.lastContact || undefined,
         updatedAt: new Date(),
       },
     });
@@ -140,15 +137,15 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Check if client exists
-    const existingClient = await prisma.client.findUnique({
+    const existingClient = await prisma.customer.findUnique({
       where: {
         id: params.id,
       },
       include: {
-        appointments: {
+        Appointment: {
           select: { id: true },
         },
-        payments: {
+        Transaction: {
           select: { id: true },
         },
       },
@@ -159,7 +156,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Check if client has appointments or payments
-    if (existingClient.appointments.length > 0 || existingClient.payments.length > 0) {
+    if (existingClient.Appointment.length > 0 || existingClient.Transaction.length > 0) {
       return NextResponse.json(
         {
           error:
@@ -170,7 +167,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Delete client
-    await prisma.client.delete({
+    await prisma.customer.delete({
       where: {
         id: params.id,
       },

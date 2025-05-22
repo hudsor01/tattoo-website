@@ -8,8 +8,17 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 
 // Type-safe dynamic client access
-type PrismaModels = Prisma.TypeMap['meta']['modelProps'];
-type ModelName = keyof PrismaModels;
+type ModelName = Exclude<keyof PrismaClient, `$${string}`>;
+
+// Generic interface for Prisma model delegate
+interface PrismaModelDelegate {
+  findUnique: (args: any) => Promise<any>;
+  findMany: (args?: any) => Promise<any[]>;
+  create: (args: any) => Promise<any>;
+  update: (args: any) => Promise<any>;
+  delete: (args: any) => Promise<any>;
+  count: (args?: any) => Promise<number>;
+}
 
 /**
  * Type-safe dynamic access to Prisma models
@@ -17,8 +26,8 @@ type ModelName = keyof PrismaModels;
 function getPrismaModel<T extends ModelName>(
   client: PrismaClient,
   modelName: T
-): PrismaClient[T] {
-  return client[modelName];
+): PrismaModelDelegate {
+  return client[modelName] as unknown as PrismaModelDelegate;
 }
 
 export abstract class BaseRepository<T, CreateInput, UpdateInput> {
@@ -41,7 +50,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         where: { id },
       }) as unknown as T | null;
     } catch (error) {
-      console.error(`Error in ${this.tableName}.findById:`, error);
+      console.error(`Error in ${String(this.tableName)}.findById:`, error);
       throw error;
     }
   }
@@ -68,7 +77,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         take,
       }) as unknown as T[];
     } catch (error) {
-      console.error(`Error in ${this.tableName}.findAll:`, error);
+      console.error(`Error in ${String(this.tableName)}.findAll:`, error);
       throw error;
     }
   }
@@ -84,7 +93,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         data,
       }) as unknown as T;
     } catch (error) {
-      console.error(`Error in ${this.tableName}.create:`, error);
+      console.error(`Error in ${String(this.tableName)}.create:`, error);
       throw error;
     }
   }
@@ -101,7 +110,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         data,
       }) as unknown as T;
     } catch (error) {
-      console.error(`Error in ${this.tableName}.update:`, error);
+      console.error(`Error in ${String(this.tableName)}.update:`, error);
       throw error;
     }
   }
@@ -117,7 +126,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         where: { id },
       }) as unknown as T;
     } catch (error) {
-      console.error(`Error in ${this.tableName}.delete:`, error);
+      console.error(`Error in ${String(this.tableName)}.delete:`, error);
       throw error;
     }
   }
@@ -133,7 +142,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         where,
       });
     } catch (error) {
-      console.error(`Error in ${this.tableName}.count:`, error);
+      console.error(`Error in ${String(this.tableName)}.count:`, error);
       throw error;
     }
   }

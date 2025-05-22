@@ -2,7 +2,6 @@
 
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { ErrorFallback } from './error-fallback';
-import { useErrorTracking } from '@/hooks/use-analytics';
 
 // Props for the error boundary wrapper
 export interface ErrorBoundaryProps {
@@ -29,12 +28,25 @@ export interface ErrorBoundaryProps {
 // State for the error boundary
 interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
-  errorInfo?: ErrorInfo;
+  error?: Error | null;
+  errorInfo?: ErrorInfo | null;
+}
+
+// Inner class component props with required children property
+interface ErrorBoundaryInnerProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+  componentName: string; 
+  title: string;
+  description: string;
+  fullPage: boolean;
+  showBackButton: boolean;
+  variant: 'card' | 'alert' | 'simple';
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 // Inner class component that implements the error boundary
-class ErrorBoundaryInner extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -45,7 +57,7 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryProps, ErrorBoundaryStat
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Use custom error handler if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
@@ -60,7 +72,7 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryProps, ErrorBoundaryStat
     }
   }
 
-  render(): ReactNode {
+  override render(): ReactNode {
     const { 
       children, 
       fallback, 
@@ -82,7 +94,7 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryProps, ErrorBoundaryStat
         <ErrorFallback
           error={this.state.error}
           resetErrorBoundary={() => {
-            this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+            this.setState({ hasError: false, error: null, errorInfo: null });
           }}
           title={title}
           description={description}
@@ -114,31 +126,19 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 export function ErrorBoundary({
   children,
   fallback,
-  componentName,
+  componentName = 'UnnamedComponent',
   title = 'Something went wrong',
   description = 'We encountered an issue when displaying this content',
   fullPage = false,
   showBackButton = false,
   variant = 'card',
   onError,
-}: ErrorBoundaryProps): JSX.Element {
-  const { handleError } = useErrorTracking();
-
-  const handleErrorWithTracking = (error: Error, errorInfo: ErrorInfo) => {
-    // Track the error using the analytics hook
-    handleError(error, errorInfo.componentStack, componentName);
-    
-    // Call custom handler if provided
-    if (onError) {
-      onError(error, errorInfo);
-    }
-  };
-
+}: ErrorBoundaryProps): React.JSX.Element {
   return (
     <ErrorBoundaryInner 
       fallback={fallback}
       componentName={componentName}
-      onError={handleErrorWithTracking}
+      onError={onError}
       title={title}
       description={description}
       fullPage={fullPage}

@@ -38,7 +38,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
     <Accordion type="single" collapsible className="w-full">
       {items.map((item, index) => {
         const relatedQuestions = getRelatedQuestions(index);
-        const hasFeedback = feedbackGiven[index] !== undefined;
+        const hasFeedback = feedbackGiven[index] !== null;
 
         return (
           <motion.div

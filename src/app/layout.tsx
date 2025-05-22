@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts.ts';
-import Providers from '@/providers';
+import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
 import './globals.css';
 import type { ReactNode } from 'react';

@@ -8,7 +8,15 @@ import Link from 'next/link';
  */
 export default function VerifyPermissionsPage() {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<unknown>(null);
+  const [data, setData] = useState<{
+    user: {
+      id: string;
+      email: string;
+      isAdmin: boolean;
+      metadata: Record<string, unknown>;
+    };
+    fixes: Record<string, unknown>;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
 
@@ -35,7 +43,8 @@ export default function VerifyPermissionsPage() {
         setData(responseData);
         setError(null);
       } catch (err: unknown) {
-        setError(err.message);
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        setError(errorMessage);
         setData(null);
       } finally {
         setLoading(false);
@@ -78,26 +87,26 @@ export default function VerifyPermissionsPage() {
           <div className="bg-white p-4 rounded-lg shadow-md mb-6">
             <h2 className="text-xl font-bold mb-2">Authentication Status</h2>
             <div className="mb-2">
-              <span className="font-semibold">User ID:</span> {data.user.id}
+              <span className="font-semibold">User ID:</span> {data?.user?.id}
             </div>
             <div className="mb-2">
-              <span className="font-semibold">Email:</span> {data.user.email}
+              <span className="font-semibold">Email:</span> {data?.user?.email}
             </div>
             <div className="mb-2">
               <span className="font-semibold">Admin Status:</span>
-              <span className={getStatusColor(data.user.isAdmin)}>
-                {data.user.isAdmin ? ' ✓ Is Admin' : ' ✗ Not Admin'}
+              <span className={getStatusColor(Boolean(data?.user?.isAdmin))}>
+                {data?.user?.isAdmin ? ' ✓ Is Admin' : ' ✗ Not Admin'}
               </span>
             </div>
             <div className="mb-2">
               <span className="font-semibold">Metadata:</span>
               <pre className="bg-gray-100 p-2 rounded mt-1 overflow-x-auto">
-                {JSON.stringify(data.user.metadata, null, 2)}
+                {JSON.stringify(data?.user?.metadata, null, 2)}
               </pre>
             </div>
           </div>
 
-          {Object.keys(data.fixes).length > 0 && (
+          {data?.fixes && Object.keys(data.fixes).length > 0 && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
               <h2 className="text-lg font-bold mb-2">Fixes Applied</h2>
               <pre className="bg-white p-2 rounded overflow-x-auto">

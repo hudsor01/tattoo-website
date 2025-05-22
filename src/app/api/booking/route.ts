@@ -40,9 +40,8 @@ export const POST = apiRoute({
           referenceImages: body.referenceImages || [],
           preferredDate: body.preferredDate,
           preferredTime: body.preferredTime,
+          paymentMethod: body.paymentMethod || 'unspecified',
           depositPaid: false,
-          status: 'pending',
-          source,
           // Cal.com integration fields, if available
           calBookingUid: body.calBookingUid,
           calEventId: body.calEventId,
@@ -81,8 +80,8 @@ export async function GET(request: NextRequest) {
     
     // If calTest is true, test the Cal.com configuration
     if (calTest) {
-      const calUsername = process.env.NEXT_PUBLIC_CAL_USERNAME;
-      const calApiKey = process.env.CAL_API_KEY;
+      const calUsername = process.env['NEXT_PUBLIC_CAL_USERNAME'];
+      const calApiKey = process.env['CAL_API_KEY'];
       
       return NextResponse.json({
         calConfigured: !!calUsername && !!calApiKey,
@@ -98,7 +97,7 @@ export async function GET(request: NextRequest) {
     // If no ID provided, return booking page settings
     if (!id) {
       return NextResponse.json({
-        calUsername: process.env.NEXT_PUBLIC_CAL_USERNAME,
+        calUsername: process.env['NEXT_PUBLIC_CAL_USERNAME'],
         tattooServices: ['Traditional', 'Japanese', 'Realism', 'Blackwork', 'Cover-ups'],
         depositAmount: 50,
         contactEmail: 'ink37tattoos@gmail.com',
@@ -121,7 +120,7 @@ export async function GET(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const calWebhookSecret = process.env.CAL_WEBHOOK_SECRET;
+    const calWebhookSecret = process.env['CAL_WEBHOOK_SECRET'];
     const signature = request.headers.get('X-Cal-Signature-256');
     
     // Validate webhook signature if secret is configured

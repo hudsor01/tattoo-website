@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { BookingInput } from '@/types/booking-types';
+import type { BookingInput } from '@/types/booking-types';
 
 export default function FallbackBookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,16 +25,16 @@ export default function FallbackBookingForm() {
       
       // Format data for API
       const bookingData: Partial<BookingInput> = {
-        name: formValues.name as string,
-        email: formValues.email as string,
-        phone: formValues.phone as string,
-        tattooType: formValues.tattooType as string,
-        size: formValues.size as string,
-        placement: formValues.placement as string,
-        description: formValues.description as string,
-        preferredDate: formValues.preferredDate as string,
-        preferredTime: formValues.preferredTime as string,
-        agreeToTerms: formValues.agreeToTerms === 'on',
+        name: (formValues.name as string) || '',
+        email: (formValues.email as string) || '',
+        phone: (formValues.phone as string) || '',
+        tattooType: (formValues['tattooType'] as string) || '',
+        size: (formValues['size'] as string) || '',
+        placement: (formValues['placement'] as string) || '',
+        description: (formValues['description'] as string) || '',
+        preferredDate: (formValues['preferredDate'] as string) || '',
+        preferredTime: (formValues['preferredTime'] as string) || '',
+        agreeToTerms: formValues['agreeToTerms'] === 'on',
         referenceImages: [],
         paymentMethod: 'unspecified',
       };

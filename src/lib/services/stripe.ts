@@ -6,7 +6,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
-import type { PaymentIntent, PaymentMethod, CheckoutSession } from '@/types/payments-types';
+import type { PaymentIntent, StripePaymentMethod, CheckoutSession } from '@/types/payments-types';
 import type { Stripe as StripeType } from 'stripe';
 
 // Initialize Stripe client with the API key, using dynamic import
@@ -23,8 +23,8 @@ const getStripe = async () => {
     // Using require to prevent bundling issues
      
     const { default: Stripe } = await import('stripe');
-    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16',
+    stripeInstance = new Stripe(process.env['STRIPE_SECRET_KEY']!, {
+      apiVersion: '2025-04-30.basil',
     });
   }
   
@@ -35,7 +35,7 @@ const getStripe = async () => {
 export const stripe = new Proxy({} as StripeType, {
   get: async (target, prop) => {
     const stripeClient = await getStripe();
-    return stripeClient[prop];
+    return stripeClient[prop as keyof StripeType];
   },
 });
 
@@ -59,34 +59,41 @@ export async function createPaymentIntent({
 }): Promise<PaymentIntent> {
   try {
     // Create the payment intent in Stripe
-    const paymentIntent = await stripe.paymentIntents.create({
+    const createData: StripeType.PaymentIntentCreateParams = {
       amount: Math.round(amount * 100), // Convert to cents
       currency,
-      customer: customerId,
-      metadata,
-      description,
-      receipt_email: receiptEmail,
       automatic_payment_methods: { enabled: true }
-    });
+    };
+    
+    if (customerId !== undefined) createData.customer = customerId;
+    if (metadata !== undefined) createData.metadata = metadata;
+    if (description !== undefined) createData.description = description;
+    if (receiptEmail !== undefined) createData.receipt_email = receiptEmail;
+    
+    const paymentIntent = await stripe.paymentIntents.create(createData);
 
-    // Save the payment intent to our database
-    await prisma.paymentIntent.create({
-      data: {
+    // Save the payment intent to our database as a transaction
+    if (customerId) {
+      const transactionData: any = {
         id: paymentIntent.id,
         amount: amount,
         currency: currency,
         status: paymentIntent.status,
-        clientSecret: paymentIntent.client_secret!,
+        paymentMethod: 'stripe',
+        transactionId: paymentIntent.id,
         customerId: customerId,
-        description: description,
-        metadata: JSON.stringify(metadata),
-        createdAt: new Date(paymentIntent.created * 1000),
+      };
+      
+      if (description) {
+        transactionData.notes = `${description}. Metadata: ${JSON.stringify(metadata)}`;
       }
-    });
+      
+      await prisma.transaction.create({ data: transactionData });
+    }
 
     return {
       id: paymentIntent.id,
-      clientSecret: paymentIntent.client_secret!,
+      client_secret: paymentIntent.client_secret!,
       amount,
       currency,
       status: paymentIntent.status
@@ -109,14 +116,14 @@ export async function getOrCreateCustomer(
     const existingCustomers = await stripe.customers.list({ email });
     
     if (existingCustomers.data.length > 0) {
-      return { id: existingCustomers.data[0].id };
+      return { id: existingCustomers.data[0]!.id };
     }
     
     // Create new customer if not found
-    const customer = await stripe.customers.create({
-      email,
-      name
-    });
+    const createData: StripeType.CustomerCreateParams = { email };
+    if (name !== undefined) createData.name = name;
+    
+    const customer = await stripe.customers.create(createData);
     
     return { id: customer.id };
   } catch (error) {
@@ -153,15 +160,18 @@ export async function createCheckoutSession({
   metadata?: Record<string, string>;
 }): Promise<CheckoutSession> {
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sessionData: StripeType.Checkout.SessionCreateParams = {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: successUrl,
-      cancel_url: cancelUrl,
-      customer: customerId,
-      metadata
-    });
+      cancel_url: cancelUrl
+    };
+    
+    if (customerId !== undefined) sessionData.customer = customerId;
+    if (metadata !== undefined) sessionData.metadata = metadata;
+    
+    const session = await stripe.checkout.sessions.create(sessionData);
     
     return {
       id: session.id,
@@ -185,7 +195,7 @@ export async function handleWebhook(
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env['STRIPE_WEBHOOK_SECRET']!
     );
     
     // Handle different event types
@@ -221,7 +231,7 @@ async function updatePaymentStatus(
   paymentIntentId: string,
   status: string
 ): Promise<void> {
-  await prisma.paymentIntent.update({
+  await prisma.transaction.update({
     where: { id: paymentIntentId },
     data: { status }
   });
@@ -234,7 +244,7 @@ async function updatePaymentStatus(
  */
 export async function getCustomerPaymentMethods(
   customerId: string
-): Promise<PaymentMethod[]> {
+): Promise<StripePaymentMethod[]> {
   try {
     const paymentMethods = await stripe.paymentMethods.list({
       customer: customerId,
@@ -249,7 +259,7 @@ export async function getCustomerPaymentMethods(
         last4: pm.card.last4,
         expMonth: pm.card.exp_month,
         expYear: pm.card.exp_year
-      } : undefined
+      } : null
     }));
   } catch (error) {
     console.error('Error fetching payment methods:', error);
@@ -276,18 +286,17 @@ export async function refundPayment(
     const refund = await stripe.refunds.create(refundParams);
     
     // Update our database
-    await prisma.paymentIntent.update({
+    await prisma.transaction.update({
       where: { id: paymentIntentId },
       data: { 
         status: 'refunded',
-        refundId: refund.id,
-        refundedAt: new Date()
+        notes: `Refunded. Refund ID: ${refund.id}`
       }
     });
     
     return {
       id: refund.id,
-      status: refund.status
+      status: refund.status || 'pending'
     };
   } catch (error) {
     console.error('Error refunding payment:', error);

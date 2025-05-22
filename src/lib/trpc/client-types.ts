@@ -17,9 +17,6 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 export type GalleryRouter = RouterOutputs['gallery'];
 export type GalleryInputs = RouterInputs['gallery'];
 
-export type AnalyticsRouter = RouterOutputs['analytics'];
-export type AnalyticsInputs = RouterInputs['analytics'];
-
 export type BookingRouter = RouterOutputs['booking'];
 export type BookingInputs = RouterInputs['booking'];
 
@@ -32,8 +29,8 @@ export type AdminInputs = RouterInputs['admin'];
 export type DashboardRouter = RouterOutputs['dashboard'];
 export type DashboardInputs = RouterInputs['dashboard'];
 
-export type PaymentsRouter = RouterOutputs['payments'];
-export type PaymentsInputs = RouterInputs['payments'];
+export type CalRouter = RouterOutputs['cal'];
+export type CalInputs = RouterInputs['cal'];
 
 export type SubscriptionRouter = RouterOutputs['subscription'];
 export type SubscriptionInputs = RouterInputs['subscription'];

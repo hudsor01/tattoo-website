@@ -14,7 +14,6 @@ import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import Share from 'yet-another-react-lightbox/plugins/share';
 import 'yet-another-react-lightbox/plugins/share.css';
 import { Play, ImageIcon, Film } from 'lucide-react';
-import { useGalleryAnalytics } from '@/hooks/use-analytics';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 // Media item interfaces
@@ -61,16 +60,6 @@ interface VideoLightboxSlide {
   title: string;
 }
 
-// Analytics hooks interfaces
-interface GalleryAnalytics {
-  trackGalleryFilter: (filterType: string, value: string) => void;
-  trackDesignView: (title: string, category?: string, designId?: string, tags?: string[]) => void;
-  trackDesignViewEnded: (title: string) => void;
-  trackDesignShare: (title: string, category?: string) => void;
-  trackDesignZoom: (title: string, zoomLevel: number) => void;
-  trackDesignSwipe: (title: string, direction: 'left' | 'right') => void;
-}
-
 type GalleryGridProps = {
   limit?: number;
   mediaType?: 'image' | 'video' | 'all';
@@ -82,16 +71,6 @@ export function GalleryGrid({
   const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
   const galleryRef = useRef<HTMLDivElement>(null);
-
-  // Get gallery analytics tracking hooks
-  const { 
-    trackGalleryFilter, 
-    trackDesignView, 
-    trackDesignViewEnded,
-    trackDesignShare,
-    trackDesignZoom,
-    trackDesignSwipe,
-  } = useGalleryAnalytics() as GalleryAnalytics;
 
   // Filter gallery items based on active tab (images or videos)
   const filteredPhotos: GalleryItem[] = galleryPhotos.filter(photo => {
@@ -134,22 +113,17 @@ export function GalleryGrid({
     const currentDesign = displayPhotos[lightboxIndex];
     if (!currentDesign) return;
     
-    trackDesignView(
-      currentDesign.title || 'Untitled', 
-      currentDesign.category,
-      undefined,
-      [currentDesign.category || 'uncategorized']
-    );
+    // Design view tracking removed with analytics
     
     return () => {
-      trackDesignViewEnded(currentDesign.title || 'Untitled');
+      // Design view ended tracking removed with analytics
     };
-  }, [lightboxIndex, displayPhotos, trackDesignView, trackDesignViewEnded]);
+  }, [lightboxIndex, displayPhotos]);
 
   // Handle tab change
   const handleTabChange = (value: string): void => {
     if (value === 'images' || value === 'videos') {
-      trackGalleryFilter('mediaType', value);
+      // Gallery filter tracking removed with analytics
       setActiveTab(value);
       
       if (galleryRef.current) {
@@ -161,8 +135,7 @@ export function GalleryGrid({
   // Handle share event
   const handleShare = () => {
     if (lightboxIndex >= 0 && displayPhotos[lightboxIndex]) {
-      const currentDesign = displayPhotos[lightboxIndex];
-      trackDesignShare(currentDesign.title || 'Untitled', currentDesign.category);
+      // Design share tracking removed with analytics
     }
     return window.location.href;
   };
@@ -248,7 +221,7 @@ export function GalleryGrid({
                         className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
                         onError={(e) => {
                           console.error(`Failed to load image: ${photo.src}`);
-                          e.currentTarget.src = '/images/placeholder.jpg';
+                          e.currentTarget.src = '/images/traditional.jpg';
                         }}
                       />
                     </div>
@@ -308,7 +281,7 @@ export function GalleryGrid({
                         className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
                         onError={(e) => {
                           console.error(`Failed to load image: ${photo.src}`);
-                          e.currentTarget.src = '/images/placeholder.jpg';
+                          e.currentTarget.src = '/images/traditional.jpg';
                         }}
                       />
                     </div>
@@ -383,11 +356,11 @@ export function GalleryGrid({
         render={{
           buttonNext: () => {
             const state = { isLast: lightboxIndex === displayPhotos.length - 1 };
-            return state.isLast ? null : undefined;
+            return state.isLast ? null : null;
           },
           buttonPrev: () => {
             const state = { isFirst: lightboxIndex === 0 };
-            return state.isFirst ? null : undefined;
+            return state.isFirst ? null : null;
           },
           iconNext: () => <span className="text-white text-2xl font-light">›</span>,
           iconPrev: () => <span className="text-white text-2xl font-light">‹</span>,
@@ -398,8 +371,7 @@ export function GalleryGrid({
               const prevDesign = displayPhotos[lightboxIndex];
               const newDesign = displayPhotos[index];
               if (prevDesign && newDesign) {
-                const direction: 'left' | 'right' = index > lightboxIndex ? 'right' : 'left';
-                trackDesignSwipe(prevDesign.title || 'Untitled', direction);
+                // Design swipe tracking removed with analytics
                 // Note: don't call setLightboxIndex here to avoid infinite loop
                 // The lightbox component will handle index management internally
               }
@@ -407,8 +379,7 @@ export function GalleryGrid({
           },
           zoom: (props) => {
             if (lightboxIndex >= 0 && displayPhotos[lightboxIndex]) {
-              const currentDesign = displayPhotos[lightboxIndex];
-              trackDesignZoom(currentDesign.title || 'Untitled', props.zoom);
+              // Design zoom tracking removed with analytics
             }
           }
         }}

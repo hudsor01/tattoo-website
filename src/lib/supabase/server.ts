@@ -24,13 +24,26 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, {
+              const cookieOptions: {
+                path: string;
+                httpOnly: boolean;
+                maxAge: number;
+                domain?: string;
+                sameSite?: 'strict' | 'lax' | 'none';
+              } = {
                 path: options?.path ?? '/',
                 httpOnly: options?.httpOnly ?? true,
                 maxAge: options?.maxAge ?? 60 * 60 * 24 * 7, // 1 week default
-                domain: options?.domain,
-                sameSite: typeof options?.sameSite === 'string' ? options.sameSite : undefined,
-              });
+              };
+
+              if (options?.domain !== undefined) {
+                cookieOptions.domain = options.domain;
+              }
+              if (typeof options?.sameSite === 'string') {
+                cookieOptions.sameSite = options.sameSite;
+              }
+
+              cookieStore.set(name, value, cookieOptions);
             });
           } catch {
             // The `setAll` method was called from a Server Component.
@@ -92,7 +105,7 @@ export function createServerClientWithCookies(cookieStore: {
                 httpOnly: options?.httpOnly ?? true,
                 maxAge: options?.maxAge ?? 60 * 60 * 24 * 7,
               };
-              if (options?.domain !== undefined) {
+              if (options?.domain !== null && options?.domain !== undefined) {
                 cookieOptions.domain = options.domain;
               }
               if (typeof options?.sameSite === 'string') {

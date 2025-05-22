@@ -10,7 +10,7 @@ import {
   scheduleAppointment,
   checkAppointmentAvailability,
 } from '@/lib/db/db-appointments';
-import type { AppointmentCreateSchema } from '@/types/booking-types';
+import { AppointmentCreateSchema } from '@/types/booking-types';
 import { createClient } from '@/lib/supabase/server';
 
 // Authentication and validation route helpers

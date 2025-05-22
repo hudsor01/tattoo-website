@@ -167,7 +167,7 @@ async function processDailyAutomations(
       
     const results: DailyAutomationsResultItem[] = []; // Type the results array
     
-    // Handle cases where automationsData might be null or undefined, though Supabase usually returns []
+    // Handle cases where automationsData might be null or null, though Supabase usually returns []
     const automations = automationsData || [];
 
     if (automations.length === 0) {
@@ -187,7 +187,7 @@ async function processDailyAutomations(
           throw new Error(`Error fetching recipients: ${recipientsError.message}`);
         }
 
-        // Handle cases where recipientsData might be null or undefined
+        // Handle cases where recipientsData might be null or null
         const recipients = recipientsData || [];
           
         for (const recipient of recipients) {

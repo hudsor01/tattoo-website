@@ -17,8 +17,7 @@
       "@utils/*": ["./src/utils/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@store/*": ["./src/store/*"],
-      "@types/*": ["./src/types/*"],
-      "@prisma/client": ["./node_modules/@prisma/client/index.d.ts"]
+      "@types/*": ["./src/types/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
@@ -38,6 +37,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
+    "noImplicitAny": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "isolatedModules": true,
@@ -54,27 +54,31 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.ts",
     "src/types/**/*.d.ts",
-    "src/**/*.json",
     "postcss.config.mjs",
     "next.config.js"
   ],
   "exclude": [
     "node_modules",
+    "node_modules/**/*",
+    "**/node_modules/**/*",
     "dist",
     "build",
     ".next",
     "**/.git",
-    "**/node_modules",
     "**/*.test.ts",
     "**/*.spec.ts",
     "tests/**/*",
     "test-results/**/*",
     "playwright-report/**/*",
-    "supabase/**/*"
+    "supabase/**/*",
+    ".prisma",
+    ".prisma/**/*",
+    "**/prisma/client/**/*",
+    "prisma/client/**/*"
   ],
   "typeRoots": ["./node_modules/@types", "./src/types"],
   "watchOptions": {
@@ -89,7 +93,9 @@
       "tests",
       "test-results",
       "playwright-report",
-      "supabase"
+      "supabase",
+      ".prisma",
+      "**/prisma/client"
     ]
   }
 }

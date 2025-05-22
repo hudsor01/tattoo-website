@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiSun, FiMoon } from 'react-icons/fi';
+import { Sun, Moon } from 'lucide-react';
 import { cn } from '@/utils';
 
 export function ThemeToggle({ className }: { className?: string }) {
@@ -35,7 +35,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       )}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
-      {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
+      {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
     </button>
   );
 }

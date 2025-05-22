@@ -16,7 +16,7 @@ import type { Stripe } from 'stripe'; // Import Stripe types
 async function getStripe() {
   if (!stripe) {
     const Stripe = (await import('stripe')).default;
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    stripe = new Stripe(process.env['STRIPE_SECRET_KEY'] || '', {
       apiVersion: '2025-04-30.basil',
     });
   }
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   try {
     // Get booking ID from metadata
-    const bookingId = parseInt(paymentIntent.metadata.bookingId || '0', 10);
+    const bookingId = parseInt(paymentIntent.metadata?.bookingId ?? '0', 10);
 
     if (!bookingId) {
       logger.error('Payment intent has no booking ID:', paymentIntent.id);
@@ -143,8 +143,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       throw new Error('Failed to update booking');
     }
 
-    // Invalidate cache
-    cache.invalidateAll();
+    // Clear cache
+    cache.clear();
 
     // Send confirmation email
     try {
@@ -204,7 +204,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   try {
     // Get booking ID from metadata
-    const bookingId = parseInt(paymentIntent.metadata.bookingId || '0', 10);
+    const bookingId = parseInt(paymentIntent.metadata?.bookingId ?? '0', 10);
 
     if (!bookingId) {
       logger.error('Payment intent has no booking ID:', paymentIntent.id);
@@ -296,7 +296,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     // Get the payment intent to get booking ID
     const stripeClient = await getStripe();
     const paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
-    const bookingId = parseInt(paymentIntent.metadata.bookingId || '0', 10);
+    const bookingId = parseInt(paymentIntent.metadata?.bookingId ?? '0', 10);
 
     if (!bookingId) {
       logger.error('Payment intent has no booking ID:', paymentIntentId);
@@ -307,7 +307,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
       stripeChargeId: charge.id,
       stripeRefundId: charge.refunds?.data?.[0]?.id,
       refundAmount: charge.amount_refunded / 100,
-      refundReason: charge.refunds?.data?.[0]?.reason,
+      refundReason: charge.refunds?.data?.[0]?.reason || undefined,
     };
 
     // Initialize Supabase client
@@ -402,7 +402,7 @@ async function handleDisputeCreated(dispute: Stripe.Dispute) {
 
     // Get the payment intent to get booking ID
     const paymentIntent = await stripeInstance.paymentIntents.retrieve(paymentIntentId);
-    const bookingId = parseInt(paymentIntent.metadata.bookingId || '0', 10);
+    const bookingId = parseInt(paymentIntent.metadata?.bookingId ?? '0', 10);
 
     if (!bookingId) {
       logger.error('Payment intent has no booking ID:', paymentIntentId);

@@ -1,25 +1,33 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { 
+  UploadedImage, 
+  SuccessMessageProps, 
+  InvalidFileError, 
+  SimpleVariant
+} from '@/types/component-types';
+import type { ContactApiResponse, ContactApiErrorResponse } from '@/types/api-types';
 
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, Loader2, CheckCircle2, Upload, FilePlus, Send, AlertCircle } from 'lucide-react';
+import { X, Loader2, CheckCircle2, Upload, FilePlus, Send, AlertCircle, FileWarning } from 'lucide-react';
 import {
   contactFormSchema as apiContactFormSchema,
   contactFormResponseSchema,
   defaultContactFormValues,
 } from '@/lib/validations/validation-contact';
-import type { ContactFormValues } from '@/lib/validations/validation-contact';
-// import { useToast } from '@/components/ui/use-toast';
+import type { ContactFormValues, ContactFormResponse } from '@/lib/validations/validation-contact';
+import { toast } from '@/components/ui/use-toast';
+
+
 import { api } from '@/lib/api';
-// import { EnhancedErrorBoundary } from '@/components/error/enhanced-error-boundary';
 import {
   Form,
   FormField,
@@ -32,7 +40,7 @@ import {
 // Unused import: import { useErrorHandling } from '@/hooks/use-error-handling';
 
 // Animation variants
-const formVariants = {
+const formVariants: SimpleVariant = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -43,7 +51,7 @@ const formVariants = {
   },
 };
 
-const formItemVariants = {
+const formItemVariants: SimpleVariant = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -55,8 +63,16 @@ const formItemVariants = {
   },
 };
 
+const galleryVariants: SimpleVariant = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
 // Success message component
-const SuccessMessage = ({ onReset }: { onReset: () => void }) => (
+const SuccessMessage = ({ onReset }: SuccessMessageProps): React.JSX.Element => (
   <motion.div
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -82,11 +98,12 @@ const SuccessMessage = ({ onReset }: { onReset: () => void }) => (
  * Contact form component content
  * Extracted to allow wrapping with error boundary
  */
-function ContactFormContent() {
+function ContactFormContent(): React.JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [successfulSubmission, setSuccessfulSubmission] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // Using toast commented out in this component
   // const { toast } = useToast();
 
@@ -95,7 +112,7 @@ function ContactFormContent() {
     resolver: zodResolver(apiContactFormSchema),
     defaultValues: {
       ...defaultContactFormValues,
-      agreeToTerms: defaultContactFormValues['agreeToTerms'] ?? false,
+      agreeToTerms: defaultContactFormValues.agreeToTerms ?? false,
     },
     mode: 'onChange',
   });
@@ -113,58 +130,137 @@ function ContactFormContent() {
   const hasReferenceImages = watch('hasReference');
 
   // Reset form and state
-  const handleReset = useCallback(() => {
+  const handleReset = useCallback((): void => {
     reset(defaultContactFormValues);
     setUploadedImages([]);
     setSuccessfulSubmission(false);
   }, [reset]);
 
-  // Handle file uploads with visual feedback
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // File type validation
+  const validateFileType = (file: File): boolean => {
+    const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
+    return acceptedTypes.includes(file.type);
+  };
+
+  // File size validation (5MB max)
+  const validateFileSize = (file: File): boolean => {
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    return file.size <= maxSize;
+  };
+  
+  // Handle file uploads with validation and visual feedback
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     setUploadingImages(true);
 
     try {
-      // Simulated upload delay for UX demonstration
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // In a real implementation, this would upload files to a server/storage
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-
-      setUploadedImages([...uploadedImages, ...newImages]);
-      setValue('referenceImages', [...uploadedImages, ...newImages], {
-        shouldValidate: true,
-        shouldDirty: true,
+      // Filter out invalid files
+      const validFiles: File[] = [];
+      const invalidFiles: InvalidFileError[] = [];
+      
+      Array.from(files).forEach(file => {
+        if (!validateFileType(file)) {
+          invalidFiles.push({
+            file,
+            reason: 'Invalid file type. Only JPEG, PNG, GIF, SVG, and WebP are allowed.'
+          });
+        } else if (!validateFileSize(file)) {
+          invalidFiles.push({
+            file,
+            reason: 'File too large. Maximum size is 5MB.'
+          });
+        } else {
+          validFiles.push(file);
+        }
       });
+      
+      // Show warnings for invalid files
+      if (invalidFiles.length > 0) {
+        toast({
+          variant: "destructive",
+          title: `${invalidFiles.length} file${invalidFiles.length > 1 ? 's' : ''} couldn't be uploaded`,
+          description: invalidFiles.map(item => `${item.file.name}: ${item.reason}`).join('\n'),
+        });
+      }
+      
+      // Process valid files
+      if (validFiles.length > 0) {
+        // Simulated upload delay for UX demonstration
+        await new Promise<void>(resolve => setTimeout(resolve, 800));
 
-      // toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} added successfully`, {
-      //   description: 'You can add more or continue filling the form'
-      // });
+        // Create object URLs for preview
+        const newImages = validFiles.map(file => {
+          // Store file info in a data attribute for later use
+          const objectUrl = URL.createObjectURL(file);
+          return {
+            url: objectUrl,
+            file: file,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+          };
+        });
+
+        const updatedImages = [...uploadedImages, ...newImages];
+        setUploadedImages(updatedImages);
+        
+        // Store only the URLs in form values for validation
+        setValue(
+          'referenceImages', 
+          updatedImages.map(img => img.url), 
+          { shouldValidate: true, shouldDirty: true }
+        );
+
+        toast({
+          title: `${validFiles.length} image${validFiles.length > 1 ? 's' : ''} added successfully`,
+          description: 'You can add more or continue filling the form',
+        });
+      }
     } catch (error) {
       console.error('Error uploading files:', error);
-      // toast.error('Failed to upload images. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "Failed to upload images. Please try again.",
+      });
     } finally {
       setUploadingImages(false);
+      
+      // Reset the input value to allow uploading the same file again
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 
   // Handle removing an image
-  const handleRemoveImage = (index: number) => {
+  const handleRemoveImage = (index: number): void => {
     const newImages = [...uploadedImages];
-    const removedImage = newImages.splice(index, 1);
+    const removedImage = newImages.splice(index, 1)[0];
     setUploadedImages(newImages);
-    setValue('referenceImages', newImages, { shouldValidate: true });
+    
+    // Update form value with only the URLs
+    setValue(
+      'referenceImages', 
+      newImages.map(img => img.url), 
+      { shouldValidate: true }
+    );
 
     // Release object URL to prevent memory leaks
-    if (removedImage[0]) {
-      URL.revokeObjectURL(removedImage[0]);
+    if (removedImage?.url) {
+      URL.revokeObjectURL(removedImage.url);
     }
+    
+    toast({
+      title: "Image removed",
+      description: removedImage?.name || "Reference image has been removed",
+    });
   };
 
-  // Form submission handler with enhanced error handling
-  const onSubmit = async (data: ContactFormValues): Promise<void> => {
+  // Form submission handler with enhanced error handling and file upload
+  const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
 
     try {
@@ -175,53 +271,78 @@ function ContactFormContent() {
         throw new Error('Validation failed. Please check your form entries.');
       }
 
-      // Transform the data to match API expectations
-      const apiData = {
-        ...data,
-        referenceImages: uploadedImages,
-      };
-
-      // Submit data using our validated API client
-      const response = await api.post('/api/contact', {
-        data: apiData,
-        schema: {
-          input: apiContactFormSchema,
-          output: contactFormResponseSchema,
-        },
-      });
-
-      // Cast response to the expected type
-      if (
-        typeof response === 'object' &&
-        response !== null &&
-        'success' in response &&
-        typeof response.success === 'boolean'
-      ) {
-        const typedResponse = response as { success: boolean; message?: string };
-
-        if (typedResponse.success) {
-          // Mark as successful to show success message
-          setSuccessfulSubmission(true);
-        } else {
-          // toast.error(typedResponse.message || 'Failed to send message. Please try again.');
+      // Create FormData for file uploads
+      const formData = new FormData();
+      
+      // Add text fields to FormData
+      Object.keys(data).forEach((key) => {
+        // Skip the referenceImages field, as we'll handle files separately
+        if (key !== 'referenceImages') {
+          formData.append(key, String(data[key as keyof ContactFormValues] || ''));
         }
+      });
+      
+      // Add file objects to FormData if hasReference is true and files exist
+      if (data.hasReference && uploadedImages.length > 0) {
+        uploadedImages.forEach((image, index) => {
+          formData.append(`file_${index}`, image.file);
+        });
+        
+        // Add file metadata
+        formData.append('fileCount', String(uploadedImages.length));
+        formData.append('hasFiles', 'true');
       } else {
-        throw new Error('Unexpected response from the server.');
+        formData.append('hasFiles', 'false');
+      }
+
+      // Prepare the API request
+      const apiResponse = await fetch('/api/contact', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!apiResponse.ok) {
+        const errorData: ContactApiErrorResponse = await apiResponse.json();
+        throw new Error(errorData.message || 'Failed to send message');
+      }
+      
+      const response: ContactApiResponse = await apiResponse.json();
+      
+      if (response.success) {
+        // Mark as successful to show success message
+        setSuccessfulSubmission(true);
+        
+        // Clean up object URLs
+        uploadedImages.forEach(image => {
+          if (image.url) {
+            URL.revokeObjectURL(image.url);
+          }
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Message sending failed",
+          description: response.message || 'Failed to send message. Please try again.',
+        });
+        throw new Error(response.message || 'Failed to send message');
       }
     } catch (error: unknown) {
-      // Error message is unused but useful for debugging
-      // let errorMessage = 'Failed to send message. Please try again.';
+      let errorMessage = 'Failed to send message. Please try again.';
 
-      // if (
-      //   error &&
-      //   typeof error === 'object' &&
-      //   'message' in error &&
-      //   typeof (error as { message?: unknown }).message === 'string'
-      // ) {
-      //   errorMessage = (error as { message: string }).message;
-      // }
+      if (
+        error &&
+        typeof error === 'object' &&
+        'message' in error &&
+        typeof (error as { message?: unknown }).message === 'string'
+      ) {
+        errorMessage = (error as { message: string }).message;
+      }
 
-      // toast.error(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
 
       console.error('Contact form error:', error);
     } finally {
@@ -242,11 +363,11 @@ function ContactFormContent() {
       className="bg-black/20 backdrop-blur-sm p-6 rounded-lg border border-white/10 shadow-lg"
     >
       <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
           <motion.div variants={formItemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Name field */}
             <FormField
-              control={control}
+              control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
@@ -273,7 +394,7 @@ function ContactFormContent() {
 
             {/* Email field */}
             <FormField
-              control={control}
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -303,7 +424,7 @@ function ContactFormContent() {
           {/* Subject field */}
           <motion.div variants={formItemVariants}>
             <FormField
-              control={control}
+              control={form.control}
               name="subject"
               render={({ field }) => (
                 <FormItem>
@@ -334,7 +455,7 @@ function ContactFormContent() {
           {/* Message field */}
           <motion.div variants={formItemVariants}>
             <FormField
-              control={control}
+              control={form.control}
               name="message"
               render={({ field }) => (
                 <FormItem>
@@ -366,7 +487,7 @@ function ContactFormContent() {
           {/* Reference images */}
           <motion.div variants={formItemVariants}>
             <FormField
-              control={control}
+              control={form.control}
               name="hasReference"
               render={({ field }) => (
                 <FormItem className="space-y-3">
@@ -447,18 +568,12 @@ function ContactFormContent() {
                               className="grid grid-cols-2 sm:grid-cols-3 gap-3"
                               initial="hidden"
                               animate="visible"
-                              variants={{
-                                hidden: { opacity: 0 },
-                                visible: {
-                                  opacity: 1,
-                                  transition: { staggerChildren: 0.1 },
-                                },
-                              }}
+                              variants={galleryVariants}
                             >
                               <AnimatePresence>
                                 {uploadedImages.map((image, index) => (
                                   <motion.div
-                                    key={image}
+                                    key={image.url}
                                     className="relative aspect-square rounded-lg overflow-hidden border border-white/10 group"
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -467,15 +582,22 @@ function ContactFormContent() {
                                     whileHover={{ scale: 1.02 }}
                                   >
                                     <img
-                                      src={image}
-                                      alt={`Reference ${index + 1}`}
+                                      src={image.url}
+                                      alt={image.name || `Reference ${index + 1}`}
                                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    
+                                    {/* File info overlay */}
+                                    <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm text-white text-xs p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col gap-0.5">
+                                      <div className="truncate">{image.name}</div>
+                                      <div className="text-white/60">{(image.size / 1024).toFixed(1)} KB</div>
+                                    </div>
+                                    
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveImage(index)}
-                                      className="absolute bottom-2 right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                       aria-label="Remove image"
                                     >
                                       <X size={14} />
@@ -515,7 +637,7 @@ function ContactFormContent() {
           {/* Terms and conditions */}
           <motion.div variants={formItemVariants}>
             <FormField
-              control={control}
+              control={form.control}
               name="agreeToTerms"
               render={({ field }) => (
                 <FormItem className="space-y-2">
@@ -600,7 +722,7 @@ function ContactFormContent() {
  * Provides rich interactivity, animations, and improved validation feedback.
  * Wrapped with error boundary for improved resilience.
  */
-export default function ContactForm() {
+export default function ContactForm(): React.JSX.Element {
   return (
     <ContactFormContent />
   );

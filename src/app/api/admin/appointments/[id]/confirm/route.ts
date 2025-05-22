@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
     const appointmentId = params.id;
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
 
     // Check if admin is authorized
     const {
@@ -18,7 +18,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     } = await supabase.auth.getUser();
 
     // Check if admin is authorized
-    const isAdmin = user?.user_metadata?.role === 'admin';
+    const isAdmin = user?.user_metadata && user.user_metadata['role'] === 'admin';
     if (authError || !user || !isAdmin) {
       return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 401 });
     }

@@ -5,7 +5,7 @@
  */
 
 import { createClient } from './client';
-import { User, Session } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import { toast } from '@/components/ui/use-toast';
 
 /**
@@ -26,7 +26,7 @@ export async function signIn(email: string, password: string) {
     return { user: data.user, session: data.session };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign in';
-    toast({ title: "Error", description: message, variant: "destructive" });
+    toast({ title: "Error", description: message, variant: "error" });
     throw error;
   }
 }
@@ -51,7 +51,7 @@ export async function signInWithProvider(provider: 'google' | 'facebook' | 'twit
     return data;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign in';
-    toast({ title: "Error", description: message, variant: "destructive" });
+    toast({ title: "Error", description: message, variant: "error" });
     throw error;
   }
 }
@@ -62,13 +62,18 @@ export async function signInWithProvider(provider: 'google' | 'facebook' | 'twit
 export async function signUp(email: string, password: string, metadata?: Record<string, unknown>) {
   try {
     const supabase = createClient();
+    const signUpOptions: any = {
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
+    };
+    
+    if (metadata !== undefined) {
+      signUpOptions.data = metadata;
+    }
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: metadata,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: signUpOptions,
     });
 
     if (error) {
@@ -78,7 +83,7 @@ export async function signUp(email: string, password: string, metadata?: Record<
     return { user: data.user, session: data.session };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign up';
-    toast({ title: "Error", description: message, variant: "destructive" });
+    toast({ title: "Error", description: message, variant: "error" });
     throw error;
   }
 }
@@ -98,7 +103,7 @@ export async function signOut() {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign out';
-    toast({ title: "Error", description: message, variant: "destructive" });
+    toast({ title: "Error", description: message, variant: "error" });
     throw error;
   }
 }
@@ -120,7 +125,7 @@ export async function resetPassword(email: string) {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to send reset password email';
-    toast({ title: "Error", description: message, variant: "destructive" });
+    toast({ title: "Error", description: message, variant: "error" });
     throw error;
   }
 }
@@ -142,7 +147,7 @@ export async function updateUserPassword(password: string) {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update password';
-    toast({ title: "Error", description: message, variant: "destructive" });
+    toast({ title: "Error", description: message, variant: "error" });
     throw error;
   }
 }
@@ -164,7 +169,7 @@ export async function updateUserEmail(email: string) {
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update email';
-    toast({ title: "Error", description: message, variant: "destructive" });
+    toast({ title: "Error", description: message, variant: "error" });
     throw error;
   }
 }
@@ -231,7 +236,7 @@ export async function refreshSession(): Promise<Session | null> {
  */
 export async function hasRole(role: string): Promise<boolean> {
   const user = await getUser();
-  return user?.user_metadata?.role === role;
+  return user?.user_metadata?.['role'] === role;
 }
 
 /**

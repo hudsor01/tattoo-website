@@ -3,9 +3,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/styling';
-import { StatusBadgeProps } from '@/types/Components';
-
-type StatusType = 'success' | 'warning' | 'error' | 'info';
+import type { StatusBadgeProps, StatusType } from '@/types/component-types';
 
 export default function StatusBadge({ status, text }: StatusBadgeProps) {
   const getVariantClass = (status: StatusType) => {

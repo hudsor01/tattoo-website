@@ -6,19 +6,19 @@
  */
 
 import { Resend } from 'resend';
-import { EmailRecipient, EmailOptions } from '@/types/email-types';
+import type { EmailRecipient, EmailOptions } from '@/types/email-types';
 
 // Default sender email address
 export const DEFAULT_FROM_EMAIL: EmailRecipient = {
-  email: process.env.EMAIL_FROM || 'fernando@ink37tattoos.com',
-  name: process.env.EMAIL_FROM_NAME || 'Fernando Govea | Ink 37',
+  email: process.env['EMAIL_FROM'] || 'fernando@ink37tattoos.com',
+  name: process.env['EMAIL_FROM_NAME'] || 'Fernando Govea | Ink 37',
 };
 
 // Function to create and initialize Resend client
 export function createResend(): Resend | null {
   try {
-    if (process.env.RESEND_API_KEY) {
-      const client = new Resend(process.env.RESEND_API_KEY);
+    if (process.env['RESEND_API_KEY']) {
+      const client = new Resend(process.env['RESEND_API_KEY']);
       console.info('Resend client initialized successfully');
       return client;
     } else {
@@ -50,7 +50,7 @@ export async function sendEmail(
     // Check if API key is configured and client is available
     if (!resendClient) {
       // For development, log the email content instead of sending
-      if (process.env.NODE_ENV !== 'production') {
+      if (process.env['NODE_ENV'] !== 'production') {
         console.info('===== DEVELOPMENT EMAIL =====');
         console.info(`To: ${options.to.name} <${options.to.email}>`);
         console.info(`Subject: ${options.subject}`);
@@ -82,7 +82,7 @@ export async function sendEmail(
       subject: options.subject,
       html: options.html,
       text: options.text,
-      replyTo: options.replyTo ? `${options.replyTo.name} <${options.replyTo.email}>` : undefined,
+      replyTo: options.replyTo ? `${options.replyTo.name} <${options.replyTo.email}>` : null,
       cc: ccAddresses,
       bcc: bccAddresses,
       attachments: options.attachments?.map(attachment => ({
