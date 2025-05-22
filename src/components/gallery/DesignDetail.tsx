@@ -207,7 +207,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
             )}
           </div>
           
-          {design?.Artist?.user && (
+          {design?.Artist?.User && (
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Artist</p>
               <Link 
@@ -215,17 +215,17 @@ export function DesignDetail({ id }: DesignDetailProps) {
                 className="flex items-center gap-3 group"
               >
                 <Avatar className="h-10 w-10">
-                  {design.Artist.user.image ? (
-                    <AvatarImage src={design.Artist.user.image} alt={design.Artist.user.name || 'Artist'} />
+                  {design.Artist.User.image ? (
+                    <AvatarImage src={design.Artist.User.image} alt={design.Artist.User.name || 'Artist'} />
                   ) : (
                     <AvatarFallback>
-                      {design.Artist.user.name ? design.Artist.user.name.charAt(0).toUpperCase() : 'A'}
+                      {design.Artist.User.name ? design.Artist.User.name.charAt(0).toUpperCase() : 'A'}
                     </AvatarFallback>
                   )}
                 </Avatar>
                 <div>
                   <p className="font-medium group-hover:text-primary transition-colors">
-                    {design.Artist.user.name}
+                    {design.Artist.User.name}
                   </p>
                   {design.Artist.specialty && (
                     <p className="text-sm text-muted-foreground">
