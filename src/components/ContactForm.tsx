@@ -45,8 +45,8 @@ const formVariants: SimpleVariant = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.07,
-      delayChildren: 0.1,
+      staggerChildren: 0.02,
+      delayChildren: 0,
     },
   },
 };
@@ -57,7 +57,7 @@ const formItemVariants: SimpleVariant = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4,
+      duration: 0.2,
       ease: [0.22, 1, 0.36, 1],
     },
   },
@@ -67,7 +67,7 @@ const galleryVariants: SimpleVariant = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.02 },
   },
 };
 

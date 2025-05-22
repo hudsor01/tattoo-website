@@ -86,7 +86,7 @@ export default function FeaturedCarousel({
                     priority={index < 3}
                     quality={90}
                     sizes="(max-width: 768px) 90vw, 50vw"
-                    className="object-cover transition-transform duration-700 hover:scale-105"
+                    className="object-cover transition-transform duration-300 hover:scale-105"
                   />
                   
                   {/* Image overlay gradient */}
