@@ -1,11 +1,3 @@
-/**
- * function-types.ts
- *
- * Type definitions for database functions and their results.
- * This file contains only type definitions, no implementation code.
- */
-
-// Types for function parameters and results
 export type AppointmentAvailabilityResult = {
   is_available: boolean;
   conflicts: unknown[] | null;
@@ -130,7 +122,6 @@ export type BusinessDashboardMetrics = {
   }>;
 };
 
-// Type for customer search result
 export type CustomerSearchResult = {
   customer_id: string;
   first_name: string;

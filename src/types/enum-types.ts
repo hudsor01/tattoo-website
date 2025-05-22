@@ -1,15 +1,3 @@
-/**
- * enum-types.ts
- *
- * Centralized place for all enums, constant types, and type literals
- * used throughout the application.
- */
-
-// Status enums for various entities
-
-/**
- * Appointment Status
- */
 export enum AppointmentStatus {
   PENDING = 'pending',
   SCHEDULED = 'scheduled',
@@ -20,9 +8,6 @@ export enum AppointmentStatus {
   NO_SHOW = 'no_show',
 }
 
-/**
- * Payment Status
- */
 export enum PaymentStatus {
   PENDING = 'pending',
   PAID = 'paid',
@@ -33,9 +18,6 @@ export enum PaymentStatus {
   VERIFIED = 'verified',
 }
 
-/**
- * User Role
- */
 export enum UserRole {
   ADMIN = 'admin',
   ARTIST = 'artist',
@@ -43,9 +25,6 @@ export enum UserRole {
   GUEST = 'guest',
 }
 
-/**
- * User Status
- */
 export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
@@ -53,18 +32,12 @@ export enum UserStatus {
   BLOCKED = 'blocked',
 }
 
-/**
- * Payment Type
- */
 export enum PaymentType {
   DEPOSIT = 'deposit',
   FULL = 'full',
   OTHER = 'other',
 }
 
-/**
- * Payment Method
- */
 export enum PaymentMethod {
   CREDIT_CARD = 'card',
   CASH = 'cash',
@@ -73,9 +46,6 @@ export enum PaymentMethod {
   CASHAPP = 'cashapp',
 }
 
-/**
- * Booking Source
- */
 export enum BookingSource {
   WEBSITE = 'website',
   PHONE = 'phone',
@@ -85,9 +55,6 @@ export enum BookingSource {
   REFERRAL = 'referral',
 }
 
-/**
- * Tattoo Size
- */
 export enum TattooSize {
   SMALL = 'small',
   MEDIUM = 'medium',
@@ -99,9 +66,6 @@ export enum TattooSize {
   CUSTOM = 'custom',
 }
 
-/**
- * Tattoo Style
- */
 export enum TattooStyle {
   TRADITIONAL = 'traditional',
   NEO_TRADITIONAL = 'neo_traditional',
@@ -118,9 +82,6 @@ export enum TattooStyle {
   CUSTOM = 'custom',
 }
 
-/**
- * Notification Type
- */
 export enum NotificationType {
   APPOINTMENT_REMINDER = 'appointment_reminder',
   APPOINTMENT_BOOKED = 'appointment_booked',
@@ -132,9 +93,6 @@ export enum NotificationType {
   MESSAGE_RECEIVED = 'message_received',
 }
 
-/**
- * Booking Status
- */
 export enum BookingStatus {
   NEW = 'new',
   CONFIRMED = 'confirmed',
@@ -144,9 +102,6 @@ export enum BookingStatus {
   RESCHEDULED = 'rescheduled',
 }
 
-/**
- * Client Status
- */
 export enum ClientStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
@@ -154,9 +109,6 @@ export enum ClientStatus {
   BLACKLISTED = 'blacklisted',
 }
 
-/**
- * Email Status
- */
 export enum EmailStatus {
   SENT = 'sent',
   DELIVERED = 'delivered',
@@ -167,9 +119,6 @@ export enum EmailStatus {
   SPAM = 'spam',
 }
 
-/**
- * UI Breakpoints
- */
 export enum Breakpoint {
   XS = 'xs',
   SM = 'sm',
@@ -179,9 +128,6 @@ export enum Breakpoint {
   XXL = 'xxl',
 }
 
-/**
- * Contact Form Status
- */
 export enum ContactFormStatus {
   NEW = 'new',
   CONTACTED = 'contacted',
@@ -190,9 +136,6 @@ export enum ContactFormStatus {
   SPAM = 'spam',
 }
 
-/**
- * CRM Lead Status
- */
 export enum LeadStatus {
   NEW = 'new',
   CONTACTED = 'contacted',
@@ -202,9 +145,6 @@ export enum LeadStatus {
   LOST = 'lost',
 }
 
-/**
- * Gallery Image Status
- */
 export enum GalleryImageStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
@@ -213,9 +153,6 @@ export enum GalleryImageStatus {
   REJECTED = 'rejected',
 }
 
-/**
- * File Upload Status
- */
 export enum UploadStatus {
   PENDING = 'pending',
   UPLOADING = 'uploading',

@@ -34,7 +34,6 @@ const clientPortalRoutes = [
  */
 const adminRoutes = [
   '/admin-dashboard',
-  '/admin-dashboard/analytics',
   '/admin-dashboard/bookings',
   '/admin-dashboard/appointments',
   '/admin-dashboard/cal-bookings',

@@ -6,7 +6,7 @@
  */
 
 import { prisma } from './prisma';
-import type { ExecuteStoredProcedureOptions, DatabaseResult } from '../types/database.types';
+import type { ExecuteStoredProcedureOptions, DatabaseResult } from './types/database.types';
 import { getErrorMessage } from '@/lib/utils/server';
 
 /**

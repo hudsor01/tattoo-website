@@ -6,6 +6,15 @@
 import type { ReactNode, ButtonHTMLAttributes, ComponentType, HTMLAttributes } from 'react';
 import type { VariantProps } from 'class-variance-authority';
 import type { buttonVariants } from '@/components/ui/button';
+
+// Export ButtonProps type
+export type ButtonProps = React.ComponentProps<"button"> & 
+  VariantProps<typeof buttonVariants> & { 
+    asChild?: boolean;
+    href?: string;
+    children?: React.ReactNode;
+    isActive?: boolean;
+  };
 import type { FieldValues, FieldPath, UseFormReturn } from 'react-hook-form';
 import type { ThemeColor } from './enum-types';
 import { z } from 'zod';
@@ -68,7 +77,7 @@ export interface InfiniteLoaderProps {
 
 // Simple variant with just target properties
 export interface SimpleVariant {
-  [key: string]: Target;
+  [key: string]: Target | TargetAndTransition;
 }
 
 // Variant with transition properties
@@ -96,6 +105,15 @@ export interface IconProps {
   className?: string;
   size?: number | string;
   color?: string;
+}
+
+export interface LogoProps {
+  className?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'full' | 'icon' | 'text';
+  href?: string;
+  onClick?: () => void;
+  isLinked?: boolean;
 }
 
 // Type for Lucide React icons
@@ -469,7 +487,7 @@ export interface ThemeProviderProps {
  * ========================================================================
  */
 
-export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
+export type ToastVariant = 'default' | 'success' | 'error' | 'destructive' | 'warning' | 'info';
 
 export interface ToastAction {
   label: string;
@@ -713,6 +731,7 @@ export type FileUploadField = z.infer<typeof FileUploadFieldSchema>;
 
 // Service type for the ServiceCard component
 export interface Service {
+  features: string[];
   id: string;
   title: string;
   description: string;
@@ -725,6 +744,7 @@ export interface Service {
   image: string;
   icon: LucideIcon;
   color: string;
+  featured?: boolean; // Optional boolean property to indicate if a service is featured
 }
 
 export interface FAQAccordionProps {
@@ -732,4 +752,227 @@ export interface FAQAccordionProps {
     question: string;
     answer: string;
   }[];
+}
+
+/**
+ * ========================================================================
+ * ADMIN DASHBOARD COMPONENT TYPES
+ * ========================================================================
+ */
+
+export interface Column<T = Record<string, unknown>> {
+  header: string;
+  accessorKey?: keyof T;
+  renderCell?: (row: T) => React.ReactNode;
+}
+
+export interface PaginationState {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+}
+
+export interface ActionColumn<T = Record<string, unknown>> {
+  header: string;
+  renderCell?: (row: T) => React.ReactNode;
+  onView?: (id: string | number) => void;
+  onEdit?: (id: string | number) => void;
+  onDelete?: (id: string | number) => void;
+  width?: number;
+  renderCustomActions?: (id: string | number) => React.ReactNode;
+}
+
+export interface DataTableProps<T = Record<string, unknown>> {
+  rows: T[];
+  loading?: boolean;
+  error?: string | null;
+  searchValue?: string;
+  onSearch?: (value: string) => void;
+  onRefreshClick?: () => void;
+  onAddClick?: () => void;
+  onPaginationChange?: (page: number, pageSize: number) => void;
+  columnsConfig?: Column<T>[];
+  pagination?: PaginationState;
+  actionColumn?: ActionColumn<T>;
+  title?: string;
+  searchPlaceholder?: string;
+  customToolbarActions?: React.ReactNode;
+  columns?: any[];
+}
+
+export interface VirtualizedBookingsListProps {
+  defaultStatus?: string | null;
+  containerHeight?: number;
+}
+
+export type StatusType = 'success' | 'warning' | 'error' | 'info';
+
+export interface StatusBadgeProps extends UIElementProps {
+  status: StatusType;
+  text: string;
+}
+
+export interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+/**
+ * Cal.com specific component types
+ */
+export interface CalCustomInput {
+  label: string;
+  value: string;
+}
+
+/**
+ * ========================================================================
+ * GALLERY COMPONENT TYPES
+ * ========================================================================
+ */
+
+export type SharePlatform = "facebook" | "twitter" | "instagram" | "pinterest" | "email" | "linkedin";
+
+export interface ShareDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  contentType: "tattoo" | "video";
+  contentId: number;
+  title: string;
+}
+
+export interface ShareMetadata {
+  title: string;
+  description: string;
+  url: string;
+  image: string;
+}
+
+export interface ShareButton {
+  name: SharePlatform;
+  icon: React.ElementType;
+  color: string;
+}
+
+/**
+ * ========================================================================
+ * FAQ COMPONENT TYPES
+ * ========================================================================
+ */
+
+export interface FAQItemType {
+  question: string;
+  answer: string;
+}
+
+export interface FAQCategory {
+  id: string;
+  title: string;
+  items: FAQItemType[];
+}
+
+export interface FAQSearchProps {
+  categories: FAQCategory[];
+}
+
+export interface FAQAccordionProps {
+  items: FAQItemType[];
+}
+
+export interface AllFAQItem {
+  category: string;
+  id: string;
+  item: FAQItemType;
+}
+
+/**
+ * ========================================================================
+ * SERVICE COMPONENT TYPES
+ * ========================================================================
+ */
+
+export interface ServiceCardProps {
+  service: Service;
+  index: number;
+}
+
+export interface ServicesHeaderProps {
+  title?: string;
+  description?: string;
+}
+
+/**
+ * ========================================================================
+ * AUTH COMPONENT TYPES
+ * ========================================================================
+ */
+
+export type AuthProvider = 'google' | 'github' | 'twitter' | 'discord';
+
+export interface AuthFormProps {
+  isAdmin?: boolean;
+  redirectPath?: string;
+  showSocialLogin?: boolean;
+  showMagicLink?: boolean;
+  showRegister?: boolean;
+  providers?: AuthProvider[];
+}
+
+export interface ForgotPasswordFormProps {
+  redirectPath?: string;
+  onSuccess?: () => void;
+}
+
+export interface UpdatePasswordFormProps {
+  redirectPath?: string;
+  onSuccess?: () => void;
+}
+
+/**
+ * ========================================================================
+ * LAYOUT COMPONENT TYPES
+ * ========================================================================
+ */
+
+export interface SharedLayoutProps {
+  children: React.ReactNode;
+}
+
+export interface NavigationLink {
+  href: string;
+  label: string;
+  isButton?: boolean;
+}
+
+export interface FooterNavItem {
+  name: string;
+  href: string;
+}
+
+/**
+ * ========================================================================
+ * CONTACT COMPONENT TYPES
+ * ========================================================================
+ */
+
+export interface UploadedImage {
+  url: string;
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+}
+
+export interface SuccessMessageProps {
+  onReset: () => void;
+}
+
+export interface InvalidFileError {
+  file: File;
+  reason: string;
+}
+
+export interface ContactFormErrorResponse {
+  message?: string;
+  success: boolean;
+  errors?: Array<{ field: string; message: string }>;
 }

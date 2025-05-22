@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     siteName: 'Fernando Govea Tattoo',
     images: [
       {
-        url: '/images/fernando-artist.jpg',
+        url: '/images/japanese.jpg',
         width: 1200,
         height: 630,
         alt: 'Fernando Govea - Professional Tattoo Artist',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'About Fernando Govea - Professional Tattoo Artist',
     description: 'Learn about Fernando Govea\'s journey and experience in tattoo artistry.',
-    images: ['/images/fernando-artist.jpg'],
+    images: ['/images/cover-ups.jpg'],
   },
   alternates: {
     canonical: '/about',

@@ -11,7 +11,7 @@ import {
   emailSchema,
   phoneSchema,
   passwordSchema,
-  dateSchema,
+  dateSchema as DateSchema, // Renamed import to avoid conflict
   urlSchema,
   idSchema,
   addressSchema,
@@ -27,6 +27,29 @@ import {
   successResponseSchema,
   apiResponseSchema
 } from '@/lib/validations/validation-core';
+
+// Re-export schemas
+export {
+  nameSchema,
+  emailSchema,
+  phoneSchema,
+  passwordSchema,
+  DateSchema,
+  urlSchema,
+  idSchema,
+  addressSchema,
+  contactInfoSchema,
+  paginationSchema,
+  dateRangeSchema,
+  searchSchema,
+  uuidParamSchema,
+  numericIdParamSchema,
+  sortingSchema,
+  paginatedResponseSchema,
+  errorResponseSchema,
+  successResponseSchema,
+  apiResponseSchema
+};
 
 /**
  * Field option types
@@ -50,7 +73,7 @@ export type NameSchema = z.infer<typeof nameSchema>;
 export type EmailSchema = z.infer<typeof emailSchema>;
 export type PhoneSchema = z.infer<typeof phoneSchema>;
 export type PasswordSchema = z.infer<typeof passwordSchema>;
-export type DateSchema = z.infer<typeof dateSchema>;
+export type DateSchema = z.infer<typeof DateSchema>;
 export type UrlSchema = z.infer<typeof urlSchema>;
 export type IdSchema = z.infer<typeof idSchema>;
 

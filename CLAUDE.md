@@ -12,7 +12,7 @@ Tattoo website built with Next.js 15, featuring a client portal, admin dashboard
 - **Language**: TypeScript 5.8.3
 - **UI Components**: Material UI v7, shadcn/ui, Tailwind CSS v4
 - **Authentication**: Supabase Auth
-- **Database**: SQLite (development) with Prisma ORM
+- **Database**: PostgreSQL (Supabase) with Prisma ORM
 - **API Layer**: tRPC v11
 - **State Management**: Zustand v5
 - **Data Fetching**: TanStack Query v5 with tRPC integration
@@ -60,7 +60,9 @@ Required environment variables (see `.env.example`):
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server-side only)
-- `DATABASE_URL` - SQLite database path (e.g., file:./prisma/dev.db)
+- `DATABASE_URL` - Supabase PostgreSQL connection string:
+  - `postgresql://postgres.qrcweallqlcgwiwzhqpb:[PASSWORD]@aws-0-us-east-2.pooler.supabase.com:5432/postgres`
+  - Password is available in the .env file
 - `RESEND_API_KEY` - Resend API key for emails
 - `STRIPE_SECRET_KEY` - Stripe secret key
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
@@ -156,6 +158,8 @@ The application uses the following main data models:
 
 8. **AnalyticsEvent**: Tracks user interactions, page views, and other analytics events.
 
+9. **PricingTier**: Defines different service pricing options and tiers.
+
 ## Common Development Tasks
 
 ### Working with Prisma and Database
@@ -194,6 +198,17 @@ To track new types of events:
 4. Add a tracking method to the `useAnalytics` hook
 5. Add a tRPC procedure in the analytics router if needed
 
+### Creating New UI Components
+
+Follow these steps when adding new UI components:
+
+1. Create component file in `/src/components/` following kebab-case naming
+2. Determine if it should be a Server or Client component
+3. Import types from `/src/types/` directory
+4. Use shadcn/ui or Material UI base components when appropriate
+5. Implement responsive design with Tailwind classes
+6. Add analytics tracking if the component has important user interactions
+
 ### File Organization
 
 - **Components**: `/src/components/` - Organized by feature
@@ -225,6 +240,8 @@ enum UserRole { ... }
 3. Use Next.js Image component for optimization
 4. Lazy load heavy components with dynamic imports
 5. Implement virtualization for long lists
+6. Optimize network requests with tRPC batching
+7. Minimize client-side JavaScript with progressive enhancement
 
 ## Security Best Practices
 
@@ -233,6 +250,8 @@ enum UserRole { ... }
 3. Role-based access control implemented  
 4. Environment variables for sensitive data
 5. Server-only operations in Server Components
+6. Sanitize user-generated content before rendering
+7. Implement proper CSRF protection
 
 ## Testing Strategy
 
@@ -284,6 +303,13 @@ If analytics events aren't being tracked:
 3. Check network requests for API errors
 4. Ensure proper event category and action names are used
 
+### Cal.com Integration Issues
+When Cal.com booking integration fails:
+1. Verify the API keys in environment variables
+2. Check webhook configurations in Cal.com dashboard
+3. Ensure correct event type IDs are used in the integration
+4. Check for errors in the Cal.com webhook handler
+
 ## Deployment Notes
 
 - Build outputs to standalone mode for optimal deployment
@@ -291,6 +317,7 @@ If analytics events aren't being tracked:
 - TypeScript errors are ignored during builds (check manually with `npm run type-check`)
 - Database migrations must be run manually in production
 - All environment variables must be set in deployment platform
+- Node.js 22+ is required for deployment
 
 ## Recent Changes
 

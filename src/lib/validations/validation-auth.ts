@@ -42,7 +42,7 @@ export const registrationSchema = createSchema({
   phone: createField.phone({ required: false }),
   agreeToTerms: createField.agreement('You must agree to the terms and conditions'),
   marketingConsent: z.boolean().default(false),
-}).refine(data => data.password === data.confirmPassword, {
+}).refine(data => data['password'] === data['confirmPassword'], {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 });
@@ -84,7 +84,7 @@ export const resetPasswordSchema = createSchema({
   password: createField.password(),
   confirmPassword: z.string().min(1, { message: 'Please confirm your password' }),
   token: z.string().min(1, { message: 'Reset token is required' }),
-}).refine(data => data.password === data.confirmPassword, {
+}).refine(data => data['password'] === data['confirmPassword'], {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 });
@@ -101,7 +101,7 @@ export const changePasswordSchema = createSchema({
   currentPassword: z.string().min(1, { message: 'Current password is required' }),
   newPassword: createField.password(),
   confirmPassword: z.string().min(1, { message: 'Please confirm your password' }),
-}).refine(data => data.newPassword === data.confirmPassword, {
+}).refine(data => data['newPassword'] === data['confirmPassword'], {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 });

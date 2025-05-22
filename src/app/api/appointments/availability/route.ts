@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let parsedEndTime: Date | undefined;
+    let parsedEndTime: Date | null;
 
     // If endTime is not provided but size is, calculate endTime based on tattoo parameters
     if (!endTime && size) {
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       artistId,
       new Date(startTime),
       parsedEndTime,
-      appointmentId || undefined
+      appointmentId || null
     );
 
     // Return availability information

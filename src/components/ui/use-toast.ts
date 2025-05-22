@@ -44,11 +44,11 @@ type Action =
     }
   | {
       type: ActionType["DISMISS_TOAST"]
-      toastId?: string
+      toastId?: string | undefined
     }
   | {
       type: ActionType["REMOVE_TOAST"]
-      toastId?: string
+      toastId?: string | undefined
     }
 
 interface State {
@@ -88,7 +88,7 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         toasts: state.toasts.map((t) =>
-          t.id === toastId || toastId === undefined
+          t.id === toastId || toastId === null
             ? {
                 ...t,
                 open: false,
@@ -98,7 +98,7 @@ const reducer = (state: State, action: Action): State => {
       }
     }
     case actionTypes.REMOVE_TOAST:
-      if (action.toastId === undefined) {
+      if (action.toastId === null) {
         return {
           ...state,
           toasts: [],

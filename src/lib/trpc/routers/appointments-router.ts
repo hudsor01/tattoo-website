@@ -222,13 +222,13 @@ export const appointmentsRouter = router({
         
         // Prepare update data
         const updateData: Record<string, unknown> = {};
-        if (input.title) updateData.title = input.title;
-        if (input.description !== undefined) updateData.description = input.description;
-        if (input.start_date) updateData.start_date = input.start_date.toISOString();
-        if (input.end_date) updateData.end_date = input.end_date.toISOString();
-        if (input.status) updateData.status = input.status;
-        if (input.deposit_paid !== undefined) updateData.deposit_paid = input.deposit_paid;
-        updateData.updated_at = new Date().toISOString();
+        if (input.title) updateData['title'] = input.title;
+        if (input.description !== null) updateData['description'] = input.description;
+        if (input.start_date) updateData['start_date'] = input.start_date.toISOString();
+        if (input.end_date) updateData['end_date'] = input.end_date.toISOString();
+        if (input.status) updateData['status'] = input.status;
+        if (input.deposit_paid !== null) updateData['deposit_paid'] = input.deposit_paid;
+        updateData['updated_at'] = new Date().toISOString();
         
         // Update the appointment
         const { data: updatedAppointment, error } = await supabase

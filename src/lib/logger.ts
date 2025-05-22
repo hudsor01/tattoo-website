@@ -26,8 +26,8 @@ interface LoggerInterface {
   debug: (message: LogMessage, data?: LogData) => void;
 }
 
-// Client-side logger implementation
-const clientLogger: LoggerInterface = {
+// Shared logger implementation for both client and server
+const consoleLogger: LoggerInterface = {
   error: (message: LogMessage, data?: LogData) => {
     console.error(`ERROR: ${message}`, data || '');
   },
@@ -41,115 +41,36 @@ const clientLogger: LoggerInterface = {
     console.info(`HTTP: ${message}`, data || '');
   },
   debug: (message: LogMessage, data?: LogData) => {
-    // Use console.info instead of console.debug to comply with ESLint rules
+    // Use console.info instead of console.debug for better visibility
     console.info(`DEBUG: ${message}`, data || '');
   },
 };
 
-// Dynamically loaded server logger to avoid build issues
-let serverLogger: LoggerInterface | null = null;
-
-// This function is only called on the server side
-const getServerLogger = (): LoggerInterface => {
-  // If we already initialized it, return the instance
-  if (serverLogger) return serverLogger;
-
-  try {
-    // Dynamically import winston - only works on server
-    // using eval to prevent webpack from trying to bundle this
-     
-    const winston = eval("require('winston')");
-
-    // Define colors for each log level
-    const colors = {
-      error: 'red',
-      warn: 'yellow',
-      info: 'green',
-      http: 'magenta',
-      debug: 'blue',
-    };
-
-    // Add colors to winston
-    winston.addColors(colors);
-
-    // Determine log level based on environment
-    const level = process.env.NODE_ENV === 'development' ? 'debug' : 'warn';
-
-    // Define format for server-side logging
-    const serverFormat = winston.format.combine(
-      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-      winston.format.colorize({ all: true }),
-      winston.format.printf(
-        (info: { timestamp: string; level: string; message: string; data?: unknown }) =>
-          `${info.timestamp} ${info.level}: ${info.message} ${
-            info.data ? JSON.stringify(info.data) : ''
-          }`,
-      ),
-    );
-
-    // Create different transports for different environments
-    const transports = [
-      // Always log errors to a file
-      new winston.transports.File({
-        filename: 'logs/error.log',
-        level: 'error',
-        format: winston.format.uncolorize(),
-      }),
-      // Log all messages to a combined file
-      new winston.transports.File({
-        filename: 'logs/combined.log',
-        format: winston.format.uncolorize(),
-      }),
-    ];
-
-    // If we're not in production, log to the console
-    if (process.env.NODE_ENV !== 'production') {
-      transports.push(
-        new winston.transports.Console({
-          format: serverFormat,
-        }),
-      );
-    }
-
-    // Create the winston logger
-    const winstonLogger = winston.createLogger({
-      level,
-      levels: {
-        error: LogLevel.ERROR,
-        warn: LogLevel.WARN,
-        info: LogLevel.INFO,
-        http: LogLevel.HTTP,
-        debug: LogLevel.DEBUG,
-      },
-      format: winston.format.json(),
-      transports,
-    });
-
-    // Create the server logger interface
-    serverLogger = {
-      error: (message: LogMessage, data?: LogData) => {
-        winstonLogger.error(message, { data });
-      },
-      warn: (message: LogMessage, data?: LogData) => {
-        winstonLogger.warn(message, { data });
-      },
-      info: (message: LogMessage, data?: LogData) => {
-        winstonLogger.info(message, { data });
-      },
-      http: (message: LogMessage, data?: LogData) => {
-        winstonLogger.http(message, { data });
-      },
-      debug: (message: LogMessage, data?: LogData) => {
-        winstonLogger.debug(message, { data });
-      },
-    };
-
-    return serverLogger;
-  } catch (error) {
-    // If winston fails to load, fallback to console
-    console.error('Failed to initialize server logger, using console fallback', error);
-    return clientLogger;
-  }
+/**
+ * Enhanced server logger that adds timestamps
+ * but still uses console to avoid dependencies
+ */
+const serverLogger: LoggerInterface = {
+  error: (message: LogMessage, data?: LogData) => {
+    const timestamp = new Date().toISOString();
+    console.error(`${timestamp} ERROR: ${message}`, data || '');
+  },
+  warn: (message: LogMessage, data?: LogData) => {
+    const timestamp = new Date().toISOString();
+    console.warn(`${timestamp} WARN: ${message}`, data || '');
+  },
+  info: (message: LogMessage, data?: LogData) => {
+    const timestamp = new Date().toISOString();
+    console.info(`${timestamp} INFO: ${message}`, data || '');
+  },
+  http: (message: LogMessage, data?: LogData) => {
+    const timestamp = new Date().toISOString();
+    console.info(`${timestamp} HTTP: ${message}`, data || '');
+  },
+  debug: (message: LogMessage, data?: LogData) => {
+    const timestamp = new Date().toISOString();
+    console.info(`${timestamp} DEBUG: ${message}`, data || '');
+  },
 };
 
 // Create a proxy that will use the appropriate logger based on environment
@@ -159,7 +80,7 @@ const logger = new Proxy<LoggerInterface>({} as LoggerInterface, {
     const isClient = typeof window !== 'undefined';
     
     // Use the appropriate logger
-    const currentLogger = isClient ? clientLogger : getServerLogger();
+    const currentLogger = isClient ? consoleLogger : serverLogger;
     
     // Return the requested method
     return currentLogger[prop as keyof LoggerInterface];

@@ -24,10 +24,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 import { 
   Users, 
@@ -41,6 +38,7 @@ import {
   Info,
   Loader2
 } from 'lucide-react';
+import { trpc } from '@/lib/trpc/client';
 
 interface Contact {
   id: string;
@@ -52,67 +50,10 @@ interface Contact {
   createdAt: string;
 }
 
-interface Booking {
-  id: number;
-  name: string;
-  email: string;
-  service: string;
-  date: string;
-  status: 'pending' | 'confirmed' | 'completed';
-}
-
-interface Stats {
-  totalBookings: number;
-  pendingBookings: number;
-  totalContacts: number;
-  newsletterSubscribers: number;
-}
-
 interface ChartDataItem {
   name: string;
   bookings: number;
 }
-
-interface PieDataItem {
-  name: string;
-  value: number;
-  color: string;
-}
-
-// Mock data for development
-const recentBookings: Booking[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    service: "Full Sleeve",
-    date: "2025-05-25",
-    status: "pending"
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    service: "Half Sleeve",
-    date: "2025-05-26",
-    status: "confirmed"
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    email: "mike@example.com",
-    service: "Back Piece",
-    date: "2025-05-27",
-    status: "completed"
-  }
-];
-
-const mockStats: Stats = {
-  totalBookings: 156,
-  pendingBookings: 12,
-  totalContacts: 87,
-  newsletterSubscribers: 45,
-};
 
 const chartData: ChartDataItem[] = [
   { name: "Mon", bookings: 5 },
@@ -124,73 +65,64 @@ const chartData: ChartDataItem[] = [
   { name: "Sun", bookings: 6 },
 ];
 
-const pieData: PieDataItem[] = [
-  { name: "Full Sleeve", value: 35, color: "#10b981" },
-  { name: "Half Sleeve", value: 25, color: "#3b82f6" },
-  { name: "Back Piece", value: 15, color: "#8b5cf6" },
-  { name: "Small Tattoo", value: 25, color: "#f97316" },
-];
-
 export default function AdminDashboardPage() {
-  const { user, isAdmin } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBookings, setSelectedBookings] = useState<number[]>([]);
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [contactsLoading, setContactsLoading] = useState<boolean>(false);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
-  const [dashboardStats, setDashboardStats] = useState({
-    totalCustomers: 0,
-    pendingBookings: 0,
-    completedAppointments: 0,
-    recentMessages: 0,
+  
+  // Fetch dashboard stats with tRPC
+  const { data: statsData } = trpc.dashboard.getStats.useQuery();
+  
+  // Fetch recent bookings
+  const { data: bookingsData, isLoading: bookingsLoading } = trpc.dashboard.getRecentBookings.useQuery({ 
+    limit: 10,
+    status: filterStatus !== 'all' ? filterStatus : undefined
+  }, {
+    enabled: !isLoading,
   });
-
-  // Load dashboard data
+  
+  // Fetch weekly booking data for chart
+  const { data: weeklyData, isLoading: weeklyLoading } = trpc.dashboard.getWeeklyBookings.useQuery(undefined, {
+    enabled: !isLoading,
+  });
+  
+  // Fetch service distribution for pie chart
+  const { data: serviceData, isLoading: serviceLoading } = trpc.dashboard.getServiceDistribution.useQuery(undefined, {
+    enabled: !isLoading,
+  });
+  
+  // Fetch recent contacts
+  const { data: contactsData, isLoading: contactsLoading } = trpc.dashboard.getRecentContacts.useQuery({
+    limit: 10
+  }, {
+    enabled: !isLoading,
+  });
+  
+  // Fetch recent activity
+  const { data: activityData, isLoading: activityLoading } = trpc.dashboard.getRecentActivity.useQuery({
+    limit: 5
+  }, {
+    enabled: !isLoading,
+  });
+  
+  // Set contacts when data is fetched
   useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        setIsLoading(true);
-        
-        // In a real implementation, this would fetch actual data
-        // Allow some time to simulate loading
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        setDashboardStats({
-          totalCustomers: 128,
-          pendingBookings: mockStats.pendingBookings,
-          completedAppointments: 65,
-          recentMessages: 8,
-        });
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    if (contactsData) {
+      setContacts(contactsData);
     }
+  }, [contactsData]);
 
-    // Fetch contacts on mount
-    const fetchContacts = async () => {
-      setContactsLoading(true);
-      try {
-        const response = await fetch('/api/admin/contacts');
-        if (!response.ok) {
-          throw new Error('Failed to fetch contacts');
-        }
-        const data = await response.json();
-        setContacts(data.contacts || []);
-      } catch (error) {
-        console.error('Error fetching contacts:', error);
-      } finally {
-        setContactsLoading(false);
-      }
-    };
-
-    loadDashboardData();
-    fetchContacts();
-  }, []);
+  // Update loading state when stats are fetched
+  useEffect(() => {
+    if (statsData) {
+      setIsLoading(false);
+    }
+  }, [statsData]);
 
   const handleLogout = (): void => {
     // Clear JWT token
@@ -201,7 +133,7 @@ export default function AdminDashboardPage() {
   const exportData = (): void => {
     const csvContent = `data:text/csv;charset=utf-8,` +
       `Name,Email,Service,Date,Status\n${ 
-      recentBookings.map(booking => 
+      bookings.map((booking) => 
         `${booking.name},${booking.email},${booking.service},${booking.date},${booking.status}`
       ).join('\n')}`;
     
@@ -220,16 +152,17 @@ export default function AdminDashboardPage() {
   };
 
   const handleSelectAll = (): void => {
-    if (selectedBookings.length === filteredBookings.length) {
+    if (selectedBookings.length === bookings.length) {
       setSelectedBookings([]);
     } else {
-      setSelectedBookings(filteredBookings.map(b => b.id));
+      setSelectedBookings(bookings.map(b => b.id));
     }
   };
 
-  const filteredBookings: Booking[] = recentBookings.filter(booking => 
-    filterStatus === 'all' || booking.status === filterStatus
-  );
+  // Use real bookings data if available, otherwise fallback to empty array
+  const bookings = bookingsData || [];
+  
+  // No need to filter here as the tRPC query already filters by status
 
   const exportContacts = async (): Promise<void> => {
     try {
@@ -272,28 +205,28 @@ export default function AdminDashboardPage() {
   const statCards = [
     {
       title: 'Total Bookings',
-      value: mockStats.totalBookings,
+      value: statsData?.summary?.appointments?.total || 0,
       icon: <Calendar className="h-5 w-5" />,
       color: 'text-green-500',
       bgColor: 'bg-green-100',
     },
     {
       title: 'Pending Bookings',
-      value: dashboardStats.pendingBookings,
+      value: statsData?.pendingBookings || 0,
       icon: <AlertCircle className="h-5 w-5" />,
       color: 'text-yellow-500',
       bgColor: 'bg-yellow-100',
     },
     {
       title: 'Total Contacts',
-      value: mockStats.totalContacts,
+      value: statsData?.summary?.customers?.total || 0,
       icon: <MessageSquare className="h-5 w-5" />,
       color: 'text-blue-500',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Newsletter',
-      value: mockStats.newsletterSubscribers,
+      title: 'Total Customers',
+      value: statsData?.totalCustomers || 0,
       icon: <Users className="h-5 w-5" />,
       color: 'text-purple-500',
       bgColor: 'bg-purple-100',
@@ -328,13 +261,15 @@ export default function AdminDashboardPage() {
 
       {/* Alerts */}
       <div className="mb-8 space-y-4">
-        <Alert variant="warning">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Pending Bookings</AlertTitle>
-          <AlertDescription>
-            You have {mockStats.pendingBookings} bookings awaiting confirmation.
-          </AlertDescription>
-        </Alert>
+        {statsData?.pendingBookings && statsData.pendingBookings > 0 && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Pending Bookings</AlertTitle>
+            <AlertDescription>
+              You have {statsData.pendingBookings} bookings awaiting confirmation.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -360,14 +295,69 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
+      {/* Weekly Bookings Chart */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Weekly Bookings</CardTitle>
+          <CardDescription>Booking trends over the past week</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80">
+            {weeklyLoading ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyData || chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <RechartsTooltip />
+                  <Bar dataKey="bookings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Service Distribution */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Service Distribution</CardTitle>
+          <CardDescription>Breakdown of services requested</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {serviceLoading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : serviceData && serviceData.length > 0 ? (
+            <div className="space-y-4">
+              {serviceData.map((service, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{service.name}</p>
+                    <p className="text-sm text-muted-foreground">{((service.value / serviceData.reduce((acc, curr) => acc + curr.value, 0)) * 100).toFixed(1)}%</p>
+                  </div>
+                  <p className="font-bold">{service.value}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-4">
+              <p className="text-sm text-muted-foreground">No service data available</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Tabs */}
       <Tabs defaultValue="bookings" className="mb-8">
         <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="bookings">
             Bookings
-          </TabsTrigger>
-          <TabsTrigger value="analytics">
-            Analytics
           </TabsTrigger>
           <TabsTrigger value="contacts">
             Contacts
@@ -407,7 +397,7 @@ export default function AdminDashboardPage() {
                   <TableRow>
                     <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedBookings.length === filteredBookings.length}
+                        checked={selectedBookings.length === bookings.length && bookings.length > 0}
                         onCheckedChange={handleSelectAll}
                       />
                     </TableHead>
@@ -420,57 +410,73 @@ export default function AdminDashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredBookings.map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedBookings.includes(booking.id)}
-                          onCheckedChange={() => handleSelectBooking(booking.id)}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{booking.name}</TableCell>
-                      <TableCell>{booking.email}</TableCell>
-                      <TableCell>{booking.service}</TableCell>
-                      <TableCell>{booking.date}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                            booking.status === 'confirmed' ? 'default' :
-                            booking.status === 'pending' ? 'secondary' :
-                            'outline'
-                          }
-                        >
-                          {booking.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="ghost" className="text-green-500">
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="ghost" className="text-red-500">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Booking?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete the booking.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction className="bg-red-600">Delete</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                  {bookingsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center p-4">
+                        <div className="flex justify-center">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : bookings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center p-4">
+                        <p className="text-gray-500">No bookings found</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    bookings.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedBookings.includes(booking.id)}
+                            onCheckedChange={() => handleSelectBooking(booking.id)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{booking.name}</TableCell>
+                        <TableCell>{booking.email}</TableCell>
+                        <TableCell>{booking.service}</TableCell>
+                        <TableCell>{new Date(booking.date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={
+                              booking.status === 'confirmed' ? 'default' :
+                              booking.status === 'pending' ? 'secondary' :
+                              'outline'
+                            }
+                          >
+                            {booking.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" className="text-green-500">
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" className="text-red-500">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Booking?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the booking.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction className="bg-red-600">Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
 
@@ -479,85 +485,28 @@ export default function AdminDashboardPage() {
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious href="#" />
+                      <PaginationPrevious href="#" size="default" />
                     </PaginationItem>
                     <PaginationItem>
-                      <PaginationLink href="#" isActive>1</PaginationLink>
+                      <PaginationLink href="#" isActive size="default">1</PaginationLink>
                     </PaginationItem>
                     <PaginationItem>
-                      <PaginationLink href="#">2</PaginationLink>
+                      <PaginationLink href="#" size="default">2</PaginationLink>
                     </PaginationItem>
                     <PaginationItem>
-                      <PaginationLink href="#">3</PaginationLink>
+                      <PaginationLink href="#" size="default">3</PaginationLink>
                     </PaginationItem>
                     <PaginationItem>
                       <PaginationEllipsis />
                     </PaginationItem>
                     <PaginationItem>
-                      <PaginationNext href="#" />
+                      <PaginationNext href="#" size="default" />
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Weekly Bookings</CardTitle>
-                <CardDescription>Bookings trend over the past week</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <RechartsTooltip />
-                    <Bar dataKey="bookings" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Service Distribution</CardTitle>
-                <CardDescription>Breakdown of services requested</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="mt-4 space-y-2">
-                  {pieData.map((entry, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
-                      <span className="text-sm">{entry.name} - {entry.value}%</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="contacts" className="mt-6">
@@ -696,23 +645,23 @@ export default function AdminDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {activityLoading ? (
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
             </div>
-          ) : (
+          ) : activityData && activityData.length > 0 ? (
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                New booking from John Doe - Traditional sleeve
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Message from Jane Smith regarding appointment
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Payment received from Mike Johnson - $500
-              </p>
+              {activityData.map((activity, index) => (
+                <p key={index} className="text-sm text-muted-foreground">
+                  {activity.message}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-4">
+              <p className="text-sm text-muted-foreground">No recent activity</p>
             </div>
           )}
         </CardContent>

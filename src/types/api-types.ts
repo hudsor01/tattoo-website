@@ -6,9 +6,8 @@
  */
 
 import { z } from 'zod';
-// Importing but not using AxiosError, using it as a reference type in external code
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { AxiosError } from 'axios';
+// Import essential types
+import type { TRPCError } from '@trpc/server';
 import { PaymentStatus, PaymentType } from './enum-types';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -129,17 +128,18 @@ export interface FilterParams {
  * Query Parameters
  */
 export interface QueryParams {
-  [key: string]: string | number | boolean | undefined;
+  [key: string]: string | number | boolean | null;
 }
 
 /**
- * API Client Configuration
+ * TRPC Client Configuration Options
  */
-export interface ApiClientConfig {
-  baseUrl: string;
+export interface TRPCClientConfig {
+  transformer?: unknown;
   headers?: Record<string, string>;
-  timeout?: number;
-  withCredentials?: boolean;
+  abortOnUnmount?: boolean;
+  retries?: number;
+  retryDelay?: number;
 }
 
 /**
@@ -168,12 +168,19 @@ export interface ExternalApiConfig {
 }
 
 /**
- * Webhook Event
+ * Cal.com Webhook Event
  */
-export interface WebhookEvent {
+export interface CalWebhookEvent {
   id: string;
-  type: string;
-  data: Record<string, unknown>;
+  triggerEvent: string;
+  payload: {
+    bookingId?: string;
+    userId?: string;
+    cancellationReason?: string;
+    rescheduleReason?: string;
+    status?: string;
+    metadata?: Record<string, unknown>;
+  };
   createdAt: string | Date;
 }
 
@@ -209,8 +216,8 @@ export interface JobStatusResponse {
   estimatedCompletion?: string;
 }
 
-// Note: ApiRequestError has been moved to lib/errors/api-errors.ts
-export type { ApiRequestError } from '@/lib/api-errors';
+// Note: Using ApiError from api-errors.ts instead of former ApiRequestError
+export type { ApiError } from '@/lib/api-errors';
 
 // Authentication related API types
 
@@ -251,6 +258,36 @@ export interface ContactFormRequest {
   email: string;
   subject?: string;
   message: string;
+  hasReference?: boolean;
+  referenceImages?: string[];
+  agreeToTerms: boolean;
+}
+
+/**
+ * Contact Form API Response
+ */
+export interface ContactApiResponse {
+  success: boolean;
+  message?: string;
+  contactId?: number;
+  data?: {
+    name: string;
+    email: string;
+    subject?: string;
+    sentAt: string;
+  };
+}
+
+/**
+ * Contact Form API Error Response
+ */
+export interface ContactApiErrorResponse {
+  success: false;
+  message: string;
+  errors?: Array<{
+    path: string;
+    message: string;
+  }>;
 }
 
 /**
@@ -530,12 +567,19 @@ export const FileUploadResponseSchema = z.object({
 });
 
 /**
- * Webhook Event Schema
+ * Cal.com Webhook Event Schema
  */
-export const WebhookEventSchema = z.object({
+export const CalWebhookEventSchema = z.object({
   id: z.string(),
-  type: z.string(),
-  data: z.record(z.unknown()),
+  triggerEvent: z.string(),
+  payload: z.object({
+    bookingId: z.string().optional(),
+    userId: z.string().optional(),
+    cancellationReason: z.string().optional(),
+    rescheduleReason: z.string().optional(),
+    status: z.string().optional(),
+    metadata: z.record(z.unknown()).optional(),
+  }),
   createdAt: z.string().or(z.date()),
 });
 
@@ -561,53 +605,38 @@ export const ExternalApiConfigSchema = z.object({
 });
 
 /**
- * API Endpoint Configuration
+ * tRPC Procedure Configuration
  */
-export interface ApiEndpointConfig {
+export interface TRPCProcedureConfig {
   path: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  requiresAuth: boolean;
+  access: 'public' | 'protected' | 'admin';
   responseSchema?: z.ZodType<unknown>;
-  requestSchema?: z.ZodType<unknown>;
-  mockResponse?: unknown;
+  inputSchema?: z.ZodType<unknown>;
 }
 
 /**
- * Route Handler Types from api-route-types.ts
+ * tRPC Handler Types
  */
 
-// Duplicate of existing ErrorResponse - using existing type instead
-// export type ErrorResponse defined above
-
-// Duplicate of existing SuccessResponse - using existing type instead  
-// export type SuccessResponse<T> defined above
-
-// Generic API Response type already defined in base-types.ts
-// export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
-
-// Route handler config options
-export type RouteHandlerConfig = {
+export type TRPCMiddlewareConfig = {
   requireAuth?: boolean;
   requireAdmin?: boolean;
-  enableCaching?: boolean;
-  cacheTTL?: number; // in seconds
-  cacheKey?: string | ((req: NextRequest) => string);
+  cacheTime?: number; // in milliseconds
 };
 
 /**
- * Generic handler function type
- * @template T The type of the validated data
- * @template U The type of the user, defaults to unknown
- * @template R The type of the response data, defaults to unknown
+ * tRPC Context Middleware
  */
-export type HandlerFunction<T, U = unknown, R = unknown> = (
-  req: NextRequest,
-  context: {
-    params?: Record<string, string>;
-    user?: U;
-    validatedData?: T;
-  }
-) => Promise<ApiResponse<R> | NextResponse>;
+export interface TRPCMiddleware<TContext = unknown> {
+  name: string;
+  process: (opts: {
+    ctx: TContext; 
+    type: 'query' | 'mutation' | 'subscription';
+    path: string;
+    input: unknown;
+    next: () => Promise<unknown>;
+  }) => Promise<unknown>;
+}
 
 /**
  * ========================================================================
@@ -629,7 +658,12 @@ export interface Context {
   req: Request;
   headers: Headers;
   supabase: SupabaseClient;
-  user: unknown | null; // TODO: Replace with proper User type
+  user: {
+    id: string;
+    email?: string; 
+    role: 'user' | 'admin' | 'artist';
+    name?: string;
+  } | null;
 }
 
 /**
@@ -639,18 +673,11 @@ export interface Context {
 export type CreateContextReturn = Context;
 
 /**
- * tRPC router input types
- * To be populated by the AppRouter after definition
+ * tRPC router input/output types
+ * Import from lib/trpc/types.ts to avoid duplication
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
-export interface RouterInputs {}
-
-/**
- * tRPC router output types
- * To be populated by the AppRouter after definition
- */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
-export interface RouterOutputs {}
+import type { RouterInputs, RouterOutputs } from '@/lib/trpc/types';
+export type { RouterInputs, RouterOutputs };
 
 /**
  * ========================================================================
@@ -661,78 +688,65 @@ export interface RouterOutputs {}
 import type { FilterOptions, RecordObject } from './utility-types';
 
 /**
- * Options for creating query hooks
+ * Options for creating tRPC query hooks
  */
-export interface CreateQueryHooksOptions<
-  TResource extends string,
-  TListParams extends FilterOptions,
-  TDetail,
-  TCreate extends RecordObject,
-  TUpdate extends RecordObject,
-> {
+export interface TRPCQueryOptions<TInput = unknown> {
   /**
-   * Resource name, used in query keys (e.g., 'bookings', 'clients')
+   * Whether the query should execute
    */
-  resource: TResource;
-
+  enabled?: boolean;
+  
   /**
-   * API endpoint paths for different operations
+   * Time until the data becomes stale (in milliseconds)
    */
-  endpoints: {
-    list: string;
-    detail: (id: string | number) => string;
-    create?: string;
-    update?: (id: string | number) => string;
-    delete?: (id: string | number) => string;
-  };
-
+  staleTime?: number;
+  
   /**
-   * Zod schemas for validation
+   * Refetch interval (in milliseconds)
    */
-  schemas?: {
-    list?: {
-      params?: z.ZodType<TListParams>;
-      response?: z.ZodType<PaginatedResponse<TDetail> | ApiResponse<TDetail[]>>;
-    };
-    detail?: {
-      response?: z.ZodType<SuccessResponse<TDetail> | ApiResponse<TDetail>>;
-    };
-    create?: {
-      request?: z.ZodType<TCreate>;
-      response?: z.ZodType<SuccessResponse<TDetail> | ApiResponse<TDetail>>;
-    };
-    update?: {
-      request?: z.ZodType<TUpdate>;
-      response?: z.ZodType<SuccessResponse<TDetail> | ApiResponse<TDetail>>;
-    };
-  };
-
+  refetchInterval?: number | false;
+  
   /**
-   * Query client configuration
+   * Whether to refetch when window focuses
    */
-  config?: {
-    list?: {
-      staleTime?: number;
-      refetchInterval?: number | false;
-      enabled?: boolean;
-    };
-    detail?: {
-      staleTime?: number;
-      refetchInterval?: number | false;
-    };
-  };
+  refetchOnWindowFocus?: boolean;
+  
+  /**
+   * Success callback
+   */
+  onSuccess?: (data: unknown) => void;
+  
+  /**
+   * Error callback
+   */
+  onError?: (error: TRPCError) => void;
+  
+  /**
+   * Transform function to modify the response data
+   */
+  select?: (data: unknown) => unknown;
+  
+  /**
+   * Input parameters for the query
+   */
+  input?: TInput;
 }
 
 /**
- * Query keys for a resource
+ * tRPC query key helpers
  */
-export type QueryKeys<TResource extends string, TListParams> = {
-  all: readonly [TResource];
-  lists: () => readonly [TResource, string];
-  list: (params?: TListParams) => readonly [TResource, string, TListParams | undefined];
-  details: () => readonly [TResource, string];
-  detail: (id: string | number) => readonly [TResource, string, string | number];
-};
+export type TRPCQueryKey = string[];
+
+/**
+ * Helper utility to create tRPC query keys
+ */
+export const createTRPCQueryKeys = (namespace: string) => ({
+  all: [namespace] as const,
+  lists: () => [namespace, 'list'] as const,
+  list: (params?: Record<string, unknown>) => [namespace, 'list', params] as const,
+  detail: (id: string | number) => [namespace, 'detail', id.toString()] as const,
+  mutation: (type: string) => [namespace, 'mutation', type] as const
+});
 
 /**
  * API request error type
@@ -744,39 +758,39 @@ export interface ApiRequestError {
 }
 
 /**
- * Hook result type for list queries
+ * Hook result type for tRPC list queries
  */
-export interface UseListResult<TDetail> {
-  data?: PaginatedResponse<TDetail> | ApiResponse<TDetail[]>;
+export interface TRPCListQueryResult<TData> {
+  data?: TData;
   isLoading: boolean;
   isError: boolean;
-  error: ApiRequestError | null;
+  error: TRPCError | null;
   isFetching: boolean;
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 /**
- * Hook result type for detail queries
+ * Hook result type for tRPC detail queries
  */
-export interface UseDetailResult<TDetail> {
-  data?: SuccessResponse<TDetail> | ApiResponse<TDetail>;
+export interface TRPCDetailQueryResult<TData> {
+  data?: TData;
   isLoading: boolean;
   isError: boolean;
-  error: ApiRequestError | null;
+  error: TRPCError | null;
   isFetching: boolean;
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 /**
- * Hook result type for mutations
+ * Hook result type for tRPC mutations
  */
-export interface UseMutationResult<TResult, TVariables> {
+export interface TRPCMutationResult<TData, TVariables> {
   mutate: (variables: TVariables) => void;
-  mutateAsync: (variables: TVariables) => Promise<TResult>;
+  mutateAsync: (variables: TVariables) => Promise<TData>;
   isLoading: boolean;
   isError: boolean;
-  error: ApiRequestError | null;
+  error: TRPCError | null;
   isSuccess: boolean;
-  data?: TResult;
+  data?: TData;
   reset: () => void;
 }

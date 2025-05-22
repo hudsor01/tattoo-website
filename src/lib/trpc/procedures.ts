@@ -8,9 +8,10 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { logger } from '@/lib/logger';
+import type { TRPCContext } from './context';
 
 // Initialize tRPC with context
-const t = initTRPC.create({
+const t = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
   errorFormatter: ({ shape, error }) => ({
     ...shape,
@@ -39,6 +40,7 @@ const authMiddleware = middleware(async ({ ctx, next }) => {
       ...ctx, // ctx is already of type TRPCContext, so user should exist
       user: ctx.user!,
       db: ctx.prisma, // Ensure prisma is passed
+      supabase: ctx.supabase, // Ensure supabase is passed
     },
   });
 });
@@ -53,8 +55,8 @@ const adminMiddleware = middleware(async ({ ctx, next }) => {
   }
   
   // Check if user is admin
-  const isAdmin = ctx.user.user_metadata?.role === 'admin' || 
-                 ctx.user.app_metadata?.role === 'admin';
+  const isAdmin = ctx.user.user_metadata?.["role"] === 'admin' || 
+                 ctx.user.app_metadata?.["role"] === 'admin';
   
   if (!isAdmin) {
     throw new TRPCError({
@@ -68,6 +70,7 @@ const adminMiddleware = middleware(async ({ ctx, next }) => {
       ...ctx, // ctx is already of type TRPCContext, so user should exist
       user: ctx.user!,
       db: ctx.prisma, // Ensure prisma is passed
+      supabase: ctx.supabase, // Ensure supabase is passed
     },
   });
 });
@@ -92,6 +95,7 @@ export const publicProcedure = t.procedure
       ctx: {
         ...ctx,
         db: ctx.prisma, // Ensure prisma is passed
+        supabase: ctx.supabase, // Ensure supabase is passed
       },
     });
   }));

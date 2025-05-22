@@ -8,6 +8,8 @@ import { z } from 'zod';
 import { publicProcedure, protectedProcedure, adminProcedure, router } from '../server';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
+import type { DatabaseDesignType } from '@/types/gallery-types';
+import crypto from 'crypto';
 
 // Validation schema for creating a design
 export const designValidator = z.object({
@@ -47,16 +49,16 @@ export const galleryRouter = router({
       // Get total count
       const totalCount = await ctx.db.tattooDesign.count({ where });
       
-      // Get designs
-      const designs = await ctx.db.tattooDesign.findMany({
+      // Get designs with proper cursor handling for Prisma
+      // Build the query options separately to handle conditional cursor
+      const queryOptions: Prisma.TattooDesignFindManyArgs = {
         where,
         take: limit + 1, // take an extra item to determine if there are more
-        cursor: cursor ? { id: cursor } : undefined,
         orderBy: { createdAt: 'desc' },
         include: {
-          artist: {
+          Artist: {
             include: {
-              user: {
+              User: {
                 select: {
                   name: true,
                   image: true,
@@ -65,13 +67,21 @@ export const galleryRouter = router({
             }
           }
         }
-      });
+      };
+      
+      // Only add cursor if it's provided
+      if (cursor) {
+        queryOptions.cursor = { id: String(cursor) };
+      }
+      
+      // Execute the query with proper typing
+      const designs = await ctx.db.tattooDesign.findMany(queryOptions);
       
       // Check if there are more items
-      let nextCursor: typeof cursor | undefined = undefined;
+      let nextCursor: typeof cursor | null = null;
       if (designs.length > limit) {
         const nextItem = designs.pop();
-        nextCursor = nextItem!.id;
+        nextCursor = nextItem ? parseInt(nextItem.id) : null;
       }
       
       return {
@@ -88,9 +98,9 @@ export const galleryRouter = router({
       const design = await ctx.db.tattooDesign.findUnique({
         where: { id: input.id },
         include: {
-          artist: {
+          Artist: {
             include: {
-              user: {
+              User: {
                 select: {
                   name: true,
                   image: true,
@@ -98,7 +108,7 @@ export const galleryRouter = router({
               }
             }
           },
-          customer: {
+          Customer: {
             select: {
               firstName: true,
               lastName: true,
@@ -168,7 +178,7 @@ export const galleryRouter = router({
         // Verify artist exists
         const artist = await ctx.db.artist.findUnique({
           where: { id: input.artistId },
-          include: { user: true },
+          include: { User: true },
         });
         
         if (!artist) {
@@ -189,9 +199,24 @@ export const galleryRouter = router({
           });
         }
         
-        // Create the design
+        // Create the design with proper null handling
+        const designData = {
+          id: crypto.randomUUID(),
+          name: input.name,
+          description: input.description || null,
+          fileUrl: input.fileUrl || null,
+          thumbnailUrl: input.thumbnailUrl || null,
+          designType: input.designType || null,
+          size: input.size || null,
+          isApproved: input.isApproved,
+          artistId: input.artistId,
+          customerId: input.customerId || null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
         const design = await ctx.db.tattooDesign.create({
-          data: input,
+          data: designData,
         });
         
         return design;
@@ -227,7 +252,7 @@ export const galleryRouter = router({
         // Find the design first
         const existingDesign = await ctx.db.tattooDesign.findUnique({
           where: { id },
-          include: { artist: true },
+          include: { Artist: true },
         });
         
         if (!existingDesign) {
@@ -256,21 +281,36 @@ export const galleryRouter = router({
         }
         
         // Only admins can approve designs
-        if (data.isApproved !== undefined && data.isApproved !== existingDesign.isApproved && !isAdmin) {
+        if (data.isApproved !== null && data.isApproved !== existingDesign.isApproved && !isAdmin) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Only administrators can approve designs',
           });
         }
         
+        // Convert input data to Prisma update format with proper handling of undefined values
+        const updateData: Prisma.TattooDesignUpdateInput = {};
+        
+        // Only include fields that are defined (not undefined)
+        if (data.name !== undefined) updateData.name = { set: data.name };
+        if (data.description !== undefined) updateData.description = { set: data.description };
+        if (data.fileUrl !== undefined) updateData.fileUrl = { set: data.fileUrl };
+        if (data.thumbnailUrl !== undefined) updateData.thumbnailUrl = { set: data.thumbnailUrl };
+        if (data.designType !== undefined) updateData.designType = { set: data.designType };
+        if (data.size !== undefined) updateData.size = { set: data.size };
+        if (data.isApproved !== undefined) updateData.isApproved = { set: data.isApproved };
+        
+        // Always update the updatedAt timestamp
+        updateData.updatedAt = new Date();
+        
         // Update the design
         const updatedDesign = await ctx.db.tattooDesign.update({
           where: { id },
-          data,
+          data: updateData,
           include: {
-            artist: {
+            Artist: {
               include: {
-                user: {
+                User: {
                   select: {
                     name: true,
                     image: true,
@@ -359,10 +399,10 @@ export const galleryRouter = router({
         distinct: ['designType'],
       });
       
-      // Extract unique design types
+      // Extract unique design types and filter out null/undefined values
       const designTypes = designs
-        .map((design: { designType?: string | null }) => design.designType)
-        .filter((type): type is string => type !== null && type !== undefined);
+        .map((design: DatabaseDesignType) => design.designType)
+        .filter((type): type is string => typeof type === 'string' && type !== '');
         
       return designTypes;
     }),

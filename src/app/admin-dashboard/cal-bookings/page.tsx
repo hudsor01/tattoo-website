@@ -1,57 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarIcon, Clock, User, MapPin, DollarSign } from 'lucide-react';
-import type { CalBookingPayload } from '@/types/booking-types';
-
-// Mock data for demonstration - replace with actual API calls
-const mockBookings: CalBookingPayload[] = [
-  {
-    id: '1',
-    uid: 'cal_booking_1',
-    eventTypeId: 1,
-    title: 'Tattoo Consultation',
-    startTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
-    attendees: [{
-      email: 'john.doe@example.com',
-      name: 'John Doe',
-      timeZone: 'America/Chicago',
-    }],
-    organizer: {
-      email: 'fernando@tattoo.com',
-      name: 'Fernando Govea',
-      timeZone: 'America/Chicago',
-      username: 'fernando-govea',
-    },
-    status: 'accepted',
-    location: 'Tattoo Studio, Dallas, TX',
-    customInputs: [
-      { label: 'Tattoo Type', value: 'Traditional', type: 'text' },
-      { label: 'Size', value: 'Medium (4-6 inches)', type: 'text' },
-      { label: 'Placement', value: 'Upper arm', type: 'text' },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+import { CalendarIcon, Clock, User, MapPin, DollarSign, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { useCalBookings } from '@/hooks/use-cal-bookings';
+import { toast } from '@/components/ui/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { CalCustomInput } from '@/types/component-types';
 
 export default function CalBookingsPage() {
-  const [bookings, setBookings] = useState<CalBookingPayload[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-
-  useEffect(() => {
-    // Simulate API call to fetch bookings
-    setTimeout(() => {
-      setBookings(mockBookings);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+  const { 
+    bookings, 
+    isLoading, 
+    isSyncing,
+    filterStatus, 
+    setFilterStatus,
+    syncBookings,
+    updateBookingStatus,
+    rescheduleBooking,
+    isConfigured
+  } = useCalBookings();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -85,10 +56,68 @@ export default function CalBookingsPage() {
     });
   };
 
-  const filteredBookings = bookings.filter(booking => 
-    filterStatus === 'all' || booking.status === filterStatus
-  );
+  const handleAccept = (uid: string) => {
+    updateBookingStatus(uid, 'accepted');
+  };
 
+  const handleReject = (uid: string) => {
+    updateBookingStatus(uid, 'rejected');
+  };
+
+  const handleCancel = (uid: string) => {
+    updateBookingStatus(uid, 'cancelled');
+  };
+
+  // Simple reschedule handler - in a real app, this would open a modal
+  const handleReschedule = (uid: string) => {
+    // For simplicity, reschedule to tomorrow at the same time
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Create reschedule confirmation modal in a real app
+    if (confirm('Reschedule to tomorrow at the same time?')) {
+      toast({
+        title: 'Reschedule Request',
+        description: 'This would open a date/time picker in the full implementation',
+      });
+      
+      // This is just a placeholder - real implementation would use a modal with date picker
+      // rescheduleBooking(uid, {
+      //   start: tomorrow.toISOString(),
+      //   end: new Date(tomorrow.getTime() + 60 * 60 * 1000).toISOString(),
+      // });
+    }
+  };
+
+  // Check if Cal.com is properly configured
+  if (!isConfigured) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold">Cal.com Bookings</h1>
+        
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Cal.com Integration Not Configured</AlertTitle>
+          <AlertDescription>
+            Please set up the required environment variables: CAL_API_KEY, NEXT_PUBLIC_CAL_USERNAME, and CAL_WEBHOOK_SECRET
+            to enable Cal.com integration. Check the documentation for more details.
+          </AlertDescription>
+        </Alert>
+        
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Configuration Steps</h3>
+          <ol className="list-decimal pl-5 space-y-2">
+            <li>Create a Cal.com account if you don't have one yet</li>
+            <li>Generate an API key in your Cal.com dashboard</li>
+            <li>Set up the required environment variables in your .env file</li>
+            <li>Configure webhook endpoints for real-time updates</li>
+            <li>Restart the application</li>
+          </ol>
+        </Card>
+      </div>
+    );
+  }
+  
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -115,6 +144,15 @@ export default function CalBookingsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Cal.com Bookings</h1>
         <div className="flex gap-2">
+          <Button 
+            onClick={syncBookings} 
+            disabled={isSyncing} 
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RefreshCcw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Now'}
+          </Button>
           {['all', 'accepted', 'pending', 'cancelled'].map(status => (
             <Button
               key={status}
@@ -129,12 +167,12 @@ export default function CalBookingsPage() {
       </div>
 
       <div className="space-y-4">
-        {filteredBookings.length === 0 ? (
+        {bookings.length === 0 ? (
           <Card className="p-12 text-center">
             <p className="text-gray-500">No bookings found</p>
           </Card>
         ) : (
-          filteredBookings.map(booking => (
+          bookings.map(booking => (
             <Card key={booking.id} className="p-6 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -154,14 +192,14 @@ export default function CalBookingsPage() {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-500" />
                     <div>
-                      <p className="font-medium">{booking.attendees[0].name}</p>
-                      <p className="text-sm text-gray-500">{booking.attendees[0].email}</p>
+                      <p className="font-medium">{booking.attendees?.[0]?.name || 'No name'}</p>
+                      <p className="text-sm text-gray-500">{booking.attendees?.[0]?.email || 'No email'}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <CalendarIcon className="h-4 w-4 text-gray-500" />
-                    <p className="text-sm">{formatDate(booking.startTime)}</p>
+                    <p className="text-sm">{booking.startTime ? formatDate(booking.startTime) : 'No date'}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -182,7 +220,7 @@ export default function CalBookingsPage() {
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-gray-500" />
                       <p className="text-sm">
-                        ${booking.payment.amount / 100} {booking.payment.currency} - {booking.payment.status}
+                        ${booking.payment?.amount ? booking.payment.amount / 100 : 0} {booking.payment?.currency || 'USD'} - {booking.payment?.status || 'pending'}
                       </p>
                     </div>
                   )}
@@ -190,7 +228,7 @@ export default function CalBookingsPage() {
 
                 <div className="space-y-3">
                   <h4 className="font-medium text-sm text-gray-700">Tattoo Details</h4>
-                  {booking.customInputs?.map((input, index) => (
+                  {booking.customInputs && Array.isArray(booking.customInputs) && booking.customInputs.map((input: CalCustomInput, index: number) => (
                     <div key={index} className="text-sm">
                       <span className="font-medium text-gray-600">{input.label}:</span>{' '}
                       <span className="text-gray-800">{input.value}</span>
@@ -206,16 +244,62 @@ export default function CalBookingsPage() {
               </div>
 
               <div className="flex gap-2 mt-4 pt-4 border-t">
-                <Button size="sm">View Details</Button>
-                <Button size="sm" variant="outline">Contact Client</Button>
+                <Button 
+                  size="sm" 
+                  asChild
+                >
+                  <a href={`https://cal.com/${booking.organizer?.username || ''}/bookings/${booking.uid}`} target="_blank" rel="noopener noreferrer">
+                    View in Cal
+                  </a>
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  asChild
+                >
+                  <a href={`mailto:${booking.attendees?.[0]?.email || ''}`}>
+                    Contact Client
+                  </a>
+                </Button>
                 {booking.status === 'pending' && (
                   <>
-                    <Button size="sm" variant="outline" className="text-green-600">Accept</Button>
-                    <Button size="sm" variant="outline" className="text-red-600">Reject</Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-green-600"
+                      onClick={() => handleAccept(booking.uid)}
+                    >
+                      Accept
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-red-600"
+                      onClick={() => handleReject(booking.uid)}
+                    >
+                      Reject
+                    </Button>
                   </>
                 )}
                 {booking.status === 'accepted' && (
-                  <Button size="sm" variant="outline" className="text-orange-600">Reschedule</Button>
+                  <>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-orange-600"
+                      onClick={() => handleReschedule(booking.uid)}
+                    >
+                      Reschedule
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-red-600"
+                      onClick={() => handleCancel(booking.uid)}
+                    >
+                      Cancel
+                    </Button>
+                  </>
                 )}
               </div>
             </Card>

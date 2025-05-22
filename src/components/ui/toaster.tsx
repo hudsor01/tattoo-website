@@ -1,12 +1,3 @@
-'use client';
-
-/**
- * Toaster Component
- * 
- * This component renders toast notifications using Sonner.
- * It should be included once at the app root level.
- */
-
 import React from 'react';
 import { Toaster as SonnerToaster } from 'sonner';
 
@@ -23,8 +14,8 @@ export interface ToasterProps extends React.ComponentProps<typeof SonnerToaster>
   gap?: number;
   /** Whether to show close button on toasts */
   closeButton?: boolean;
-  /** Direction to swipe to close toasts */
-  swipeDirection?: 'up' | 'down' | 'left' | 'right';
+  /** Directions to swipe to close toasts */
+  swipeDirections?: Array<'left' | 'right'>;
   /** Additional class name for the toaster */
   className?: string;
 }
@@ -38,7 +29,7 @@ export function Toaster({
   richColors = true,
   duration = 5000,
   closeButton = true,
-  swipeDirection = 'right',
+  swipeDirections = ['right'],
   className = '',
   ...props
 }: ToasterProps) {
@@ -62,7 +53,7 @@ export function Toaster({
           info: 'group-[.toast]:border-blue-500 group-[.toast]:text-blue-700',
         },
       }}
-      swipeDirection={swipeDirection}
+      swipeDirections={swipeDirections}
       {...props}
     />
   );

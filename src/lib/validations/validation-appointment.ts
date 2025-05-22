@@ -23,13 +23,13 @@ export type AppointmentStatus = z.infer<typeof appointmentStatusEnum>;
  * Base appointment schema
  */
 export const appointmentBaseSchema = z.object({
-  clientId: z.string().uuid('Client ID must be a valid UUID'),
-  serviceType: z.string().min(1, 'Service type is required'),
-  startTime: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Invalid start time format',
+  customerId: z.string().uuid('Customer ID must be a valid UUID'),
+  title: z.string().min(1, 'Title is required'),
+  startDate: z.string().refine(val => !isNaN(Date.parse(val)), {
+    message: 'Invalid start date format',
   }),
-  endTime: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: 'Invalid end time format',
+  endDate: z.string().refine(val => !isNaN(Date.parse(val)), {
+    message: 'Invalid end date format',
   }),
   notes: z.string().optional(),
   deposit: z.number().nonnegative().optional(),
@@ -55,17 +55,17 @@ export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
  * Update appointment schema
  */
 export const updateAppointmentSchema = z.object({
-  serviceType: z.string().optional(),
-  startTime: z
+  title: z.string().optional(),
+  startDate: z
     .string()
     .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid start time format',
+      message: 'Invalid start date format',
     })
     .optional(),
-  endTime: z
+  endDate: z
     .string()
     .refine(val => !isNaN(Date.parse(val)), {
-      message: 'Invalid end time format',
+      message: 'Invalid end date format',
     })
     .optional(),
   notes: z.string().optional(),
@@ -95,7 +95,7 @@ export type ConfirmAppointmentInput = z.infer<typeof confirmAppointmentSchema>;
 export const getAppointmentQuerySchema = z.object({
   ...paginationSchema.shape,
   status: appointmentStatusEnum.optional(),
-  clientId: z.string().uuid('Client ID must be a valid UUID').optional(),
+  customerId: z.string().uuid('Customer ID must be a valid UUID').optional(),
   ...dateRangeSchema.shape,
   isPaid: z.boolean().optional(),
   depositPaid: z.boolean().optional(),
@@ -113,10 +113,10 @@ export const appointmentIdParamSchema = uuidParamSchema;
  */
 export const appointmentResponseSchema = z.object({
   id: z.string().uuid(),
-  clientId: z.string().uuid(),
-  serviceType: z.string(),
-  startTime: z.date(),
-  endTime: z.date(),
+  customerId: z.string().uuid(),
+  title: z.string(),
+  startDate: z.date(),
+  endDate: z.date(),
   notes: z.string().optional(),
   deposit: z.number().optional(),
   depositPaid: z.boolean(),

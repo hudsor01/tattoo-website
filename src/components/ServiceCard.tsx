@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils/styling';
-import { Service } from '@/types/component-types';
+import type { Service } from '@/types/component-types';
 
 interface ServiceCardProps {
   service: Service;

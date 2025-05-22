@@ -4,7 +4,7 @@
  * Defines all email templates used in the application
  */
 
-import { 
+import type { 
   AppointmentEmailParams,
   AppointmentReminderParams,
   WelcomeEmailParams,

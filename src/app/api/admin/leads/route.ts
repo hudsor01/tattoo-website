@@ -18,17 +18,18 @@ export async function GET(request: NextRequest) {
   try {
     // Check if user is authenticated and is an admin
     const supabase = createClient();
+    const supabaseClient = await supabase;
     const {
       data: { session },
       error,
-    } = await supabase.auth.getSession();
+    } = await supabaseClient.auth.getSession();
 
     if (error || !session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user has admin role
-    const isAdmin = session.user.user_metadata?.role === 'admin';
+    const isAdmin = session.user.user_metadata?.['role'] === 'admin';
 
     if (!isAdmin) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -113,17 +114,18 @@ export async function DELETE(request: NextRequest) {
   try {
     // Check if user is authenticated and is an admin
     const supabase = createClient();
+    const supabaseClient = await supabase;
     const {
       data: { session },
       error,
-    } = await supabase.auth.getSession();
+    } = await supabaseClient.auth.getSession();
 
     if (error || !session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user has admin role
-    const isAdmin = session.user.user_metadata?.role === 'admin';
+    const isAdmin = session.user.user_metadata?.['role'] === 'admin';
 
     if (!isAdmin) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });

@@ -3,79 +3,12 @@ export type Json =
   | number
   | boolean
   | null
-  | { [key: string]: Json | undefined }
+  | { [key: string]: Json | null }
   | Json[]
 
 export interface Database {
   public: {
     Tables: {
-      Analytics: {
-        Row: {
-          createdAt: string
-          date: string
-          id: string
-          metrics: Json
-          updatedAt: string
-        }
-        Insert: {
-          createdAt?: string
-          date: string
-          id?: string
-          metrics: Json
-          updatedAt?: string
-        }
-        Update: {
-          createdAt?: string
-          date?: string
-          id?: string
-          metrics?: Json
-          updatedAt?: string
-        }
-        Relationships: []
-      }
-      AnalyticsEvent: {
-        Row: {
-          category: string
-          createdAt: string
-          data: Json
-          eventId: string
-          id: string
-          name: string
-          session_id: string | null
-          updatedAt: string
-          userId: string | null
-        }
-        Insert: {
-          category: string
-          createdAt?: string
-          data: Json
-          eventId: string
-          id?: string
-          name: string
-          session_id?: string | null
-          updatedAt?: string
-          userId?: string | null
-        }
-        Update: {
-          category?: string
-          createdAt?: string
-          data?: Json
-          eventId?: string
-          id?: string
-          name?: string
-          session_id?: string | null
-          updatedAt?: string
-          userId?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "AnalyticsEvent_userId_fkey"
-            columns: ["userId"]
-            referencedRelation: "User"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       Appointment: {
         Row: {
           artistId: string
@@ -1480,4 +1413,20 @@ export type CancellationPolicyResult = {
 
 export interface UserLike {
   id: string;
+}
+
+/**
+ * NotificationQueue entity interface
+ */
+export interface NotificationQueue extends BaseEntity {
+  recipientId: string;
+  recipientType: string;
+  title: string;
+  message: string;
+  notificationType: string;
+  isRead: boolean;
+  isProcessed: boolean;
+  processedAt?: Date;
+  errorMessage?: string;
+  actionUrl?: string;
 }

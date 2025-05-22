@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { checkIsAdmin } from '@/lib/supabase/database-functions';
 import { logger } from '@/lib/logger';
 
@@ -15,8 +14,7 @@ import { logger } from '@/lib/logger';
 export async function GET() {
   try {
     // Create authenticated Supabase client
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // Get current user
     const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -49,7 +47,7 @@ export async function GET() {
     let fixResults = {};
 
     // Get the authorized admin emails from environment variables
-    const authorizedAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim());
+    const authorizedAdmins = (process.env['ADMIN_EMAILS'] || '').split(',').map(email => email.trim());
 
     // If not an admin in metadata but should be, update user
     if (!isAdmin && user.email && authorizedAdmins.includes(user.email)) {
@@ -130,7 +128,7 @@ export async function GET() {
     // Log the error
     logger.error('Error during admin permission verification', {
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      stack: error instanceof Error ? error.stack : null,
       method: 'GET',
       path: '/api/admin/verify-permissions',
     });

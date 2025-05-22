@@ -11,7 +11,7 @@ import 'server-only';
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db/prisma';
-import { fixSupabaseUrl, ensureCorrectSupabaseUrl } from '@/lib/utils/common';
+import { fixSupabaseUrl, ensureCorrectSupabaseUrl } from '@/lib/utils/url-utils';
 import { logger } from '@/lib/logger';
 
 /**
@@ -59,11 +59,9 @@ export async function createTRPCContext({
       supabase,
       prisma,
       user: session?.user || null,
-      // Include additional user details from the database if needed
-      // userDetails: session?.user ? await prisma.user.findUnique({ where: { id: session.user.id } }) : null
+      url: requestUrl
     };
   } catch (error) {
-    // Log any errors that occur when creating context
     logger.error('Error creating TRPC context:', error);
     
     // Return a basic context even if there's an error
@@ -72,15 +70,25 @@ export async function createTRPCContext({
       resHeaders,
       headers: Object.fromEntries(req.headers.entries()),
       prisma,
-      user: null
+      user: null,
+      url: '',
     };
   }
 }
 
 /**
  * Context type based on the return value of createTRPCContext
+ * with additional types for middleware-added properties
  */
-export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
+export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>> & {
+  // Include the db alias for prisma since middleware adds this
+  db?: typeof prisma;
+};
+
+/**
+ * Exported Context type for use in tRPC initialization
+ */
+export type Context = TRPCContext;
 
 /**
  * Creates context for React Server Components
@@ -89,10 +97,8 @@ export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
 export async function createContextForRSC() {
   
   try {
-    // Create a Supabase client
     const supabase = await createClient();
     
-    // Get the user session
     const { data: { session } } = await supabase.auth.getSession();
     
     return {
@@ -103,9 +109,13 @@ export async function createContextForRSC() {
   } catch (error) {
     logger.error('Error creating RSC context:', error);
     
+    // Create a supabase client even in the error case
+    const supabase = await createClient();
+    
     return {
       prisma,
-      user: null
+      user: null,
+      supabase
     };
   }
 }

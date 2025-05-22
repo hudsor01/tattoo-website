@@ -11,6 +11,7 @@ import { notFound } from 'next/navigation';
 import { createTRPCContext } from '@/lib/trpc/context';
 import { appRouter } from '@/lib/trpc/app-router';
 import { cookies } from 'next/headers';
+import { NextRequest } from 'next/server';
 import { DesignDetail } from '@/components/gallery/DesignDetail';
 import { DesignDetailSkeleton } from '@/components/gallery/DesignDetailSkeleton';
 
@@ -21,7 +22,7 @@ type Cookies = {
 
 // Update the type for the context parameter to match what's expected
 interface TRPCContextInput {
-  req: Request;
+  req: NextRequest;
   resHeaders: Headers;
 }
 
@@ -31,10 +32,10 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   const cookieStore = cookies();
   const cookieEntries = (cookieStore as unknown as Cookies).getAll().map(c => [c.name, c.value]);
   
-  // Create a mock Request object with cookies
+  // Create a mock NextRequest object with cookies
   const headers = new Headers();
   headers.set('cookie', cookieEntries.map(([name, value]) => `${name}=${value}`).join('; '));
-  const req = new Request('https://example.com', { headers });
+  const req = new NextRequest('https://example.com', { headers });
   
   const ctx = await createTRPCContext({ 
     req,
@@ -71,10 +72,10 @@ export default async function DesignDetailPage({ params }: { params: { id: strin
   const cookieStore = cookies();
   const cookieEntries = (cookieStore as unknown as Cookies).getAll().map(c => [c.name, c.value]);
   
-  // Create a mock Request object with cookies
+  // Create a mock NextRequest object with cookies
   const headers = new Headers();
   headers.set('cookie', cookieEntries.map(([name, value]) => `${name}=${value}`).join('; '));
-  const req = new Request('https://example.com', { headers });
+  const req = new NextRequest('https://example.com', { headers });
   
   const ctx = await createTRPCContext({ 
     req,

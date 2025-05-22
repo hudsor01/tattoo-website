@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 
+import type { NavigationLink } from '@/types/component-types';
+
 // Navigation links for main site
-const navigationLinks = [
+const navigationLinks: NavigationLink[] = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
   { href: '/gallery', label: 'Gallery' },
@@ -19,7 +20,7 @@ const navigationLinks = [
 ];
 
 // Client portal links
-const clientLinks = [
+const clientLinks: NavigationLink[] = [
   { href: '/customer', label: 'Dashboard' },
   { href: '/customer/appointments', label: 'Appointments' },
   { href: '/customer/designs', label: 'Designs' },
@@ -89,22 +90,17 @@ export function Navbar() {
         }`}
       >
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex justify-between items-center">
-            {/* Logo */}
+          <div className="flex justify-end items-center">
+            {/* Empty space to maintain layout - all branding removed */}
             <Link href={isClientPortal ? '/customer' : '/'} className="relative z-20">
               {isClientPortal ? (
                 <div className="font-satisfy text-lg sm:text-2xl text-tattoo-red">
                   Ink 37 Client Portal
                 </div>
               ) : (
-                <Image
-                  src="/logo.png"
-                  alt="Ink 37 Logo"
-                  width={90}
-                  height={42}
-                  className="h-auto w-auto max-h-10 sm:max-h-12"
-                  priority
-                />
+                <div className="invisible h-6" aria-hidden="true">
+                  {/* Placeholder to maintain layout */}
+                </div>
               )}
             </Link>
 

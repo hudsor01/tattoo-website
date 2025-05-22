@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthStore } from '@/lib/auth/auth-system';
+import { useAuthStore } from '@/lib/auth-system';
 import { OAuthButton, MagicLinkButton } from '@/components/auth/supabase/auth-buttons';
 import { Icons } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
@@ -18,15 +18,7 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-interface AuthFormProps {
-  isAdmin?: boolean;
-  redirectPath?: string;
-  showSocialLogin?: boolean;
-  showMagicLink?: boolean;
-  showRegister?: boolean;
-  providers?: ('google' | 'github' | 'twitter' | 'discord')[];
-}
+import type { AuthFormProps } from '@/types/component-types';
 
 /**
  * Auth Form
@@ -238,7 +230,7 @@ export function AuthForm({
                 <div className="text-center mt-4">
                   <MagicLinkButton
                     className="text-sm text-muted-foreground hover:text-primary"
-                    redirectTo={redirectPath}
+                    redirectTo={redirectPath || undefined}
                   >
                     Sign in with magic link
                   </MagicLinkButton>

@@ -48,14 +48,14 @@ export async function executeWorkflow(
   }
   
   try {
-    // Log workflow execution start
-    await prisma.workflowExecution.create({
-      data: {
-        workflowId,
-        status: 'started',
-        context: JSON.stringify(context),
-      }
-    });
+    // TODO: Log workflow execution start when workflowExecution model is added to Prisma
+    // await prisma.workflowExecution.create({
+    //   data: {
+    //     workflowId,
+    //     status: 'started',
+    //     context: JSON.stringify(context),
+    //   }
+    // });
     
     // Execute each step in sequence
     for (const step of workflow.steps) {
@@ -63,7 +63,14 @@ export async function executeWorkflow(
         await sendEmail({
           to: resolveValue(step.to, context) as string,
           subject: resolveValue(step.subject, context) as string,
-          template: step.template as EmailTemplate,
+          html: '', // Required field for EmailParams
+          recipientId: workflowId,
+          emailType: 'generic_notification',
+          template: {
+            id: step.template,
+            name: step.template,
+            content: '',
+          },
           data: context,
         });
       }
@@ -74,23 +81,24 @@ export async function executeWorkflow(
       }
     }
     
-    // Log workflow execution completion
-    await prisma.workflowExecution.update({
-      where: { workflowId_startedAt: { workflowId, startedAt: new Date() } },
-      data: { status: 'completed' }
-    });
+    // TODO: Log workflow execution completion when workflowExecution model is added to Prisma
+    // await prisma.workflowExecution.update({
+    //   where: { workflowId_startedAt: { workflowId, startedAt: new Date() } },
+    //   data: { status: 'completed' }
+    // });
     
     return true;
   } catch (error) {
-    // Log workflow execution failure
-    await prisma.workflowExecution.update({
-      where: { workflowId_startedAt: { workflowId, startedAt: new Date() } },
-      data: { 
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
-    });
+    // TODO: Log workflow execution failure when workflowExecution model is added to Prisma
+    // await prisma.workflowExecution.update({
+    //   where: { workflowId_startedAt: { workflowId, startedAt: new Date() } },
+    //   data: { 
+    //     status: 'failed',
+    //     error: error instanceof Error ? error.message : 'Unknown error'
+    //   }
+    // });
     
+    console.error('Workflow execution failed:', error);
     return false;
   }
 }

@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/lib/trpc/app-router';
 import { createTRPCContext } from '@/lib/trpc/context';
-import { fixSupabaseUrl, ensureCorrectSupabaseUrl } from '@/lib/utils/common';
+import { fixSupabaseUrl, ensureCorrectSupabaseUrl } from '@/lib/utils/url-utils';
 import { logger } from '@/lib/logger';
 
 /**
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
   try {
     // Handle the tRPC request
     const response = await fetchRequestHandler({
+      endpoint: '/api/trpc',
       req,
       router: appRouter,
       createContext: async () => createTRPCContext({ req, resHeaders }),
@@ -47,7 +48,8 @@ export async function POST(req: NextRequest) {
           path,
           message: error.message,
           code: error.code,
-          data: error.data,
+          // Note: error.data may not exist on TRPCError in this version
+          cause: error.cause || null,
         });
       },
     });

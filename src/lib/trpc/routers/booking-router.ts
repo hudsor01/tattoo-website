@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { publicProcedure, protectedProcedure, adminProcedure, router } from '../server';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
+import { sanitizeForPrisma, emailWhereCondition } from '@/lib/utils/prisma-helper';
 
 // Validation schema for creating a booking
 export const bookingValidator = z.object({
@@ -58,12 +59,34 @@ export const bookingRouter = router({
     .input(bookingValidator)
     .mutation(async ({ input, ctx }) => {
       try {
-        // Create the booking
+        // Create the booking with conditional field assignment using proper Prisma types
+        const bookingData: Prisma.BookingCreateInput = {
+          name: input.name,
+          email: input.email,
+          phone: input.phone,
+          tattooType: input.tattooType,
+          size: input.size,
+          placement: input.placement,
+          description: input.description,
+          preferredDate: input.preferredDate,
+          preferredTime: input.preferredTime,
+          paymentMethod: input.paymentMethod,
+          depositPaid: false,
+        };
+
+        // Only add relation fields if they are defined
+        if (input.customerId) {
+          bookingData.Customer = { connect: { id: input.customerId } };
+        }
+        if (input.artistId) {
+          bookingData.Artist = { connect: { id: input.artistId } };
+        }
+        if (input.notes !== undefined) {
+          bookingData.notes = input.notes;
+        }
+
         const booking = await ctx.db.booking.create({
-          data: {
-            ...input,
-            depositPaid: false,
-          },
+          data: sanitizeForPrisma(bookingData),
         });
 
         return booking;
@@ -86,12 +109,12 @@ export const bookingRouter = router({
       return ctx.db.booking.findMany({
         orderBy: { createdAt: 'desc' },
         include: {
-          artist: {
+          Artist: {
             include: {
-              user: true,
+              User: true,
             },
           },
-          customer: true,
+          Customer: true,
         },
       });
     }),
@@ -107,7 +130,7 @@ export const bookingRouter = router({
 
       // Get customer profile
       const customer = await ctx.db.customer.findFirst({
-        where: { email: ctx.user.email! },
+        where: emailWhereCondition(ctx.user.email),
       });
 
       if (!artist && !customer) {
@@ -126,12 +149,12 @@ export const bookingRouter = router({
         },
         orderBy: { createdAt: 'desc' },
         include: {
-          artist: {
+          Artist: {
             include: {
-              user: true,
+              User: true,
             },
           },
-          customer: true,
+          Customer: true,
         },
       });
     }),
@@ -143,13 +166,13 @@ export const bookingRouter = router({
       const booking = await ctx.db.booking.findUnique({
         where: { id: input.id },
         include: {
-          artist: {
+          Artist: {
             include: {
-              user: true,
+              User: true,
             },
           },
-          customer: true,
-          payment: true,
+          Customer: true,
+          Payment: true,
         },
       });
 
@@ -174,8 +197,8 @@ export const bookingRouter = router({
         const existingBooking = await ctx.db.booking.findUnique({
           where: { id },
           include: {
-            artist: true,
-            customer: true,
+            Artist: true,
+            Customer: true,
           },
         });
 
@@ -199,7 +222,7 @@ export const bookingRouter = router({
           await ctx.db.customer.findFirst({
             where: {
               id: existingBooking.customerId,
-              email: ctx.user.email!
+              ...emailWhereCondition(ctx.user.email)
             }
           });
 
@@ -210,17 +233,43 @@ export const bookingRouter = router({
           });
         }
 
+        // Prepare the update data
+        const updateData: Prisma.BookingUpdateInput = {};
+        
+        if (data.name !== undefined) updateData.name = data.name;
+        if (data.email !== undefined) updateData.email = data.email;
+        if (data.phone !== undefined) updateData.phone = data.phone;
+        if (data.tattooType !== undefined) updateData.tattooType = data.tattooType;
+        if (data.size !== undefined) updateData.size = data.size;
+        if (data.placement !== undefined) updateData.placement = data.placement;
+        if (data.description !== undefined) updateData.description = data.description;
+        if (data.preferredDate !== undefined) updateData.preferredDate = data.preferredDate;
+        if (data.preferredTime !== undefined) updateData.preferredTime = data.preferredTime;
+        if (data.paymentMethod !== undefined) updateData.paymentMethod = data.paymentMethod;
+        if (data.depositPaid !== undefined) updateData.depositPaid = data.depositPaid;
+        if (data.customerId !== undefined) {
+          updateData['Customer'] = data.customerId 
+            ? { connect: { id: data.customerId } }
+            : { disconnect: true };
+        }
+        if (data.artistId !== undefined) {
+          updateData['Artist'] = data.artistId 
+            ? { connect: { id: data.artistId } }
+            : { disconnect: true };
+        }
+        if (data.notes !== undefined) updateData.notes = data.notes;
+        
         // Update the booking
         const updatedBooking = await ctx.db.booking.update({
           where: { id },
-          data,
+          data: sanitizeForPrisma(updateData),
           include: {
-            artist: {
+            Artist: {
               include: {
-                user: true,
+                User: true,
               },
             },
-            customer: true,
+            Customer: true,
           },
         });
 
@@ -247,7 +296,7 @@ export const bookingRouter = router({
       try {
         const updatedBooking = await ctx.db.booking.update({
           where: { id },
-          data: { depositPaid },
+          data: sanitizeForPrisma({ depositPaid }),
         });
 
         return updatedBooking;

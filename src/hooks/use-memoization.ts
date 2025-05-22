@@ -48,7 +48,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   delay: number,
   deps: React.DependencyList = []
 ): T {
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const debouncedCallback = useCallback((...args: Parameters<T>) => {
     if (timeoutRef.current) {
@@ -102,7 +102,7 @@ export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
   deps: React.DependencyList = []
 ): T {
   const lastRunRef = useRef<number>(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const throttledCallback = useCallback((...args: Parameters<T>) => {
     const now = Date.now();
@@ -111,7 +111,7 @@ export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
     if (remaining <= 0) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
-        timeoutRef.current = undefined;
+        timeoutRef.current = null;
       }
       
       lastRunRef.current = now;
@@ -119,14 +119,14 @@ export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
     } else if (!timeoutRef.current) {
       timeoutRef.current = setTimeout(() => {
         lastRunRef.current = Date.now();
-        timeoutRef.current = undefined;
+        timeoutRef.current = null;
         callback(...args);
       }, remaining);
-      return undefined as ReturnType<T>;
+      return null as ReturnType<T>;
     }
     
     // Add this return statement to handle the case where a timeout is already scheduled
-    return undefined as ReturnType<T>;
+    return null as ReturnType<T>;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, ...deps]);
   
@@ -183,7 +183,7 @@ export function useSafeCallback<T extends (...args: unknown[]) => unknown>(
     if (isMountedRef.current) {
       return callback(...args);
     }
-    return undefined as ReturnType<T>;
+    return null as ReturnType<T>;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps) as T;
 }

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { VirtualizedBookingsList } from '@/app/admin-dashboard/components/VirtualizedBookingsList';
+import VirtualizedBookingsList from '@/app/admin-dashboard/components/VirtualizedBookingsList';
 import type { Booking } from '@/types/booking-types';
 import { CalendarDays, Notebook } from 'lucide-react';
 import {

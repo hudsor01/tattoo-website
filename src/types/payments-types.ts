@@ -7,6 +7,9 @@
 import type { ID, DateString } from './utility-types';
 import type { BaseEntity } from './database.types';
 import { PaymentStatus, PaymentMethod } from './enum-types';
+
+// Re-export for convenience
+export { PaymentMethod, PaymentStatus };
 import { z } from 'zod';
 import { PaymentMethodSchema, PaymentStatusSchema } from './booking-types';
 /**
@@ -446,9 +449,47 @@ export interface PaymentMetadata {
   stripeChargeId?: string;
   stripeLastError?: string;
   stripeRefundId?: string;
+  stripeDisputeId?: string;
   refundAmount?: number;
   refundReason?: string;
   disputeReason?: string;
   disputeStatus?: string;
   disputeAmount?: number;
+}
+
+/**
+ * Stripe-specific type exports for service layer
+ */
+export interface PaymentIntent {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  client_secret?: string;
+  customer?: string;
+  description?: string;
+  metadata?: Record<string, string>;
+  receipt_email?: string;
+}
+
+export interface CheckoutSession {
+  id: string;
+  url?: string;
+  payment_intent?: string;
+  customer?: string;
+  success_url?: string;
+  cancel_url?: string;
+  metadata?: Record<string, string>;
+}
+
+// Stripe PaymentMethod interface that matches what Stripe actually returns
+export interface StripePaymentMethod {
+  id: string;
+  type: string;
+  card: {
+    brand: string;
+    last4: string;
+    expMonth: number;
+    expYear: number;
+  } | null;
 }

@@ -36,7 +36,7 @@ export const patterns = {
 /**
  * Create safe array validation that avoids direct use of problematic z.array()
  */
-export function safeArray<T extends z.ZodTypeAny>(schema: T) {
+export function safeArray<T extends z.ZodTypeAny>(schema: T): z.ZodEffects<z.ZodAny, any, unknown> | z.ZodArray<T> {
   if (IS_PRODUCTION) {
     // In production, use a simplified validator that just checks if it's an array
     return z.preprocess(
@@ -56,7 +56,7 @@ export const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
   // Custom error messages based on error code
   switch (issue.code) {
     case z.ZodIssueCode.invalid_type:
-      if (issue.expected === 'string' && issue.received === 'undefined') {
+      if (issue.expected === 'string' && issue.received === 'null') {
         return { message: 'This field is required' };
       }
       return { message: `Expected ${issue.expected}, received ${issue.received}` };
@@ -123,7 +123,7 @@ export const createField = {
   /**
    * Create a name field validator
    */
-  name: (options = {}) => {
+  name: (options: { required?: boolean; minLength?: number; maxLength?: number } = {}) => {
     const { required = true, minLength = 2, maxLength = 50 } = options;
     const schema = z.string()
       .trim()
@@ -139,7 +139,7 @@ export const createField = {
   /**
    * Create an email field validator
    */
-  email: (options = {}) => {
+  email: (options: { required?: boolean } = {}) => {
     const { required = true } = options;
     const schema = z.string()
       .trim()
@@ -151,7 +151,7 @@ export const createField = {
   /**
    * Create a phone field validator
    */
-  phone: (options = {}) => {
+  phone: (options: { required?: boolean } = {}) => {
     const { required = false } = options;
     const schema = z.string()
       .trim()
@@ -167,7 +167,7 @@ export const createField = {
   /**
    * Create a text field validator
    */
-  text: (options = {}) => {
+  text: (options: { required?: boolean; minLength?: number; maxLength?: number; fieldName?: string } = {}) => {
     const { 
       required = true, 
       minLength = 1, 
@@ -186,7 +186,7 @@ export const createField = {
   /**
    * Create a password field validator
    */
-  password: (options = {}) => {
+  password: (options: { required?: boolean; minLength?: number } = {}) => {
     const { required = true, minLength = 8 } = options;
     const schema = z.string()
       .min(minLength, patterns.messages.min('Password', minLength))
@@ -206,7 +206,7 @@ export const createField = {
   /**
    * Create a boolean field validator
    */
-  boolean: (options = {}) => {
+  boolean: (options: { required?: boolean } = {}) => {
     const { required = true } = options;
     const schema = z.boolean();
     return required ? schema : schema.optional();
@@ -224,24 +224,24 @@ export const createField = {
   /**
    * Create an array field validator - using safeArray for build compatibility
    */
-  array: <T extends z.ZodTypeAny>(schema: T, options = {}) => {
+  array: <T extends z.ZodTypeAny>(schema: T, options: { required?: boolean; minLength?: number; maxLength?: number } = {}) => {
     const { required = true, minLength, maxLength } = options;
     
     let field = safeArray(schema);
 
-    if (minLength !== undefined) {
+    if (minLength !== undefined && minLength !== null && 'min' in field) {
       field = field.min(minLength, {
         message: `At least ${minLength} items required`,
       });
     }
 
-    if (maxLength !== undefined) {
+    if (maxLength !== undefined && maxLength !== null && 'max' in field) {
       field = field.max(maxLength, {
         message: `Cannot exceed ${maxLength} items`,
       });
     }
     
-    return required ? field : field.optional();
+    return required ? field : 'optional' in field ? field.optional() : field;
   },
 };
 

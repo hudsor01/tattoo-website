@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import type { ApiResponse, ErrorResponse } from '@/types/api-types';
 import { type RecordObject } from '@/types/utility-types';
+import { toast } from '@/hooks/use-toast';
 
 /**
  * Common options for all API requests
@@ -22,7 +23,7 @@ interface RequestOptions {
  * Parameters for filtering API results
  */
 export interface FilterParams {
-  [key: string]: string | number | boolean | undefined;
+  [key: string]: string | number | boolean | null;
 }
 
 /**
@@ -113,7 +114,7 @@ function createFetchOptions(
   };
 
   // Only add body if it exists
-  if (body !== undefined) {
+  if (body !== null) {
     fetchOptions.body = body;
   }
 
@@ -147,7 +148,7 @@ export const api = {
     if (params) {
       const searchParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
+        if (value !== null) {
           searchParams.append(key, String(value));
         }
       });
@@ -174,7 +175,7 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const body = data ? JSON.stringify(data) : undefined;
+    const body = data ? JSON.stringify(data) : null;
     const fetchOptions = createFetchOptions('POST', options, body);
     const response = await fetch(url, fetchOptions);
 
@@ -190,7 +191,7 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const body = data ? JSON.stringify(data) : undefined;
+    const body = data ? JSON.stringify(data) : null;
     const fetchOptions = createFetchOptions('PUT', options, body);
     const response = await fetch(url, fetchOptions);
 
@@ -206,7 +207,7 @@ export const api = {
     options?: RequestOptions,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    const body = data ? JSON.stringify(data) : undefined;
+    const body = data ? JSON.stringify(data) : null;
     const fetchOptions = createFetchOptions('PATCH', options, body);
     const response = await fetch(url, fetchOptions);
 
@@ -263,3 +264,83 @@ export const api = {
     return validateResponse(response, schema);
   },
 };
+
+/**
+ * Track video view analytics
+ * @param videoId Video identifier
+ * @param duration Duration watched in seconds
+ * @param metadata Additional tracking metadata
+ * @returns Promise resolving to tracking result
+ */
+export async function trackVideoView(
+  videoId: string | number,
+  duration?: number,
+  metadata?: Record<string, unknown>
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const response = await api.post('/api/analytics/video-view', {
+      videoId: String(videoId),
+      duration: duration || 0,
+      timestamp: new Date().toISOString(),
+      metadata: {
+        ...metadata,
+        userAgent: navigator.userAgent,
+        referrer: document.referrer,
+        url: window.location.href,
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to track video view:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
+/**
+ * Share content on social media platforms
+ * @param contentType Type of content (tattoo, video)
+ * @param contentId Content identifier 
+ * @param platform Platform to share on
+ * @returns Object containing success status and share URL
+ */
+export async function shareContent(
+  contentType: 'tattoo' | 'video',
+  contentId: number,
+  platform: 'facebook' | 'twitter' | 'instagram' | 'pinterest' | 'email' | 'linkedin'
+): Promise<{ success: boolean; shareUrl: string }> {
+  try {
+    // Base URL for the content
+    const baseUrl = `${window.location.origin}/${contentType}s/${contentId}`;
+    
+    // Encode title and URL for sharing
+    const encodedUrl = encodeURIComponent(baseUrl);
+    const encodedTitle = encodeURIComponent(`Check out this amazing ${contentType} on Ink 37 Tattoo Gallery`);
+    
+    // Define share URLs for different platforms
+    const shareUrls: Record<string, string> = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedTitle}`,
+      instagram: baseUrl, // Instagram doesn't have a direct share URL, so we'll just return the content URL
+      email: `mailto:?subject=${encodedTitle}&body=Check out this link: ${baseUrl}`
+    };
+    
+    // Return success with the share URL
+    return {
+      success: true,
+      shareUrl: shareUrls[platform] || baseUrl
+    };
+  } catch (error) {
+    console.error('Share content error:', error);
+    // Return error with default URL
+    return {
+      success: false,
+      shareUrl: `${window.location.origin}/${contentType}s/${contentId}`
+    };
+  }
+}

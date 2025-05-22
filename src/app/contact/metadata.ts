@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     siteName: 'Fernando Govea Tattoo',
     images: [
       {
-        url: '/images/logo.png',
+        url: '/logo.png',
         width: 1200,
         height: 630,
         alt: 'Fernando Govea Tattoo Studio Interior',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Contact Fernando Govea Tattoo Studio',
     description: 'Contact us for tattoo inquiries and consultations.',
-    images: ['/images/logo.png'],
+    images: ['/logo.png'],
   },
   alternates: {
     canonical: '/contact',

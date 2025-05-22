@@ -1,22 +1,14 @@
-/**
- * Design Detail Component
- * 
- * Displays details of a specific tattoo design with booking options.
- * Enhanced with analytics tracking and related designs.
- * Uses tRPC hooks for data fetching and interactions.
- */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useDesign } from '@/hooks/use-gallery';
-import { usePopularDesigns } from '@/hooks/use-analytics';
-import { useAnalyticsContext } from '@/components/providers/AnalyticsProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { 
   CalendarIcon, 
@@ -26,8 +18,15 @@ import {
   ShareIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { cn } from '@/lib/utils/styling';
+
+interface RelatedDesign {
+  id: string;
+  name: string;
+  thumbnailUrl?: string;
+  designType?: string;
+}
+
+
 
 interface DesignDetailProps {
   id: string;
@@ -38,46 +37,27 @@ export function DesignDetail({ id }: DesignDetailProps) {
   const [showShareModal, setShowShareModal] = useState(false);
   const viewStartTimeRef = useRef<Date | null>(null);
   
-  // Get analytics context
-  const { trackGalleryEvent, trackConversion } = useAnalyticsContext();
-  
   // Fetch the design data
   const { design, isLoading } = useDesign(id);
   
   // Get related designs (popular designs in the same category)
-  const { data: popularDesigns } = usePopularDesigns(4);
+  // Note: Popular designs feature removed with analytics
+  const popularDesigns: RelatedDesign[] = [];
   
-  // Track design view when component mounts
+  // Initialize view tracking (analytics removed)
   useEffect(() => {
     if (design && !isLoading) {
-      // Record view start time for duration tracking
+      // Record view start time for potential future analytics
       viewStartTimeRef.current = new Date();
-      
-      // Track the design view
-      trackGalleryEvent({
-        action: 'view',
-        designId: id,
-        designType: design.designType,
-        artist: design.artist?.user?.name,
-        tags: design.tags?.map(tag => tag.name),
-      });
     }
     
-    // Track view ended when component unmounts
+    // Cleanup on unmount
     return () => {
       if (viewStartTimeRef.current && design) {
-        const viewTime = new Date().getTime() - viewStartTimeRef.current.getTime();
-        
-        // Track view with duration
-        trackGalleryEvent({
-          action: 'view',
-          designId: id,
-          designType: design.designType,
-          viewTime,
-        });
+        // View duration tracking removed with analytics
       }
     };
-  }, [design, id, isLoading, trackGalleryEvent]);
+  }, [design, isLoading, id]);
   
   // Handle back navigation
   const handleBack = () => {
@@ -86,15 +66,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
   
   // Handle share button click
   const handleShare = () => {
-    // Track share event
-    if (design) {
-      trackGalleryEvent({
-        action: 'share',
-        designId: id,
-        designType: design.designType,
-        label: 'share_button_click',
-      });
-    }
+    // Share analytics tracking removed
     
     if (navigator.share) {
       navigator.share({
@@ -114,16 +86,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
   
   // Handle booking click
   const handleBooking = () => {
-    // Track booking started as a conversion
-    if (design) {
-      trackConversion({
-        action: 'book_appointment',
-        conversionId: id,
-        label: `Booking started: ${design.name}`,
-        conversionValue: design.price || 0,
-        conversionSource: 'gallery_detail',
-      });
-    }
+    // Booking analytics tracking removed
     
     // Navigate to booking page
     router.push(`/booking?designId=${id}`);
@@ -146,7 +109,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
   }
   
   // Filter related designs to exclude current design
-  const relatedDesigns = popularDesigns?.filter(d => d.id !== id) || [];
+  const relatedDesigns = popularDesigns?.filter((d: { id: string; }) => d.id !== id) || [];
   
   return (
     <div className="space-y-8">
@@ -244,29 +207,29 @@ export function DesignDetail({ id }: DesignDetailProps) {
             )}
           </div>
           
-          {design?.artist?.user && (
+          {design?.Artist?.user && (
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Artist</p>
               <Link 
-                href={`/artists/${design.artist.id}`}
+                href={`/Artists/${design.Artist.id}`}
                 className="flex items-center gap-3 group"
               >
                 <Avatar className="h-10 w-10">
-                  {design.artist.user.image ? (
-                    <AvatarImage src={design.artist.user.image} alt={design.artist.user.name || 'Artist'} />
+                  {design.Artist.user.image ? (
+                    <AvatarImage src={design.Artist.user.image} alt={design.Artist.user.name || 'Artist'} />
                   ) : (
                     <AvatarFallback>
-                      {design.artist.user.name ? design.artist.user.name.charAt(0).toUpperCase() : 'A'}
+                      {design.Artist.user.name ? design.Artist.user.name.charAt(0).toUpperCase() : 'A'}
                     </AvatarFallback>
                   )}
                 </Avatar>
                 <div>
                   <p className="font-medium group-hover:text-primary transition-colors">
-                    {design.artist.user.name}
+                    {design.Artist.user.name}
                   </p>
-                  {design.artist.specialty && (
+                  {design.Artist.specialty && (
                     <p className="text-sm text-muted-foreground">
-                      {design.artist.specialty}
+                      {design.Artist.specialty}
                     </p>
                   )}
                 </div>
@@ -292,8 +255,8 @@ export function DesignDetail({ id }: DesignDetailProps) {
         <div className="pt-8">
           <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {relatedDesigns.map((relatedDesign) => (
-              <Link 
+            {relatedDesigns.map((relatedDesign: RelatedDesign) => (
+              <Link
                 href={`/gallery/${relatedDesign.id}`} 
                 key={relatedDesign.id}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"

@@ -223,7 +223,7 @@ export default function FAQPage() {
                   faqCategories[1]?.items[0],
                   faqCategories[2]?.items[0],
                   faqCategories[3]?.items[0],
-                ].filter((item): item is {question: string; answer: string} => item !== undefined)}
+                ].filter((item): item is {question: string; answer: string} => item !== null)}
               />
             </div>
           </div>

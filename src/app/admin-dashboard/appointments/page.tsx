@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { DataTable } from '@/app/admin-dashboard/components/data-table';
+import DataTable from '@/app/admin-dashboard/components/data-table';
 import StatusBadge from '@/app/admin-dashboard/components/StatusBadge';
 import { 
   CalendarDays, 
@@ -365,13 +365,11 @@ export default function AppointmentsPage() {
         // Fetch appointments and customers in parallel
         const [appointmentsRes, customersRes] = await Promise.all([
           fetch(
-            `/api/admin/appointments?${new URLSearchParams({
-              params: {
-                // Could add server-side filtering parameters here
-                // status: statusFilter !== 'all' ? statusFilter : undefined,
-                // searchTerm: searchValue || undefined,
-              },
-            }).toString()}`,
+            `/api/admin/appointments?${new URLSearchParams(
+              // Could add server-side filtering parameters here
+              // status: statusFilter !== 'all' ? statusFilter : ,
+              // searchTerm: searchValue || ,
+            ).toString()}`,
           ),
           fetch('/api/admin/customers'),
         ]);
@@ -615,7 +613,7 @@ export default function AppointmentsPage() {
               field: string | number | symbol;
               value: unknown;
             }) => {
-              const clientName = (params.value as string | null | undefined) || '';
+              const clientName = (params.value as string | null) || '';
               return (
                 <div className="flex items-center">
                   <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center mr-3 text-red-500 font-bold text-sm">
@@ -673,7 +671,17 @@ export default function AppointmentsPage() {
             field: 'status',
             headerName: 'Status',
             width: 130,
-            renderCell: params => <StatusBadge status={params.value as string} />,
+            renderCell: (params: {
+              row: unknown;
+              field: string | number | symbol;
+              value: unknown;
+            }) => {
+              const status = params.value === 'pending' ? 'warning' : 
+                            params.value === 'confirmed' ? 'success' :
+                            params.value === 'completed' ? 'info' : 
+                            params.value === 'cancelled' ? 'error' : 'info';
+              return <StatusBadge status={status} text={params.value as string} />;
+            },
           },
           {
             field: 'depositInfo',
@@ -708,6 +716,7 @@ export default function AppointmentsPage() {
           },
         ]}
         actionColumn={{
+          header: "Actions",
           onView: handleViewAppointment,
           onEdit: handleEditAppointment,
           onDelete: handleDeleteAppointment,

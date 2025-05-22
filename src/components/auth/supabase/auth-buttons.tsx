@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils/styling';
 import { buttonVariants } from '@/components/ui/button';
 import { Icons } from '@/components/ui/icons';
-import { useAuthStore } from '@/lib/auth/auth-system';
+import { useAuthStore } from '@/lib/auth-system';
 
 /**
  * Props for the OAuth button component
@@ -49,7 +49,7 @@ export function OAuthButton({
   redirectTo,
   ...props
 }: OAuthButtonProps) {
-  const { signInWithOAuth } = useAuthStore(); // Changed to the correct method name
+  const signInWithOAuth = useAuthStore((state) => state.signInWithOAuth);
   const [isLoading, setIsLoading] = React.useState(false);
   // const router = useRouter(); // Unused in this component but may be needed in future
 
@@ -121,7 +121,7 @@ export function MagicLinkButton({
   children,
   ...props
 }: MagicLinkButtonProps) {
-  const { sendMagicLink } = useAuthStore();
+  const sendMagicLink = useAuthStore((state) => state.sendMagicLink);
   const [isLoading, setIsLoading] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [showInput, setShowInput] = React.useState(false);

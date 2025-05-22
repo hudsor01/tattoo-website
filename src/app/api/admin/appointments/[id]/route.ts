@@ -22,14 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         id,
       },
       include: {
-        customer: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
+        Customer: true,
       },
     });
 
@@ -42,25 +35,24 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       id: appointment.id,
       title: appointment.title,
       customerId: appointment.customerId,
-      customerName: appointment.customer?.name,
-      customerEmail: appointment.customer?.email,
-      customerPhone: appointment.customer?.phone,
-      startTime: appointment.startTime,
-      endTime: appointment.endTime,
+      customerName: appointment.Customer ? `${appointment.Customer.firstName} ${appointment.Customer.lastName}` : '',
+      customerEmail: appointment.Customer?.email,
+      customerPhone: appointment.Customer?.phone,
+      startDate: appointment.startDate,
+      endDate: appointment.endDate,
       status: appointment.status,
-      depositPaid: appointment.depositPaid,
-      depositAmount: appointment.depositAmount,
-      price: appointment.price,
-      tattooStyle: appointment.tattooStyle,
+      deposit: appointment.deposit,
+      totalPrice: appointment.totalPrice,
+      designNotes: appointment.designNotes,
       description: appointment.description,
       createdAt: appointment.createdAt,
       updatedAt: appointment.updatedAt,
-      customer: appointment.customer
+      customer: appointment.Customer
         ? {
-            id: appointment.customer.id,
-            name: appointment.customer.name,
-            email: appointment.customer.email,
-            phone: appointment.customer.phone,
+            id: appointment.Customer.id,
+            name: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
+            email: appointment.Customer.email,
+            phone: appointment.Customer.phone,
           }
         : null,
     };
@@ -107,7 +99,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       });
 
       if (!customer) {
-        return NextResponse.json({ error: 'customer not found' }, { status: 400 });
+        return NextResponse.json({ error: 'Customer not found' }, { status: 400 });
       }
     }
 
@@ -117,36 +109,29 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         id,
       },
       data: {
-        title: data.title,
-        customerId: data.customerId,
-        startTime: data.startTime ? new Date(data.startTime) : undefined,
-        endTime: data.endTime ? new Date(data.endTime) : undefined,
-        status: data.status,
-        depositPaid: data.depositPaid,
-        depositAmount: data.depositAmount,
-        price: data.price,
-        tattooStyle: data.tattooStyle,
-        description: data.description,
+        ...(data.title !==  null && { title: data.title }),
+        ...(data.customerId !==  null && { customerId: data.customerId }),
+        ...(data.startDate !==  null && { startDate: new Date(data.startDate) }),
+        ...(data.endDate !==  null && { endDate: new Date(data.endDate) }),
+        ...(data.status !==  null && { status: data.status }),
+        ...(data.deposit !== null && { deposit: data.deposit }),
+        ...(data.totalPrice !== null && { totalPrice: data.totalPrice }),
+        ...(data.designNotes !== null && { designNotes: data.designNotes }),
+        ...(data.description !== null && { description: data.description }),
         updatedAt: new Date(),
       },
       include: {
-        customer: {
-          select: {
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
+        Customer: true,
       },
     });
 
     // Format response
     const formattedAppointment = {
       ...updatedAppointment,
-      customerName: updatedAppointment.customer.name,
-      customerEmail: updatedAppointment.customer.email,
-      customerPhone: updatedAppointment.customer.phone,
-      customer: undefined, // Don't include full customer in response
+      customerName: updatedAppointment.Customer ? `${updatedAppointment.Customer.firstName} ${updatedAppointment.Customer.lastName}` : '',
+      customerEmail: updatedAppointment.Customer?.email,
+      customerPhone: updatedAppointment.Customer?.phone,
+      Customer: null, // Don't include full customer in response
     };
 
     return NextResponse.json(formattedAppointment);

@@ -187,3 +187,74 @@ export function createHandler<T extends z.ZodType>({
     }
   };
 }
+
+/**
+ * ========================================================================
+ * API VALIDATION SCHEMAS
+ * ========================================================================
+ */
+
+/**
+ * Client payment intent schema for customer portal payments
+ */
+export const clientPaymentIntentSchema = z.object({
+  appointmentId: z.string(),
+  clientId: z.string(),
+  amount: z.number().positive(),
+  clientEmail: z.string().email(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+});
+
+/**
+ * Lead magnet schema for lead generation
+ */
+export const leadMagnetSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email format'),
+  phone: z.string().optional(),
+  magnet: z.string(),
+  sourceInfo: z.object({
+    source: z.string().optional(),
+    campaign: z.string().optional(),
+    medium: z.string().optional(),
+    term: z.string().optional(),
+    content: z.string().optional(),
+    referrer: z.string().optional(),
+    ip: z.string().optional(),
+    userAgent: z.string().optional(),
+  }).optional(),
+});
+
+/**
+ * Tracking schema for lead magnet events
+ */
+export const trackingSchema = z.object({
+  leadId: z.string(),
+  event: z.enum(['download_started', 'download_completed', 'email_opened', 'link_clicked']),
+  data: z.record(z.unknown()).optional(),
+});
+
+/**
+ * Payment intent creation schema
+ */
+export const createPaymentIntentSchema = z.object({
+  amount: z.number().positive(),
+  email: z.string().email(),
+  name: z.string().optional(),
+  bookingId: z.number().optional(),
+  appointmentId: z.string().optional(),
+  clientId: z.string().optional(),
+  currency: z.string().optional().default('usd'),
+  description: z.string().optional(),
+  paymentType: z.enum(['deposit', 'full', 'balance', 'other']),
+  metadata: z.record(z.string()).optional(),
+});
+
+/**
+ * Payment status check schema
+ */
+export const paymentStatusCheckSchema = z.object({
+  id: z.string(),
+  source: z.enum(['stripe', 'db']).optional().default('stripe'),
+});

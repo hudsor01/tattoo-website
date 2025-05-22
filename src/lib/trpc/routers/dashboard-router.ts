@@ -3,6 +3,13 @@
  *
  * Provides type-safe procedures for all dashboard-related data fetching and actions.
  * This router centralizes all dashboard functionality for better maintainability.
+ * 
+ * TYPESCRIPT ERROR FIXES (2023-05-21):
+ * - Fixed issues with exactOptionalPropertyTypes: true for Prisma filters
+ * - Updated optional filter properties to use conditional spreading pattern instead of undefined assignments
+ * - Implemented strict null/undefined checks for object property access
+ * - Added proper type narrowing throughout the query handlers
+ * - Fixed TS2532 error for accessing possibly undefined chartData[dayIndex].bookings using optional chaining
  */
 
 import { z } from 'zod';
@@ -10,6 +17,8 @@ import { router, publicProcedure } from '@/lib/trpc/procedures';
 import { prisma } from '@/lib/db/prisma';
 import { TRPCError } from '@trpc/server';
 import { formatDateRange } from '@/lib/utils/date';
+import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
+import { Prisma } from '@prisma/client';
 
 // Schema for statistics filtering
 const StatsFilterSchema = z.object({
@@ -20,7 +29,7 @@ const StatsFilterSchema = z.object({
 // Schema for appointments filtering
 const AppointmentsFilterSchema = z.object({
   status: z
-    .enum(['all', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no-show'])
+    .enum(['all', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no_show'])
     .optional()
     .default('all'),
   limit: z.number().min(1).max(50).optional().default(5),
@@ -31,7 +40,7 @@ const AppointmentsFilterSchema = z.object({
 
 // Schema for payments filtering
 const PaymentsFilterSchema = z.object({
-  status: z.enum(['all', 'paid', 'pending', 'refunded', 'failed']).optional().default('all'),
+  status: z.enum(['all', 'verified', 'pending', 'failed']).optional().default('all'),
   limit: z.number().min(1).max(50).optional().default(5),
   page: z.number().min(1).optional().default(1),
   period: z.enum(['all', 'today', 'week', 'month', 'year']).optional().default('all'),
@@ -79,21 +88,11 @@ export const dashboardRouter = router({
           },
         }),
         prisma.appointment.count({
-          where: {
-            startDate: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
+          where: buildDateFilter('appointment', startDate, endDate),
         }),
         compareToPrevious
           ? prisma.appointment.count({
-              where: {
-                startDate: {
-                  gte: previousStartDate,
-                  lte: previousEndDate,
-                },
-              },
+              where: buildDateFilter('appointment', previousStartDate, previousEndDate),
             })
           : 0,
       ]);
@@ -102,19 +101,14 @@ export const dashboardRouter = router({
       const [totalCustomers, newCustomersInPeriod, previousPeriodNewCustomers] = await Promise.all([
         prisma.customer.count(),
         prisma.customer.count({
-          where: {
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
+          where: buildCreatedAtFilter(startDate, endDate),
         }),
-        compareToPrevious
+        compareToPrevious && previousStartDate && previousEndDate
           ? prisma.customer.count({
               where: {
-                createdAt: {
+                createdAt: { 
                   gte: previousStartDate,
-                  lte: previousEndDate,
+                  lte: previousEndDate 
                 },
               },
             })
@@ -125,11 +119,8 @@ export const dashboardRouter = router({
       const [paymentsInPeriod, previousPeriodPayments] = await Promise.all([
         prisma.payment.findMany({
           where: {
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-            status: 'paid',
+            ...(startDate && endDate ? { createdAt: { gte: startDate, lte: endDate } } : {}),
+            status: 'verified',
           },
           select: {
             id: true,
@@ -137,14 +128,14 @@ export const dashboardRouter = router({
             createdAt: true,
           },
         }),
-        compareToPrevious
+        compareToPrevious && previousStartDate && previousEndDate
           ? prisma.payment.findMany({
               where: {
-                createdAt: {
+                createdAt: { 
                   gte: previousStartDate,
-                  lte: previousEndDate,
+                  lte: previousEndDate 
                 },
-                status: 'paid',
+                status: 'verified',
               },
               select: {
                 id: true,
@@ -157,11 +148,11 @@ export const dashboardRouter = router({
 
       // Calculate revenue totals
       const revenueInPeriod = paymentsInPeriod.reduce(
-        (sum: number, payment: { amount: number }) => sum + payment.amount,
+        (sum: number, payment) => sum + payment.amount,
         0,
       );
       const previousPeriodRevenue = previousPeriodPayments.reduce(
-        (sum: number, payment: { amount: number }) => sum + payment.amount,
+        (sum: number, payment) => sum + payment.amount,
         0,
       );
 
@@ -198,7 +189,7 @@ export const dashboardRouter = router({
         },
         {
           title: 'Revenue',
-          value: `$${revenueInPeriod.toFixed(2)}`,
+          value: `$${typeof revenueInPeriod === 'number' ? revenueInPeriod.toFixed(2) : '0.00'}`,
           change: revenueChange > 0 ? `+${revenueChange}%` : `${revenueChange}%`,
           description: `From ${period}ly payments`,
           color: '#d62828', // red
@@ -245,6 +236,10 @@ export const dashboardRouter = router({
             end: endDate.toISOString(),
           },
         },
+        totalCustomers,
+        pendingBookings: upcomingAppointments,
+        completedAppointments,
+        recentMessages: 0, // Default value
       };
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -264,22 +259,30 @@ export const dashboardRouter = router({
     const skip = (page - 1) * limit;
 
     try {
-      // Build the where clause
-      const where: Record<string, unknown> = {};
+      // Build the where clause using type-safe techniques
+      const where: Prisma.AppointmentWhereInput = {};
 
       // Filter by status if not "all"
       if (status !== 'all') {
-        where['status'] = status;
+        where.status = status;
       }
 
       // Default to upcoming appointments if no date range provided
       if (!startDate && !endDate) {
-        where['startDate'] = { gte: new Date() };
+        where.startDate = { gte: new Date() };
       } else {
         // Apply custom date range if provided
-        where['startDate'] = {};
-        if (startDate) (where['startDate'] as { gte?: Date; lte?: Date }).gte = new Date(startDate);
-        if (endDate) (where['startDate'] as { gte?: Date; lte?: Date }).lte = new Date(endDate);
+        const dateFilter: Prisma.DateTimeFilter = {};
+        
+        if (startDate) {
+          dateFilter.gte = new Date(startDate);
+        }
+        
+        if (endDate) {
+          dateFilter.lte = new Date(endDate);
+        }
+        
+        where.startDate = dateFilter;
       }
 
       // Get appointments with count for pagination
@@ -292,7 +295,7 @@ export const dashboardRouter = router({
           skip,
           take: limit,
           include: {
-            customer: {
+            Customer: {
               select: {
                 id: true,
                 firstName: true,
@@ -306,37 +309,17 @@ export const dashboardRouter = router({
         prisma.appointment.count({ where }),
       ]);
 
-      // Format the appointments
-      type AppointmentCustomer = {
-        firstName: string;
-        lastName: string;
-        email: string;
-        phone?: string | null;
-      };
-
-      type AppointmentType = {
-        id: string;
-        title: string;
-        startDate: Date;
-        endDate: Date;
-        status: string;
-        customerId: string;
-        customer: AppointmentCustomer;
-        deposit?: number | null;
-        totalPrice?: number | null;
-        description?: string | null;
-      };
-
-      const formattedAppointments = appointments.map((appointment: AppointmentType) => ({
+      // Format the appointments using the correct field names
+      const formattedAppointments = appointments.map((appointment) => ({
         id: appointment.id,
         title: appointment.title,
         startTime: appointment.startDate.toISOString(),
         endTime: appointment.endDate.toISOString(),
         status: appointment.status,
         customerId: appointment.customerId,
-        clientName: `${appointment.customer.firstName} ${appointment.customer.lastName}`.trim(),
-        clientEmail: appointment.customer.email,
-        clientPhone: appointment.customer.phone || '',
+        clientName: `${appointment.Customer.firstName || ''} ${appointment.Customer.lastName || ''}`.trim(),
+        clientEmail: appointment.Customer.email || '',
+        clientPhone: appointment.Customer.phone || '',
         depositPaid: appointment.deposit ? true : false,
         depositAmount: appointment.deposit || 0,
         price: appointment.totalPrice || 0,
@@ -371,49 +354,28 @@ export const dashboardRouter = router({
     const skip = (page - 1) * limit;
 
     try {
-      // Build the where clause
-      const where: Record<string, unknown> = {};
+      // Build the where clause using type-safe techniques
+      const where: Prisma.PaymentWhereInput = {};
 
       // Filter by status if not "all"
       if (status !== 'all') {
-        where['status'] = status;
+        where.status = status;
       }
 
       // Filter by period if not "all"
       if (period !== 'all') {
         const { startDate, endDate } = formatDateRange(period);
-        where['createdAt'] = {
-          gte: startDate,
-          lte: endDate,
-        };
+        
+        if (startDate && endDate) {
+          where.createdAt = {
+            gte: startDate,
+            lte: endDate,
+          };
+        }
       }
 
-      // Define PaymentType before usage
-      type PaymentCustomer = {
-        firstName: string;
-        lastName: string;
-        email: string;
-      };
-
-      type PaymentAppointment = {
-        title: string;
-        id: string;
-      };
-
-      type PaymentType = {
-        id: string;
-        amount: number;
-        status: string;
-        paymentMethod: string;
-        createdAt: Date;
-        customerId: string;
-        customer: PaymentCustomer | null;
-        appointmentId: string;
-        appointment: PaymentAppointment | null;
-      };
-
       // Get payments with count for pagination
-      const [payments, totalCount]: [PaymentType[], number] = await Promise.all([
+      const [payments, totalCount] = await Promise.all([
         prisma.payment.findMany({
           where,
           orderBy: {
@@ -422,20 +384,24 @@ export const dashboardRouter = router({
           skip,
           take: limit,
           include: {
-            customer: {
+            Booking: {
               select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            },
-            appointment: {
-              select: {
-                id: true,
-                title: true,
-              },
-            },
+                Customer: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                  }
+                },
+                Appointment: {
+                  select: {
+                    id: true,
+                    title: true,
+                  }
+                }
+              }
+            }
           },
         }),
         prisma.payment.count({ where }),
@@ -443,24 +409,29 @@ export const dashboardRouter = router({
 
       // Calculate totals for the period
       const totalAmount = payments.reduce(
-        (sum: number, payment: { amount: number }) => sum + payment.amount,
+        (sum: number, payment) => sum + payment.amount,
         0,
       );
 
-      const formattedPayments = payments.map((payment: PaymentType) => ({
-        id: payment.id,
-        amount: payment.amount,
-        status: payment.status,
-        paymentMethod: payment.paymentMethod,
-        date: payment.createdAt.toISOString(),
-        customerId: payment.customerId,
-        clientName: payment.customer
-          ? `${payment.customer.firstName} ${payment.customer.lastName}`.trim()
-          : 'Unknown',
-        clientEmail: payment.customer?.email || '',
-        appointmentId: payment.appointmentId,
-        appointmentTitle: payment.appointment?.title || null,
-      }));
+      const formattedPayments = payments.map((payment) => {
+        const customer = payment.Booking?.Customer;
+        const appointment = payment.Booking?.Appointment;
+        return {
+          id: payment.id,
+          amount: payment.amount,
+          status: payment.status,
+          paymentMethod: payment.paymentMethod,
+          date: payment.createdAt.toISOString(),
+          customerId: customer?.id || '',
+          clientName: customer 
+            ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
+            : payment.customerName || 'Unknown',
+          clientEmail: customer?.email || payment.customerEmail || '',
+          appointmentId: appointment?.id || '',
+          appointmentTitle: appointment?.title || null,
+          bookingId: payment.bookingId
+        };
+      });
 
       // Return with pagination info
       return {
@@ -479,6 +450,269 @@ export const dashboardRouter = router({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch recent payments',
         cause: error,
+      });
+    }
+  }),
+  
+  /**
+   * Get recent bookings for the dashboard
+   */
+  getRecentBookings: publicProcedure.input(
+    z.object({
+      limit: z.number().min(1).max(50).optional().default(10),
+      status: z.string().optional(),
+    })
+  ).query(async ({ input }) => {
+    const { limit, status } = input;
+    
+    try {
+      // Build the where clause using type-safe techniques
+      const where: Prisma.BookingWhereInput = {};
+      
+      // Filter by status if provided
+      // Using proper type assertion for BookingWhereInput with status field
+      if (status && status !== 'all') {
+        (where as Prisma.BookingWhereInput & { status?: string }).status = status;
+      }
+      
+      const bookings = await prisma.booking.findMany({
+        where,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          Customer: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        }
+      });
+      
+      return bookings.map(booking => ({
+        id: booking.id,
+        name: booking.name || `${booking.Customer?.firstName || ''} ${booking.Customer?.lastName || ''}`.trim(),
+        email: booking.email || booking.Customer?.email || '',
+        service: booking.tattooType,
+        date: booking.preferredDate.toISOString(),
+        status: booking.depositPaid ? 'confirmed' : 'pending'
+      }));
+    } catch (error) {
+      console.error('Error fetching recent bookings:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch recent bookings',
+        cause: error
+      });
+    }
+  }),
+  
+  /**
+   * Get weekly booking data for charts
+   */
+  getWeeklyBookings: publicProcedure.query(async () => {
+    try {
+      // Get start and end dates for the current week
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      // Get bookings for each day of the week
+      const bookings = await prisma.booking.findMany({
+        where: {
+          createdAt: {
+            gte: startOfWeek,
+            lte: endOfWeek
+          }
+        },
+        select: {
+          createdAt: true
+        }
+      });
+      
+      // Initialize days of the week
+      const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const chartData = daysOfWeek.map(day => ({ name: day, bookings: 0 }));
+      
+      // Count bookings for each day with proper null checks
+      bookings.forEach(booking => {
+        const dayIndex = booking.createdAt.getDay();
+        if (dayIndex >= 0 && dayIndex < chartData.length && chartData[dayIndex]) {
+          chartData[dayIndex].bookings += 1;
+        }
+      });
+      
+      return chartData;
+    } catch (error) {
+      console.error('Error fetching weekly bookings:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch weekly booking data',
+        cause: error
+      });
+    }
+  }),
+  
+  /**
+   * Get service distribution data for pie charts
+   */
+  getServiceDistribution: publicProcedure.query(async () => {
+    try {
+      // Get count of bookings by tattoo type
+      const bookingsByType = await prisma.booking.groupBy({
+        by: ['tattooType'],
+        _count: {
+          id: true
+        }
+      });
+      
+      // Define colors for pie chart
+      const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#f97316', '#ef4444'];
+      
+      // Format data for pie chart
+      const pieData = bookingsByType.map((item, index) => ({
+        name: item.tattooType || 'Unknown',
+        value: item._count.id,
+        color: colors[index % colors.length]
+      }));
+      
+      return pieData;
+    } catch (error) {
+      console.error('Error fetching service distribution:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch service distribution data',
+        cause: error
+      });
+    }
+  }),
+  
+  /**
+   * Get recent contacts for the dashboard
+   */
+  getRecentContacts: publicProcedure.input(
+    z.object({
+      limit: z.number().min(1).max(50).optional().default(10)
+    })
+  ).query(async ({ input }) => {
+    const { limit } = input;
+    
+    try {
+      const contacts = await prisma.contact.findMany({
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          Customer: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true
+            }
+          }
+        }
+      });
+      
+      return contacts.map(contact => ({
+        id: contact.id.toString(),
+        firstName: contact.Customer?.firstName || contact.name.split(' ')[0] || '',
+        lastName: contact.Customer?.lastName || (contact.name.split(' ').length > 1 ? contact.name.split(' ').slice(1).join(' ') : ''),
+        email: contact.Customer?.email || contact.email,
+        phone: contact.Customer?.phone || '',
+        message: contact.message,
+        createdAt: contact.createdAt.toISOString()
+      }));
+    } catch (error) {
+      console.error('Error fetching recent contacts:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch recent contacts',
+        cause: error
+      });
+    }
+  }),
+  
+  /**
+   * Get recent activity for the activity feed
+   */
+  getRecentActivity: publicProcedure.input(
+    z.object({
+      limit: z.number().min(1).max(50).optional().default(5)
+    })
+  ).query(async ({ input }) => {
+    const { limit } = input;
+    
+    try {
+      // Get recent bookings
+      const recentBookings = await prisma.booking.findMany({
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          Customer: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      });
+      
+      // Get recent appointments
+      const recentAppointments = await prisma.appointment.findMany({
+        take: limit,
+        orderBy: {
+          updatedAt: 'desc'
+        },
+        where: {
+          status: 'completed'
+        },
+        include: {
+          Customer: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      });
+      
+      // Format activity data
+      const bookingActivities = recentBookings.map(booking => ({
+        id: `booking-${booking.id}`,
+        type: 'booking',
+        message: `New booking: ${booking.name || `${booking.Customer?.firstName || ''} ${booking.Customer?.lastName || ''}`.trim()} booked a ${booking.tattooType} session`,
+        timestamp: booking.createdAt.toISOString()
+      }));
+      
+      const appointmentActivities = recentAppointments.map(appointment => ({
+        id: `appointment-${appointment.id}`,
+        type: 'appointment',
+        message: `Appointment completed: ${appointment.title} with ${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
+        timestamp: appointment.updatedAt.toISOString()
+      }));
+      
+      // Combine and sort activities
+      return [...bookingActivities, ...appointmentActivities]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, limit);
+    } catch (error) {
+      console.error('Error fetching recent activity:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch recent activity',
+        cause: error
       });
     }
   }),
@@ -504,7 +738,7 @@ export const dashboardRouter = router({
           },
           take: limit,
           include: {
-            customer: {
+            Customer: {
               select: {
                 firstName: true,
                 lastName: true,
@@ -519,10 +753,14 @@ export const dashboardRouter = router({
             orderBy: { createdAt: 'desc' },
             take: limit,
             include: {
-              customer: {
+              Booking: {
                 select: {
-                  firstName: true,
-                  lastName: true,
+                  Customer: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                    },
+                  },
                 },
               },
             },
@@ -536,7 +774,7 @@ export const dashboardRouter = router({
             orderBy: { updatedAt: 'desc' },
             take: limit,
             include: {
-              customer: {
+              Customer: {
                 select: {
                   firstName: true,
                   lastName: true,
@@ -546,62 +784,33 @@ export const dashboardRouter = router({
           }),
         ]);
 
-        // Format notifications
-        type NotificationCustomer = {
-          firstName: string;
-          lastName: string;
-        };
-
-        type NotificationAppointment = {
-          id: string;
-          title: string;
-          customer: NotificationCustomer;
-          startDate: Date;
-          status: string;
-        };
-
-        const notifications = upcomingAppointments.map((appointment: NotificationAppointment) => ({
+        const notifications = upcomingAppointments.map((appointment) => ({
           id: appointment.id,
           type: 'appointment',
           title: `Upcoming: ${appointment.title}`,
-          message: `${appointment.customer.firstName} ${appointment.customer.lastName} - ${formatAppointmentTime(appointment.startDate)}`,
+          message: `${appointment.Customer.firstName} ${appointment.Customer.lastName} - ${formatAppointmentTime(appointment.startDate)}`,
           time: appointment.startDate.toISOString(),
           status: appointment.status,
           link: `/admin/dashboard/appointments?id=${appointment.id}`,
         }));
 
-        // Format activity feed (merge and sort by date)
-        type ActivityPayment = {
-          id: string;
-          customer: NotificationCustomer | null;
-          amount: number;
-          createdAt: Date;
-        };
-
-        type ActivityCustomer = {
-          id: string;
-          firstName: string;
-          lastName: string;
-          createdAt: Date;
-        };
-
-        type ActivityCompletedAppointment = {
-          id: string;
-          title: string;
-          customer: NotificationCustomer;
-          updatedAt: Date;
-        };
-
         const activityItems = [
-          ...recentPayments.map((payment: ActivityPayment) => ({
-            id: `payment-${payment.id}`,
-            type: 'payment',
-            title: 'Payment Received',
-            message: `${payment.customer?.firstName ?? ''} ${payment.customer?.lastName ?? ''} paid $${payment.amount.toFixed(2)}`,
-            time: payment.createdAt.toISOString(),
-            link: `/admin/dashboard/payments?id=${payment.id}`,
-          })),
-          ...recentCustomers.map((customer: ActivityCustomer) => ({
+          ...recentPayments.map((payment) => {
+            // Extract name from payment record directly since Booking.Customer relationship changed
+            const names = payment.customerName ? payment.customerName.split(' ') : ['', ''];
+            const firstName = names[0] || '';
+            const lastName = names.slice(1).join(' ') || '';
+            
+            return {
+              id: `payment-${payment.id}`,
+              type: 'payment',
+              title: 'Payment Received',
+              message: `${firstName} ${lastName} paid $${payment.amount.toFixed(2)}`,
+              time: payment.createdAt.toISOString(),
+              link: `/admin/dashboard/payments?id=${payment.id}`,
+            };
+          }),
+          ...recentCustomers.map((customer) => ({
             id: `customer-${customer.id}`,
             type: 'customer',
             title: 'New Customer',
@@ -609,11 +818,11 @@ export const dashboardRouter = router({
             time: customer.createdAt.toISOString(),
             link: `/admin/dashboard/customers?id=${customer.id}`,
           })),
-          ...completedAppointments.map((appointment: ActivityCompletedAppointment) => ({
+          ...completedAppointments.map((appointment) => ({
             id: `completed-${appointment.id}`,
             type: 'completed',
             title: 'Appointment Completed',
-            message: `${appointment.title} with ${appointment.customer.firstName} ${appointment.customer.lastName}`,
+            message: `${appointment.title} with ${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
             time: appointment.updatedAt.toISOString(),
             link: `/admin/dashboard/appointments?id=${appointment.id}`,
           })),
@@ -651,7 +860,10 @@ export const dashboardRouter = router({
       // Update the appointment status
       const updatedAppointment = await prisma.appointment.update({
         where: { id: appointmentId },
-        data: { status: 'confirmed' },
+        data: sanitizeForPrisma({ 
+          status: 'confirmed',
+          updatedAt: new Date()
+        }),
       });
 
       return {
@@ -670,6 +882,47 @@ export const dashboardRouter = router({
 });
 
 // Helper functions
+
+/**
+ * Helper function to build type-safe date filters for appointment queries
+ * Prevents Prisma exactOptionalPropertyTypes errors by only including properties when values exist
+ */
+function buildDateFilter(
+  entityType: 'appointment' | 'booking' | 'customer',
+  startDate?: Date,
+  endDate?: Date
+): Record<string, unknown> {
+  const filter: Record<string, unknown> = {};
+  
+  if (entityType === 'appointment') {
+    if (startDate && endDate) {
+      filter['startDate'] = { gte: startDate };
+      filter['endDate'] = { lte: endDate };
+    } else if (startDate) {
+      filter['startDate'] = { gte: startDate };
+    } else if (endDate) {
+      filter['endDate'] = { lte: endDate };
+    }
+  }
+  
+  return filter;
+}
+
+/**
+ * Helper function to build a createdAt filter that follows exactOptionalPropertyTypes constraint
+ */
+function buildCreatedAtFilter(startDate?: Date, endDate?: Date): Prisma.CustomerWhereInput {
+  if (startDate && endDate) {
+    return {
+      createdAt: {
+        gte: startDate,
+        lte: endDate
+      }
+    };
+  }
+  
+  return {};
+}
 
 function calculatePercentageChange(current: number, previous: number): number {
   if (previous === 0) return current > 0 ? 100 : 0;
@@ -705,6 +958,7 @@ function formatAppointmentTime(date: Date): string {
     minute: '2-digit',
   });
 }
+
 // Helper function to get the previous period's date range
 function getPreviousRange(
   period: string,

@@ -47,7 +47,19 @@ export function HomeNavbar() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  if (!visible) {
+  // Track the current path for client-side rendering
+  const [path, setPath] = React.useState('/');
+  
+  React.useEffect(() => {
+    setPath(window.location.pathname);
+  }, []);
+
+  if (!visible && path === '/') {
+    return null;
+  }
+  
+  // Don't show home navbar on non-home pages
+  if (path !== '/') {
     return null;
   }
 
@@ -131,7 +143,7 @@ export function HomeNavbar() {
                   key={link.href}
                   href={link.href}
                   className={`text-white py-2 px-4 rounded-md hover:bg-white/5 ${
-                    link.isButton ? 'bg-tattoo-red text-center' : ''
+                    link.isButton ? 'bg-red-600 text-center' : ''
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >

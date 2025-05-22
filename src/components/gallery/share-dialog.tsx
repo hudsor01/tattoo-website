@@ -7,21 +7,14 @@ import { Input } from "@/components/ui/input"
 import { shareContent } from "@/lib/api"
 import { Facebook, Twitter, Instagram, Mail, Copy, Check, Loader2, Linkedin } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
-
-interface ShareDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  contentType: "tattoo" | "video"
-  contentId: number
-  title: string
-}
+import type { SharePlatform, ShareDialogProps, ShareMetadata, ShareButton } from "@/types/component-types"
 
 export function ShareDialog({ open, onOpenChange, contentType, contentId, title }: ShareDialogProps) {
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({})
   const [shareUrl, setShareUrl] = useState("")
   const [copied, setCopied] = useState(false)
 
-  const handleShare = async (platform: "facebook" | "twitter" | "instagram" | "pinterest" | "email" | "linkedin") => {
+  const handleShare = async (platform: SharePlatform) => {
     setIsLoading((prev) => ({ ...prev, [platform]: true }))
 
     try {
@@ -45,7 +38,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
       toast({
         title: "Share failed",
         description: "Could not share content. Please try again.",
-        variant: "destructive",
+        variant: "error",
       })
     } finally {
       setIsLoading((prev) => ({ ...prev, [platform]: false }))
@@ -66,31 +59,31 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
       toast({
         title: "Copy failed",
         description: "Could not copy to clipboard. Please try manually.",
-        variant: "destructive",
+        variant: "error",
       })
     }
   }
 
   // Generate a preview URL for the content
-  const previewUrl = `https://yourtattoogallery.com/${contentType}s/${contentId}`
+  const previewUrl = `https://ink37tattoos.com.com/${contentType}s/${contentId}`
 
   // Generate metadata for sharing
-  const shareMetadata = {
+  const shareMetadata: ShareMetadata = {
     title: title,
     description: `Check out this amazing ${contentType} on Tattoo Gallery`,
     url: previewUrl,
     image:
       contentType === "tattoo"
-        ? `https://yourtattoogallery.com/api/tattoos/${contentId}/image`
-        : `https://yourtattoogallery.com/api/videos/${contentId}/thumbnail`,
+        ? `https://ink37tattoos.com/api/tattoos/${contentId}/image`
+        : `https://ink37tattoos.com/api/videos/${contentId}/thumbnail`,
   }
 
-  const shareButtons = [
+  const shareButtons: ShareButton[] = [
     { name: "facebook", icon: Facebook, color: "bg-[#1877F2] hover:bg-[#0E65D9]" },
     { name: "twitter", icon: Twitter, color: "bg-[#1DA1F2] hover:bg-[#0C90E1]" },
     { name: "linkedin", icon: Linkedin, color: "bg-[#0A66C2] hover:bg-[#004182]" },
     {
-      name: "instagram",
+      name: "instagram", 
       icon: Instagram,
       color: "bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90",
     },
@@ -133,7 +126,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
               <Button
                 key={button.name}
                 className={`${button.color} text-white`}
-                onClick={() => handleShare(button.name as any)}
+                onClick={() => handleShare(button.name)}
                 disabled={isLoading[button.name]}
               >
                 {isLoading[button.name] ? (

@@ -13,7 +13,8 @@ import { galleryRouter } from './routers/gallery-router';
 import { adminRouter } from './routers/admin-router';
 import { userRouter } from './routers/user-router';
 import { subscriptionRouter } from './routers/subscription-router';
-import { analyticsRouter } from './routers/analytics-router';
+import { calRouter } from './routers/cal-router';
+import { dashboardRouter } from './routers/dashboard-router';
 
 /**
  * Main application router
@@ -27,7 +28,8 @@ export const appRouter = router({
   admin: adminRouter,
   user: userRouter,
   subscription: subscriptionRouter,
-  analytics: analyticsRouter,
+  cal: calRouter,
+  dashboard: dashboardRouter,
 });
 
 // Export type definition of the API

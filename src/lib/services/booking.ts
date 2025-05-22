@@ -1,46 +1,54 @@
 import { prisma } from '@/lib/db/prisma';
-import type { CreateBookingInput, UpdateDepositInput } from '@/types/booking-types';
+
+/**
+ * Type definitions for booking input data
+ */
+interface CreateBookingInput {
+  name: string;
+  email: string;
+  phone: string;
+  tattooType: string;
+  size: string;
+  placement: string;
+  description: string;
+  preferredDate: string;
+  preferredTime: string;
+  paymentMethod: string;
+  referenceImages?: string[];
+  calBookingUid?: string;
+  calEventId?: string;
+  totalPrice?: string | number;
+  depositAmount?: string | number;
+  depositPaid?: boolean;
+}
+
+/**
+ * Type definition for updating deposit status
+ */
+interface UpdateDepositInput {
+  depositPaid: boolean;
+}
 
 /**
  * Create a new booking in the database
  */
 export async function createBooking(data: CreateBookingInput) {
   try {
-    // Extract main booking data
-    const { 
-      name,
-      email,
-      phone,
-      tattooType,
-      size: tattooSize,
-      placement: location,
-      description: consultationNotes,
-      preferredDate,
-      preferredTime,
-      referenceImages,
-      calBookingUid,
-      calEventId
-    } = data;
-
     // Format the data for the Prisma schema
     const bookingData = {
-      name,
-      email,
-      phone,
-      tattooType,
-      size: tattooSize,
-      location,
-      preferredDates: `${preferredDate} ${preferredTime}`,
-      consultationNotes,
-      referenceImages: referenceImages ? JSON.stringify(referenceImages) : null,
-      status: "pending",
-      bookingType: "tattoo",
-      calBookingUid,
-      calRescheduleUid: null,
-      calEventId: calEventId || null,
-      estimatedPrice: data.totalPrice ? Number(data.totalPrice) : null,
-      deposit: data.depositAmount ? Number(data.depositAmount) : null,
-      depositPaid: data.depositPaid || false
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      tattooType: data.tattooType,
+      size: data.size,
+      placement: data.placement,
+      description: data.description,
+      preferredDate: new Date(data.preferredDate),
+      preferredTime: data.preferredTime,
+      paymentMethod: data.paymentMethod,
+      depositPaid: data.depositPaid || false,
+      calBookingUid: data.calBookingUid || undefined,
+      source: data.calBookingUid ? 'cal' : 'website'
     };
 
     // Create the booking record
@@ -100,12 +108,35 @@ export async function getBookings() {
 }
 
 /**
+ * Types for Cal.com booking data
+ */
+interface CalBookingAttendee {
+  name: string;
+  email: string;
+  phone?: string;
+}
+
+interface CalCustomInput {
+  label: string;
+  value: string;
+}
+
+interface CalBookingData {
+  uid: string;
+  eventTypeId: number;
+  startTime: string;
+  attendees?: CalBookingAttendee[];
+  customInputs?: CalCustomInput[];
+  status: string;
+}
+
+/**
  * Process a Cal.com webhook booking event
  */
-export async function processCalBooking(calData: any) {
+export async function processCalBooking(calData: CalBookingData) {
   try {
     // Extract booking information from Cal.com data
-    const { uid, eventTypeId, startTime, endTime, attendees, customInputs, status } = calData;
+    const { uid, eventTypeId, startTime, attendees, customInputs, status } = calData;
     
     // Get the first attendee (client)
     const attendee = attendees?.[0];
@@ -115,7 +146,7 @@ export async function processCalBooking(calData: any) {
 
     // Extract custom fields from customInputs
     const getCustomField = (name: string) => {
-      const field = customInputs?.find((input: any) => input.label.toLowerCase() === name.toLowerCase());
+      const field = customInputs?.find((input: CalCustomInput) => input.label.toLowerCase() === name.toLowerCase());
       return field?.value;
     };
 

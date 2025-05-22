@@ -11,7 +11,7 @@
 
 import 'server-only';
 import { initTRPC, TRPCError } from '@trpc/server';
-import { TRPCContext } from './context';
+import type { TRPCContext } from './context';
 import superjson from 'superjson';
 import { logger } from '@/lib/logger';
 
@@ -104,8 +104,8 @@ export const adminProcedure = t.procedure.use(loggerMiddleware).use(
     }
     
     // Check if user is admin
-    const isAdmin = ctx.user.user_metadata?.role === 'admin' || 
-                   ctx.user.app_metadata?.role === 'admin';
+    const isAdmin = ctx.user.user_metadata?.["role"] === 'admin' || 
+                    ctx.user.app_metadata?.["role"] === 'admin';
     
     if (!isAdmin) {
       throw new TRPCError({

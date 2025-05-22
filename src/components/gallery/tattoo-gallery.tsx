@@ -7,106 +7,27 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Play, X, Heart, Share2, Info, Bookmark, AlertTriangle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Play, X, Share2, Info, Bookmark } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMobile } from "@/hooks/use-mobile"
 import { VideoPlayer } from "./video-player"
 import { ShareDialog } from "./share-dialog"
 import { toast } from "@/hooks/use-toast"
-import { fetchTattooImages, fetchVideoProcesses, likeTattoo, bookmarkTattoo, getUserInteractions } from "@/lib/api/gallery"
-import { useRealTimeUpdates, formatNumber } from "@/lib/real-time"
-import type { TattooImage, VideoProcess } from "@/types/gallery"
+import { likeTattoo, bookmarkTattoo } from "@/lib/gallery"
+import type { TattooImage, VideoProcess } from "@/types/gallery-types"
 
-// Fallback data in case API fails
-const fallbackTattooImages: TattooImage[] = [
-	{
-		id: 1,
-		src: "/placeholder.svg?height=600&width=400",
-		alt: "Realistic portrait tattoo",
-		category: "Portrait",
-		likes: 124,
-		featured: true,
-	},
-	{
-		id: 2,
-		src: "/placeholder.svg?height=600&width=400",
-		alt: "Japanese style sleeve tattoo",
-		category: "Japanese",
-		likes: 98,
-		featured: false,
-	},
-	{
-		id: 3,
-		src: "/placeholder.svg?height=600&width=400",
-		alt: "Traditional American eagle",
-		category: "Traditional",
-		likes: 156,
-		featured: false,
-	},
-	{
-		id: 4,
-		src: "/placeholder.svg?height=600&width=400",
-		alt: "Geometric mandala design",
-		category: "Geometric",
-		likes: 87,
-		featured: true,
-	},
-	{
-		id: 5,
-		src: "/placeholder.svg?height=600&width=400",
-		alt: "Watercolor flower sleeve",
-		category: "Watercolor",
-		likes: 210,
-		featured: false,
-	},
-	{
-		id: 6,
-		src: "/placeholder.svg?height=600&width=400",
-		alt: "Blackwork abstract pattern",
-		category: "Blackwork",
-		likes: 65,
-		featured: false,
-	},
-]
+// Function to format large numbers for display
+function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + "M"
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + "K"
+  }
+  return num.toString()
+}
+import { galleryPhotos } from "./gallery-photos"
 
-const fallbackVideoProcesses: VideoProcess[] = [
-	{
-		id: 1,
-		thumbnail: "/placeholder.svg?height=600&width=400",
-		title: "Full Sleeve Process",
-		duration: "5:24",
-		videoUrl: "https://example.com/videos/sleeve-process.mp4",
-		views: 1245,
-		date: "2 weeks ago",
-	},
-	{
-		id: 2,
-		thumbnail: "/placeholder.svg?height=600&width=400",
-		title: "Portrait Tattoo Technique",
-		duration: "8:15",
-		videoUrl: "https://example.com/videos/portrait-technique.mp4",
-		views: 987,
-		date: "1 month ago",
-	},
-	{
-		id: 3,
-		thumbnail: "/placeholder.svg?height=600&width=400",
-		title: "Color Saturation Methods",
-		duration: "12:38",
-		videoUrl: "https://example.com/videos/color-saturation.mp4",
-		views: 2341,
-		date: "3 weeks ago",
-	},
-	{
-		id: 4,
-		thumbnail: "/placeholder.svg?height=600&width=400",
-		title: "Linework Masterclass",
-		duration: "15:10",
-		videoUrl: "https://example.com/videos/linework-masterclass.mp4",
-		views: 3120,
-		date: "2 months ago",
-	},
-]
+// No static fallback data - using real API only
 
 export function TattooGallery() {
 	// State for data
@@ -149,30 +70,7 @@ export function TattooGallery() {
 	const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0])
 	const y = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [100, 0, 0, 100])
 
-	// Real-time updates handlers
-	const handleLikeUpdate = useCallback((tattooId: number, likes: number) => {
-		setTattooImages((prev) => prev.map((img) => (img.id === tattooId ? { ...img, likes } : img)))
-	}, [])
-
-	const handleNewTattoo = useCallback((tattoo: TattooImage) => {
-		setTattooImages((prev) => [tattoo, ...prev])
-	}, [])
-
-	const handleNewVideo = useCallback((video: VideoProcess) => {
-		setVideoProcesses((prev) => [video, ...prev])
-	}, [])
-
-	const handleViewCountUpdate = useCallback((videoId: number, views: number) => {
-		setVideoProcesses((prev) => prev.map((video) => (video.id === videoId ? { ...video, views } : video)))
-	}, [])
-
-	// Initialize real-time updates
-	const { isConnected: isRealtimeConnected } = useRealTimeUpdates(
-		handleLikeUpdate,
-		handleNewTattoo,
-		handleNewVideo,
-		handleViewCountUpdate,
-	)
+	// No real-time updates in this application
 
 	// Fetch data on component mount and when dataRefreshTimestamp changes
 	useEffect(() => {
@@ -182,79 +80,67 @@ export function TattooGallery() {
 
 			try {
 				// Parallel data fetching for better performance
-				const [tattooData, videoData, userInteractions] = await Promise.allSettled([
-					fetchTattooImages(),
-					fetchVideoProcesses(),
-					getUserInteractions(),
-				])
-
-				// Handle tattoo images
-				if (tattooData.status === "fulfilled") {
-					setTattooImages(tattooData.value)
-				} else {
-					console.error("Failed to load tattoo images:", tattooData.reason)
-					setTattooImages(fallbackTattooImages)
+				const [tattooImagesResponse, videoProcessesResponse, userInteractionsResponse] = await Promise.all([
+					fetch('/api/gallery/tattoos'),
+					fetch('/api/gallery/videos'),
+					fetch('/api/gallery/user-interactions'),
+				]);
+				
+				// Check responses and handle errors
+				if (!tattooImagesResponse.ok) {
+					throw new Error(`Failed to fetch tattoo images: ${tattooImagesResponse.statusText}`);
 				}
-
-				// Handle video processes
-				if (videoData.status === "fulfilled") {
-					setVideoProcesses(videoData.value)
-				} else {
-					console.error("Failed to load video processes:", videoData.reason)
-					setVideoProcesses(fallbackVideoProcesses)
+				
+				if (!videoProcessesResponse.ok) {
+					throw new Error(`Failed to fetch video processes: ${videoProcessesResponse.statusText}`);
 				}
-
-				// Handle user interactions
-				if (userInteractions.status === "fulfilled") {
-					setLiked(userInteractions.value.likes)
-					setBookmarked(userInteractions.value.bookmarks)
-				} else {
-					console.error("Failed to load user interactions:", userInteractions.reason)
-					setLiked({})
-					setBookmarked({})
+				
+				if (!userInteractionsResponse.ok) {
+					throw new Error(`Failed to fetch user interactions: ${userInteractionsResponse.statusText}`);
 				}
-
-				// Check if any of the main data fetches failed
-				if (tattooData.status === "rejected" || videoData.status === "rejected") {
-					setError("Some data could not be loaded. Showing partial or cached content.")
-
-					toast({
-						title: "Partial Data Loaded",
-						description: "Some content couldn't be loaded from the server. Showing available data.",
-						variant: "destructive",
-					})
-				}
+				
+				// Parse response data
+				const tattooImages = await tattooImagesResponse.json();
+				const videoProcesses = await videoProcessesResponse.json();
+				const userInteractions = await userInteractionsResponse.json();
+				
+				// Update state with fetched data
+				setTattooImages(tattooImages);
+				setVideoProcesses(videoProcesses);
+				setLiked(userInteractions.likes || {});
+				setBookmarked(userInteractions.bookmarks || {});
+				
 			} catch (err) {
-				console.error("Failed to load gallery data:", err)
-				setError("Failed to load gallery data. Using fallback content.")
-
-				// Use fallback data
-				setTattooImages(fallbackTattooImages)
-				setVideoProcesses(fallbackVideoProcesses)
-
+				console.error("Error fetching gallery data:", err);
+				setError(err instanceof Error ? err.message : String(err));
+				
 				// Show error toast
 				toast({
-					title: "Connection Error",
-					description: "Could not connect to the server. Showing cached content.",
-					variant: "destructive",
-				})
+					title: "Error Loading Gallery",
+					description: "Failed to load gallery content. Please try again later.",
+					variant: "error",
+				});
+				
+				// Initialize with empty data
+				setTattooImages([]);
+				setVideoProcesses([]);
+				setLiked({});
+				setBookmarked({});
 			} finally {
-				setIsLoading(false)
+				setIsLoading(false);
 			}
 		}
 
 		loadData()
 	}, [dataRefreshTimestamp])
 
-	// Update real-time connection status
+	// Notify user when gallery loads
 	useEffect(() => {
-		if (isRealtimeConnected) {
-			toast({
-				title: "Real-time Updates Active",
-				description: "You'll see live updates for likes, new content, and view counts.",
-			})
-		}
-	}, [isRealtimeConnected])
+		toast({
+			title: "Gallery Loaded",
+			description: "Browse our tattoo designs and videos.",
+		})
+	}, [])
 
 	// Handle image click in gallery
 	const handleImageClick = (index: number) => {
@@ -324,22 +210,30 @@ export function TattooGallery() {
 
 	// Touch handlers for mobile
 	const handleTouchStart = (e: React.TouchEvent) => {
-		if (scale > 1) {
-			setIsDragging(true)
-			setStartPos({
-				x: e.touches[0].clientX - position.x,
-				y: e.touches[0].clientY - position.y,
-			})
-		}
+		// Early return if touches is null or empty, or scale not > 1
+		if (scale <= 1 || !e.touches || e.touches.length === 0) return;
+		
+		const firstTouch = e.touches[0];
+		if (!firstTouch) return;
+		
+		setIsDragging(true)
+		setStartPos({
+			x: firstTouch.clientX - position.x,
+			y: firstTouch.clientY - position.y,
+		})
 	}
 
 	const handleTouchMove = (e: React.TouchEvent) => {
-		if (isDragging && scale > 1) {
-			setPosition({
-				x: e.touches[0].clientX - startPos.x,
-				y: e.touches[0].clientY - startPos.y,
-			})
-		}
+		// Early return if not dragging, scale not > 1, or touches null/empty
+		if (!isDragging || scale <= 1 || !e.touches || e.touches.length === 0) return;
+		
+		const firstTouch = e.touches[0];
+		if (!firstTouch) return;
+		
+		setPosition({
+			x: firstTouch.clientX - startPos.x,
+			y: firstTouch.clientY - startPos.y,
+		})
 	}
 
 	const handleTouchEnd = () => {
@@ -381,7 +275,7 @@ export function TattooGallery() {
 				toast({
 					title: "Action Failed",
 					description: `Could not ${newLikedState ? "like" : "unlike"} the tattoo. Please try again.`,
-					variant: "destructive",
+					variant: "error",
 				})
 			} finally {
 				setPendingLikes((prev) => ({ ...prev, [id]: false }))
@@ -451,35 +345,11 @@ export function TattooGallery() {
 
 		window.addEventListener("keydown", handleKeyDown)
 		return () => window.removeEventListener("keydown", handleKeyDown)
-	}, [isLightboxOpen, selectedImage, scale])
-
-	// Retry loading data
-	const handleRetry = async () => {
-		setDataRefreshTimestamp(Date.now())
-	}
+	}, [isLightboxOpen, selectedImage, scale, handleZoomOut, nextImage, prevImage])
 
 	return (
 		<div className="w-full" ref={galleryRef}>
 			<motion.div style={{ opacity, y }}>
-				{error && (
-					<div className="mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3">
-						<AlertTriangle className="h-5 w-5 text-red-500" />
-						<div className="flex-1 text-sm text-red-500">{error}</div>
-						<Button size="sm" onClick={handleRetry} disabled={isLoading}>
-							{isLoading ? "Loading..." : "Retry"}
-						</Button>
-					</div>
-				)}
-
-				{isRealtimeConnected && (
-					<div className="mb-4 text-xs text-center">
-						<span className="inline-flex items-center gap-1">
-							<span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-							Real-time updates active
-						</span>
-					</div>
-				)}
-
 				<Tabs defaultValue="tattoos" className="w-full" onValueChange={setActiveTab}>
 					<TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8 bg-zinc-800/50 backdrop-blur-sm">
 						<TabsTrigger
@@ -541,20 +411,6 @@ export function TattooGallery() {
 														sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
 													/>
 													<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-														<div className="flex justify-between items-center mb-2">
-															<div className="flex items-center gap-1">
-																<Heart
-																	className={cn(
-																		"h-5 w-5 cursor-pointer transition-all",
-																		liked[image.id] ? "text-red-500 fill-red-500" : "text-white",
-																		pendingLikes[image.id] && "animate-pulse opacity-70",
-																	)}
-																	onClick={(e) => toggleLike(image.id, e)}
-																	aria-label={liked[image.id] ? "Unlike" : "Like"}
-																/>
-																<span className="text-xs text-white">{formatNumber(image.likes)}</span>
-															</div>
-														</div>
 														<div className="flex justify-between mt-2">
 															<Button
 																size="sm"
@@ -643,7 +499,7 @@ export function TattooGallery() {
 													</Button>
 													<Button
 														variant="ghost"
-													size="icon"
+														size="icon"
 														className="text-white bg-black/50 hover:bg-black/70"
 														onClick={resetZoom}
 														aria-label="Reset zoom"
@@ -700,29 +556,16 @@ export function TattooGallery() {
 														<Button
 															size="sm"
 															variant="ghost"
-															className="flex gap-1 items-center text-white hover:text-red-500"
-															onClick={(e) => toggleLike(tattooImages[selectedImage].id, e)}
-															disabled={pendingLikes[tattooImages[selectedImage].id]}
-															aria-label={liked[tattooImages[selectedImage].id] ? "Unlike" : "Like"}
-														>
-															<Heart
-																className={cn(
-																	"h-5 w-5",
-																	liked[tattooImages[selectedImage].id] ? "text-red-500 fill-red-500" : "",
-																	pendingLikes[tattooImages[selectedImage].id] && "animate-pulse opacity-70",
-																)}
-															/>
-															<span>Like ({formatNumber(tattooImages[selectedImage].likes)})</span>
-														</Button>
-														<Button
-															size="sm"
-															variant="ghost"
 															className="flex gap-1 items-center text-white"
 															onClick={(e) =>
 																handleShare(
 																	"tattoo",
-																	tattooImages[selectedImage].id,
-																	tattooImages[selectedImage].alt,
+																	selectedImage !== null && tattooImages[selectedImage] 
+																		? tattooImages[selectedImage].id 
+																		: 0,
+																	selectedImage !== null && tattooImages[selectedImage]
+																		? tattooImages[selectedImage].alt
+																		: "",
 																	e,
 																)
 															}
@@ -735,7 +578,11 @@ export function TattooGallery() {
 															size="sm"
 															variant="ghost"
 															className="flex gap-1 items-center text-white hover:text-amber-400"
-															onClick={(e) => toggleBookmark(tattooImages[selectedImage].id, e)}
+															onClick={(e) => 
+																selectedImage !== null && tattooImages[selectedImage] 
+																	? toggleBookmark(tattooImages[selectedImage].id, e)
+																	: null
+															}
 															disabled={pendingBookmarks[tattooImages[selectedImage].id]}
 															aria-label={
 																bookmarked[tattooImages[selectedImage].id]
@@ -804,7 +651,7 @@ export function TattooGallery() {
 														className="object-cover"
 														sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 													/>
-													<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10 group-hover:bg-black/60 transition-colors duration-300 flex items-center justify-center">
+													<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10 group-hover:bg-black/60 transition-colors duration-300 flex items-center justify-center cursor-pointer">
 														<motion.div
 															className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center"
 															whileHover={{ scale: 1.1 }}
@@ -814,28 +661,16 @@ export function TattooGallery() {
 														</motion.div>
 													</div>
 													<div className="absolute bottom-3 right-3 bg-black/70 px-2 py-1 rounded text-sm text-white">
-														{video.duration}
+														Watch Video
 													</div>
 												</div>
 												<div className="p-4 bg-zinc-900">
 													<h3 className="font-medium text-lg text-white">{video.title}</h3>
 													<div className="flex justify-between items-center mt-2">
 														<p className="text-zinc-400 text-sm">
-															{formatNumber(video.views)} views • {video.date}
+															{video.date}
 														</p>
 														<div className="flex gap-2">
-															<Button
-																size="sm"
-																variant="ghost"
-																className="p-0 h-8 w-8 rounded-full bg-zinc-800 hover:bg-zinc-700"
-																onClick={(e) => {
-																	e.stopPropagation()
-																	// Like functionality would be implemented here
-																}}
-																aria-label="Like video"
-															>
-																<Heart className="h-4 w-4 text-white" />
-															</Button>
 															<Button
 																size="sm"
 																variant="ghost"

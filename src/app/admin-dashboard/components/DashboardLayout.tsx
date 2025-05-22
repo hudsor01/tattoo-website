@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils/styling';
@@ -10,7 +10,6 @@ import {
   Calendar,
   CreditCard,
   LogOut,
-  Mail,
   Menu,
   Settings,
   Users,
@@ -18,6 +17,7 @@ import {
   Palette,
   Bell,
 } from 'lucide-react';
+import type { DashboardLayoutProps } from '@/types/component-types';
 
 const menuItems = [
   {
@@ -39,12 +39,6 @@ const menuItems = [
     href: '/admin-dashboard/customers',
   },
   {
-    id: 'emails',
-    label: 'Email Campaigns',
-    icon: <Mail className="h-5 w-5" />,
-    href: '/admin-dashboard/emails',
-  },
-  {
     id: 'payments',
     label: 'Payments',
     icon: <CreditCard className="h-5 w-5" />,
@@ -57,10 +51,6 @@ const menuItems = [
     href: '/admin-dashboard/gallery',
   },
 ];
-
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);

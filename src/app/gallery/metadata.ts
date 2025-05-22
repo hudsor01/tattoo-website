@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     siteName: 'Fernando Govea Tattoo',
     images: [
       {
-        url: '/images/logo.png',
+        url: '/logo.png',
         width: 1200,
         height: 630,
         alt: 'Fernando Govea Tattoo Gallery',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Tattoo Gallery - Fernando Govea Portfolio',
     description: 'Browse our extensive tattoo portfolio.',
-    images: ['/images/logo.png'],
+    images: ['/logo.png'],
   },
   alternates: {
     canonical: '/gallery',

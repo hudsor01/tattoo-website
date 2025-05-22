@@ -13,6 +13,8 @@ interface AuthState {
   
   // Actions
   login: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>;
+  signInWithOAuth: (provider: 'google' | 'github', redirectTo?: string) => Promise<void>;
+  sendMagicLink: (email: string, redirectTo?: string) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -51,6 +53,46 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error("Login error:", error);
       return { user: null, error: error as Error };
+    }
+  },
+
+  /**
+   * Sign in with OAuth provider
+   */
+  signInWithOAuth: async (provider: 'google' | 'github', redirectTo?: string) => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error(`OAuth sign in with ${provider} error:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Send magic link to email
+   */
+  sendMagicLink: async (email: string, redirectTo?: string) => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Magic link send error:', error);
+      throw error;
     }
   },
 

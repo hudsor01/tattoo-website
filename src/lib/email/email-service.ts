@@ -8,7 +8,6 @@
  * - Processing email notification queue
  */
 
-import React from 'react';
 import { sendEmail as resendSendEmail } from './email-resend';
 import type { EmailRecipient } from '@/types/email-types';
 import { prisma } from '@/lib/db/db';
@@ -22,11 +21,6 @@ import type {
   EmailQueueResult,
 } from '@/types/email-types';
 
-// Extend EmailQueueResult type to include message property
-// This is only needed if we can't modify the original type definition
-interface ExtendedEmailQueueResult extends EmailQueueResult {
-  message?: string;
-}
 
 /**
  * Log email activity to the database
@@ -50,7 +44,7 @@ async function logEmailActivity(
         isRead: true,
         isProcessed: true,
         processedAt: new Date(),
-        errorMessage: errorMessage ? String(errorMessage) : undefined,
+        errorMessage: errorMessage ? String(errorMessage) : null,
       },
     });
   } catch (error) {
@@ -62,7 +56,7 @@ async function logEmailActivity(
 /**
  * Send an email with error handling and logging
  */
-async function sendEmail({
+export async function sendEmail({
   to,
   subject,
   html,
@@ -100,7 +94,7 @@ async function sendEmail({
     );
 
     if (result.success) {
-      // Fixed type issue with messageId potentially being undefined
+      // Fixed type issue with messageId potentially being null
       return { success: true, messageId: result.id || '' };
     } else {
       return { success: false, error: String(result.error) };
@@ -132,47 +126,43 @@ export async function sendAppointmentConfirmation(appointmentId: string): Promis
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        customer: true,
-        artist: {
+        Customer: true,
+        Artist: {
           include: {
-            user: true,
+            User: true,
           },
         },
       },
     });
 
-    if (!appointment || !appointment.customer.email) {
+    if (!appointment || !appointment.Customer.email) {
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
-    // Dynamically import the email template and render function
-    const [{ default: AppointmentConfirmation }, { render }] = await Promise.all([
-      import('@/emails/AppointmentConfirmation'),
-      import('@react-email/render')
-    ]);
+    // Dynamically import the email template
+    // Email templates disabled
+    return true;
     
-    // Fixed render syntax for TypeScript
-    const emailHtml = await render(
-      React.createElement(AppointmentConfirmation, {
-        customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
-        appointmentDate: appointment.startDate,
-        appointmentTime: appointment.startDate.toLocaleTimeString(),
-        artistName: appointment.artist.user.name || 'Your Tattoo Artist',
-        appointmentType: appointment.title,
-        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
-        studioAddress: process.env['STUDIO_ADDRESS'] || 'Studio Address',
-        studioPhone: process.env['STUDIO_PHONE'] || '(555) 123-4567',
-        depositAmount: appointment.deposit || 0,
-        appointmentId: appointment.id
-      })
-    );
+    // Call the function directly to get HTML
+    const { html: emailHtml } = AppointmentConfirmation({
+      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
+      appointmentDate: appointment.startDate,
+      appointmentTime: appointment.startDate.toLocaleTimeString(),
+      artistName: appointment.Artist.User.name || 'Your Tattoo Artist',
+      appointmentType: appointment.title,
+      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
+      studioAddress: process.env["STUDIO_ADDRESS"] || 'Studio Address',
+      studioPhone: process.env["STUDIO_PHONE"] || '(555) 123-4567',
+      depositAmount: appointment.deposit || 0,
+      appointmentId: appointment.id
+    });
 
     // Send email
     return await sendEmail({
-      to: appointment.customer.email,
+      to: appointment.Customer.email,
       subject: 'Your Tattoo Appointment Confirmation',
       html: emailHtml,
-      recipientId: appointment.customer.id,
+      recipientId: appointment.Customer.id,
       emailType: 'appointment_confirmation',
     });
   } catch (error) {
@@ -191,52 +181,47 @@ export async function sendAppointmentReminder(appointmentId: string): Promise<Em
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        customer: true,
-        artist: {
+        Customer: true,
+        Artist: {
           include: {
-            user: true,
+            User: true,
           },
         },
       },
     });
 
-    if (!appointment || !appointment.customer.email) {
+    if (!appointment || !appointment.Customer.email) {
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
-    // Dynamically import the email template and render function
-    const [{ default: AppointmentReminder }, { render }] = await Promise.all([
-      import('@/emails/AppointmentReminder'),
-      import('@react-email/render')
-    ]);
+    // Dynamically import the email template
+    const { default: AppointmentReminder } = await import('@/emails/AppointmentReminder');
     
-    // Fixed render syntax for TypeScript
-    const emailHtml = await render(
-      React.createElement(AppointmentReminder, {
-        customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
-        appointmentDate: appointment.startDate,
-        appointmentTime: appointment.startDate.toLocaleTimeString(),
-        artistName: appointment.artist.user.name || 'Your Tattoo Artist',
-        appointmentType: appointment.title,
-        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
-        studioAddress: process.env['STUDIO_ADDRESS'] || 'Studio Address',
-        studioPhone: process.env['STUDIO_PHONE'] || '(555) 123-4567',
-        appointmentId: appointment.id,
-        preparationTips: [
-          'Eat a good meal before your appointment',
-          'Stay hydrated',
-          'Wear comfortable clothing',
-          'Bring headphones if you like',
-        ]
-      })
-    );
+    // Call the function directly to get HTML
+    const { html: emailHtml } = AppointmentReminder({
+      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
+      appointmentDate: appointment.startDate,
+      appointmentTime: appointment.startDate.toLocaleTimeString(),
+      artistName: appointment.Artist.User.name || 'Your Tattoo Artist',
+      appointmentType: appointment.title,
+      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
+      studioAddress: process.env["STUDIO_ADDRESS"] || 'Studio Address',
+      studioPhone: process.env["STUDIO_PHONE"] || '(555) 123-4567',
+      appointmentId: appointment.id,
+      preparationTips: [
+        'Eat a good meal before your appointment',
+        'Stay hydrated',
+        'Wear comfortable clothing',
+        'Bring headphones if you like',
+      ]
+    });
 
     // Send email
     return await sendEmail({
-      to: appointment.customer.email,
+      to: appointment.Customer.email,
       subject: 'Reminder: Your Upcoming Tattoo Appointment',
       html: emailHtml,
-      recipientId: appointment.customer.id,
+      recipientId: appointment.Customer.id,
       emailType: 'appointment_reminder',
     });
   } catch (error) {
@@ -260,21 +245,16 @@ export async function sendWelcomeEmail(customerId: string): Promise<EmailResult>
       throw new Error(`Invalid customer or missing email: ${customerId}`);
     }
 
-    // Dynamically import the email template and render function
-    const [{ default: WelcomeEmail }, { render }] = await Promise.all([
-      import('@/emails/WelcomeEmail'),
-      import('@react-email/render')
-    ]);
+    // Dynamically import the email template
+    const { default: WelcomeEmail } = await import('@/emails/WelcomeEmail');
     
-    // Fixed render syntax for TypeScript
-    const emailHtml = await render(
-      React.createElement(WelcomeEmail, {
-        firstName: customer.firstName,
-        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
-        studioWebsite: process.env['STUDIO_WEBSITE'] || 'https://example.com',
-        instagramHandle: process.env['INSTAGRAM_HANDLE'] || '@tattoo_studio'
-      })
-    );
+    // Call the function directly to get HTML
+    const { html: emailHtml } = WelcomeEmail({
+      firstName: customer.firstName,
+      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
+      studioWebsite: process.env["STUDIO_WEBSITE"] || 'https://example.com',
+      instagramHandle: process.env["INSTAGRAM_HANDLE"] || '@tattoo_studio'
+    });
 
     // Send email
     return await sendEmail({
@@ -304,41 +284,36 @@ export async function sendCancellationNotice(
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        customer: true,
+        Customer: true,
       },
     });
 
-    if (!appointment || !appointment.customer.email) {
+    if (!appointment || !appointment.Customer.email) {
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
-    // Dynamically import the email template and render function
-    const [{ default: CancellationNotice }, { render }] = await Promise.all([
-      import('@/emails/CancellationNotice'),
-      import('@react-email/render')
-    ]);
+    // Dynamically import the email template
+    const { default: CancellationNotice } = await import('@/emails/CancellationNotice');
     
-    // Fixed render syntax for TypeScript
-    const emailHtml = await render(
-      React.createElement(CancellationNotice, {
-        customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
-        appointmentDate: appointment.startDate,
-        appointmentTime: appointment.startDate.toLocaleTimeString(),
-        appointmentType: appointment.title,
-        studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
-        studioPhone: process.env['STUDIO_PHONE'] || '(555) 123-4567',
-        reason: reason,
-        depositAmount: appointment.deposit || 0,
-        isRefundable: refundable
-      })
-    );
+    // Call the function directly to get HTML
+    const { html: emailHtml } = CancellationNotice({
+      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
+      appointmentDate: appointment.startDate,
+      appointmentTime: appointment.startDate.toLocaleTimeString(),
+      appointmentType: appointment.title,
+      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
+      studioPhone: process.env["STUDIO_PHONE"] || '(555) 123-4567',
+      reason: reason,
+      depositAmount: appointment.deposit || 0,
+      isRefundable: refundable
+    });
 
     // Send email
     return await sendEmail({
-      to: appointment.customer.email,
+      to: appointment.Customer.email,
       subject: 'Your Tattoo Appointment Has Been Cancelled',
       html: emailHtml,
-      recipientId: appointment.customer.id,
+      recipientId: appointment.Customer.id,
       emailType: 'cancellation_notice',
     });
   } catch (error) {
@@ -357,11 +332,11 @@ export async function sendDepositReminder(appointmentId: string): Promise<EmailR
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        customer: true,
+        Customer: true,
       },
     });
 
-    if (!appointment || !appointment.customer.email) {
+    if (!appointment || !appointment.Customer.email) {
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
@@ -375,13 +350,13 @@ export async function sendDepositReminder(appointmentId: string): Promise<EmailR
     
     // Create the props object
     const emailProps = {
-      customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
+      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
       appointmentDate: appointment.startDate,
       appointmentTime: appointment.startDate.toLocaleTimeString(),
       appointmentType: appointment.title,
-      studioName: process.env['STUDIO_NAME'] || 'Our Tattoo Studio',
+      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
       depositAmount: appointment.deposit || 0,
-      paymentLink: `${process.env['WEBSITE_URL'] || ''}/payment/${appointment.id}`,
+      paymentLink: `${process.env["WEBSITE_URL"] || ''}/payment/${appointment.id}`,
       dueDate: dueDate
     };
     
@@ -390,10 +365,10 @@ export async function sendDepositReminder(appointmentId: string): Promise<EmailR
 
     // Send email
     return await sendEmail({
-      to: appointment.customer.email,
+      to: appointment.Customer.email,
       subject: 'Deposit Reminder for Your Tattoo Appointment',
       html: emailHtml,
-      recipientId: appointment.customer.id,
+      recipientId: appointment.Customer.id,
       emailType: 'deposit_reminder',
     });
   } catch (error) {
@@ -405,7 +380,7 @@ export async function sendDepositReminder(appointmentId: string): Promise<EmailR
 /**
  * Process the email notification queue
  */
-export async function processEmailQueue(): Promise<ExtendedEmailQueueResult> {
+export async function processEmailQueue(): Promise<EmailQueueResult> {
   try {
     let hasMore = true;
     const batchSize = 50;

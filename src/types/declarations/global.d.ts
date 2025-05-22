@@ -3,7 +3,7 @@
 // Fix for window global in SSR
 declare global {
   namespace globalThis {
-    var _supressRequestInterceptors: boolean | undefined;
+    var _supressRequestInterceptors: boolean | null;
   }
 }
 

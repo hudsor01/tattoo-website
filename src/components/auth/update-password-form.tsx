@@ -8,11 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { createClient } from '@/lib/supabase/client';
-
-interface UpdatePasswordFormProps {
-  redirectPath?: string;
-  onSuccess?: () => void;
-}
+import type { UpdatePasswordFormProps } from '@/types/component-types';
 
 export function UpdatePasswordForm({ 
   redirectPath = '/admin-dashboard/auth/login',

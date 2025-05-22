@@ -93,7 +93,7 @@ export function getFieldError(error: unknown, field: string): string | null {
 export function createFieldValueGetter<T extends Record<string, unknown>>(defaultValues: T) {
   return <K extends keyof T, D>(fieldName: K, fallback?: D): T[K] | D => {
     const value = defaultValues[fieldName];
-    return value !== undefined ? value : (fallback as D);
+    return value !== null ? value : (fallback as D);
   };
 }
 

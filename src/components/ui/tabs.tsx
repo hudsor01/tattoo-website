@@ -36,8 +36,7 @@ const TabsTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    {/* Animated underline for active state */}
-    <div className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-secondary data-[state=inactive]:hidden"></div>
+    {/* Removed the animated underline */}
   </TabsPrimitive.Trigger>
 ));
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;

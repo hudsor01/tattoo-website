@@ -1,4 +1,4 @@
-import { WorkflowDefinition } from '@/types';
+import type { WorkflowDefinition } from '@/types/utility-types';
 
 /**
  * Default email automation workflows for the tattoo studio

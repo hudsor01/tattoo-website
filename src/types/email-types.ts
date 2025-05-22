@@ -56,6 +56,8 @@ export interface EmailParams {
   html: string;
   recipientId: string;
   emailType: EmailType;
+  template?: EmailTemplate;
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -136,6 +138,7 @@ export interface EmailQueueResult {
   success: boolean;
   processed?: number;
   error?: unknown;
+  message?: string;
 }
 
 /**
@@ -196,4 +199,66 @@ export interface EmailProvider {
   sendBulk(
     options: BulkEmailOptions
   ): Promise<Array<{ success: boolean; messageId?: string; error?: string }>>;
+}
+
+/**
+ * EmailTemplate with ID for mapping
+ */
+export interface EmailTemplateWithId {
+  id: string;
+  name: string;
+}
+
+/**
+ * EmailTemplate for reducer operations
+ */
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  type?: string;
+  content: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  _count?: {
+    campaigns: number;
+  };
+}
+
+/**
+ * EmailTemplateMap type for reducer operations
+ */
+export type EmailTemplateMap = Record<string, string>;
+
+/**
+ * EmailCampaign with template reference
+ */
+export interface EmailCampaignWithTemplate {
+  id: string;
+  name: string;
+  templateId: string;
+  status?: string;
+}
+
+/**
+ * EmailTemplateType options
+ */
+export type EmailTemplateType = 'transactional' | 'marketing' | 'notification' | 'custom';
+
+/**
+ * UsedTemplateInfo for showing template usage
+ */
+export interface UsedTemplateInfo {
+  campaignName: string;
+  templateName: string;
+}
+
+/**
+ * EmailTemplateFilter options
+ */
+export interface EmailTemplateFilter {
+  search?: string;
+  type?: EmailTemplateType | 'all';
+  page: number;
+  limit: number;
 }

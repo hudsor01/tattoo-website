@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { sendAppointmentConfirmation } from '@/lib/email/email-service';
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+const stripe = new Stripe(process.env["STRIPE_SECRET_KEY"]!, {
+  apiVersion: '2025-04-30.basil',
 });
 
 /**
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       mode: 'payment',
       success_url: `${process.env['WEBSITE_URL']}/appointments/confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env['WEBSITE_URL']}/appointments/${appointmentId}`,
-      customer_email: appointment.customer?.email || undefined,
+      customer_email: appointment.customer?.email || null, // This is direct from Supabase, not Prisma - no need to change case
       client_reference_id: appointmentId,
       metadata: {
         appointmentId: appointmentId,
@@ -114,14 +114,14 @@ export async function PUT(request: NextRequest) {
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!,
+      process.env["STRIPE_WEBHOOK_SECRET"]!,
     );
 
     // Handle different event types
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const appointmentId = session.metadata?.appointmentId;
+        const appointmentId = session.metadata?.['appointmentId'] ?? null;
 
         if (!appointmentId) {
           throw new Error('Appointment ID missing from session metadata');
@@ -155,7 +155,7 @@ export async function PUT(request: NextRequest) {
             transactionId: session.payment_intent as string,
             receiptUrl: (session as Stripe.Checkout.Session & { receipt_url?: string }).receipt_url, // May not be available
             notes: 'Deposit payment via Stripe',
-            customerId: session.metadata?.customerId || '',
+            customerId: session.metadata?.['customerId'] ?? '',
             appointmentId: appointmentId,
           });
           
@@ -172,7 +172,7 @@ export async function PUT(request: NextRequest) {
 
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        const appointmentId = paymentIntent.metadata?.appointmentId;
+        const appointmentId = paymentIntent.metadata?.['appointmentId'] ?? null;
 
         if (appointmentId) {
           // Initialize Supabase client
@@ -188,7 +188,7 @@ export async function PUT(request: NextRequest) {
               paymentMethod: 'card',
               transactionId: paymentIntent.id,
               notes: `Payment failed: ${paymentIntent.last_payment_error?.message || 'Unknown error'}`,
-              customerId: paymentIntent.metadata?.customerId || '',
+              customerId: paymentIntent.metadata?.['customerId'] ?? '',
               appointmentId: appointmentId,
             });
             

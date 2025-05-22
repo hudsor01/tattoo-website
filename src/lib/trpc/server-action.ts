@@ -10,6 +10,8 @@ import { createContextForRSC } from './context';
 import type { AppRouter } from './app-router';
 import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import { TRPCError } from '@trpc/server';
+import { NextRequest } from 'next/server';
+import { headers } from 'next/headers';
 
 // Define types for router inputs and outputs
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
@@ -22,7 +24,23 @@ export type RouterInputs = inferRouterInputs<AppRouter>;
 export async function serverTRPC() {
   try {
     const ctx = await createContextForRSC();
-    return appRouter.createCaller(ctx);
+    // Add the required properties for the context
+    // Just use a simple object with basic headers
+    // This is to avoid Promise<ReadonlyHeaders> type issues
+    const headersObj: Record<string, string> = {
+      'user-agent': 'server-action-client',
+      'content-type': 'application/json',
+      'host': 'localhost',
+    };
+    
+    const enhancedCtx = {
+      ...ctx,
+      req: {} as NextRequest,
+      resHeaders: new Headers(),
+      headers: headersObj,
+      url: '',
+    };
+    return appRouter.createCaller(enhancedCtx);
   } catch (error) {
     console.error('Error creating serverTRPC caller:', error);
     throw new TRPCError({
@@ -87,7 +105,7 @@ export async function prefetchTRPCQuery<TInput, TOutput>(
     }
     
     const [namespace, procedure] = splitPath;
-    // Make sure namespace and procedure are both strings and not undefined
+    // Make sure namespace and procedure are both strings and not null
     if (!namespace || !procedure) {
       throw new TRPCError({
         code: 'BAD_REQUEST',

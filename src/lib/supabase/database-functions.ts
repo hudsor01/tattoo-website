@@ -5,7 +5,7 @@
  * including role checks and other database operations.
  */
 
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { createClient } from './client';
 import { logger } from '@/lib/logger';
 
@@ -28,17 +28,17 @@ export async function checkIsAdmin(user: User | null): Promise<boolean> {
     
     // Check various ways admin role might be stored
     const isAdminInMetadata = 
-      metadata.role === 'admin' || 
-      appMetadata.role === 'admin' ||
-      metadata.is_admin === true ||
-      appMetadata.is_admin === true;
+      metadata["role"] === 'admin' || 
+      appMetadata["role"] === 'admin' ||
+      metadata["is_admin"] === true ||
+      appMetadata["is_admin"] === true;
 
     if (isAdminInMetadata) {
       return true;
     }
 
     // If not in metadata, check against the allowed admin emails
-    const authorizedAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim());
+    const authorizedAdmins = (process.env['ADMIN_EMAILS'] || '').split(',').map(email => email.trim());
     
     if (user.email && authorizedAdmins.includes(user.email)) {
       return true;
@@ -79,7 +79,7 @@ export async function getUserRole(userId: string): Promise<string | null> {
     const { data: userData, error: userError } = await supabase.auth.getUser();
     
     if (!userError && userData?.user?.id === userId) {
-      const role = userData.user.user_metadata?.role || userData.user.app_metadata?.role;
+      const role = userData.user.user_metadata?.["role"] || userData.user.app_metadata?.["role"];
       if (role) {
         return role;
       }

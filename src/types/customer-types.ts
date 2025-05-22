@@ -1,18 +1,5 @@
-/**
- * customer-types.ts
- *
- * Consolidated customer, client, and contact type definitions.
- * This file contains all types related to customers/clients and contact forms.
- */
-
 import { z } from 'zod';
 import type { ID } from './utility-types';
-
-/**
- * ========================================================================
- * CUSTOMER/CLIENT TYPES
- * ========================================================================
- */
 
 // ID schema
 export const IDSchema = z.string().min(1, 'ID is required');
@@ -300,12 +287,6 @@ export interface ClientListResponse {
 }
 
 /**
- * ========================================================================
- * CONTACT FORM TYPES
- * ========================================================================
- */
-
-/**
  * Schema for contact form validation
  */
 export const ContactFormSchema = z.object({
@@ -341,12 +322,6 @@ export interface Contact {
   createdAt: string;
   updatedAt?: string;
 }
-
-/**
- * ========================================================================
- * TYPE EXPORTS
- * ========================================================================
- */
 
 // Export type definitions derived from schemas
 export type CustomerStatus = z.infer<typeof CustomerStatusSchema>;

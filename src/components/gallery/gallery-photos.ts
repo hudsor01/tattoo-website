@@ -1,11 +1,11 @@
-import { Photo } from 'react-photo-album';
+import type { Photo } from 'react-photo-album';
 
 // Define media type interface
-export interface MediaItem extends Photo {
+export interface MediaItem extends Omit<Photo, 'width' | 'height'> {
   src: string;
   alt: string;
-  width: unknown;
-  height: unknown;
+  width: number;
+  height: number;
   title?: string;
   category?: string;
   type: 'image' | 'video';
@@ -13,19 +13,16 @@ export interface MediaItem extends Photo {
   thumbnailSrc?: string;
 }
 
-// For production, gallery photos should be loaded from a dynamic source like a CMS or database
-// This is a fallback static implementation that can be replaced later
-
 // Helper to get CDN or static path based on environment
 const getImagePath = (path: string): string => {
   // If using a CDN or image hosting service in production, prefix the path
-  const cdnPrefix = process.env.NEXT_PUBLIC_MEDIA_CDN || '';
+  const cdnPrefix = process.env['NEXT_PUBLIC_MEDIA_CDN'] || '';
   return `${cdnPrefix}${path}`;
 };
 
-// Define the photos array with the verified existing images from the public folder
+// Define the photos array with real image paths
 export const galleryPhotos: MediaItem[] = [
-  // Images - Verified paths
+  // Images
   {
     src: getImagePath('/images/christ-crosses.jpg'),
     width: 1200,
@@ -42,15 +39,6 @@ export const galleryPhotos: MediaItem[] = [
     alt: 'Realistic tattoo design',
     title: 'Realism Work',
     category: 'Portrait',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/clock-lion-left-arm.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Clock with lion on left arm',
-    title: 'Clock & Lion',
-    category: 'Sleeve',
     type: 'image',
   },
   {
@@ -116,7 +104,7 @@ export const galleryPhotos: MediaItem[] = [
     category: 'Custom',
     type: 'image',
   },
-  // Video entries with corresponding thumbnails
+  // Video entries with correct thumbnails and video paths
   {
     src: getImagePath('/images/christ-crosses.jpg'), // Thumbnail
     width: 1200,
@@ -188,21 +176,6 @@ export const galleryPhotos: MediaItem[] = [
     videoSrc: getImagePath('/videos/praying-nun.mov'),
   },
 ];
-
-/**
- * Production Note: For a real production app, this static data should be replaced with:
- * 1. A database query to fetch the gallery items
- * 2. Integration with a CMS like Contentful, Sanity, or similar
- * 3. An API that returns optimized images with proper dimensions
- *
- * Example implementation:
- * export async function fetchGalleryItems() {
- *   // Fetch from database or CMS API
- *   const response = await fetch('/api/gallery-items');
- *   const data = await response.json();
- *   return data.items;
- * }
- */
 
 // Tab types for the gallery
 export const mediaTypes = [

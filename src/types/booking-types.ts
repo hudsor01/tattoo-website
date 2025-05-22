@@ -12,12 +12,6 @@ import { BookingSource } from './enum-types';
 import { paginationSchema, dateRangeSchema } from './validation-types';
 
 /**
- * ========================================================================
- * BOOKING TYPES
- * ========================================================================
- */
-
-/**
  * Booking form schema for client-side validation
  */
 export const BookingFormSchema = z.object({
@@ -320,6 +314,38 @@ export interface AppointmentUpdateRequest {
 }
 
 /**
+ * Schema for creating appointments via API
+ */
+export const AppointmentCreateSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  startDate: z.string().refine(val => !isNaN(Date.parse(val)), {
+    message: 'Invalid start date format',
+  }),
+  endDate: z.string().optional(),
+  customerId: z.string(),
+  artistId: z.string().optional(),
+  tattooSize: z.enum(['small', 'medium', 'large', 'extra_large']).optional().default('medium'),
+  complexity: z.number().int().min(1).max(5).optional().default(3),
+  location: z.string().optional().default('main_studio'),
+});
+
+/**
+ * Type for appointment creation input
+ */
+export interface AppointmentCreateInput {
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate?: string;
+  customerId: string;
+  artistId?: string;
+  tattooSize?: 'small' | 'medium' | 'large' | 'extra_large';
+  complexity?: number;
+  location?: string;
+}
+
+/**
  * ========================================================================
  * AVAILABILITY TYPES (from availability-types.ts)
  * ========================================================================
@@ -466,6 +492,7 @@ export interface CalBookingPayload {
     name: string;
     email: string;
     timeZone: string;
+    username?: string;
   };
   attendees: Array<{
     id: number;
@@ -473,15 +500,20 @@ export interface CalBookingPayload {
     name: string;
     timeZone: string;
     locale?: string;
+    metadata?: Record<string, unknown>;
   }>;
   location?: string;
+  meetingUrl?: string;
   destinationCalendar?: {
     id: number;
     integration: string;
     externalId: string;
   };
   metadata?: Record<string, unknown>;
-  customInputs?: Record<string, unknown>;
+  customInputs?: Array<{ label: string; value: string }> | Record<string, unknown>;
+  additionalNotes?: string;
+  cancellationReason?: string;
+  rescheduleReason?: string;
   payment?: {
     amount: number;
     currency: string;
@@ -585,8 +617,8 @@ export const getBookingQuerySchema = z.object({
   id: z.string().optional(),
   ...paginationSchema.shape,
   status: z.enum(['paid', 'pending', 'all']).optional().default('all'),
-  startDate: dateRangeSchema.shape.start,
-  endDate: dateRangeSchema.shape.end,
+  startDate: dateRangeSchema.shape.startDate,
+  endDate: dateRangeSchema.shape.endDate,
 });
 
 export type GetBookingQueryParams = z.infer<typeof getBookingQuerySchema>;
@@ -824,3 +856,56 @@ export const CalWebhookSchema = z.object({
     updatedAt: z.string(),
   }),
 });
+
+/**
+ * ========================================================================
+ * API ENDPOINTS TYPES
+ * ========================================================================
+ */
+
+/**
+ * API type with extended properties from Appointment model including Customer details
+ */
+export interface AppointmentWithCustomer {
+  id: string;
+  title: string;
+  customerId: string;
+  startDate: Date;
+  endDate: Date;
+  status: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  Customer?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+  Artist?: {
+    User?: {
+      name?: string | null;
+    };
+  };
+}
+
+/**
+ * Formatted appointment response for API endpoints
+ */
+export interface FormattedAppointment {
+  id: string;
+  title: string;
+  customerId: string | null;
+  clientName: string | null;
+  clientEmail: string | null;
+  clientPhone: string | null;
+  startDate: Date;
+  endDate: Date;
+  status: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  artist?: {
+    name: string;
+  } | null;
+}

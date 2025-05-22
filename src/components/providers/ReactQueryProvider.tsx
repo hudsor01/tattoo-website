@@ -4,6 +4,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
+import superjson from 'superjson';
 import type { AppRouter } from '@/lib/trpc/api-router';
 
 // Create the tRPC React hooks
@@ -51,13 +52,11 @@ export function ReactQueryProvider({
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/trpc`,
+          url: `${process.env['NEXT_PUBLIC_BASE_URL'] || ''}/api/trpc`,
+          transformer: superjson,
           // Optional: include credentials for same-origin requests
-          fetch(url, options) {
-            return fetch(url, {
-              ...options,
-              credentials: 'include',
-            });
+          headers: {
+            'credentials': 'include',
           },
         }),
       ],

@@ -5,7 +5,7 @@
  */
 
 import { executeStoredProcedure } from './prisma';
-import { 
+import type { 
   PricingBreakdown, 
   StandardPricingData,
   ArtistRate

@@ -34,6 +34,8 @@ const toastVariants = cva(
           'border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100',
         error:
           'border-red-500 bg-red-50 text-red-900 dark:bg-red-950 dark:border-red-800 dark:text-red-100',
+        destructive:
+          'border-red-500 bg-red-50 text-red-900 dark:bg-red-950 dark:border-red-800 dark:text-red-100',
         warning:
           'border-amber-500 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-100',
         info: 'border-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100',
@@ -62,13 +64,14 @@ Toast.displayName = ToastPrimitives.Root.displayName;
 const ToastIcon = ({
   variant,
 }: {
-  variant?: 'default' | 'success' | 'error' | 'warning' | 'info';
+  variant?: 'default' | 'success' | 'error' | 'destructive' | 'warning' | 'info';
 }) => {
   if (!variant || variant === 'default') return null;
 
   const icons = {
     success: <Check className="h-5 w-5 text-green-500 dark:text-green-400" />,
     error: <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />,
+    destructive: <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />,
     warning: <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />,
     info: <Info className="h-5 w-5 text-blue-500 dark:text-blue-400" />,
   };
