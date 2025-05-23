@@ -2,14 +2,14 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
-  CarouselDots
+  CarouselDots,
+  type CarouselApi
 } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +39,7 @@ export default function FeaturedCarousel({
   showDots = true,
   showInfo = true,
 }: FeaturedCarouselProps) {
-  const [api, setApi] = React.useState<any>(null);
+  const [api, setApi] = React.useState<CarouselApi>(null);
 
   // Auto-play functionality
   React.useEffect(() => {

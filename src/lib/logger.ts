@@ -5,14 +5,14 @@
  * both client and server environments.
  */
 
-// Define log levels
-const LogLevel = {
-  ERROR: 0,
-  WARN: 1,
-  INFO: 2,
-  HTTP: 3,
-  DEBUG: 4,
-};
+// Define log levels (currently unused)
+// const LogLevel = {
+//   ERROR: 0,
+//   WARN: 1,
+//   INFO: 2,
+//   HTTP: 3,
+//   DEBUG: 4,
+// };
 
 type LogMessage = string;
 type LogData = unknown;

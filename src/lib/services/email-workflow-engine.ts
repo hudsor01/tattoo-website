@@ -5,9 +5,7 @@
  * It provides a framework for defining, executing and monitoring email sequences.
  */
 
-import { prisma } from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/email-service';
-import type { EmailTemplate } from '@/types/email-types';
 import type { WorkflowDefinition, WorkflowTrigger, WorkflowStep } from '@/types/utility-types';
 
 /**
@@ -57,27 +55,25 @@ export async function executeWorkflow(
     //   }
     // });
     
-    // Execute each step in sequence
-    for (const step of workflow.steps) {
-      if (step.type === 'email') {
-        await sendEmail({
-          to: resolveValue(step.to, context) as string,
-          subject: resolveValue(step.subject, context) as string,
+    // Execute the workflow action
+    if (workflow.action.type === 'email') {
+      await sendEmail({
+        to: resolveValue(workflow.action.to || '', context) as string,
+          subject: resolveValue(workflow.action.subject || '', context) as string,
           html: '', // Required field for EmailParams
           recipientId: workflowId,
           emailType: 'generic_notification',
           template: {
-            id: step.template,
-            name: step.template,
+            id: workflow.action.template,
+            name: workflow.action.template,
             content: '',
           },
           data: context,
         });
-      }
       
       // Add delay if specified
-      if (step.delay) {
-        await new Promise(resolve => setTimeout(resolve, step.delay));
+      if (workflow.action.delay) {
+        await new Promise(resolve => setTimeout(resolve, workflow.action.delay));
       }
     }
     

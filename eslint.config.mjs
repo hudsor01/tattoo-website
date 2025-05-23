@@ -25,9 +25,9 @@ const reactHooksPlugin = eslintPluginReactHooks || {};
 // 1. Base configuration for all JS/TS files
 // =======================================
 const baseConfig = {
-  files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
+  files: ['src/**/*.{js,mjs,cjs,jsx,ts,tsx}'], // Only lint src directory
   ignores: [
-    // Build and output directories - use absolute patterns to ensure proper exclusion
+    // Build and output directories
     '**/node_modules/**',
     '**/.next/**',
     '.next',
@@ -35,11 +35,16 @@ const baseConfig = {
     '**/build/**',
     '**/dist/**',
     '**/coverage/**',
+
+    // Test directories
     '**/tests/**',
     '**/test/**',
     '**/e2e/**',
     '**/unit/**',
     '**/test-results-standalone/**',
+    'test-results/**',
+    'playwright-report/**',
+    'playwright-report-standalone/**',
 
     // Configuration files
     '.eslintrc.*',
@@ -49,20 +54,12 @@ const baseConfig = {
     'next.config.js',
     'components.json',
 
-    // Generated directories
-    'prisma/**/*.ts',
-    'prisma/**/*.js',
-    'prisma/client/**',
-    'prisma/migrations/**',
-    'prisma/generated/**',
-    'prisma/**/*.d.ts',
-
-    // Special directories
+    // Special directories that should never be linted
     'scripts/**',
     'docs/**',
     'logs/**',
     'public/**',
-    'supabase/**/*.ts',
+    'prisma/**', // Exclude entire prisma directory
 
     // Dot directories
     '.claude/**',
@@ -71,16 +68,9 @@ const baseConfig = {
     '.vscode/**',
     '.vercel/**',
 
-    // Test results and output directories
-    'test-results/**',
-    'playwright-report/**',
-    'playwright-report-standalone/**',
-
-    // Next.js type definitions which are auto-generated
-    '.next/types/**/*.ts',
-    '.next/types/**/*.d.ts',
-    '.next/**/*.ts',
-    '.next/**/*.js',
+    // Next.js generated files
+    '.next/types/**/*',
+    '.next/**/*',
   ],
   languageOptions: {
     ecmaVersion: 2022,
@@ -118,7 +108,7 @@ const baseConfig = {
 // 2. React configuration for JSX/TSX files
 // =======================================
 const reactConfig = {
-  files: ['**/*.{jsx,tsx}'],
+  files: ['src/**/*.{jsx,tsx}'],
   languageOptions: {
     parserOptions: {
       ecmaFeatures: {
@@ -144,14 +134,7 @@ const reactConfig = {
 // =======================================
 const typeScriptConfig = [
   {
-    files: ['**/*.{ts,tsx}'],
-    ignores: [
-      '**/.next/**',
-      '.next/types/**/*.ts',
-      '.next/types/**/*.d.ts',
-      '.next/**/*.ts',
-      '.next/**/*.js',
-    ],
+    files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tseslintParser,
       parserOptions: {
@@ -263,8 +246,41 @@ const prismaClientConfig = {
   },
 };
 
+// Global ignores that apply to ALL configurations
+const globalIgnores = {
+  ignores: [
+    'prisma/**/*',
+    'scripts/**/*',
+    'docs/**/*',
+    'public/**/*',
+    '.next/**/*',
+    'node_modules/**/*',
+    '**/*.d.ts', // Ignore all TypeScript declaration files
+  ]
+};
+
+// Prettier configuration to disable conflicting rules
+const prettierConfig = {
+  rules: {
+    // Disable rules that conflict with Prettier
+    'semi': 'off',
+    'quotes': 'off',
+    'comma-dangle': 'off',
+    'max-len': 'off',
+    'object-curly-spacing': 'off',
+    'array-bracket-spacing': 'off',
+    'indent': 'off',
+    '@typescript-eslint/indent': 'off',
+    '@typescript-eslint/semi': 'off',
+    '@typescript-eslint/quotes': 'off',
+    '@typescript-eslint/comma-dangle': 'off',
+    'prettier/prettier': 'off', // Disable if prettier plugin is installed
+  },
+};
+
 // Export the complete configuration
 export default [
+  globalIgnores, // Apply global ignores first
   baseConfig,
   reactConfig,
   ...typeScriptConfig,
@@ -272,4 +288,6 @@ export default [
   testsDirectoryConfig,
   testFilesConfig,
   prismaClientConfig,
+  // Add Prettier config last to override conflicting rules
+  prettierConfig,
 ];

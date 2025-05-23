@@ -7,21 +7,28 @@ const withBundleAnalyzer = process.env.ANALYZE === 'true'
   : (config) => config;
 
 const nextConfig = {
-  // Expose environment variables to the client
-  env: {
-    NEXT_PUBLIC_CAL_USERNAME: process.env.NEXT_PUBLIC_CAL_USERNAME,
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_APP_URL: process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000',
-  },
   reactStrictMode: true,
+  
+  // Enable source maps for debugging
+  productionBrowserSourceMaps: true,
+  
+  
   experimental: {
     optimizeCss: false,
     optimisticClientCache: true,
     serverActions: {
       bodySizeLimit: '2mb',
     },
+  },
+  
+  // Webpack configuration for better debugging
+  webpack: (config, { dev }) => {
+    // Disable minification in development to prevent env var corruption
+    if (dev) {
+      config.optimization.minimize = false
+    }
+    
+    return config
   },
   eslint: {
     ignoreDuringBuilds: true
@@ -56,10 +63,6 @@ const nextConfig = {
   output: 'standalone',
   async rewrites() {
     return [
-      {
-        source: '/api/supabase/:path*',
-        destination: 'https://qrcweallqlcgwiwzhqpb.supabase.co/:path*',
-      },
       {
         source: '/api/webhooks/stripe',
         destination: '/api/webhooks/stripe',

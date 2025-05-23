@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
-import type { Service, ServiceCardProps } from '@/types/component-types';
+import type { ServiceCardProps } from '@/types/component-types';
 
 export function ServiceCard({ service, index }: ServiceCardProps) {
   // Alternate the layout for even/odd items
@@ -18,7 +18,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
+      transition={{ duration: 0.4 }}
     >
       {/* Service Image */}
       <motion.div 
@@ -48,7 +48,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.7, delay: 0.3 }}
+        transition={{ duration: 0.5 }}
       >
         <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">
           {service.title}

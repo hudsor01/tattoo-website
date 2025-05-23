@@ -25,7 +25,21 @@ export const useBooking = () => {
       notes?: string;
     }) => {
       try {
-        return createBookingMutation.mutate(bookingData);
+        // Map the data to match the tRPC schema
+        const mappedData = {
+          name: bookingData.customerName,
+          email: bookingData.customerEmail,
+          phone: bookingData.customerPhone || '',
+          tattooType: bookingData.serviceId,
+          size: 'medium', // Default value
+          placement: 'arm', // Default value  
+          description: bookingData.notes || 'Tattoo appointment',
+          preferredDate: bookingData.appointmentDate,
+          preferredTime: '10:00', // Default value
+          paymentMethod: 'card', // Default value
+          notes: bookingData.notes,
+        };
+        return createBookingMutation.mutate(mappedData);
       } catch (error) {
         console.error('Error creating booking:', error);
         throw error;
@@ -41,7 +55,13 @@ export const useBooking = () => {
       status?: 'confirmed' | 'cancelled' | 'completed';
     }) => {
       try {
-        return updateBookingMutation.mutate({ bookingId, ...updateData });
+        // Map the data to match the tRPC schema (expects 'id' not 'bookingId')
+        const mappedData = {
+          id: parseInt(bookingId), // Convert string to number as expected by schema
+          preferredDate: updateData.appointmentDate,
+          notes: updateData.notes,
+        };
+        return updateBookingMutation.mutate(mappedData);
       } catch (error) {
         console.error('Error updating booking:', error);
         throw error;
@@ -51,7 +71,7 @@ export const useBooking = () => {
   );
 
   const cancelBooking = useCallback(
-    (bookingId: number, reason?: string) => {
+    (bookingId: number) => {
       try {
         return deleteBookingMutation.mutate({ id: bookingId });
       } catch (error) {

@@ -42,8 +42,10 @@ npx prisma migrate dev             # Run migrations in development
 npx prisma migrate dev --name=     # Create a new migration 
 npx prisma migrate reset           # Reset database
 npx prisma generate                # Generate Prisma client
+npm run prisma:generate            # Generate Prisma client (alias)
 npx prisma studio                  # Open Prisma Studio GUI
 npx prisma db push                 # Push schema changes without migration (dev only)
+npm run prisma:update              # Run custom schema update script
 
 # Clean development start
 rm -rf .next                       # Clear Next.js cache
@@ -91,7 +93,7 @@ The API layer uses tRPC for type-safe communication between client and server:
    - `admin-router.ts` - Admin operations
    - `user-router.ts` - User management 
    - `subscription-router.ts` - Subscription handling
-   - `analytics-router.ts` - Analytics tracking
+   - `payments-router.ts` - Payment processing
 
 2. **Main Router**: Combined in `/src/lib/trpc/app-router.ts`
 
@@ -103,7 +105,7 @@ The API layer uses tRPC for type-safe communication between client and server:
 
 The project uses a unified authentication system:
 
-1. **Main Auth System**: `/src/lib/auth/auth-system.ts`
+1. **Main Auth System**: `/src/lib/auth-system.ts`
 2. **Middleware Protection**: `/src/middleware.ts` 
 3. **Server Auth**: `/src/lib/supabase/server-auth.ts`  
 4. **Role-based Access**: public, protected, admin
@@ -114,29 +116,14 @@ The project uses a unified authentication system:
 - **Client State**: Zustand stores in `/src/store/`
 - **Form State**: react-hook-form with Zod validation
 
-### Analytics System
+### Booking Integration
 
-The application includes a comprehensive real-time analytics system:
+The application integrates with Cal.com for appointment scheduling:
 
-1. **Event Tracking**: Client-side hooks capture various event types:
-   - Page views
-   - User interactions
-   - Booking events
-   - Gallery interactions
-   - Conversions
-   - Errors
-
-2. **Real-Time Dashboard**: Live monitoring at `/admin-dashboard/analytics/live` with:
-   - Active users indicator
-   - Recent events stream
-   - Metrics visualization
-
-3. **Implementation**:
-   - `AnalyticsProvider` for app-wide tracking
-   - `PageViewTracker` for automatic page tracking
-   - `useLiveAnalytics` hook for real-time data
-   - Server-Sent Events (SSE) for streaming updates
-   - Prisma for data storage (`AnalyticsEvent` model)
+1. **Cal.com API**: Direct integration for booking management
+2. **Webhook Handling**: Real-time sync of booking events
+3. **Event Types**: Configurable appointment types and durations
+4. **Email Notifications**: Automated booking confirmations
 
 ## Data Models
 
@@ -156,9 +143,7 @@ The application uses the following main data models:
 
 7. **Payment**: Tracks payment information linked to bookings and appointments.
 
-8. **AnalyticsEvent**: Tracks user interactions, page views, and other analytics events.
-
-9. **PricingTier**: Defines different service pricing options and tiers.
+8. **PricingTier**: Defines different service pricing options and tiers.
 
 ## Common Development Tasks
 
@@ -188,15 +173,14 @@ When creating new API endpoints:
 4. Use Zod schemas from `/src/lib/validations/`
 5. Types should be imported from `/src/types/`
 
-### Adding Analytics Tracking
+### Adding Cal.com Integration Features
 
-To track new types of events:
+To extend booking functionality:
 
-1. Add the event type to `EventCategory` enum in `analytics-types.ts`
-2. Create an interface for the event extending `BaseEventType`
-3. Add a Zod schema for validation in `validation-analytics.ts`
-4. Add a tracking method to the `useAnalytics` hook
-5. Add a tRPC procedure in the analytics router if needed
+1. Update Cal.com event types in the admin dashboard
+2. Add webhook handlers in `/src/app/api/cal/webhook/route.ts`
+3. Update booking flow in `/src/components/booking/` components
+4. Test integration with Cal.com dashboard
 
 ### Creating New UI Components
 
@@ -207,7 +191,7 @@ Follow these steps when adding new UI components:
 3. Import types from `/src/types/` directory
 4. Use shadcn/ui or Material UI base components when appropriate
 5. Implement responsive design with Tailwind classes
-6. Add analytics tracking if the component has important user interactions
+6. Follow accessibility best practices
 
 ### File Organization
 
@@ -253,17 +237,14 @@ enum UserRole { ... }
 6. Sanitize user-generated content before rendering
 7. Implement proper CSRF protection
 
-## Testing Strategy
+## Development Workflow
 
-Run tests in this order:
+Run these commands for development workflow:
 1. Type checking: `npm run type-check`
-2. Linting: `npm run lint`
-3. Unit tests: `npm run test:unit`
-4. E2E tests: `npm run test:e2e`
+2. Linting: `npm run lint` or `npm run lint:fix`
+3. Formatting: `npm run format`
 
-For development, use the UI versions:
-- `npm run test:e2e:ui` - Interactive Playwright UI
-- `npm run test:e2e:debug` - Step through tests
+Note: This project does not currently have test suites configured. Consider adding testing framework if needed.
 
 ## Common Issues and Solutions
 
@@ -292,16 +273,10 @@ npm run type-check   # Verify types are correct
 When builds fail:
 ```bash
 rm -rf .next         # Clear Next.js cache
-npm run dev:clean    # Fresh development start
+npm run dev          # Start fresh development server
 npx prisma generate  # Ensure Prisma client is up-to-date
 ```
 
-### Analytics Tracking Failures
-If analytics events aren't being tracked:
-1. Check that `AnalyticsProvider` is properly wrapping the app
-2. Verify that the database has the `AnalyticsEvent` table
-3. Check network requests for API errors
-4. Ensure proper event category and action names are used
 
 ### Cal.com Integration Issues
 When Cal.com booking integration fails:
@@ -323,15 +298,15 @@ When Cal.com booking integration fails:
 
 The most recent changes to the codebase include:
 - Restructuring the booking and appointment models (separation of concerns)
-- Adding analytics event tracking and real-time dashboard
 - Implementing Cal.com integration for appointment scheduling
-- Refining payment processing with Stripe
+- Admin dashboard restructuring from admin-dashboard to admin
+- Gallery optimization with new infinite loading components
 
 ## Key Configuration Files
 
 - `/src/middleware.ts` - Route protection and auth checks
 - `/src/lib/trpc/app-router.ts` - Main tRPC router configuration
-- `/src/lib/auth/auth-system.ts` - Unified authentication system
+- `/src/lib/auth-system.ts` - Unified authentication system
 - `/src/app/api/trpc/[trpc]/route.ts` - tRPC API endpoint
 - `/src/lib/supabase/server.ts` - Server-side Supabase client
 - `/prisma/schema.prisma` - Database schema definition
@@ -405,7 +380,7 @@ The most recent changes to the codebase include:
    - Ensure proper authentication checks
  
 5. **Authentication**:
-   - Use the unified auth system in `src/lib/auth/auth-system.ts`
+   - Use the unified auth system in `src/lib/auth-system.ts`
    - Implement proper role-based access control
    - Validate auth state in components and API endpoints
    - Keep sensitive auth logic server-side
@@ -424,9 +399,3 @@ The most recent changes to the codebase include:
    - Log detailed errors server-side
    - Implement proper fallbacks for failed data fetching
 
-8. **Analytics Implementation**:
-   - Use the `useAnalytics` hook for tracking events
-   - Wrap page components with `PageViewTracker` for automatic page view tracking
-   - Follow consistent naming conventions for event categories and actions
-   - Include relevant metadata with events for better insights
-   - Minimize tracking frequency to avoid performance impact

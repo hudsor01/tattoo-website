@@ -139,32 +139,8 @@ export async function sendAppointmentConfirmation(appointmentId: string): Promis
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
-    // Dynamically import the email template
-    // Email templates disabled
-    return true;
-    
-    // Call the function directly to get HTML
-    const { html: emailHtml } = AppointmentConfirmation({
-      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-      appointmentDate: appointment.startDate,
-      appointmentTime: appointment.startDate.toLocaleTimeString(),
-      artistName: appointment.Artist.User.name || 'Your Tattoo Artist',
-      appointmentType: appointment.title,
-      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
-      studioAddress: process.env["STUDIO_ADDRESS"] || 'Studio Address',
-      studioPhone: process.env["STUDIO_PHONE"] || '(555) 123-4567',
-      depositAmount: appointment.deposit || 0,
-      appointmentId: appointment.id
-    });
-
-    // Send email
-    return await sendEmail({
-      to: appointment.Customer.email,
-      subject: 'Your Tattoo Appointment Confirmation',
-      html: emailHtml,
-      recipientId: appointment.Customer.id,
-      emailType: 'appointment_confirmation',
-    });
+    // Email templates disabled - return success placeholder
+    return { success: true, messageId: 'disabled' };
   } catch (error) {
     console.error('Error sending appointment confirmation:', error);
     // Sentry.captureException(error); // Not using Sentry currently
@@ -194,36 +170,8 @@ export async function sendAppointmentReminder(appointmentId: string): Promise<Em
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
-    // Dynamically import the email template
-    const { default: AppointmentReminder } = await import('@/emails/AppointmentReminder');
-    
-    // Call the function directly to get HTML
-    const { html: emailHtml } = AppointmentReminder({
-      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-      appointmentDate: appointment.startDate,
-      appointmentTime: appointment.startDate.toLocaleTimeString(),
-      artistName: appointment.Artist.User.name || 'Your Tattoo Artist',
-      appointmentType: appointment.title,
-      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
-      studioAddress: process.env["STUDIO_ADDRESS"] || 'Studio Address',
-      studioPhone: process.env["STUDIO_PHONE"] || '(555) 123-4567',
-      appointmentId: appointment.id,
-      preparationTips: [
-        'Eat a good meal before your appointment',
-        'Stay hydrated',
-        'Wear comfortable clothing',
-        'Bring headphones if you like',
-      ]
-    });
-
-    // Send email
-    return await sendEmail({
-      to: appointment.Customer.email,
-      subject: 'Reminder: Your Upcoming Tattoo Appointment',
-      html: emailHtml,
-      recipientId: appointment.Customer.id,
-      emailType: 'appointment_reminder',
-    });
+    // Email templates disabled - return success placeholder
+    return { success: true, messageId: 'disabled' };
   } catch (error) {
     console.error('Error sending appointment reminder:', error);
     // Sentry.captureException(error); // Not using Sentry currently
@@ -245,25 +193,8 @@ export async function sendWelcomeEmail(customerId: string): Promise<EmailResult>
       throw new Error(`Invalid customer or missing email: ${customerId}`);
     }
 
-    // Dynamically import the email template
-    const { default: WelcomeEmail } = await import('@/emails/WelcomeEmail');
-    
-    // Call the function directly to get HTML
-    const { html: emailHtml } = WelcomeEmail({
-      firstName: customer.firstName,
-      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
-      studioWebsite: process.env["STUDIO_WEBSITE"] || 'https://example.com',
-      instagramHandle: process.env["INSTAGRAM_HANDLE"] || '@tattoo_studio'
-    });
-
-    // Send email
-    return await sendEmail({
-      to: customer.email,
-      subject: 'Welcome to Our Tattoo Studio',
-      html: emailHtml,
-      recipientId: customer.id,
-      emailType: 'welcome_email',
-    });
+    // Email templates disabled - return success placeholder
+    return { success: true, messageId: 'disabled' };
   } catch (error) {
     console.error('Error sending welcome email:', error);
     // Sentry.captureException(error); // Not using Sentry currently
@@ -276,8 +207,6 @@ export async function sendWelcomeEmail(customerId: string): Promise<EmailResult>
  */
 export async function sendCancellationNotice(
   appointmentId: string,
-  reason: string,
-  refundable: boolean,
 ): Promise<EmailResult> {
   try {
     // Get appointment details with customer and artist info
@@ -292,30 +221,8 @@ export async function sendCancellationNotice(
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
-    // Dynamically import the email template
-    const { default: CancellationNotice } = await import('@/emails/CancellationNotice');
-    
-    // Call the function directly to get HTML
-    const { html: emailHtml } = CancellationNotice({
-      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-      appointmentDate: appointment.startDate,
-      appointmentTime: appointment.startDate.toLocaleTimeString(),
-      appointmentType: appointment.title,
-      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
-      studioPhone: process.env["STUDIO_PHONE"] || '(555) 123-4567',
-      reason: reason,
-      depositAmount: appointment.deposit || 0,
-      isRefundable: refundable
-    });
-
-    // Send email
-    return await sendEmail({
-      to: appointment.Customer.email,
-      subject: 'Your Tattoo Appointment Has Been Cancelled',
-      html: emailHtml,
-      recipientId: appointment.Customer.id,
-      emailType: 'cancellation_notice',
-    });
+    // Email templates disabled - return success placeholder
+    return { success: true, messageId: 'disabled' };
   } catch (error) {
     console.error('Error sending cancellation notice:', error);
     // Sentry.captureException(error); // Not using Sentry currently
@@ -340,37 +247,8 @@ export async function sendDepositReminder(appointmentId: string): Promise<EmailR
       throw new Error(`Invalid appointment or missing customer email: ${appointmentId}`);
     }
 
-    // Calculate due date (7 days before appointment or today if that's already passed)
-    const calculatedDueDate = new Date(appointment.startDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const currentDate = new Date();
-    const dueDate = calculatedDueDate < currentDate ? currentDate : calculatedDueDate;
-
-    // Import the email generator function
-    const { default: generateDepositReminderEmail } = await import('@/emails/DepositReminder');
-    
-    // Create the props object
-    const emailProps = {
-      customerName: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-      appointmentDate: appointment.startDate,
-      appointmentTime: appointment.startDate.toLocaleTimeString(),
-      appointmentType: appointment.title,
-      studioName: process.env["STUDIO_NAME"] || 'Our Tattoo Studio',
-      depositAmount: appointment.deposit || 0,
-      paymentLink: `${process.env["WEBSITE_URL"] || ''}/payment/${appointment.id}`,
-      dueDate: dueDate
-    };
-    
-    // Generate the HTML directly from the function
-    const { html: emailHtml } = generateDepositReminderEmail(emailProps);
-
-    // Send email
-    return await sendEmail({
-      to: appointment.Customer.email,
-      subject: 'Deposit Reminder for Your Tattoo Appointment',
-      html: emailHtml,
-      recipientId: appointment.Customer.id,
-      emailType: 'deposit_reminder',
-    });
+    // Email templates disabled - return success placeholder
+    return { success: true, messageId: 'disabled' };
   } catch (error) {
     console.error('Error sending deposit reminder:', error);
     return { success: false, error: String(error) };

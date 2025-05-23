@@ -2,7 +2,6 @@
  * Cal.com API client for server-side integration
  */
 
-import { calConfig } from './config';
 import type { CalBookingPayload } from '@/types/booking-types';
 
 const CAL_API_KEY = process.env["CAL_API_KEY"];
@@ -73,7 +72,7 @@ export async function getCalBookingByUid(uid: string): Promise<CalBookingPayload
 /**
  * Get available event types from Cal.com API
  */
-export async function getCalEventTypes(): Promise<any[]> {
+export async function getCalEventTypes(): Promise<unknown[]> {
   if (!CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
@@ -163,7 +162,7 @@ export async function getCalAvailability(
   eventTypeId: number,
   startDate: string,
   endDate: string
-): Promise<any> {
+): Promise<unknown> {
   if (!CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }

@@ -252,7 +252,7 @@ function extractErrorMessage(error: unknown): string {
     if (issues.length === 1) {
       // Add null check to ensure issues[0] exists before accessing its properties
       const issue = issues[0];
-      return issue && issue.path ? `${issue.path.join('.')}: ${issue.message}` : issue.message;
+      return issue && issue.path ? `${issue.path.join('.')}: ${issue.message}` : issue?.message || 'Unknown error';
     }
     return `Validation failed with ${issues.length} issues`;
   }

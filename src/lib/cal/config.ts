@@ -10,9 +10,9 @@ export const calConfig = {
   
   // Event type IDs for common booking types
   eventTypes: {
-    consultation: 1,  // Replace with your actual Cal.com event type IDs
-    tattooAppointment: 2,  // Replace with your actual Cal.com event type IDs
-    followUp: 3,  // Replace with your actual Cal.com event type IDs
+    consultation: 'consultation',  // Use the URL slug from Cal.com
+    tattooAppointment: 'tattoo-session',  // Use the URL slug from Cal.com
+    touchUp: 'touch-up',  // Use the URL slug from Cal.com
   },
   
   // Map Cal.com status to internal status

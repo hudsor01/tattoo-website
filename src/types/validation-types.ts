@@ -10,7 +10,6 @@ import {
   nameSchema,
   emailSchema,
   phoneSchema,
-  passwordSchema,
   dateSchema as DateSchema, // Renamed import to avoid conflict
   urlSchema,
   idSchema,
@@ -33,7 +32,6 @@ export {
   nameSchema,
   emailSchema,
   phoneSchema,
-  passwordSchema,
   DateSchema,
   urlSchema,
   idSchema,
@@ -72,8 +70,7 @@ export type ArrayFieldOptions = FieldOptions & {
 export type NameSchema = z.infer<typeof nameSchema>;
 export type EmailSchema = z.infer<typeof emailSchema>;
 export type PhoneSchema = z.infer<typeof phoneSchema>;
-export type PasswordSchema = z.infer<typeof passwordSchema>;
-export type DateSchema = z.infer<typeof DateSchema>;
+export type DateSchemaType = z.infer<typeof DateSchema>;
 export type UrlSchema = z.infer<typeof urlSchema>;
 export type IdSchema = z.infer<typeof idSchema>;
 

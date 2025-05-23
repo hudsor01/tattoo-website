@@ -13,10 +13,9 @@ interface CreateBookingInput {
   description: string;
   preferredDate: string;
   preferredTime: string;
-  paymentMethod: string;
   referenceImages?: string[];
-  calBookingUid?: string;
-  calEventId?: string;
+  calBookingUid?: string | undefined;
+  calEventId?: string | undefined;
   totalPrice?: string | number;
   depositAmount?: string | number;
   depositPaid?: boolean;
@@ -34,21 +33,43 @@ interface UpdateDepositInput {
  */
 export async function createBooking(data: CreateBookingInput) {
   try {
+    // Extract main booking data
+    const { 
+      name,
+      email,
+      phone,
+      tattooType,
+      size: tattooSize,
+      placement: location,
+      description: consultationNotes,
+      preferredDate,
+      preferredTime,
+      referenceImages,
+      calBookingUid,
+      calEventId
+    } = data;
+
     // Format the data for the Prisma schema
     const bookingData = {
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      tattooType: data.tattooType,
-      size: data.size,
-      placement: data.placement,
-      description: data.description,
-      preferredDate: new Date(data.preferredDate),
-      preferredTime: data.preferredTime,
-      paymentMethod: data.paymentMethod,
-      depositPaid: data.depositPaid || false,
-      calBookingUid: data.calBookingUid || undefined,
-      source: data.calBookingUid ? 'cal' : 'website'
+      name,
+      email,
+      phone,
+      tattooType,
+      size: tattooSize,
+      placement: location, // Map location to placement
+      description: consultationNotes, // Map consultationNotes to description
+      preferredDate: new Date(preferredDate),
+      preferredTime,
+      paymentMethod: 'unspecified', // Default payment method
+      referenceImages: referenceImages || [],
+      status: "pending",
+      bookingType: "tattoo",
+      calBookingUid: calBookingUid || null,
+      calRescheduleUid: null,
+      calEventId: calEventId || null,
+      estimatedPrice: data.totalPrice ? Number(data.totalPrice) : null,
+      deposit: data.depositAmount ? Number(data.depositAmount) : null,
+      depositPaid: data.depositPaid || false
     };
 
     // Create the booking record
@@ -67,7 +88,7 @@ export async function createBooking(data: CreateBookingInput) {
 export async function updateBookingDepositStatus(bookingId: string, data: UpdateDepositInput) {
   try {
     return await prisma.booking.update({
-      where: { id: bookingId },
+      where: { id: parseInt(bookingId) },
       data: {
         depositPaid: data.depositPaid,
         updatedAt: new Date(),
@@ -85,7 +106,7 @@ export async function updateBookingDepositStatus(bookingId: string, data: Update
 export async function getBookingById(id: string) {
   try {
     return await prisma.booking.findUnique({
-      where: { id },
+      where: { id: parseInt(id) },
     });
   } catch (error) {
     console.error('Error getting booking by ID:', error);
@@ -136,7 +157,7 @@ interface CalBookingData {
 export async function processCalBooking(calData: CalBookingData) {
   try {
     // Extract booking information from Cal.com data
-    const { uid, eventTypeId, startTime, attendees, customInputs, status } = calData;
+    const { uid, eventTypeId, startTime, attendees, customInputs } = calData;
     
     // Get the first attendee (client)
     const attendee = attendees?.[0];
@@ -151,7 +172,7 @@ export async function processCalBooking(calData: CalBookingData) {
     };
 
     // Create booking data
-    const bookingData = {
+    const bookingData: CreateBookingInput = {
       name: attendee.name,
       email: attendee.email,
       phone: attendee.phone || '(Not provided)',
@@ -164,8 +185,6 @@ export async function processCalBooking(calData: CalBookingData) {
       referenceImages: [],
       calBookingUid: uid,
       calEventId: String(eventTypeId),
-      status: mapCalStatusToBookingStatus(status),
-      appointmentDate: new Date(startTime),
       depositPaid: false,
       totalPrice: 0
     };
@@ -180,19 +199,19 @@ export async function processCalBooking(calData: CalBookingData) {
 }
 
 /**
- * Map Cal.com status to our booking status
+ * Map Cal.com status to our booking status (currently unused)
  */
-function mapCalStatusToBookingStatus(calStatus: string): string {
-  switch (calStatus?.toLowerCase()) {
-    case 'accepted':
-      return 'confirmed';
-    case 'pending':
-      return 'pending';
-    case 'cancelled':
-      return 'cancelled';
-    case 'rejected':
-      return 'cancelled';
-    default:
-      return 'pending';
-  }
-}
+// function mapCalStatusToBookingStatus(calStatus: string): string {
+//   switch (calStatus?.toLowerCase()) {
+//     case 'accepted':
+//       return 'confirmed';
+//     case 'pending':
+//       return 'pending';
+//     case 'cancelled':
+//       return 'cancelled';
+//     case 'rejected':
+//       return 'cancelled';
+//     default:
+//       return 'pending';
+//   }
+// }

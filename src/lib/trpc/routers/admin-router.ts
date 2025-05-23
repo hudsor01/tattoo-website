@@ -4,11 +4,11 @@
  * This router handles all admin-related API endpoints,
  * including dashboard data and user management.
  */
-import { z, safeArray } from '../utils/safe-zod';
+import { z } from '../utils/safe-zod';
 import { adminProcedure, router } from '../server';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
-import crypto from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 // Export the admin router with all procedures
 export const adminRouter = router({
@@ -66,6 +66,63 @@ export const adminRouter = router({
       recentBookings,
       upcomingAppointments,
     };
+  }),
+
+  // Customer endpoints
+  customers: router({
+    getAll: adminProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(1000).default(100),
+          cursor: z.string().nullish(),
+          search: z.string().optional(),
+        }),
+      )
+      .query(async ({ input, ctx }) => {
+        const { limit, cursor, search } = input;
+
+        // Build the where clause
+        let where: Prisma.CustomerWhereInput = {};
+
+        // Add search filter if provided
+        if (search) {
+          where = {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search, mode: 'insensitive' } },
+            ],
+          };
+        }
+
+        const customers = await ctx.db.customer.findMany({
+          where,
+          take: limit + 1,
+          ...(cursor ? { cursor: { id: cursor } } : {}),
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+
+        let nextCursor: string | undefined;
+        if (customers.length > limit) {
+          const nextItem = customers.pop();
+          nextCursor = nextItem!.id;
+        }
+
+        return {
+          items: customers,
+          nextCursor,
+        };
+      }),
   }),
 
   // Get customer list with pagination
@@ -196,7 +253,7 @@ export const adminRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { id, ...data } = input;
+      const { id } = input;
 
       try {
         // Convert the input data to a format acceptable by Prisma
@@ -276,7 +333,7 @@ export const adminRouter = router({
   // Delete a customer note (placeholders until Note model is added)
   deleteCustomerNote: adminProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async () => {
       // This is a placeholder until the Note model is properly implemented
       // For now, just return success as notes are stored in the customer.notes field
       return { success: true };
@@ -371,7 +428,7 @@ export const adminRouter = router({
       try {
         const tag = await ctx.db.tag.create({
           data: {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             name: input.name,
             color: input.color,
             createdAt: new Date(),

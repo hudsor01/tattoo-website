@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAppointmentAvailability, calculateAppointmentDuration } from '@/lib/db/functions';
+import { checkAppointmentAvailability, calculateAppointmentDurationWithFallback } from '@/lib/db/functions';
 
 /**
  * GET /api/appointments/availability
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
       // Get appointment duration based on tattoo size and complexity
       const complexityValue = complexity ? parseInt(complexity) : 3;
-      const duration = await calculateAppointmentDuration(size, complexityValue);
+      const duration = await calculateAppointmentDurationWithFallback(size, complexityValue);
 
       // Calculate end time by adding duration to start time
       // Note: duration is returned as PostgreSQL interval, we need to parse it

@@ -10,7 +10,7 @@ export default function NavbarClientWrapper() {
   const isHomePage = pathname === '/';
   
   // Skip navbar on admin dashboard (it uses its own layout)
-  const isAdminPage = pathname.startsWith('/admin-dashboard');
+  // const isAdminPage = pathname.startsWith('/admin-dashboard');
   
   if (isHomePage) {
     return null;

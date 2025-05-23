@@ -1,599 +1,547 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:is(.dark *));
+
 @layer base, components, utilities;
 
-/* HTML and body full height */
-html {
-  height: 100%;
-  overflow-x: hidden;
-}
-
-body {
-  height: 100%;
-  overflow-x: hidden;
-}
-
-/* CSS properties for visual effects */
-@property --glow-opacity {
-  syntax: '<number>';
-  initial-value: 0.3;
-  inherits: false;
-}
-
-@property --glow-spread {
-  syntax: '<length>';
-  initial-value: 15px;
-  inherits: false;
-}
-
-/* Define theme classes for dark/light themes */
-[data-theme="dark"] .dark-theme,
-.dark-theme {
-  /* Dark theme styles will go here */
-}
-
-[data-theme="light"] .light-theme,
-.light-theme {
-  /* Light theme styles will go here */
-}
-
-/* Base theme variables - these get overridden by ThemeProvider */
-@theme inline {
-  /* Base colors from simplified theme system */
-  --color-background: #0A0A0A;
-  --color-foreground: #FAFAFA;
-  --color-primary: #E53935;
-  --color-secondary: #2563EB;
-  --color-accent: #E53935;
-  --color-muted: rgba(255, 255, 255, 0.7);
-  --color-card: rgba(18, 18, 18, 0.5);
-  --color-card-border: rgba(255, 255, 255, 0.1);
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+/* Main theme configuration */
+@theme {
+  /* Spacing scale */
+  --spacing: 0.25rem; /* Base spacing unit (4px) */
   
-  /* System UI values */
+  /* Color palette */
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0a0a0a;
+  --color-primary: #e53935;
+  --color-primary-foreground: #fafafa;
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #0f172a;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-accent: #f1f5f9;
+  --color-accent-foreground: #0f172a;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #e53935;
+  --color-chart-1: #e53935;
+  --color-chart-2: #2563eb;
+  --color-chart-3: #10b981;
+  --color-chart-4: #f59e0b;
+  --color-chart-5: #8b5cf6;
+
+  /* Tattoo studio brand colors */
+  --color-tattoo-red: #e53935;
+  --color-tattoo-red-dark: #c62828;
+  --color-tattoo-black: #0a0a0a;
+  --color-tattoo-white: #fafafa;
+  --color-tattoo-blue: #2563eb;
+  --color-tattoo-blue-dark: #1d4ed8;
+  --color-tattoo-green: #10b981;
+
+  /* Sidebar colors */
+  --color-sidebar: #f8fafc;
+  --color-sidebar-foreground: #334155;
+  --color-sidebar-primary: #0f172a;
+  --color-sidebar-primary-foreground: #f8fafc;
+  --color-sidebar-accent: #f1f5f9;
+  --color-sidebar-accent-foreground: #0f172a;
+  --color-sidebar-border: #e2e8f0;
+  --color-sidebar-ring: #e53935;
+
+  /* Border radius */
   --radius: 0.5rem;
-  --radius-sm: 0.25rem;  
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
-  --radius-full: 9999px;
-  
-  /* Typography */
-  --font-family-sans: var(--font-inter);
-  --font-family-montserrat: var(--font-montserrat);
-  --font-family-pacifico: var(--font-pacifico);
-  --font-family-satisfy: var(--font-satisfy);
-  
-  /* Font weights */
-  --font-weight-light: 300;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  
-  /* Line heights */
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
-  
-  /* Letter spacing */
-  --letter-spacing-tighter: -0.05em;
-  --letter-spacing-tight: -0.025em;
-  --letter-spacing-normal: 0;
-  --letter-spacing-wide: 0.025em;
-  --letter-spacing-wider: 0.05em;
-  
-  /* Backdrop blur values */
-  --backdrop-blur-sm: 4px;
-  --backdrop-blur-default: 8px;
-  --backdrop-blur-md: 12px;
-  --backdrop-blur-lg: 16px;
-  --backdrop-blur-xl: 24px;
-  
-  /* Navbar dimensions */
-  --navbar-height: 4.5rem;
-  --navbar-height-mobile: 4rem;
-  --navbar-height-desktop: 5rem;
-}
-/* Animation keyframes definitions */
-:root {
-  --animate-fade-in: fade-in 0.6s ease forwards;
-  @keyframes fade-in {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
 
-  --animate-slide-up: slide-up 0.6s ease forwards;
-  @keyframes slide-up {
-    0% {
-      opacity: 0;
-      transform: translateY(1rem);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  --animate-draw-path: draw-path 2s ease forwards;
-  @keyframes draw-path {
-    0% {
-      stroke-dashoffset: 1000;
-      opacity: 0;
-    }
-    10% {
-      opacity: 0.5;
-    }
-    100% {
-      stroke-dashoffset: 0;
-      opacity: 1;
-    }
-  }
-
-  --animate-scale-in: scale-in 0.5s ease forwards;
-  @keyframes scale-in {
-    0% {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
-  @keyframes pulse-glow {
-    0%, 100% {
-      opacity: 0.5;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.8;
-      transform: scale(1.05);
-    }
-  }
-
-  /* Easing functions */
+  /* Custom easing functions */
   --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Spacing */
-  --spacing: 0.25rem;
+  /* Animation variables */
+  --animate-fade-in: fade-in 0.6s ease forwards;
+  --animate-slide-up: slide-up 0.6s ease forwards;
+  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
+  
+  /* Navbar height variables */
+  --navbar-height-sm: 4rem;
+  --navbar-height-md: 4.5rem;
+  --navbar-height-lg: 5rem;
+  
+  /* Font family theme variables */
+  --font-inter-var: var(--font-inter);
+  --font-montserrat-var: var(--font-montserrat);
+  --font-pacifico-var: var(--font-pacifico);
+  --font-satisfy-var: var(--font-satisfy);
+  
+  /* Component-specific theme variables */
+  --component-border-radius: var(--radius);
+  --component-transition-snappy: 0.2s var(--ease-snappy);
+  --component-spacing-base: calc(var(--spacing) * 4);
+  --component-spacing-lg: calc(var(--spacing) * 5);
+  
+  /* Glow effect properties */
+  --glow-opacity: 0.3;
+  --glow-color: var(--color-tattoo-red);
+  
+  /* Masonry layout properties */
+  --masonry-row-span: 30;
+  
+  /* Font sizes */
+  --text-heading-1: 3rem;
+  --text-heading-2: 2.25rem;
+  --text-heading-3: 1.875rem;
+  --text-heading-4: 1.5rem;
+  --text-title-size: 1.25rem;
+  --text-body-size: 1rem;
+  --text-small-size: 0.875rem;
+  --text-xs-size: 0.75rem;
 }
 
-/* Dark mode theme */
-.dark-theme {
-  --color-background: #0A0A0A;
-  --color-foreground: #FAFAFA;
-  --color-card: rgba(18, 18, 18, 0.5);
-  --color-card-border: rgba(255, 255, 255, 0.1);
+/* Dark theme overrides */
+.dark {
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-card: #0a0a0a;
+  --color-card-foreground: #fafafa;
+  --color-popover: #0a0a0a;
+  --color-popover-foreground: #fafafa;
+  --color-primary: #e53935;
+  --color-primary-foreground: #fafafa;
+  --color-secondary: #1e293b;
+  --color-secondary-foreground: #f8fafc;
+  --color-muted: #1e293b;
+  --color-muted-foreground: #94a3b8;
+  --color-accent: #1e293b;
+  --color-accent-foreground: #f8fafc;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+  --color-border: #1e293b;
+  --color-input: #1e293b;
+  --color-ring: #e53935;
+
+  /* Dark sidebar colors */
+  --color-sidebar: #020817;
+  --color-sidebar-foreground: #cbd5e1;
+  --color-sidebar-primary: #3b82f6;
+  --color-sidebar-primary-foreground: #f8fafc;
+  --color-sidebar-accent: #1e293b;
+  --color-sidebar-accent-foreground: #cbd5e1;
+  --color-sidebar-border: #1e293b;
+  --color-sidebar-ring: #3b82f6;
 }
 
-/* Light mode theme */
-.light-theme {
-  --color-background: #FAFAFA;
-  --color-foreground: #0A0A0A;
-  --color-card: rgba(255, 255, 255, 0.5);
-  --color-card-border: rgba(0, 0, 0, 0.1);
+/* Base styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
 }
 
-/* Typography utilities */
+/* Animation keyframes */
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gradient-animation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Component styles */
+@layer components {
+  .animate-fade-in {
+    animation: var(--animate-fade-in);
+  }
+  
+  .animate-slide-up {
+    animation: var(--animate-slide-up);
+  }
+  
+  .animate-pulse-glow {
+    animation: var(--animate-pulse-glow);
+  }
+  
+  /* Navbar styles */
+  .nav-spacer {
+    height: var(--navbar-height-md);
+    width: 100%;
+  }
+
+  .content-with-navbar {
+    padding-top: var(--navbar-height-md);
+  }
+  
+  /* Glow effects */
+  .glow-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glow-effect::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      circle at center,
+      --alpha(var(--glow-color) / var(--glow-opacity)),
+      transparent 70%
+    );
+    transform: scale(1.5);
+    opacity: 0;
+    transition: opacity 0.5s var(--ease-fluid);
+  }
+
+  .glow-effect:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-tattoo-red to-orange-500 bg-clip-text text-transparent;
+  }
+  
+  .glass-effect {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+  
+  .tattoo-glow {
+    box-shadow: 0 0 20px --alpha(var(--color-tattoo-red) / 30%);
+  }
+
+  
+  /* Responsive text utilities */
+  .text-responsive-xl {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  
+  .text-responsive-2xl {
+    font-size: 2rem;
+    line-height: 1.1;
+  }
+  
+  .text-responsive-3xl {
+    font-size: 2.5rem;
+    line-height: 1;
+  }
+}
+
+/* Custom utility classes consolidated from other files */
+
+/* Tab utilities */
+@utility tab-2 {
+  tab-size: 2;
+}
+
+@utility tab-4 {
+  tab-size: 4;
+}
+
+@utility tab-8 {
+  tab-size: 8;
+}
+
+/* Truncation utilities */
+@utility truncate-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+@utility truncate-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+@utility truncate-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Font family utilities */
+@utility font-inter {
+  font-family: var(--font-inter-var);
+}
+
 @utility font-montserrat {
-  font-family: var(--font-montserrat);
+  font-family: var(--font-montserrat-var);
 }
 
 @utility font-pacifico {
-  font-family: var(--font-pacifico);
-}
-
-@utility font-cursive {
-  font-family: var(--font-cursive);
+  font-family: var(--font-pacifico-var);
 }
 
 @utility font-satisfy {
-  font-family: var(--font-satisfy);
+  font-family: var(--font-satisfy-var);
 }
 
-/* Tattoo studio typography utilities for consistent styling */
-@utility gradient-text {
-  color: transparent;
-  background-clip: text;
-  background-image: linear-gradient(to right, #ef4444, #f97316);
-}
-
-@utility gradient-text-muted {
-  color: transparent;
-  background-clip: text;
-  background-image: linear-gradient(to right, #ef4444, #f97316, #f59e0b);
-}
-
-@utility heading-large {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-  font-weight: 700;
-  
-  @media (min-width: 768px) {
-    font-size: 3rem;
-    line-height: 1;
-  }
-}
-
-@utility heading-medium {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
-  font-weight: 700;
-}
-
-@utility heading-small {
-  font-size: 1.5rem;
-  line-height: 2rem;
-  font-weight: 600;
-}
-
+/* Custom typography utilities */
 @utility artist-name {
-  font-size: 3.75rem;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  
-  @media (min-width: 768px) {
-    font-size: 6rem;
-    line-height: 1;
-  }
+  font-family: var(--font-montserrat-var);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 @utility paragraph-large {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-  color: rgb(209 213 219);
+  font-family: var(--font-inter-var);
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Text styling utilities */
+@utility text-heading-1 {
+  font-family: var(--font-montserrat-var);
+  font-size: var(--text-heading-1);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@utility text-heading-2 {
+  font-family: var(--font-montserrat-var);
+  font-size: var(--text-heading-2);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@utility text-heading-3 {
+  font-family: var(--font-montserrat-var);
+  font-size: var(--text-heading-3);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+@utility text-brand {
+  font-family: var(--font-satisfy-var);
+  color: var(--color-tattoo-red);
+}
+
+/* Hover effects */
+@utility hover-scale {
+  transition: transform 0.3s var(--ease-fluid);
   
-  @media (min-width: 768px) {
-    font-size: 1.5rem;
-    line-height: 2rem;
+  @variant hover {
+    transform: scale(1.05);
   }
 }
 
-@utility paragraph-medium {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-@utility paragraph-small {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: rgba(255, 255, 255, 0.8);
+@utility hover-lift {
+  transition:
+    transform 0.3s var(--ease-fluid),
+    box-shadow 0.3s var(--ease-fluid);
+    
+  @variant hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px --alpha(rgb(0 0 0) / 10%);
+  }
 }
 
 /* Animation utilities */
-@utility animate-fade-in {
-  animation: var(--animate-fade-in);
+@utility animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-animation 3s ease infinite;
 }
 
-@utility animate-slide-up {
-  animation: var(--animate-slide-up);
+@utility image-hover-zoom {
+  overflow: hidden;
+  
+  & img {
+    transition: transform 0.5s ease-out;
+  }
+  
+  @variant hover {
+    & img {
+      transform: scale(1.1);
+    }
+  }
 }
 
-@utility animate-draw {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: var(--animate-draw-path);
+/* Custom button variants */
+@utility btn-outline {
+  background-color: transparent;
+  border: 1px solid currentColor;
+  color: var(--color-primary);
+  
+  @variant hover {
+    background-color: --alpha(var(--color-primary) / 5%);
+  }
 }
 
-@utility animate-draw-delayed-1 {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: var(--animate-draw-path) 0.3s;
+/* Custom input styles */
+@utility custom-input {
+  border-radius: var(--component-border-radius);
+  transition: border-color var(--component-transition-snappy);
+  
+  @variant focus {
+    outline: none;
+    border-color: var(--color-ring);
+    box-shadow: 0 0 0 2px --alpha(var(--color-ring) / 20%);
+  }
 }
 
-@utility animate-draw-delayed-2 {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: var(--animate-draw-path) 0.6s;
-}
-
-@utility animate-draw-delayed-3 {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: var(--animate-draw-path) 0.9s;
-}
-
-@utility animate-fade-in-delayed {
-  opacity: 0;
-  animation: var(--animate-fade-in) 1.2s;
-}
-
-@utility animate-scale-in {
-  opacity: 0;
-  transform: scale(0.9);
-  animation: var(--animate-scale-in) 0.2s;
-}
-
-@utility animate-pulse-glow {
-  animation: var(--animate-pulse-glow);
-}
-
-/* Form utilities */
-@utility form-input {
-  width: 100%;
-  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
-  border-radius: var(--radius);
-  padding: calc(var(--spacing) * 3);
-  color: var(--color-tattoo-white);
-}
-
-@utility form-input-placeholder {
-  color: color-mix(in oklch, var(--color-tattoo-white), transparent 50%);
-}
-
-@utility form-input-focus {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--color-tattoo-red);
-}
-
-@utility form-select {
-  width: 100%;
-  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
-  border-radius: var(--radius);
-  padding: calc(var(--spacing) * 3);
-  color: var(--color-tattoo-white);
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 1rem center;
-  background-size: 1.5em 1.5em;
-  background-repeat: no-repeat;
-}
-
-@utility form-textarea {
-  width: 100%;
-  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
-  border-radius: var(--radius);
-  padding: calc(var(--spacing) * 3);
-  color: var(--color-tattoo-white);
-  min-height: 150px;
-  resize: vertical;
-}
-
-/* Checkbox and radio inputs */
-@utility form-checkbox {
-  appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 20%, transparent);
-  border-radius: 0.25rem;
-  background-color: color-mix(in oklch, var(--color-tattoo-black) 50%, transparent);
-  transition:
-    background-color 0.2s,
-    border-color 0.2s;
-}
-
-@utility form-checkbox-checked {
-  background-color: var(--color-tattoo-red);
-  border-color: var(--color-tattoo-red);
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='3'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/%3e%3c/svg%3e");
-  background-size: 75% 75%;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-@utility form-checkbox-focus {
-  outline: none;
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-tattoo-red), transparent 50%);
-}
-
-@utility form-checkbox-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Custom component styles with @utility */
-@utility card {
-  background-color: color-mix(in oklch, var(--color-tattoo-black) 30%, transparent);
-  backdrop-filter: blur(var(--backdrop-blur-default));
-  border: 1px solid color-mix(in oklch, var(--color-tattoo-white) 10%, transparent);
-  border-radius: var(--radius);
-  padding: calc(var(--spacing) * 6);
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-@utility card-dark {
-  background-color: color-mix(in oklch, var(--color-tattoo-white) 5%, transparent);
-  border-color: color-mix(in oklch, var(--color-tattoo-black) 10%, transparent);
-}
-
-@utility btn {
+/* Avatar component utilities */
+@utility avatar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 6);
-  border-radius: var(--radius);
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: var(--color-muted);
+}
+
+@utility avatar-sm {
+  width: calc(var(--spacing) * 8);
+  height: calc(var(--spacing) * 8);
+}
+
+@utility avatar-md {
+  width: calc(var(--spacing) * 12);
+  height: calc(var(--spacing) * 12);
+}
+
+@utility avatar-lg {
+  width: calc(var(--spacing) * 16);
+  height: calc(var(--spacing) * 16);
+}
+
+/* Badge component utilities */
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  font-size: 0.75rem;
   font-weight: 500;
-  transition: all 300ms var(--ease-snappy);
-  cursor: pointer;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-@utility btn-primary {
-  background-color: var(--color-tattoo-red);
-  color: var(--color-tattoo-white);
+@utility badge-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
 }
 
-@utility btn-primary-hover {
-  background-color: var(--color-tattoo-red-dark);
+@utility badge-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-foreground);
 }
 
-@utility btn-secondary {
-  background-color: transparent;
-  border: 1px solid var(--color-tattoo-white);
-  color: var(--color-tattoo-white);
+/* Container query components */
+@utility responsive-grid {
+  container-type: inline-size;
+  container-name: grid;
 }
 
-@utility btn-secondary-hover {
-  background-color: color-mix(in oklch, var(--color-tattoo-white), transparent 90%);
+/* Masonry layout */
+@utility masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-auto-rows: 10px;
+  grid-gap: 1rem;
 }
 
-@utility btn-blue {
-  background-color: var(--color-tattoo-blue);
-  color: var(--color-tattoo-white);
+@utility masonry-item {
+  grid-row-end: span var(--masonry-row-span);
 }
 
-@utility btn-blue-hover {
-  background-color: var(--color-tattoo-blue-dark);
+/* Focus ring utilities */
+@utility focus-ring {
+  outline: none;
+  
+  @variant focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-background),
+      0 0 0 4px var(--color-ring);
+  }
 }
 
-/* Button sizes */
-@utility btn-sm {
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
-  font-size: 0.875rem;
+/* Responsive adjustments using media queries */
+@media (max-width: 640px) {
+  .nav-spacer {
+    height: var(--navbar-height-sm);
+  }
+  
+  .content-with-navbar {
+    padding-top: var(--navbar-height-sm);
+  }
 }
 
-@utility btn-lg {
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 8);
-  font-size: 1.125rem;
-}
-
-/* Custom utility for glass containers */
-@utility glass-container {
-  background-color: color-mix(in oklch, var(--color-background), transparent 80%);
-  backdrop-filter: blur(var(--backdrop-blur-default));
-  border: 1px solid color-mix(in oklch, var(--color-foreground), transparent 90%);
-  border-radius: var(--radius);
-}
-
-/* Layout utilities */
-@utility section {
-  padding-top: calc(var(--spacing) * 24);
-  padding-bottom: calc(var(--spacing) * 24);
-}
-
-@utility section-dark {
-  background-color: color-mix(in oklch, var(--color-tattoo-black), transparent 20%);
-}
-
-/* Glow effect utilities */
-@utility glow-red {
-  box-shadow: 0 0 var(--glow-spread)
-    color-mix(in oklch, var(--color-tattoo-red), transparent calc((1 - var(--glow-opacity)) * 100%));
-  transition: box-shadow 0.3s var(--ease-fluid);
-}
-
-@utility glow-red-hover {
-  --glow-opacity: 0.5;
-  --glow-spread: 25px;
-}
-
-@utility glow-blue {
-  box-shadow: 0 0 var(--glow-spread)
-    color-mix(
-      in oklch,
-      var(--color-tattoo-blue),
-      transparent calc((1 - var(--glow-opacity)) * 100%)
-    );
-  transition: box-shadow 0.3s var(--ease-fluid);
-}
-
-@utility glow-blue-hover {
-  --glow-opacity: 0.5;
-  --glow-spread: 25px;
-}
-
-/* 3D transform utilities */
-@utility rotate-x-15 {
-  transform: rotateX(15deg);
-}
-
-@utility rotate-y-15 {
-  transform: rotateY(15deg);
-}
-
-@utility translate-z-4 {
-  transform: translateZ(1rem);
-}
-
-@utility perspective-container {
-  perspective: 1000px;
-}
-
-@utility preserve-3d {
-  transform-style: preserve-3d;
-}
-
-/* Animation delay utilities */
-@utility animation-delay-200 {
-  animation-delay: 0.2s;
-}
-
-@utility animation-delay-400 {
-  animation-delay: 0.4s;
-}
-
-@utility animation-delay-600 {
-  animation-delay: 0.6s;
-}
-
-@utility animation-delay-800 {
-  animation-delay: 0.8s;
-}
-
-/* Container query utilities */
-@utility container-responsive-layout {
-  @container;
-}
-
-@utility container-card {
-  @container card (min-width: 300px);
-}
-
-/* Advanced color-mix utilities */
-@utility text-mix-primary {
-  color: color-mix(in oklch, var(--color-primary), var(--color-foreground) 15%);
-}
-
-@utility bg-mix-primary {
-  background-color: color-mix(in oklch, var(--color-primary), var(--color-background) 85%);
-}
-
-@utility border-mix-primary {
-  border-color: color-mix(in oklch, var(--color-primary), var(--color-foreground) 50%);
-}
-
-/* Gradient utilities using the v4 gradient APIs */
-@utility bg-gradient-primary {
-  background: linear-gradient(var(--color-primary), color-mix(in oklch, var(--color-primary), black 30%));
-}
-
-@utility bg-gradient-fancy {
-  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
-}
-
-@utility bg-gradient-radial {
-  background: radial-gradient(var(--color-primary), color-mix(in oklch, var(--color-primary), transparent 100%));
-}
-
-@utility bg-gradient-conic {
-  background: conic-gradient(from 0deg at 50% 50%, var(--color-primary), var(--color-secondary), var(--color-primary));
-}
-
-/* Card variants for UI states */
-@utility card-not-hovering {
-  transform: scale(1);
-}
-
-@utility card-hovering {
-  transform: scale(1.02);
-  transition: transform 0.3s var(--ease-fluid);
+@media (min-width: 1024px) {
+  .nav-spacer {
+    height: var(--navbar-height-lg);
+  }
+  
+  .content-with-navbar {
+    padding-top: var(--navbar-height-lg);
+  }
 }

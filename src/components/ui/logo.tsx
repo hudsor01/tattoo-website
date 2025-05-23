@@ -65,7 +65,7 @@ export function Logo({
             className="absolute -bottom-1 -left-1 -right-1 h-0.5 bg-gradient-to-r from-primary to-secondary"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
-            transition={{ delay: 0.5, duration: 0.6, ease: 'easeOut' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
           />
         </span>
       </motion.span>

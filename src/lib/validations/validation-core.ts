@@ -16,7 +16,6 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 export const patterns = {
   phone: /^[0-9+\-() ]+$/,
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
   url: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_.~#?&//=]*)$/,
   
   // Common error messages
@@ -24,7 +23,6 @@ export const patterns = {
     required: 'This field is required',
     email: 'Please enter a valid email address',
     phone: 'Phone number may only contain digits and +, -, (, ), or spaces',
-    password: 'Password must include uppercase, lowercase, number, and special character',
     min: (field: string, length: number) => `${field} must be at least ${length} characters`,
     max: (field: string, length: number) => `${field} cannot exceed ${length} characters`,
     agreement: 'You must agree to the terms and conditions',
@@ -183,25 +181,6 @@ export const createField = {
     return required ? schema : schema.optional();
   },
   
-  /**
-   * Create a password field validator
-   */
-  password: (options: { required?: boolean; minLength?: number } = {}) => {
-    const { required = true, minLength = 8 } = options;
-    const schema = z.string()
-      .min(minLength, patterns.messages.min('Password', minLength))
-      .refine(val => /[A-Z]/.test(val), { 
-        message: 'Password must contain at least one uppercase letter',
-      })
-      .refine(val => /[a-z]/.test(val), { 
-        message: 'Password must contain at least one lowercase letter',
-      })
-      .refine(val => /[0-9]/.test(val), { 
-        message: 'Password must contain at least one number',
-      });
-    
-    return required ? schema : schema.optional();
-  },
   
   /**
    * Create a boolean field validator
@@ -251,7 +230,6 @@ export const createField = {
 export const nameSchema = createField.name();
 export const emailSchema = createField.email();
 export const phoneSchema = createField.phone();
-export const passwordSchema = createField.password();
 export const dateSchema = z.string().refine(val => !isNaN(Date.parse(val)), {
   message: 'Please enter a valid date',
 });

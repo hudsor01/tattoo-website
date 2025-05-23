@@ -122,7 +122,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} Ink 37. All rights reserved.</p>
+            <p>&copy; 2025 Ink 37. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -178,7 +178,7 @@ const CustomerPortalLayout: React.FC<{ children: React.ReactNode }> = ({ childre
 
       <footer className="bg-black text-white border-t border-gray-800 py-6">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-400 text-sm">&copy; {new Date().getFullYear()} Ink 37. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">&copy; 2025 Ink 37. All rights reserved.</p>
         </div>
       </footer>
     </div>

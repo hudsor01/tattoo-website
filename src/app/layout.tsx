@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts.ts';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
 import './globals.css';
-import type { ReactNode } from 'react';
+
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env['NEXT_PUBLIC_BASE_URL'] || 'https://ink37tattoos.com'),
@@ -75,7 +76,7 @@ const businessSchema = {
     opens: '10:00',
     closes: '18:00',
   },
-  sameAs: ['https://www.instagram.com/fennyg83/', 'https://www.facebook.com/fennyg83/'],
+  sameAs: ['https://www.instagram.com/fennyg83/', 'https://www.tiktok.com/fennyg83/'],
 };
 
 type RootLayoutProps = {

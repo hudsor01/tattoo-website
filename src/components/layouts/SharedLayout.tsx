@@ -16,7 +16,7 @@ export default function SharedLayout({ children }: SharedLayoutProps) {
     <>
       <Navbar />
       <main className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white">
-        <div className="container mx-auto px-4 py-12 pt-24">
+        <div className="w-full max-w-none px-6 py-16 pt-24">
           {children}
         </div>
       </main>
