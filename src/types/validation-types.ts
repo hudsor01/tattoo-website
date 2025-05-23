@@ -1,124 +1,49 @@
 /**
  * Validation Types
  * 
- * This file defines TypeScript types derived from the Zod schemas in the validation-core.ts file.
+ * This file defines TypeScript types derived from the consolidated validation schemas.
  * This is the single source of truth for validation-related types across the application.
  */
 
 import { z } from 'zod';
-import {
-  nameSchema,
-  emailSchema,
-  phoneSchema,
-  dateSchema as DateSchema, // Renamed import to avoid conflict
-  urlSchema,
-  idSchema,
-  addressSchema,
-  contactInfoSchema,
-  paginationSchema,
-  dateRangeSchema,
-  searchSchema,
-  uuidParamSchema,
-  numericIdParamSchema,
-  sortingSchema,
-  paginatedResponseSchema,
-  errorResponseSchema,
-  successResponseSchema,
-  apiResponseSchema
-} from '@/lib/validations/validation-core';
+import { contactFormSchema } from '@/lib/validations';
 
-// Re-export schemas
-export {
-  nameSchema,
-  emailSchema,
-  phoneSchema,
-  DateSchema,
-  urlSchema,
-  idSchema,
-  addressSchema,
-  contactInfoSchema,
-  paginationSchema,
-  dateRangeSchema,
-  searchSchema,
-  uuidParamSchema,
-  numericIdParamSchema,
-  sortingSchema,
-  paginatedResponseSchema,
-  errorResponseSchema,
-  successResponseSchema,
-  apiResponseSchema
-};
+// ========================================
+// EXPORTED VALIDATION TYPES
+// ========================================
 
 /**
- * Field option types
+ * Contact form validation types
  */
-export type FieldOptions = {
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  fieldName?: string;
-};
-
-export type ArrayFieldOptions = FieldOptions & {
-  minLength?: number;
-  maxLength?: number;
-};
+export type ContactFormData = z.infer<typeof contactFormSchema>;
 
 /**
- * Schema types using Zod inference
+ * Common pagination schema for reuse
  */
-export type NameSchema = z.infer<typeof nameSchema>;
-export type EmailSchema = z.infer<typeof emailSchema>;
-export type PhoneSchema = z.infer<typeof phoneSchema>;
-export type DateSchemaType = z.infer<typeof DateSchema>;
-export type UrlSchema = z.infer<typeof urlSchema>;
-export type IdSchema = z.infer<typeof idSchema>;
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  sortField: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+export type PaginationData = z.infer<typeof paginationSchema>;
 
 /**
- * Object schema types
+ * Date range schema for filtering
  */
-export type AddressParams = z.infer<typeof addressSchema>;
-export type ContactInfoParams = z.infer<typeof contactInfoSchema>;
-export type PaginationParams = z.infer<typeof paginationSchema>;
-export type DateRangeParams = z.infer<typeof dateRangeSchema>;
-export type SearchParams = z.infer<typeof searchSchema>;
-export type SortingParams = z.infer<typeof sortingSchema>;
-export type UuidParam = z.infer<typeof uuidParamSchema>;
-export type NumericIdParam = z.infer<typeof numericIdParamSchema>;
+export const dateRangeSchema = z.object({
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+});
+
+export type DateRangeData = z.infer<typeof dateRangeSchema>;
 
 /**
- * Response types
+ * Basic ID parameter schema
  */
-// Generic paginated response type
-export type PaginatedResponse<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
+export const idParamSchema = z.object({
+  id: z.string().min(1, 'ID is required'),
+});
 
-// Error response types
-export type ErrorDetails = {
-  path: string;
-  message: string;
-};
-
-export type ErrorResponse = z.infer<typeof errorResponseSchema>;
-export type SuccessResponse = z.infer<typeof successResponseSchema>;
-
-// Generic API response type
-export type ApiResponse<T> = {
-  success: boolean;
-  data: T;
-  message?: string;
-};
-
-/**
- * Validation utility types
- */
-export type ValidationResult<T> = 
-  | { success: true; data: T; error: null }
-  | { success: false; data: null; error: { errors: Array<{ path: string; code: string; message: string }> } };
-
-export type FormErrors = Record<string, string>;
+export type IdParam = z.infer<typeof idParamSchema>;

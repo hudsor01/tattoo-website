@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createBooking, processCalBooking } from '@/lib/services/booking';
-import { apiRoute, handleApiError } from '@/lib/validations/validation-api-utils';
+import { apiRoute, handleApiError } from '@/lib/validations';
 import { bookingBaseSchema } from '@/types/booking-types';
 import { z } from 'zod';
 
