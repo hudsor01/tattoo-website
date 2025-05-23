@@ -8,10 +8,10 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
+import { httpBatchLink, createTRPCClient } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { useState } from 'react';
-import type { AppRouter } from '@/lib/trpc/app-router';
+import type { AppRouter } from '@/lib/trpc/types';
 
 // Create a tRPC React client with strict typing based on AppRouter
 export const trpc = createTRPCReact<AppRouter>();
