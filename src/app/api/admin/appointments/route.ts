@@ -3,7 +3,7 @@ import { verifyAdminAccess } from '@/lib/utils/server';
 import { Prisma } from '@prisma/client';
 import type { AppointmentStatus, AppointmentWithCustomer, FormattedAppointment } from '@/types/booking-types';
 import { prisma } from '@/lib/db/prisma';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 /**
  * GET /api/admin/appointments

@@ -227,11 +227,9 @@ export function DesignDetail({ id }: DesignDetailProps) {
                   <p className="font-medium group-hover:text-primary transition-colors">
                     {design.Artist.User.name}
                   </p>
-                  {design.Artist.specialty && (
-                    <p className="text-sm text-muted-foreground">
-                      {design.Artist.specialty}
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Tattoo Artist
+                  </p>
                 </div>
               </Link>
             </div>

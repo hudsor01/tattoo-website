@@ -7,7 +7,7 @@ import { CalendarIcon } from 'lucide-react';
 import { createCalBookingLink } from '@/lib/cal/api';
 
 interface CalEmbedProps {
-  eventTypeId: number;
+  eventTypeSlug: string;
   prefillData?: Record<string, string>;
   className?: string;
 }
@@ -15,7 +15,7 @@ interface CalEmbedProps {
 /**
  * Component to embed Cal.com booking directly in the application
  */
-export function CalEmbed({ eventTypeId, prefillData, className = '' }: CalEmbedProps) {
+export function CalEmbed({ eventTypeSlug, prefillData, className = '' }: CalEmbedProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [calUsername, setCalUsername] = useState<string | null>(null);
   const [bookingUrl, setBookingUrl] = useState<string | null>(null);
@@ -34,8 +34,8 @@ export function CalEmbed({ eventTypeId, prefillData, className = '' }: CalEmbedP
     setCalUsername(username);
     
     try {
-      // Create booking link
-      const link = createCalBookingLink(eventTypeId, prefillData || {});
+      // Create booking link using the URL slug
+      const link = `https://cal.com/${username}/${eventTypeSlug}`;
       setBookingUrl(link);
     } catch (err) {
       setError('Error creating Cal.com booking link');
@@ -43,7 +43,7 @@ export function CalEmbed({ eventTypeId, prefillData, className = '' }: CalEmbedP
     }
     
     setIsLoading(false);
-  }, [eventTypeId, prefillData]);
+  }, [eventTypeSlug, prefillData]);
 
   if (isLoading) {
     return (
@@ -95,7 +95,7 @@ export function CalEmbed({ eventTypeId, prefillData, className = '' }: CalEmbedP
 export function TattooConsultationBooking({ prefillData }: { prefillData?: Record<string, string> }) {
   return (
     <CalEmbed 
-      eventTypeId={1} // Replace with actual Cal.com event type ID for consultation
+      eventTypeSlug="consultation"
       prefillData={prefillData || {}}
       className="mt-6"
     />
@@ -108,7 +108,7 @@ export function TattooConsultationBooking({ prefillData }: { prefillData?: Recor
 export function TattooAppointmentBooking({ prefillData }: { prefillData?: Record<string, string> }) {
   return (
     <CalEmbed 
-      eventTypeId={2} // Replace with actual Cal.com event type ID for appointments
+      eventTypeSlug="tattoo-session"
       prefillData={prefillData || {}}
       className="mt-6"
     />

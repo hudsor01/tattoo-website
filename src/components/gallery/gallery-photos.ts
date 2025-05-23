@@ -1,7 +1,5 @@
-import type { Photo } from 'react-photo-album';
-
-// Define media type interface
-export interface MediaItem extends Omit<Photo, 'width' | 'height'> {
+// Define media type interface for gallery items
+export interface MediaItem {
   src: string;
   alt: string;
   width: number;
@@ -20,9 +18,9 @@ const getImagePath = (path: string): string => {
   return `${cdnPrefix}${path}`;
 };
 
-// Define the photos array with real image paths
+// Define the photos array with only the specified images
 export const galleryPhotos: MediaItem[] = [
-  // Images - All images from public/images folder
+  // Images - Only the specified files
   {
     src: getImagePath('/images/christ-crosses.jpg'),
     width: 1200,
@@ -30,15 +28,6 @@ export const galleryPhotos: MediaItem[] = [
     alt: 'Christ crosses tattoo design',
     title: 'Christ Crosses',
     category: 'Religious',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/clock-lion-left-arm.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Clock and lion tattoo on left arm',
-    title: 'Clock & Lion',
-    category: 'Custom',
     type: 'image',
   },
   {
@@ -66,15 +55,6 @@ export const galleryPhotos: MediaItem[] = [
     alt: 'Dragon Ball Z themed tattoo',
     title: 'Anime Inspired',
     category: 'Anime',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/fernando-tattoo-artist.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Fernando Govea tattoo artist portrait',
-    title: 'Artist Portrait',
-    category: 'Artist',
     type: 'image',
   },
   {
@@ -122,7 +102,7 @@ export const galleryPhotos: MediaItem[] = [
     category: 'Traditional',
     type: 'image',
   },
-  // Videos - All videos from public/videos folder
+  // Videos - Only the specified video files
   {
     src: getImagePath('/images/christ-crosses.jpg'), // Thumbnail
     width: 1200,
@@ -134,17 +114,7 @@ export const galleryPhotos: MediaItem[] = [
     videoSrc: getImagePath('/videos/christ-crosses-left-arm-sleeve.mov'),
   },
   {
-    src: getImagePath('/images/christ-crosses.jpg'), // Thumbnail
-    width: 1200,
-    height: 800,
-    alt: 'Christ crosses right arm tattoo process',
-    title: 'Christ Crosses Right Arm',
-    category: 'Process',
-    type: 'video',
-    videoSrc: getImagePath('/videos/christ-crosses-right-arm.mov'),
-  },
-  {
-    src: getImagePath('/images/clock-lion-left-arm.jpg'), // Thumbnail
+    src: getImagePath('/images/realism.jpg'), // Thumbnail
     width: 1200,
     height: 800,
     alt: 'Clock and lion tattoo process video',

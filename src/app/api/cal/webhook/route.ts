@@ -14,7 +14,7 @@ import { logger } from '@/lib/logger';
 /**
  * Verify the webhook signature from Cal.com
  */
-function verifySignature(req: NextRequest, rawBody: string): boolean {
+function verifySignature(req: NextRequest): boolean {
   const calSignature = req.headers.get('x-cal-signature-256');
   
   if (!calSignature || !process.env['CAL_WEBHOOK_SECRET']) {
@@ -49,7 +49,7 @@ async function handleBookingCreated(payload: CalWebhookPayload['payload']) {
           id: existingBooking.id,
         },
         data: {
-          status: payload.status,
+          calStatus: payload.status,
           updatedAt: new Date(),
         },
       });
@@ -58,19 +58,22 @@ async function handleBookingCreated(payload: CalWebhookPayload['payload']) {
     }
 
     // Create new booking record
-    if (payload.attendees.length > 0) {
+    if (payload.attendees && payload.attendees.length > 0) {
+      const attendee = payload.attendees[0];
       const customInputs = payload.customInputs || [];
       
       await prisma.booking.create({
         data: {
-          name: payload.attendees[0].name,
-          email: payload.attendees[0].email,
-          status: payload.status,
+          name: attendee?.name || 'Unknown',
+          email: attendee?.email || 'unknown@example.com',
+          phone: '', // Default empty phone
+          paymentMethod: 'unspecified', // Default payment method
+          calStatus: payload.status,
           calBookingUid: payload.uid,
-          calEventTypeId: payload.eventType,
-          tattooType: customInputs.find((i: any) => i.label === 'Tattoo Type')?.value || 'Not specified',
-          tattooSize: customInputs.find((i: any) => i.label === 'Size')?.value || 'Not specified',
-          placement: customInputs.find((i: any) => i.label === 'Placement')?.value || 'Not specified',
+          calEventTypeId: typeof payload.eventType === 'object' ? payload.eventType.id : payload.eventType,
+          tattooType: (customInputs as Array<{label: string, value: string}>).find(i => i.label === 'Tattoo Type')?.value || 'Not specified',
+          size: (customInputs as Array<{label: string, value: string}>).find(i => i.label === 'Size')?.value || 'Not specified',
+          placement: (customInputs as Array<{label: string, value: string}>).find(i => i.label === 'Placement')?.value || 'Not specified',
           description: payload.description || payload.additionalNotes || 'Cal.com booking',
           preferredDate: payload.startTime,
           preferredTime: new Date(payload.startTime).toLocaleTimeString(),
@@ -111,7 +114,6 @@ async function handleBookingUpdated(payload: CalWebhookPayload['payload']) {
         id: booking.id,
       },
       data: {
-        status: payload.status,
         calStatus: payload.status,
         updatedAt: new Date(),
       },
@@ -147,7 +149,6 @@ async function handleBookingCancelled(payload: CalWebhookPayload['payload']) {
         id: booking.id,
       },
       data: {
-        status: 'cancelled',
         calStatus: 'cancelled',
         updatedAt: new Date(),
       },
@@ -185,7 +186,6 @@ async function handleBookingRescheduled(payload: CalWebhookPayload['payload']) {
       data: {
         preferredDate: payload.startTime,
         preferredTime: new Date(payload.startTime).toLocaleTimeString(),
-        status: payload.status,
         calStatus: payload.status,
         updatedAt: new Date(),
       },
@@ -199,6 +199,17 @@ async function handleBookingRescheduled(payload: CalWebhookPayload['payload']) {
 }
 
 /**
+ * GET handler for webhook verification
+ */
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    message: 'Cal.com webhook endpoint is active',
+    timestamp: new Date().toISOString()
+  });
+}
+
+/**
  * Main webhook handler
  */
 export async function POST(req: NextRequest) {
@@ -207,17 +218,28 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text();
     const body = JSON.parse(rawBody);
     
-    // Verify webhook signature
-    if (!verifySignature(req, rawBody)) {
+    // Handle Cal.com ping test
+    if (body.ping || body.test || body.triggerEvent === 'PING') {
+      logger.info('Cal.com webhook ping test received');
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Webhook endpoint is working correctly',
+        received: body
+      });
+    }
+    
+    // Verify webhook signature for real events
+    if (!verifySignature(req)) {
       logger.warn('Invalid Cal.com webhook signature');
       return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 401 });
     }
     
-    // Validate webhook payload
+    // Validate webhook payload for real booking events
     try {
       CalWebhookSchema.parse(body);
     } catch (error) {
       logger.error('Invalid Cal.com webhook payload:', error);
+      logger.error('Received body:', JSON.stringify(body, null, 2));
       return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 });
     }
     

@@ -46,10 +46,11 @@ export const calRouter = router({
         if (input?.['status'] !== undefined) options['status'] = input['status'];
         if (input?.['eventTypeId'] !== undefined) options['eventTypeId'] = input['eventTypeId'];
         return await getCalBookings(options);
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to get Cal.com bookings: ${error.message}`,
+          message: `Failed to get Cal.com bookings: ${errorMessage}`,
         });
       }
     }),
@@ -60,10 +61,11 @@ export const calRouter = router({
     .query(async ({ input }) => {
       try {
         return await getCalBookingByUid(input.uid);
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to get Cal.com booking: ${error.message}`,
+          message: `Failed to get Cal.com booking: ${errorMessage}`,
         });
       }
     }),
@@ -72,10 +74,11 @@ export const calRouter = router({
   getEventTypes: adminProcedure.query(async () => {
     try {
       return await getCalEventTypes();
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Failed to get Cal.com event types: ${error.message}`,
+        message: `Failed to get Cal.com event types: ${errorMessage}`,
       });
     }
   }),
@@ -91,10 +94,11 @@ export const calRouter = router({
     .mutation(async ({ input }) => {
       try {
         return await updateCalBookingStatus(input.uid, input.status);
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to update Cal.com booking status: ${error.message}`,
+          message: `Failed to update Cal.com booking status: ${errorMessage}`,
         });
       }
     }),
@@ -113,10 +117,11 @@ export const calRouter = router({
     .mutation(async ({ input }) => {
       try {
         return await rescheduleCalBooking(input.uid, input.newTime);
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to reschedule Cal.com booking: ${error.message}`,
+          message: `Failed to reschedule Cal.com booking: ${errorMessage}`,
         });
       }
     }),
@@ -137,10 +142,11 @@ export const calRouter = router({
           input.startDate,
           input.endDate
         );
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to get Cal.com availability: ${error.message}`,
+          message: `Failed to get Cal.com availability: ${errorMessage}`,
         });
       }
     }),
@@ -193,9 +199,9 @@ export const calRouter = router({
                 
               // Extract customInputs if they exist
               const customInputs = Array.isArray(booking.customInputs) ? booking.customInputs : [];
-              const getTattooTypeInput = customInputs.find((i: any) => i.label === 'Tattoo Type');
-              const getSizeInput = customInputs.find((i: any) => i.label === 'Size');
-              const getPlacementInput = customInputs.find((i: any) => i.label === 'Placement');
+              const getTattooTypeInput = customInputs.find((i: { label: string; value: string }) => i.label === 'Tattoo Type');
+              const getSizeInput = customInputs.find((i: { label: string; value: string }) => i.label === 'Size');
+              const getPlacementInput = customInputs.find((i: { label: string; value: string }) => i.label === 'Placement');
               
               // Create the booking record
               await prisma.booking.create({
@@ -207,7 +213,7 @@ export const calRouter = router({
                   calEventTypeId: booking.eventType ? booking.eventType.id : null,
                   calStatus: booking.status,
                   calMeetingUrl: booking.meetingUrl || null,
-                  // Extract custom inputs if available
+
                   tattooType: getTattooTypeInput?.value || 'Not specified',
                   size: getSizeInput?.value || 'Not specified',
                   placement: getPlacementInput?.value || 'Not specified',
@@ -231,10 +237,11 @@ export const calRouter = router({
         success: true,
         stats,
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Failed to sync Cal.com bookings: ${error.message}`,
+        message: `Failed to sync Cal.com bookings: ${errorMessage}`,
       });
     }
   }),

@@ -9,14 +9,10 @@ const OFFLINE_URL = '/offline';
 // Files to cache for offline functionality
 const STATIC_CACHE_URLS = [
   '/',
-  '/offline',
+  '/offline.html',
   '/manifest.json',
   '/logo.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-  // Add critical CSS and JS files
-  '/_next/static/css/*.css',
-  '/_next/static/js/*.js',
+  // Remove wildcard patterns that cause issues
 ];
 
 // Install event - cache static assets
@@ -43,40 +39,39 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache or network
+// Fetch event - serve from cache or network  
 self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match(OFFLINE_URL);
-      })
-    );
+  // Skip ALL requests that could cause issues
+  const url = event.request.url;
+  
+  // Skip cross-origin requests
+  if (!url.startsWith(self.location.origin)) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  // Skip service worker itself
+  if (url.includes('sw.js')) {
+    return;
+  }
 
-      return fetch(event.request).then((response) => {
-        // Only cache successful responses
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
+  // Skip ALL Next.js static assets and API routes
+  if (url.includes('/_next/') || url.includes('/api/')) {
+    return;
+  }
 
-        // Clone the response
-        const responseToCache = response.clone();
+  // Skip auth-related requests 
+  if (url.includes('/auth/') || url.includes('/admin/')) {
+    return;
+  }
 
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return response;
-      });
-    })
-  );
+  // Only handle navigation requests
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('/offline.html') || new Response('Offline', { status: 200 });
+      })
+    );
+  }
 });
 
 // Background sync for failed requests

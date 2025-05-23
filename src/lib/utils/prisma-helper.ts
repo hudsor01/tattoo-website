@@ -11,7 +11,7 @@
  * Sanitizes data for Prisma by properly handling undefined values for strict TypeScript checks.
  * This converts undefined values to null for Prisma compatibility with exactOptionalPropertyTypes.
  */
-export function sanitizeForPrisma<T extends Record<string, any>>(data: T): T {
+export function sanitizeForPrisma<T extends Record<string, unknown>>(data: T): T {
   // If input is null or undefined, return empty object
   if (data === null || data === undefined) {
     return {} as T;
@@ -47,8 +47,8 @@ export function emailWhereCondition(email: string | undefined | null) {
  * Handles the exactOptionalPropertyTypes issue by converting all optional
  * properties to use NullableFieldUpdateOperationsInput
  */
-export function createPrismaUpdate<T extends Record<string, any>>(data: T): Record<string, any> {
-  const updateData: Record<string, any> = {};
+export function createPrismaUpdate<T extends Record<string, unknown>>(data: T): Record<string, unknown> {
+  const updateData: Record<string, unknown> = {};
   
   // Process each field in the data
   Object.entries(data).forEach(([key, value]) => {

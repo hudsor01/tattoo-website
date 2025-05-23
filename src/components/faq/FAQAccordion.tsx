@@ -46,7 +46,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: index * 0.05 }}
+            transition={{ duration: 0.4 }}
           >
             <AccordionItem value={`item-${index}`}>
               <AccordionTrigger>{item.question}</AccordionTrigger>

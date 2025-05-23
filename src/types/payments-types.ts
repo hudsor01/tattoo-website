@@ -2,6 +2,7 @@
  * payments-types.ts
  *
  * Type definitions for payment processing, forms, and related functionality.
+ * Cal.com-focused payment types for deposit tracking.
  */
 
 import type { ID, DateString } from './utility-types';
@@ -12,8 +13,9 @@ import { PaymentStatus, PaymentMethod } from './enum-types';
 export { PaymentMethod, PaymentStatus };
 import { z } from 'zod';
 import { PaymentMethodSchema, PaymentStatusSchema } from './booking-types';
+
 /**
- * PRICING TYPES (from pricing-types.ts)
+ * PRICING TYPES
  */
 
 /**
@@ -80,7 +82,7 @@ export interface ArtistRate {
 }
 
 /**
- * PAYMENT TYPES
+ * PAYMENT TYPES (Cal.com focused)
  */
 
 /**
@@ -92,12 +94,12 @@ export interface PaymentFormProps {
   amount: number;
   customerEmail?: string;
   customerName?: string;
-  onSuccess?: (paymentIntentId: string) => void;
+  onSuccess?: (transactionId: string) => void;
   onError?: (error: Error) => void;
   onCancel?: () => void;
   buttonText?: string;
   description?: string;
-  paymentType?: 'deposit' | 'full' | 'other';
+  paymentType?: 'deposit' | 'consultation' | 'other';
 }
 
 /**
@@ -110,8 +112,8 @@ export interface PaymentData {
   amount: number;
   appointmentTitle: string;
   appointmentDate: string;
-  paymentMethod: string; // "credit_card", "cash", "venmo", etc.
-  status: string; // "pending", "succeeded", "failed", "refunded"
+  paymentMethod: string; // "cal.com", "cash", "venmo", etc.
+  status: string; // "pending", "completed", "failed", "refunded"
   transactionId?: string;
   invoiceId?: string;
 }
@@ -133,7 +135,9 @@ export interface DashboardPayment {
   notes?: string;
 }
 
-// From RealtimePayments.tsx
+/**
+ * Transaction interface for payments
+ */
 export interface Transaction {
   id: string;
   amount: number;
@@ -157,6 +161,7 @@ export interface Transaction {
  */
 export const PaymentTypeSchema = z.enum([
   'deposit',
+  'consultation',
   'full_payment',
   'partial_payment',
   'tip',
@@ -228,35 +233,6 @@ export const PaymentSchema = PaymentBaseSchema.extend({
 });
 
 /**
- * Schema for creating a payment intent
- */
-export const PaymentIntentCreateSchema = z.object({
-  amount: z.number().positive(),
-  bookingId: z.string().optional(),
-  appointmentId: z.string().optional(),
-  customerId: z.string().optional(),
-  customerEmail: z.string().email(),
-  customerName: z.string(),
-  paymentType: PaymentTypeSchema,
-  description: z.string().optional(),
-  metadata: z.record(z.string()).optional(),
-  successUrl: z.string().url().optional(),
-  cancelUrl: z.string().url().optional(),
-});
-
-/**
- * Schema for payment intent response
- */
-export const PaymentIntentResponseSchema = z.object({
-  clientSecret: z.string().optional(),
-  paymentIntentId: z.string().optional(),
-  amount: z.number(),
-  status: z.string(),
-  checkoutUrl: z.string().url().optional(),
-  error: z.string().optional(),
-});
-
-/**
  * Schema for payment list query parameters
  */
 export const PaymentListParamsSchema = z.object({
@@ -266,10 +242,10 @@ export const PaymentListParamsSchema = z.object({
   paymentMethod: PaymentMethodSchema.optional(),
   paymentType: PaymentTypeSchema.optional(),
   startDate: z.date().optional(),
-    endDate: z.date().optional(),
-    customerId: z.string().optional(),
-    bookingId: z.string().optional(),
-    appointmentId: z.string().optional(),
+  endDate: z.date().optional(),
+  customerId: z.string().optional(),
+  bookingId: z.string().optional(),
+  appointmentId: z.string().optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
   searchTerm: z.string().optional(),
@@ -296,36 +272,17 @@ export const PaymentListResponseSchema = z.object({
     .optional(),
 });
 
-/**
- * Schema for payment refund
- */
-export const PaymentRefundSchema = z.object({
-  paymentId: z.string(),
-  amount: z.number().positive().optional(), // If not provided, full amount is refunded
-  reason: z.string().optional(),
-  sendEmail: z.boolean().optional().default(true),
-});
-
 // Export type definitions derived from schemas
 export type PaymentType = z.infer<typeof PaymentTypeSchema>;
 export type PaymentBase = z.infer<typeof PaymentBaseSchema>;
 export type PaymentCreateInput = z.infer<typeof PaymentCreateSchema>;
 export type PaymentUpdateInput = z.infer<typeof PaymentUpdateSchema>;
 export type Payment = z.infer<typeof PaymentSchema>;
-export type PaymentIntentCreate = z.infer<typeof PaymentIntentCreateSchema>;
-export type PaymentIntentResponse = z.infer<typeof PaymentIntentResponseSchema>;
 export type PaymentListParams = z.infer<typeof PaymentListParamsSchema>;
 export type PaymentListResponse = z.infer<typeof PaymentListResponseSchema>;
-export type PaymentRefund = z.infer<typeof PaymentRefundSchema>;
 
 // Export form-specific types for React Hook Form
 export type PaymentFormValues = PaymentCreateInput;
-
-/**
- * payment.ts
- *
- * Types related to payments, transactions, and financial records.
- */
 
 /**
  * Payment entity interface
@@ -416,17 +373,6 @@ export interface PaymentWithRelations extends PaymentEntity {
 }
 
 /**
- * Refund request
- */
-export interface RefundRequest {
-  paymentId: ID;
-  amount?: number;
-  reason?: string;
-  fullRefund?: boolean;
-  sendReceipt?: boolean;
-}
-
-/**
  * Payment statistics interface
  */
 export interface PaymentStats {
@@ -438,58 +384,4 @@ export interface PaymentStats {
   byMonth?: Record<string, number>;
   refundedAmount?: number;
   averageAmount?: number;
-}
-
-/**
- * Stripe payment metadata interface
- */
-export interface PaymentMetadata {
-  stripePaymentIntentId?: string;
-  stripePaymentStatus?: string;
-  stripeChargeId?: string;
-  stripeLastError?: string;
-  stripeRefundId?: string;
-  stripeDisputeId?: string;
-  refundAmount?: number;
-  refundReason?: string;
-  disputeReason?: string;
-  disputeStatus?: string;
-  disputeAmount?: number;
-}
-
-/**
- * Stripe-specific type exports for service layer
- */
-export interface PaymentIntent {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  client_secret?: string;
-  customer?: string;
-  description?: string;
-  metadata?: Record<string, string>;
-  receipt_email?: string;
-}
-
-export interface CheckoutSession {
-  id: string;
-  url?: string;
-  payment_intent?: string;
-  customer?: string;
-  success_url?: string;
-  cancel_url?: string;
-  metadata?: Record<string, string>;
-}
-
-// Stripe PaymentMethod interface that matches what Stripe actually returns
-export interface StripePaymentMethod {
-  id: string;
-  type: string;
-  card: {
-    brand: string;
-    last4: string;
-    expMonth: number;
-    expYear: number;
-  } | null;
 }

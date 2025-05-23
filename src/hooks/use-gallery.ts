@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { api } from '@/lib/trpc/client';
-// Create a type that matches what tRPC returns from the database
+
 export interface GalleryDesign {
   id: string;
   name: string;
@@ -82,7 +82,10 @@ export function useGallery(): UseGalleryResult {
   }, [isError, error]);
 
   // Get raw designs from the response - cast to our type since we know the structure includes Artist relation
-  const designs = (galleryData?.designs || []) as GalleryDesign[];
+  const designs = useMemo(
+    () => (galleryData?.designs || []) as GalleryDesign[],
+    [galleryData]
+  );
 
   // Apply filters and sorting
   useEffect(() => {

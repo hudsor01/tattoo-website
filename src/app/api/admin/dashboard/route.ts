@@ -176,7 +176,7 @@ export async function GET() {
     ]);
 
     // Format upcoming appointments for frontend
-    const formattedUpcomingAppointments = upcomingAppointments.map(appointment => ({
+    const formattedUpcomingAppointments = upcomingAppointments.map((appointment: typeof upcomingAppointments[number]) => ({
       id: appointment.id,
       title: appointment.title,
       startTime: appointment.startDate,

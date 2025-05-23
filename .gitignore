@@ -7,6 +7,7 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 !.env.example
 
 # Next.js build output
@@ -43,11 +44,6 @@ prisma/*.db-journal
 prisma/client/
 *.sql
 
-# Supabase temp & branch state
-supabase/.temp/
-supabase/.branches/
-supabase/migrations.bak/
-
 # Vercel deployment files
 .vercel/
 
@@ -61,3 +57,4 @@ mcp.*
 .flaskenv*
 !.env.project
 !.env.vault
+.vercel

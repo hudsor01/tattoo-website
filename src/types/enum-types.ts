@@ -16,6 +16,9 @@ export enum PaymentStatus {
   PARTIAL = 'partial',
   COMPLETED = 'completed',
   VERIFIED = 'verified',
+  CANCELLED = 'cancelled',
+  PROCESSING = 'processing',
+  PARTIALLY_REFUNDED = 'partially_refunded',
 }
 
 export enum UserRole {

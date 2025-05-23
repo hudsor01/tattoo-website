@@ -39,7 +39,7 @@ const staggerContainer = {
     opacity: 1,
     transition: {
       staggerChildren: 0.15,
-      delayChildren: 0.3
+      delayChildren: 0
     }
   }
 };
@@ -211,6 +211,58 @@ export default function AboutClient() {
             ))}
           </motion.div>
         </section>
+
+        {/* Closing CTA Section */}
+        <motion.section 
+          className="py-16 mt-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeInUp}
+        >
+          <div className="bg-gradient-to-br from-tattoo-black to-tattoo-black/90 rounded-2xl border border-tattoo-red/20 shadow-xl p-8 md:p-12">
+            <div className="max-w-3xl mx-auto text-center">
+              <motion.h2 
+                className="text-2xl md:text-3xl font-bold text-white mb-4"
+                variants={fadeInUp}
+              >
+                Ready to Start Your Tattoo Journey with Ink 37?
+              </motion.h2>
+              <motion.p 
+                className="text-white/80 mb-8"
+                variants={fadeInUp}
+              >
+                I am committed to creating a tattoo that you will love for years to come. Let's discuss your ideas and create something unique together.
+              </motion.p>
+              
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+                variants={staggerContainer}
+              >
+                <motion.div variants={fadeInUp}>
+                  <Button size="lg" asChild className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group">
+                    <Link href="/booking" className="inline-flex items-center">
+                      Book a Consultation
+                      <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                </motion.div>
+                
+                <motion.div variants={fadeInUp}>
+                  <Button variant="outline" size="lg" asChild className="relative border-2 border-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 text-white hover:from-red-500/20 hover:via-orange-500/20 hover:to-amber-500/20 hover:scale-105 transition-all duration-300 group overflow-hidden">
+                    <Link href="/gallery" className="inline-flex items-center relative z-10">
+                      <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
+                        View My Gallery
+                      </span>
+                      <ChevronRight className="ml-2 h-4 w-4 text-amber-400 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                    </Link>
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.section>
       </motion.div>
     </SharedLayout>
   );

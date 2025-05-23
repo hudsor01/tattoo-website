@@ -9,7 +9,7 @@ import { publicProcedure, protectedProcedure, adminProcedure, router } from '../
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import type { DatabaseDesignType } from '@/types/gallery-types';
-import crypto from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 // Validation schema for creating a design
 export const designValidator = z.object({
@@ -201,7 +201,7 @@ export const galleryRouter = router({
         
         // Create the design with proper null handling
         const designData = {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           name: input.name,
           description: input.description || null,
           fileUrl: input.fileUrl || null,

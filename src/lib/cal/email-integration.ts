@@ -12,7 +12,7 @@ import type { CalBookingPayload } from '@/types/booking-types';
  * Currently disabled - email templates removed
  */
 export async function sendAppointmentConfirmationEmail(booking: CalBookingPayload): Promise<void> {
-  console.log('Email templates disabled - would send confirmation for booking:', booking.id);
+  console.info('Email templates disabled - would send confirmation for booking:', booking.id);
   return;
 }
 
@@ -21,7 +21,7 @@ export async function sendAppointmentConfirmationEmail(booking: CalBookingPayloa
  * Currently disabled - email templates removed
  */
 export async function sendAppointmentCancellationEmail(booking: CalBookingPayload): Promise<void> {
-  console.log('Email templates disabled - would send cancellation for booking:', booking.id);
+  console.info('Email templates disabled - would send cancellation for booking:', booking.id);
   return;
 }
 
@@ -30,6 +30,6 @@ export async function sendAppointmentCancellationEmail(booking: CalBookingPayloa
  * Currently disabled - email templates removed
  */
 export async function sendBookingNotificationToStudio(booking: CalBookingPayload): Promise<string> {
-  console.log('Email templates disabled - would send studio notification for booking:', booking.id);
+  console.info('Email templates disabled - would send studio notification for booking:', booking.id);
   return 'Email templates disabled';
 }

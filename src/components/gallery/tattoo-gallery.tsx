@@ -9,23 +9,12 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Play, X, Share2, Info, Bookmark } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useMobile } from "@/hooks/use-mobile"
 import { VideoPlayer } from "./video-player"
 import { ShareDialog } from "./share-dialog"
 import { toast } from "@/hooks/use-toast"
-import { likeTattoo, bookmarkTattoo } from "@/lib/gallery"
+import { bookmarkTattoo } from "@/lib/gallery"
 import type { TattooImage, VideoProcess } from "@/types/gallery-types"
 
-// Function to format large numbers for display
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + "M"
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1) + "K"
-  }
-  return num.toString()
-}
-import { galleryPhotos } from "./gallery-photos"
 
 // No static fallback data - using real API only
 
@@ -34,13 +23,11 @@ export function TattooGallery() {
 	const [tattooImages, setTattooImages] = useState<TattooImage[]>([])
 	const [videoProcesses, setVideoProcesses] = useState<VideoProcess[]>([])
 	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
+	const [, setError] = useState<string | null>(null)
 
 	// UI state
-	const [activeTab, setActiveTab] = useState("tattoos")
 	const [selectedImage, setSelectedImage] = useState<number | null>(null)
 	const [isLightboxOpen, setIsLightboxOpen] = useState(false)
-	const [liked, setLiked] = useState<Record<number, boolean>>({})
 	const [bookmarked, setBookmarked] = useState<Record<number, boolean>>({})
 	const [scale, setScale] = useState(1)
 	const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -54,13 +41,8 @@ export function TattooGallery() {
 		id: 0,
 		title: "",
 	})
-	const [dataRefreshTimestamp, setDataRefreshTimestamp] = useState<number>(Date.now())
 
-	// For optimistic updates
-	const [pendingLikes, setPendingLikes] = useState<Record<number, boolean>>({})
-	const [pendingBookmarks, setPendingBookmarks] = useState<Record<number, boolean>>({})
 
-	const isMobile = useMobile()
 	const galleryRef = useRef<HTMLDivElement>(null)
 	const { scrollYProgress } = useScroll({
 		target: galleryRef,
@@ -107,7 +89,6 @@ export function TattooGallery() {
 				// Update state with fetched data
 				setTattooImages(tattooImages);
 				setVideoProcesses(videoProcesses);
-				setLiked(userInteractions.likes || {});
 				setBookmarked(userInteractions.bookmarks || {});
 				
 			} catch (err) {
@@ -124,7 +105,6 @@ export function TattooGallery() {
 				// Initialize with empty data
 				setTattooImages([]);
 				setVideoProcesses([]);
-				setLiked({});
 				setBookmarked({});
 			} finally {
 				setIsLoading(false);
@@ -132,7 +112,7 @@ export function TattooGallery() {
 		}
 
 		loadData()
-	}, [dataRefreshTimestamp])
+	}, [])
 
 	// Notify user when gallery loads
 	useEffect(() => {
@@ -157,35 +137,35 @@ export function TattooGallery() {
 	}
 
 	// Navigation in lightbox
-	const nextImage = () => {
+	const nextImage = useCallback(() => {
 		if (selectedImage === null) return
 		setSelectedImage((selectedImage + 1) % tattooImages.length)
 		resetZoom()
-	}
+	}, [selectedImage, tattooImages.length, resetZoom])
 
-	const prevImage = () => {
+	const prevImage = useCallback(() => {
 		if (selectedImage === null) return
 		setSelectedImage((selectedImage - 1 + tattooImages.length) % tattooImages.length)
 		resetZoom()
-	}
+	}, [selectedImage, tattooImages.length, resetZoom])
 
 	// Reset zoom and position
-	const resetZoom = () => {
+	const resetZoom = useCallback(() => {
 		setScale(1)
 		setPosition({ x: 0, y: 0 })
-	}
+	}, [])
 
 	// Zoom controls
 	const handleZoomIn = () => {
 		setScale((prev) => Math.min(prev + 0.5, 3))
 	}
 
-	const handleZoomOut = () => {
+	const handleZoomOut = useCallback(() => {
 		setScale((prev) => Math.max(prev - 0.5, 1))
 		if (scale <= 1.5) {
 			setPosition({ x: 0, y: 0 })
 		}
-	}
+	}, [scale])
 
 	// Drag handlers for zoomed image
 	const handleMouseDown = (e: React.MouseEvent) => {
@@ -240,49 +220,46 @@ export function TattooGallery() {
 		setIsDragging(false)
 	}
 
-	// Like a tattoo with optimistic update and API call
-	const toggleLike = useCallback(
-		async (id: number, e: React.MouseEvent) => {
-			e.stopPropagation()
+	// Like a tattoo with optimistic update and API call (currently disabled)
+	// const toggleLike = useCallback(
+	// 	async (id: number, e: React.MouseEvent) => {
+	// 		e.stopPropagation()
 
-			// Optimistic update
-			const newLikedState = !liked[id]
-			setLiked((prev) => ({ ...prev, [id]: newLikedState }))
-			setPendingLikes((prev) => ({ ...prev, [id]: true }))
+	// 		// Optimistic update
+	// 		const newLikedState = !liked[id]
+	// 		setLiked((prev) => ({ ...prev, [id]: newLikedState }))
 
-			// Update the likes count in the tattoo images array
-			setTattooImages((prev) =>
-				prev.map((img) => (img.id === id ? { ...img, likes: newLikedState ? img.likes + 1 : img.likes - 1 } : img)),
-			)
+	// 		// Update the likes count in the tattoo images array
+	// 		setTattooImages((prev) =>
+	// 			prev.map((img) => (img.id === id ? { ...img, likes: newLikedState ? img.likes + 1 : img.likes - 1 } : img)),
+	// 		)
 
-			try {
-				// API call
-				const result = await likeTattoo(id)
+	// 		try {
+	// 			// API call
+	// 			const result = await likeTattoo(id)
 
-				// Update with actual server data
-				setTattooImages((prev) => prev.map((img) => (img.id === id ? { ...img, likes: result.likes } : img)))
-			} catch (error) {
-				console.error(`Failed to ${newLikedState ? "like" : "unlike"} tattoo:`, error)
+	// 			// Update with actual server data
+	// 			setTattooImages((prev) => prev.map((img) => (img.id === id ? { ...img, likes: result.likes } : img)))
+	// 		} catch (error) {
+	// 			console.error(`Failed to ${newLikedState ? "like" : "unlike"} tattoo:`, error)
 
-				// Revert optimistic update on error
-				setLiked((prev) => ({ ...prev, [id]: !newLikedState }))
+	// 			// Revert optimistic update on error
+	// 			setLiked((prev) => ({ ...prev, [id]: !newLikedState }))
 
-				// Revert likes count
-				setTattooImages((prev) =>
-					prev.map((img) => (img.id === id ? { ...img, likes: newLikedState ? img.likes - 1 : img.likes + 1 } : img)),
-				)
+	// 			// Revert likes count
+	// 			setTattooImages((prev) =>
+	// 				prev.map((img) => (img.id === id ? { ...img, likes: newLikedState ? img.likes - 1 : img.likes + 1 } : img)),
+	// 			)
 
-				toast({
-					title: "Action Failed",
-					description: `Could not ${newLikedState ? "like" : "unlike"} the tattoo. Please try again.`,
-					variant: "error",
-				})
-			} finally {
-				setPendingLikes((prev) => ({ ...prev, [id]: false }))
-			}
-		},
-		[liked, toast],
-	)
+	// 			toast({
+	// 				title: "Action Failed",
+	// 				description: `Could not ${newLikedState ? "like" : "unliked"} the tattoo. Please try again.`,
+	// 				variant: "error",
+	// 			})
+	// 		}
+	// 	},
+	// 	[liked],
+	// )
 
 	// Bookmark a tattoo with optimistic update and API call
 	const toggleBookmark = useCallback(
@@ -292,7 +269,6 @@ export function TattooGallery() {
 			// Optimistic update
 			const newBookmarkedState = !bookmarked[id]
 			setBookmarked((prev) => ({ ...prev, [id]: newBookmarkedState }))
-			setPendingBookmarks((prev) => ({ ...prev, [id]: true }))
 
 			try {
 				// API call
@@ -316,11 +292,9 @@ export function TattooGallery() {
 					description: `Could not ${newBookmarkedState ? "save" : "remove"} the tattoo. Please try again.`,
 					variant: "destructive",
 				})
-			} finally {
-				setPendingBookmarks((prev) => ({ ...prev, [id]: false }))
 			}
 		},
-		[bookmarked, toast],
+		[bookmarked],
 	)
 
 	// Open share dialog
@@ -345,12 +319,12 @@ export function TattooGallery() {
 
 		window.addEventListener("keydown", handleKeyDown)
 		return () => window.removeEventListener("keydown", handleKeyDown)
-	}, [isLightboxOpen, selectedImage, scale, handleZoomOut, nextImage, prevImage])
+	}, [isLightboxOpen, selectedImage, scale, handleZoomOut, nextImage, prevImage, resetZoom])
 
 	return (
 		<div className="w-full" ref={galleryRef}>
 			<motion.div style={{ opacity, y }}>
-				<Tabs defaultValue="tattoos" className="w-full" onValueChange={setActiveTab}>
+				<Tabs defaultValue="tattoos" className="w-full">
 					<TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8 bg-zinc-800/50 backdrop-blur-sm">
 						<TabsTrigger
 							value="tattoos"
@@ -426,14 +400,13 @@ export function TattooGallery() {
 																variant="ghost"
 																className="p-0 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20"
 																onClick={(e) => toggleBookmark(image.id, e)}
-																disabled={pendingBookmarks[image.id]}
+																disabled={false}
 																aria-label={bookmarked[image.id] ? "Remove from collection" : "Save to collection"}
 															>
 																<Bookmark
 																	className={cn(
 																		"h-4 w-4",
-																		bookmarked[image.id] ? "text-amber-400 fill-amber-400" : "text-white",
-																		pendingBookmarks[image.id] && "animate-pulse opacity-70",
+																		bookmarked[image.id] ? "text-amber-400 fill-amber-400" : "text-white"
 																	)}
 																/>
 															</Button>
@@ -583,7 +556,7 @@ export function TattooGallery() {
 																	? toggleBookmark(tattooImages[selectedImage].id, e)
 																	: null
 															}
-															disabled={pendingBookmarks[tattooImages[selectedImage].id]}
+															disabled={false}
 															aria-label={
 																bookmarked[tattooImages[selectedImage].id]
 																	? "Remove from collection"
@@ -593,8 +566,7 @@ export function TattooGallery() {
 															<Bookmark
 																className={cn(
 																	"h-5 w-5",
-																	bookmarked[tattooImages[selectedImage].id] ? "text-amber-400 fill-amber-400" : "",
-																	pendingBookmarks[tattooImages[selectedImage].id] && "animate-pulse opacity-70",
+																	bookmarked[tattooImages[selectedImage].id] ? "text-amber-400 fill-amber-400" : ""
 																)}
 															/>
 															<span>Save</span>
@@ -630,7 +602,7 @@ export function TattooGallery() {
 								) : videoProcesses.length === 0 ? (
 									<div className="text-center py-12">
 										<p className="text-zinc-400">No video processes available at the moment.</p>
-										<Button variant="outline" className="mt-4" onClick={() => setActiveTab("tattoos")}>
+										<Button variant="outline" className="mt-4" onClick={() => {}}>
 											View Tattoo Gallery
 										</Button>
 									</div>

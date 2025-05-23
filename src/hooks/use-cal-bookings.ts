@@ -4,8 +4,6 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { toast } from '@/components/ui/use-toast';
-import type { CalBookingPayload } from '@/types/booking-types';
-import { RefreshCcw } from 'lucide-react';
 
 interface UseCalBookingsOptions {
   limit?: number;

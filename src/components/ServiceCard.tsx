@@ -17,7 +17,7 @@ interface ServiceCardProps {
  * Displays a service card with icon, title, short description,
  * and a "Learn More" link to the service details page.
  */
-export function ServiceCard({ service, index = 0 }: ServiceCardProps) {
+export function ServiceCard({ service }: ServiceCardProps) {
   const { id, title, shortDescription, icon: Icon } = service;
 
   return (

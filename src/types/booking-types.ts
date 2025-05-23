@@ -333,17 +333,7 @@ export const AppointmentCreateSchema = z.object({
 /**
  * Type for appointment creation input
  */
-export interface AppointmentCreateInput {
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate?: string;
-  customerId: string;
-  artistId?: string;
-  tattooSize?: 'small' | 'medium' | 'large' | 'extra_large';
-  complexity?: number;
-  location?: string;
-}
+export type AppointmentCreateInput = z.infer<typeof AppointmentCreateSchema>;
 
 /**
  * ========================================================================
@@ -718,7 +708,7 @@ export const BookingCreateSchema = BookingBaseSchema.extend({
   clientId: z.string().optional(),
   paymentMethod: PaymentMethodSchema.optional(),
   paymentIntentId: z.string().optional(),
-  stripeCustomerId: z.string().optional(),
+  paymentCustomerId: z.string().optional(),
 });
 
 /**
@@ -768,9 +758,9 @@ export type BookingUpdateInput = z.infer<typeof BookingUpdateSchema>;
 export type BookingListParams = z.infer<typeof BookingListParamsSchema>;
 
 /**
- * Stripe payment intent interface
+ * Payment intent interface
  */
-export interface StripePaymentIntent {
+export interface PaymentIntent {
   id: string;
   status: string;
   client_secret?: string;
@@ -862,6 +852,42 @@ export const CalWebhookSchema = z.object({
  * API ENDPOINTS TYPES
  * ========================================================================
  */
+
+/**
+ * Customer type for admin dashboard
+ */
+export interface CustomerType {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Appointment type for admin dashboard
+ */
+export interface AppointmentType {
+  id: string;
+  customerId: string;
+  clientName?: string | null;
+  clientEmail?: string | null;
+  clientPhone?: string | null;
+  appointmentDate: Date;
+  duration: number;
+  status: string;
+  depositPaid?: boolean;
+  depositAmount?: number;
+  totalPrice?: number;
+  tattooStyle?: string | null;
+  description?: string | null;
+  location?: string | null;
+  size?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 /**
  * API type with extended properties from Appointment model including Customer details

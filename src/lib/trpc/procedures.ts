@@ -28,7 +28,7 @@ export const middleware = t.middleware;
 
 // Create auth middleware
 const authMiddleware = middleware(async ({ ctx, next }) => {
-  if (!ctx.user) {
+  if (!ctx.userId || !ctx.auth) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'You must be logged in to access this resource',
@@ -37,26 +37,31 @@ const authMiddleware = middleware(async ({ ctx, next }) => {
   
   return next({
     ctx: {
-      ...ctx, // ctx is already of type TRPCContext, so user should exist
-      user: ctx.user!,
+      ...ctx,
+      userId: ctx.userId!, // Ensured by the check above
+      auth: ctx.auth!, // Clerk auth object
       db: ctx.prisma, // Ensure prisma is passed
-      supabase: ctx.supabase, // Ensure supabase is passed
     },
   });
 });
 
 // Create admin middleware
 const adminMiddleware = middleware(async ({ ctx, next }) => {
-  if (!ctx.user) {
+  if (!ctx.userId || !ctx.auth) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'You must be logged in to access this resource',
     });
   }
   
-  // Check if user is admin
-  const isAdmin = ctx.user.user_metadata?.["role"] === 'admin' || 
-                 ctx.user.app_metadata?.["role"] === 'admin';
+  // Check if user is admin using Clerk's role system
+  // For now, we'll implement a simple admin check - later we can enhance with proper roles
+  // Clerk stores roles in the user's publicMetadata
+  const userMetadata = ctx.auth.sessionClaims?.publicMetadata as any;
+  const userRole = userMetadata?.role || 'user';
+  
+  const isAdmin = userRole === 'admin' || 
+                 (Array.isArray(userRole) && userRole.includes('admin'));
   
   if (!isAdmin) {
     throw new TRPCError({
@@ -67,10 +72,10 @@ const adminMiddleware = middleware(async ({ ctx, next }) => {
   
   return next({
     ctx: {
-      ...ctx, // ctx is already of type TRPCContext, so user should exist
-      user: ctx.user!,
+      ...ctx,
+      userId: ctx.userId!, // Ensured by the check above
+      auth: ctx.auth!, // Clerk auth object
       db: ctx.prisma, // Ensure prisma is passed
-      supabase: ctx.supabase, // Ensure supabase is passed
     },
   });
 });
@@ -95,7 +100,6 @@ export const publicProcedure = t.procedure
       ctx: {
         ...ctx,
         db: ctx.prisma, // Ensure prisma is passed
-        supabase: ctx.supabase, // Ensure supabase is passed
       },
     });
   }));

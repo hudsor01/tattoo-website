@@ -6,12 +6,8 @@
  */
 
 import { z } from 'zod';
-// Import essential types
 import type { TRPCError } from '@trpc/server';
 import { PaymentStatus, PaymentType } from './enum-types';
-import { NextRequest, NextResponse } from 'next/server';
-
-// Import needed types
 import type { ID } from './utility-types';
 
 /**
@@ -78,6 +74,7 @@ export interface ErrorResponse {
   timestamp?: string;
   path?: string;
   validationErrors?: ValidationError[];
+  data?: unknown;
 }
 
 /**
@@ -219,18 +216,6 @@ export interface JobStatusResponse {
 // Note: Using ApiError from api-errors.ts instead of former ApiRequestError
 export type { ApiError } from '@/lib/api-errors';
 
-// Authentication related API types
-
-/**
- * Token Response
- */
-export interface TokenResponse {
-  success: true;
-  token: string;
-  refreshToken?: string;
-  expiresAt?: number;
-  tokenType: 'Bearer';
-}
 
 // Domain-specific API Types
 
@@ -335,7 +320,6 @@ export interface PaymentStatusResponse {
   bookingId?: number;
   appointmentId?: string;
   metadata?: Record<string, unknown>;
-  source?: 'stripe' | 'prisma' | 'supabase';
 }
 
 /**
@@ -541,7 +525,6 @@ export const PaymentStatusResponseSchema = z.object({
   bookingId: z.number().optional(),
   appointmentId: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
-  source: z.enum(['stripe', 'prisma', 'supabase']).optional(),
 });
 
 /**
@@ -619,8 +602,6 @@ export interface TRPCProcedureConfig {
  */
 
 export type TRPCMiddlewareConfig = {
-  requireAuth?: boolean;
-  requireAdmin?: boolean;
   cacheTime?: number; // in milliseconds
 };
 
@@ -645,10 +626,7 @@ export interface TRPCMiddleware<TContext = unknown> {
  */
 
 // tRPC type imports
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
 import type { PrismaClient } from '@prisma/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Context object passed to all tRPC procedures
@@ -657,13 +635,7 @@ export interface Context {
   prisma: PrismaClient;
   req: Request;
   headers: Headers;
-  supabase: SupabaseClient;
-  user: {
-    id: string;
-    email?: string; 
-    role: 'user' | 'admin' | 'artist';
-    name?: string;
-  } | null;
+  user: null; // No authentication
 }
 
 /**
@@ -685,7 +657,6 @@ export type { RouterInputs, RouterOutputs };
  * ========================================================================
  */
 
-import type { FilterOptions, RecordObject } from './utility-types';
 
 /**
  * Options for creating tRPC query hooks

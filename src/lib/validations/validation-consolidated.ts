@@ -101,7 +101,7 @@ export const createField = {
   
   // Boolean field
   boolean: (options: { required?: boolean | string } = {}) => {
-    let schema = z.boolean();
+    const schema = z.boolean();
     
     if (options.required) {
       return z.boolean().refine(val => val === true, {
@@ -114,7 +114,7 @@ export const createField = {
   
   // Date field
   date: (options: { required?: boolean | string } = {}) => {
-    let schema = z.coerce.date();
+    const schema = z.coerce.date();
     
     if (options.required) {
       return z.coerce.date().refine(val => !isNaN(val.getTime()), {

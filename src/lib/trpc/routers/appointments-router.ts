@@ -1,50 +1,98 @@
-/**
- * Appointments Router
- *
- * This router handles all appointment-related tRPC procedures.
- */
-
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure } from '../server';
-import { createClient } from '@/lib/supabase/server';
+import { router, protectedProcedure, adminProcedure } from '../procedures';
+import { prisma } from '@/lib/db/prisma';
+import { AppointmentStatus } from '@/types/enum-types';
+import { randomUUID } from 'node:crypto';
 
 export const appointmentsRouter = router({
   /**
-   * Get all appointments for the authenticated user
+   * Get all appointments with filtering
    */
   getAll: protectedProcedure
-    .query(async () => {
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(50),
+      cursor: z.string().nullish(),
+      status: z.nativeEnum(AppointmentStatus).optional(),
+      customerId: z.string().optional(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
+    }))
+    .query(async ({ input }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const where: any = {};
         
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to view appointments',
-          });
+        if (input.status) {
+          where.status = input.status;
         }
         
-        const { data: appointments, error } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('client_id', user.id)
-          .order('start_date', { ascending: false });
-          
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error fetching appointments',
-            cause: error,
-          });
+        if (input.customerId) {
+          where.customerId = input.customerId;
         }
         
-        return appointments;
+        if (input.startDate || input.endDate) {
+          where.startDate = {};
+          if (input.startDate) {
+            where.startDate.gte = input.startDate;
+          }
+          if (input.endDate) {
+            where.startDate.lte = input.endDate;
+          }
+        }
+        
+        const appointments = await prisma.appointment.findMany({
+          where,
+          orderBy: {
+            startDate: 'desc',
+          },
+          take: input.limit + 1,
+          ...(input.cursor && { cursor: { id: input.cursor } }),
+        });
+        
+        let nextCursor: string | undefined;
+        if (appointments.length > input.limit) {
+          const nextItem = appointments.pop();
+          nextCursor = nextItem!.id;
+        }
+        
+        // Get customer info for each appointment
+        const customerIds = [...new Set(appointments.map(a => a.customerId))];
+        const customers = await prisma.customer.findMany({
+          where: { id: { in: customerIds } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true },
+        });
+        
+        const customerMap = new Map(customers.map(c => [c.id, c]));
+
+        // Transform the data to match our interface
+        const transformedAppointments = appointments.map(appointment => {
+          const customer = customerMap.get(appointment.customerId);
+          return {
+            id: appointment.id,
+            customerId: appointment.customerId,
+            clientName: customer ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim() : '',
+            clientEmail: customer?.email || '',
+            clientPhone: customer?.phone || '',
+            appointmentDate: appointment.startDate,
+            duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
+            status: appointment.status,
+            depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
+            depositAmount: appointment.deposit || 0,
+            totalPrice: appointment.totalPrice || 0,
+            tattooStyle: '', // Not in schema
+            description: appointment.description || '',
+            location: appointment.location || '',
+            size: '', // Not in schema
+            createdAt: appointment.createdAt,
+            updatedAt: appointment.updatedAt,
+          };
+        });
+        
+        return {
+          items: transformedAppointments,
+          nextCursor,
+        };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Error fetching appointments',
@@ -52,106 +100,85 @@ export const appointmentsRouter = router({
         });
       }
     }),
-    
-  /**
-   * Get a specific appointment by ID
-   */
-  getById: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
-    .query(async ({ input }) => {
-      try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to view appointments',
-          });
-        }
-        
-        const { data: appointment, error } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('id', input.id)
-          .eq('client_id', user.id)
-          .single();
-          
-        if (error || !appointment) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Appointment not found',
-            cause: error,
-          });
-        }
-        
-        return appointment;
-      } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error fetching appointment',
-          cause: error,
-        });
-      }
-    }),
-    
+
   /**
    * Create a new appointment
    */
-  create: protectedProcedure
+  create: adminProcedure
     .input(z.object({
-      title: z.string().min(1),
+      customerId: z.string(),
+      artistId: z.string().optional(),
+      title: z.string().optional(),
+      appointmentDate: z.date(),
+      duration: z.number().min(15).default(120),
+      status: z.nativeEnum(AppointmentStatus).default(AppointmentStatus.SCHEDULED),
+      depositAmount: z.number().min(0).default(0),
+      totalPrice: z.number().min(0).default(0),
       description: z.string().optional(),
-      start_date: z.date(),
-      end_date: z.date().optional(),
-      client_id: z.string().uuid().optional(),
-      artist_id: z.string().uuid(),
-      status: z.enum(['scheduled', 'confirmed', 'completed', 'cancelled']).default('scheduled'),
-      deposit_paid: z.boolean().default(false),
+      location: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        // Verify customer exists
+        const customer = await prisma.customer.findUnique({
+          where: { id: input.customerId },
+        });
         
-        if (!user) {
+        if (!customer) {
           throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to create appointments',
+            code: 'NOT_FOUND',
+            message: 'Customer not found',
           });
         }
         
-        // Calculate end time if not provided (default to 2 hours after start)
-        const endDate = input.end_date || new Date(input.start_date.getTime() + 2 * 60 * 60 * 1000);
-        
-        const { data: appointment, error } = await supabase
-          .from('appointments')
-          .insert({
-            title: input.title,
-            description: input.description,
-            start_date: input.start_date.toISOString(),
-            end_date: endDate.toISOString(),
-            client_id: input.client_id || user.id,
-            artist_id: input.artist_id,
+        // Get a default artist if none provided
+        let artistId = input.artistId;
+        if (!artistId) {
+          const defaultArtist = await prisma.artist.findFirst();
+          if (!defaultArtist) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'No artists available',
+            });
+          }
+          artistId = defaultArtist.id;
+        }
+
+        const appointment = await prisma.appointment.create({
+          data: {
+            id: randomUUID(),
+            customerId: input.customerId,
+            artistId: artistId,
+            title: input.title || 'Tattoo Appointment',
+            startDate: input.appointmentDate,
+            endDate: new Date(input.appointmentDate.getTime() + (input.duration * 60 * 1000)),
             status: input.status,
-            deposit_paid: input.deposit_paid,
-            created_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-          
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error creating appointment',
-            cause: error,
-          });
-        }
+            deposit: input.depositAmount,
+            totalPrice: input.totalPrice,
+            description: input.description || null,
+            location: input.location || null,
+          },
+        });
         
-        return appointment;
+        return {
+          id: appointment.id,
+          customerId: appointment.customerId,
+          clientName: `${customer.firstName || ''} ${customer.lastName || ''}`.trim(),
+          clientEmail: customer.email || '',
+          clientPhone: customer.phone || '',
+          appointmentDate: appointment.startDate,
+          duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
+          status: appointment.status,
+          depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
+          depositAmount: appointment.deposit || 0,
+          totalPrice: appointment.totalPrice || 0,
+          tattooStyle: '',
+          description: appointment.description || '',
+          location: appointment.location || '',
+          size: '',
+          createdAt: appointment.createdAt,
+          updatedAt: appointment.updatedAt,
+        };
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
@@ -163,90 +190,73 @@ export const appointmentsRouter = router({
         });
       }
     }),
-    
+
   /**
-   * Update an existing appointment
+   * Update an appointment
    */
-  update: protectedProcedure
+  update: adminProcedure
     .input(z.object({
-      id: z.string().uuid(),
-      title: z.string().min(1).optional(),
+      id: z.string(),
+      title: z.string().optional(),
+      appointmentDate: z.date().optional(),
+      duration: z.number().min(15).optional(),
+      status: z.nativeEnum(AppointmentStatus).optional(),
+      depositAmount: z.number().min(0).optional(),
+      totalPrice: z.number().min(0).optional(),
       description: z.string().optional(),
-      start_date: z.date().optional(),
-      end_date: z.date().optional(),
-      status: z.enum(['scheduled', 'confirmed', 'completed', 'cancelled']).optional(),
-      deposit_paid: z.boolean().optional(),
+      location: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const { id, appointmentDate, duration, depositAmount, ...updateData } = input;
         
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to update appointments',
-          });
-        }
-        
-        // Verify user owns the appointment or is an artist/admin
-        const { data: appointment, error: fetchError } = await supabase
-          .from('appointments')
-          .select('*, client_id')
-          .eq('id', input.id)
-          .single();
-          
-        if (fetchError || !appointment) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Appointment not found',
-            cause: fetchError,
-          });
-        }
-        
-        if (appointment.client_id !== user.id) {
-          // Check if user is artist or admin (would need role info)
-          const { data: userInfo } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-            
-          if (!userInfo || !['admin', 'artist'].includes(userInfo.role)) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'You do not have permission to update this appointment',
-            });
+        // Build update data object with correct field mapping
+        const data: any = { ...updateData };
+        if (appointmentDate) {
+          data.startDate = appointmentDate;
+          if (duration) {
+            data.endDate = new Date(appointmentDate.getTime() + (duration * 60 * 1000));
           }
         }
-        
-        // Prepare update data
-        const updateData: Record<string, unknown> = {};
-        if (input.title) updateData['title'] = input.title;
-        if (input.description !== null) updateData['description'] = input.description;
-        if (input.start_date) updateData['start_date'] = input.start_date.toISOString();
-        if (input.end_date) updateData['end_date'] = input.end_date.toISOString();
-        if (input.status) updateData['status'] = input.status;
-        if (input.deposit_paid !== null) updateData['deposit_paid'] = input.deposit_paid;
-        updateData['updated_at'] = new Date().toISOString();
-        
-        // Update the appointment
-        const { data: updatedAppointment, error } = await supabase
-          .from('appointments')
-          .update(updateData)
-          .eq('id', input.id)
-          .select()
-          .single();
-          
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error updating appointment',
-            cause: error,
-          });
+        if (depositAmount !== undefined) {
+          data.deposit = depositAmount;
         }
         
-        return updatedAppointment;
+        const appointment = await prisma.appointment.update({
+          where: { id },
+          data,
+          include: {
+            Customer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+              },
+            },
+          },
+        });
+        
+        return {
+          id: appointment.id,
+          customerId: appointment.customerId,
+          clientName: `${appointment.Customer?.firstName || ''} ${appointment.Customer?.lastName || ''}`.trim(),
+          clientEmail: appointment.Customer?.email || '',
+          clientPhone: appointment.Customer?.phone || '',
+          appointmentDate: appointment.startDate,
+          duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
+          status: appointment.status,
+          depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
+          depositAmount: appointment.deposit || 0,
+          totalPrice: appointment.totalPrice || 0,
+          tattooStyle: '',
+          description: appointment.description || '',
+          location: appointment.location || '',
+          size: '',
+          createdAt: appointment.createdAt,
+          updatedAt: appointment.updatedAt,
+        };
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
@@ -258,100 +268,25 @@ export const appointmentsRouter = router({
         });
       }
     }),
-    
+
   /**
-   * Cancel an appointment
+   * Delete an appointment
    */
-  cancel: protectedProcedure
+  delete: adminProcedure
     .input(z.object({
-      id: z.string().uuid(),
-      reason: z.string().optional(),
+      id: z.string(),
     }))
     .mutation(async ({ input }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        await prisma.appointment.delete({
+          where: { id: input.id },
+        });
         
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to cancel appointments',
-          });
-        }
-        
-        // Verify user owns the appointment
-        const { data: appointment, error: fetchError } = await supabase
-          .from('appointments')
-          .select('client_id, status')
-          .eq('id', input.id)
-          .single();
-          
-        if (fetchError || !appointment) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Appointment not found',
-            cause: fetchError,
-          });
-        }
-        
-        if (appointment.client_id !== user.id) {
-          // Check if user is artist or admin (would need role info)
-          const { data: userInfo } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-            
-          if (!userInfo || !['admin', 'artist'].includes(userInfo.role)) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'You do not have permission to cancel this appointment',
-            });
-          }
-        }
-        
-        if (appointment.status === 'cancelled') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'This appointment is already cancelled',
-          });
-        }
-        
-        if (appointment.status === 'completed') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cannot cancel a completed appointment',
-          });
-        }
-        
-        // Update the appointment to cancelled
-        const { data: updatedAppointment, error } = await supabase
-          .from('appointments')
-          .update({
-            status: 'cancelled',
-            cancellation_reason: input.reason,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', input.id)
-          .select()
-          .single();
-          
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error cancelling appointment',
-            cause: error,
-          });
-        }
-        
-        return updatedAppointment;
+        return { success: true };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error cancelling appointment',
+          message: 'Error deleting appointment',
           cause: error,
         });
       }

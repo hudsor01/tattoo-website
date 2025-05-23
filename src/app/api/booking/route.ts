@@ -40,8 +40,9 @@ export const POST = apiRoute({
           referenceImages: body.referenceImages || [],
           preferredDate: body.preferredDate,
           preferredTime: body.preferredTime,
-          paymentMethod: body.paymentMethod || 'unspecified',
           depositPaid: false,
+          status: 'pending',
+          source,
           // Cal.com integration fields, if available
           calBookingUid: body.calBookingUid,
           calEventId: body.calEventId,
