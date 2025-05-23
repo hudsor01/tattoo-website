@@ -339,7 +339,7 @@ export type ContactFormValues = z.infer<typeof ContactFormSchema>;
 export type ContactFormResponse = z.infer<typeof ContactFormResponseSchema>;
 
 /**
- * Result type for customer search from search_customers Supabase function
+ * Result type for customer search
  */
 export interface CustomerSearchResult {
   id: string;
