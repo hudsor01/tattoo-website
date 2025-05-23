@@ -11,7 +11,6 @@ import { router } from './server';
 import { bookingRouter } from './routers/booking-router';
 import { galleryRouter } from './routers/gallery-router';
 import { adminRouter } from './routers/admin-router';
-import { userRouter } from './routers/user-router';
 import { subscriptionRouter } from './routers/subscription-router';
 import { calRouter } from './routers/cal-router';
 import { dashboardRouter } from './routers/dashboard-router';
@@ -28,7 +27,6 @@ export const appRouter = router({
   booking: bookingRouter,
   gallery: galleryRouter,
   admin: adminRouter,
-  user: userRouter,
   subscription: subscriptionRouter,
   cal: calRouter,
   dashboard: dashboardRouter,

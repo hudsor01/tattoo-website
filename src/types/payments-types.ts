@@ -6,7 +6,6 @@
  */
 
 import type { ID, DateString } from './utility-types';
-import type { BaseEntity } from './database.types';
 import { PaymentStatus, PaymentMethod } from './enum-types';
 
 // Re-export for convenience
@@ -287,7 +286,7 @@ export type PaymentFormValues = PaymentCreateInput;
 /**
  * Payment entity interface
  */
-export interface PaymentEntity extends BaseEntity {
+export interface PaymentEntity {
   clientId?: ID;
   bookingId?: ID;
   appointmentId?: ID;

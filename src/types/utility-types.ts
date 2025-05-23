@@ -247,40 +247,6 @@ export type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends 
  * ========================================================================
  */
 
-/**
- * Supabase Realtime types
- */
-export type RealtimeEventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
-
-export type FilterValue = string | number | boolean | null | string[] | number[];
-
-export type RealtimeFilter = {
-  column: string;
-  operator: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'in';
-  value: FilterValue;
-};
-
-export interface RealtimeSubscriptionOptions {
-  table: string;
-  schema?: string;
-  event?: RealtimeEventType | RealtimeEventType[];
-  filter?: RealtimeFilter | RealtimeFilter[];
-  throttle?: number;
-}
-
-export interface PostgresChangesConfig {
-  event: RealtimeEventType;
-  schema: string;
-  table: string;
-  filter?: string;
-}
-
-export interface UseRealtimeResult<T = Record<string, unknown>> {
-  data: T[];
-  error: Error | null;
-  loading: boolean;
-  refresh: () => Promise<void>;
-}
 
 /**
  * Generic hook state result
@@ -414,34 +380,6 @@ export interface UseSearch<T = unknown> {
   isSearching: boolean;
   setQuery: (query: string) => void;
   search: (query?: string) => Promise<T[]>;
-}
-
-/**
- * Supabase upload hook params
- */
-export interface SupabaseUploadParams {
-  bucketName: string;
-  path?: string;
-  allowedMimeTypes?: string[];
-  maxFileSize?: number;
-  maxFiles?: number;
-}
-
-/**
- * Supabase upload hook result
- */
-export interface UseSupabaseUpload {
-  files: File[];
-  isUploading: boolean;
-  isSuccess: boolean;
-  progress: number;
-  error: Error | null;
-  bucketName: string;
-  path?: string;
-  setFiles: (files: File[]) => void;
-  onUpload: () => Promise<string[]>;
-  removeFile: (index: number) => void;
-  reset: () => void;
 }
 
 /**
