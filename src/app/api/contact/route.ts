@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { contactFormSchema } from '@/lib/validations/validation-contact';
+import { contactFormSchema } from '@/lib/validations';
 import { prisma } from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/email';
 import { z } from 'zod';
