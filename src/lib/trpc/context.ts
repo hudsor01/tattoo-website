@@ -11,6 +11,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
+import type { TRPCContext } from './types/context';
 
 /**
  * Creates context for TRPC API route handlers
@@ -66,15 +67,6 @@ export async function createTRPCContext({
     };
   }
 }
-
-/**
- * Context type based on the return value of createTRPCContext
- * with additional types for middleware-added properties
- */
-export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>> & {
-  // Include the db alias for prisma since middleware adds this
-  db?: typeof prisma;
-};
 
 /**
  * Exported Context type for use in tRPC initialization

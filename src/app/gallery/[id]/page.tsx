@@ -6,7 +6,7 @@
  */
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { DesignDetail } from '@/components/gallery/DesignDetail';
 import { DesignDetailSkeleton } from '@/components/gallery/DesignDetailSkeleton';
 import type { Metadata } from 'next';

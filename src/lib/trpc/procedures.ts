@@ -8,7 +8,7 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { logger } from '@/lib/logger';
-import type { TRPCContext } from './context';
+import type { TRPCContext, ProtectedTRPCContext, AdminTRPCContext } from './types/context';
 
 // Initialize tRPC with context
 const t = initTRPC.context<TRPCContext>().create({
