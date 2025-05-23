@@ -11,7 +11,6 @@ import type { AppRouter } from './app-router';
 import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import { TRPCError } from '@trpc/server';
 import { NextRequest } from 'next/server';
-import { headers } from 'next/headers';
 
 // Define types for router inputs and outputs
 export type RouterOutputs = inferRouterOutputs<AppRouter>;

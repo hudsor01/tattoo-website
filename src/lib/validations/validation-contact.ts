@@ -71,7 +71,7 @@ export const defaultContactFormValues: Partial<ContactFormValues> = {
   email: '',
   phone: '',
   message: '',
-  subject: 'Tattoo Inquiry',
+  subject: 'New Tattoo Consultation',
   service: '',
   referralSource: '',
   preferredTime: '',

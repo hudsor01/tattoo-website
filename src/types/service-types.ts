@@ -82,26 +82,26 @@ export interface EmailSendOptions {
 }
 
 /**
- * Stripe Service Types
+ * Payment Service Types (Cal.com focused)
  */
 
 /**
- * Stripe Webhook Event Types
+ * Payment Webhook Event Types
  */
-export type StripeWebhookEventType = 
-  | 'payment_intent.succeeded'
-  | 'payment_intent.payment_failed'
+export type PaymentWebhookEventType = 
+  | 'payment.succeeded'
+  | 'payment.failed'
   | 'customer.created'
   | 'customer.updated'
   | 'customer.deleted'
-  | 'checkout.session.completed'
-  | 'invoice.paid'
-  | 'invoice.payment_failed';
+  | 'booking.completed'
+  | 'booking.paid'
+  | 'booking.cancelled';
 
 /**
- * Stripe API Configuration
+ * Payment API Configuration
  */
-export interface StripeApiConfig {
+export interface PaymentApiConfig {
   secretKey: string;
   publishableKey: string;
   webhookSecret: string;
@@ -109,11 +109,11 @@ export interface StripeApiConfig {
 }
 
 /**
- * Stripe Payment Processing Result
+ * Payment Processing Result
  */
-export interface StripePaymentResult {
+export interface PaymentResult {
   success: boolean;
-  paymentIntentId?: string;
+  transactionId?: string;
   clientSecret?: string;
   amount?: number;
   status?: string;

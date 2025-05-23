@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from '@/utils';
 
 function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

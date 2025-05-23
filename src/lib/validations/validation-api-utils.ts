@@ -256,5 +256,5 @@ export const createPaymentIntentSchema = z.object({
  */
 export const paymentStatusCheckSchema = z.object({
   id: z.string(),
-  source: z.enum(['stripe', 'db']).optional().default('stripe'),
+  source: z.enum(['cal', 'db']).optional().default('cal'),
 });

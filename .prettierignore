@@ -22,9 +22,6 @@ coverage/
 # Generated artifacts
 prisma/client/
 prisma/*.db
-supabase/.temp/
-supabase/.branches/
-supabase/migrations.bak/
 
 # Vercel & Yarn PnP
 .vercel/

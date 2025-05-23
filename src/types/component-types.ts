@@ -652,10 +652,8 @@ export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Network error. Please check your connection and try again.',
   SERVER_ERROR: 'Server error. Please try again later.',
   VALIDATION_ERROR: 'Please check the form for errors and try again.',
-  UNAUTHORIZED: 'You are not authorized to perform this action.',
   NOT_FOUND: 'The requested resource was not found.',
   UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.',
-  SESSION_EXPIRED: 'Your session has expired. Please log in again.',
   PERMISSION_DENIED: 'You do not have permission to perform this action.',
   RATE_LIMITED: 'Too many requests. Please try again later.',
   DATA_FETCH_ERROR: 'Failed to fetch data. Please try again.',
@@ -671,9 +669,6 @@ export const SUCCESS_MESSAGES = {
   SAVED: 'Saved successfully.',
   SUBMITTED: 'Submitted successfully.',
   UPLOADED: 'Uploaded successfully.',
-  LOGGED_IN: 'Logged in successfully.',
-  LOGGED_OUT: 'Logged out successfully.',
-  PASSWORD_RESET: 'Password reset successfully.',
   EMAIL_SENT: 'Email sent successfully.',
   PROFILE_UPDATED: 'Profile updated successfully.',
   SETTINGS_UPDATED: 'Settings updated successfully.',
@@ -747,12 +742,6 @@ export interface Service {
   featured?: boolean; // Optional boolean property to indicate if a service is featured
 }
 
-export interface FAQAccordionProps {
-  items: {
-    question: string;
-    answer: string;
-  }[];
-}
 
 /**
  * ========================================================================
@@ -900,32 +889,6 @@ export interface ServicesHeaderProps {
   description?: string;
 }
 
-/**
- * ========================================================================
- * AUTH COMPONENT TYPES
- * ========================================================================
- */
-
-export type AuthProvider = 'google' | 'github' | 'twitter' | 'discord';
-
-export interface AuthFormProps {
-  isAdmin?: boolean;
-  redirectPath?: string;
-  showSocialLogin?: boolean;
-  showMagicLink?: boolean;
-  showRegister?: boolean;
-  providers?: AuthProvider[];
-}
-
-export interface ForgotPasswordFormProps {
-  redirectPath?: string;
-  onSuccess?: () => void;
-}
-
-export interface UpdatePasswordFormProps {
-  redirectPath?: string;
-  onSuccess?: () => void;
-}
 
 /**
  * ========================================================================

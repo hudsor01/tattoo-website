@@ -1,17 +1,15 @@
 /**
- * TRPC Context Creation
+ * TRPC Context Creation with Clerk Authentication
  * 
  * This file handles the creation of context for TRPC procedures.
- * The context includes the user session (if authenticated) and 
- * access to the database via Prisma.
+ * The context includes access to the database via Prisma and user auth via Clerk.
  * 
  * THIS IS A SERVER-SIDE ONLY FILE
  */
 import 'server-only';
+import { auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db/prisma';
-import { fixSupabaseUrl, ensureCorrectSupabaseUrl } from '@/lib/utils/url-utils';
 import { logger } from '@/lib/logger';
 
 /**
@@ -25,41 +23,33 @@ export async function createTRPCContext({
   resHeaders: Headers;
 }) {
   try {
+    // Get Clerk auth state
+    const authState = await auth();
+    
     // Get request headers
     const requestHeaders = Object.fromEntries(req.headers.entries());
     
     // Log URL for debugging
     const url = req.url || '';
-    const requestUrl = fixSupabaseUrl(ensureCorrectSupabaseUrl(url));
     const referer = req.headers.get('referer') || '';
     
     // Use our universal logger
     logger.debug('Creating tRPC context', {
-      url: requestUrl,
-      referer
+      url,
+      referer,
+      userId: authState.userId,
+      sessionId: authState.sessionId,
     });
 
-    // Create a Supabase client with server-side context
-    const supabase = await createClient();
-
-    // Get the user session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    // Log session for debugging
-    logger.debug('Session in tRPC context', {
-      hasSession: !!session,
-      userId: session?.user?.id || null
-    });
-
-    // Return the context with user & supabase client
+    // Return the context with database access and auth
     return {
       req,
       resHeaders,
       headers: requestHeaders,
-      supabase,
       prisma,
-      user: session?.user || null,
-      url: requestUrl
+      auth: authState, // Clerk auth object
+      userId: authState.userId, // Direct access to user ID
+      url
     };
   } catch (error) {
     logger.error('Error creating TRPC context:', error);
@@ -70,7 +60,8 @@ export async function createTRPCContext({
       resHeaders,
       headers: Object.fromEntries(req.headers.entries()),
       prisma,
-      user: null,
+      auth: null,
+      userId: null,
       url: '',
     };
   }
@@ -95,27 +86,29 @@ export type Context = TRPCContext;
  * This is used when calling TRPC procedures from RSCs
  */
 export async function createContextForRSC() {
-  
   try {
-    const supabase = await createClient();
+    // Get Clerk auth state for RSC
+    const authState = await auth();
     
-    const { data: { session } } = await supabase.auth.getSession();
+    logger.debug('Creating RSC tRPC context', {
+      userId: authState.userId,
+      sessionId: authState.sessionId,
+    });
     
     return {
-      supabase,
       prisma,
-      user: session?.user || null
+      auth: authState, // Clerk auth object
+      userId: authState.userId, // Direct access to user ID
+      db: prisma, // Add db alias for consistency
     };
   } catch (error) {
     logger.error('Error creating RSC context:', error);
     
-    // Create a supabase client even in the error case
-    const supabase = await createClient();
-    
     return {
       prisma,
-      user: null,
-      supabase
+      auth: null,
+      userId: null,
+      db: prisma,
     };
   }
 }

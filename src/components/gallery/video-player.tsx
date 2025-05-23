@@ -28,7 +28,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
   const [showControls, setShowControls] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewTracked, setViewTracked] = useState(false)
-  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [controlsTimeout, setControlsTimeout] = useState<number | null>(null)
 
   // Initialize video
   useEffect(() => {
@@ -72,7 +72,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
         setIsPlaying(true)
       })
       .catch((err) => {
-        console.log("Auto-play prevented:", err)
+        console.info("Auto-play prevented:", err)
       })
 
     return () => {
@@ -200,8 +200,8 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
   }
 
-  // Calculate progress percentage
-  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
+  // Calculate progress percentage (currently unused)
+  // const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
     <div

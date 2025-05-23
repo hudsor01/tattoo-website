@@ -15,6 +15,8 @@ import { userRouter } from './routers/user-router';
 import { subscriptionRouter } from './routers/subscription-router';
 import { calRouter } from './routers/cal-router';
 import { dashboardRouter } from './routers/dashboard-router';
+import { appointmentsRouter } from './routers/appointments-router';
+import { paymentsRouter } from './routers/payments-router';
 
 /**
  * Main application router
@@ -30,6 +32,8 @@ export const appRouter = router({
   subscription: subscriptionRouter,
   cal: calRouter,
   dashboard: dashboardRouter,
+  appointments: appointmentsRouter,
+  payments: paymentsRouter,
 });
 
 // Export type definition of the API

@@ -35,6 +35,30 @@ export function Navbar() {
   // Determine which navigation to use based on path
   const isClientPortal = pathname.startsWith('/customer');
   const isAdminDashboard = pathname.startsWith('/admin-dashboard');
+
+  // Handle scroll events
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      setScrolled(isScrolled);
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Set initial state
+    handleScroll();
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []); // Remove scrolled dependency to prevent infinite loop
+
+  // Close mobile menu when path changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
   
   // Skip rendering navbar on admin dashboard (uses DashboardLayout instead)
   if (isAdminDashboard) {
@@ -48,32 +72,6 @@ export function Navbar() {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
-
-  // Handle scroll events
-  useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 20;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
-    };
-
-    // Add scroll event listener
-    window.addEventListener('scroll', handleScroll);
-    
-    // Set initial state
-    handleScroll();
-    
-    // Clean up
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [scrolled]);
-
-  // Close mobile menu when path changes
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
 
   return (
     <>

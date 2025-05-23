@@ -459,11 +459,12 @@ export const dashboardRouter = router({
    */
   getRecentBookings: publicProcedure.input(
     z.object({
-      limit: z.number().min(1).max(50).optional().default(10),
+      limit: z.number().min(1).max(100).optional().default(10),
+      cursor: z.number().optional(),
       status: z.string().optional(),
     })
   ).query(async ({ input }) => {
-    const { limit, status } = input;
+    const { limit, cursor, status } = input;
     
     try {
       // Build the where clause using type-safe techniques
@@ -475,31 +476,79 @@ export const dashboardRouter = router({
         (where as Prisma.BookingWhereInput & { status?: string }).status = status;
       }
       
-      const bookings = await prisma.booking.findMany({
+      // Get total count for pagination info
+      const totalCount = await prisma.booking.count({ where });
+      
+      // Build query options for cursor-based pagination
+      const queryOptions: Prisma.BookingFindManyArgs = {
         where,
-        take: limit,
+        take: limit + 1, // Take one extra to determine if there are more
         orderBy: {
           createdAt: 'desc'
         },
         include: {
           Customer: {
             select: {
+              id: true,
               firstName: true,
               lastName: true,
-              email: true
+              email: true,
+              phone: true,
+              address: true,
+              city: true,
+              state: true,
+            }
+          },
+          Appointment: {
+            select: {
+              id: true,
+              startDate: true,
+              status: true,
+              notes: true,
             }
           }
         }
-      });
+      };
       
-      return bookings.map(booking => ({
-        id: booking.id,
-        name: booking.name || `${booking.Customer?.firstName || ''} ${booking.Customer?.lastName || ''}`.trim(),
-        email: booking.email || booking.Customer?.email || '',
-        service: booking.tattooType,
-        date: booking.preferredDate.toISOString(),
-        status: booking.depositPaid ? 'confirmed' : 'pending'
-      }));
+      // Add cursor if provided
+      if (cursor) {
+        queryOptions.cursor = { id: cursor };
+        queryOptions.skip = 1; // Skip the cursor item
+      }
+      
+      const bookings = await prisma.booking.findMany(queryOptions);
+      
+      // Check if there are more items
+      let nextCursor: number | null = null;
+      if (bookings.length > limit) {
+        const nextItem = bookings.pop();
+        nextCursor = nextItem ? nextItem.id : null;
+      }
+      
+      // Return the properly formatted response
+      return {
+        bookings: bookings.map(booking => ({
+          id: booking.id,
+          customerId: booking.customerId,
+          appointmentId: booking.Appointment?.id || null,
+          name: booking.name,
+          email: booking.email,
+          tattooType: booking.tattooType,
+          size: booking.size,
+          placement: booking.placement,
+          description: booking.description,
+          estimatedPrice: null, // Not available in Booking model
+          preferredDate: booking.preferredDate?.toISOString(),
+          status: booking.calStatus || (booking.depositPaid ? 'confirmed' : 'pending'),
+          depositPaid: booking.depositPaid,
+          createdAt: booking.createdAt,
+          updatedAt: booking.updatedAt,
+          Customer: booking.Customer,
+          Appointment: booking.Appointment,
+        })),
+        nextCursor,
+        totalCount,
+      };
     } catch (error) {
       console.error('Error fetching recent bookings:', error);
       throw new TRPCError({

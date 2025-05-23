@@ -56,7 +56,7 @@ export const paymentRecordSchema = z.object({
 
 export const paymentStatusCheckSchema = z.object({
   id: z.string(),
-  source: z.enum(['stripe', 'db']).default('stripe'),
+  source: z.enum(['cal', 'db']).default('cal'),
 });
 
 export const getPaymentsQuerySchema = z.object({
@@ -72,7 +72,7 @@ export const getPaymentsQuerySchema = z.object({
 });
 
 // Webhook Schema
-export const stripeWebhookSchema = z.object({
+export const paymentWebhookSchema = z.object({
   id: z.string(),
   object: z.literal('event'),
   type: z.string(),
@@ -121,8 +121,7 @@ export const paymentStatusResponseSchema = z.object({
   amount: z.number(),
   currency: z.string().optional(),
   email: z.string().email().optional(),
-  metadata: z.record(z.unknown()).optional(),
-  source: z.enum(['stripe', 'prisma', 'supabase']),
+  metadata: z.record(z.unknown()).optional()
 });
 
 // Shared Types

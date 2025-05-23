@@ -25,9 +25,9 @@ export default function FallbackBookingForm() {
       
       // Format data for API
       const bookingData: Partial<BookingInput> = {
-        name: (formValues.name as string) || '',
-        email: (formValues.email as string) || '',
-        phone: (formValues.phone as string) || '',
+        name: (formValues['name'] as string) || '',
+        email: (formValues['email'] as string) || '',
+        phone: (formValues['phone'] as string) || '',
         tattooType: (formValues['tattooType'] as string) || '',
         size: (formValues['size'] as string) || '',
         placement: (formValues['placement'] as string) || '',

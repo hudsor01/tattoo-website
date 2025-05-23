@@ -1,94 +1,61 @@
 'use client';
 
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode } from 'react';
+import { ClerkProvider } from '@clerk/nextjs';
 import { TrpcClientProvider } from '@/components/providers/TRPCProvider';
 import { ThemeProvider } from 'next-themes';
-import dynamic from 'next/dynamic';
-import { useAuthStore } from '@/lib/auth-system';
-import { createClient } from '@/lib/supabase/client';
-
-// Dynamically import our standardized Toaster to avoid SSR issues
-const Toaster = dynamic(() => import('@/components/ui/toaster').then(mod => mod.Toaster), {
-  ssr: false
-});
+import { Toaster } from '@/components/ui/toaster';
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 /**
- * Providers component
+ * Application providers with Clerk authentication
  * 
- * A consolidated provider system that eliminates redundancies:
- * - Single authentication system
- * - Unified theme management
- * - Proper provider hierarchy
+ * Includes:
+ * - Clerk for authentication
+ * - tRPC for API calls
+ * - Theme management
+ * - Toast notifications
  */
 export default function Providers({ children }: ProvidersProps) {
-  const { refreshUser, initialized } = useAuthStore();
-  
-  // Initialize authentication
-  useEffect(() => {
-    // Skip if already initialized
-    if (initialized) {
-      return;
-    }
-    
-    // Skip auth initialization if Supabase is not configured
-    if (!process.env['NEXT_PUBLIC_SUPABASE_URL'] || 
-        process.env['NEXT_PUBLIC_SUPABASE_URL'] === 'NEXT_PUBLIC_SUPABASE_URL') {
-      return;
-    }
-    
-    // Set up auth state
-    refreshUser();
-    
-    // Set up auth listener
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const store = useAuthStore.getState();
-        
-        store.setUser(session?.user || null);
-        store.setSession(session);
-        
-        if (session?.user) {
-          // Check if user is admin by querying the User table
-          const userId = session.user.id;
-          const { data } = await supabase
-            .from('User')
-            .select('role')
-            .eq('id', userId)
-            .single();
-            
-          // Set admin flag if user has admin role
-          store.setIsAdmin(data?.role === 'admin');
-        } else {
-          store.setIsAdmin(false);
-        }
-      }
-    );
-    
-    // Clean up subscription on unmount
-    return () => subscription.unsubscribe();
-  }, [initialized, refreshUser]);
-  
   return (
-    <TrpcClientProvider>
-      {/* Theme provider from next-themes */}
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-        {/* Toast notifications - positioned for good UX */}
-        <Toaster 
-          position="bottom-right" 
-          closeButton
-          richColors
-          theme="system" 
-          className="z-[9999]"
-        />
-
-        {/* App content */}
-        {children}
-      </ThemeProvider>
-    </TrpcClientProvider>
+    <ClerkProvider
+      appearance={{
+        baseTheme: undefined,
+        variables: {
+          colorPrimary: '#dc2626', // Red theme for tattoo branding
+          colorBackground: '#000000',
+          colorText: '#ffffff',
+        },
+        elements: {
+          card: 'bg-zinc-900 border-zinc-800',
+          headerTitle: 'text-white',
+          headerSubtitle: 'text-zinc-400',
+          socialButtonsBlockButton: 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700',
+          formButtonPrimary: 'bg-red-600 hover:bg-red-700',
+          footerActionLink: 'text-red-500 hover:text-red-400',
+        },
+      }}
+    >
+      <TrpcClientProvider>
+        <ThemeProvider 
+          attribute="class" 
+          defaultTheme="dark" 
+          enableSystem 
+          disableTransitionOnChange
+        >
+          <Toaster 
+            position="bottom-right" 
+            closeButton
+            richColors
+            theme="system" 
+            className="z-[9999]"
+          />
+          {children}
+        </ThemeProvider>
+      </TrpcClientProvider>
+    </ClerkProvider>
   );
 }

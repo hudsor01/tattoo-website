@@ -75,7 +75,7 @@ export const tailwindTheme = {
 
     // Add our typography tokens
     fontFamily: {
-      display: [tokens.typography.fontFamily.display, 'sans-serif'],
+      display: [tokens.typography.fontFamily.heading, 'sans-serif'],
       heading: [tokens.typography.fontFamily.heading, 'sans-serif'],
       body: [tokens.typography.fontFamily.body, 'sans-serif'],
       accent: [tokens.typography.fontFamily.accent, 'cursive'],

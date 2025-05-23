@@ -6,9 +6,8 @@
  */
 
 import { z } from 'zod';
-import type { ApiResponse, ErrorResponse } from '@/types/api-types';
+import type { ApiResponse, ErrorResponse, ValidationError } from '@/types/api-types';
 import { type RecordObject } from '@/types/utility-types';
-import { toast } from '@/hooks/use-toast';
 
 /**
  * Common options for all API requests
@@ -39,7 +38,9 @@ export class ApiError extends Error {
     this.name = 'ApiError';
     this.status = status;
     this.statusText = statusText;
-    this.data = data;
+    if (data !== undefined) {
+      this.data = data;
+    }
   }
 }
 
@@ -85,7 +86,13 @@ async function validateResponse<T>(
         'Invalid response data',
         response.status,
         response.statusText,
-        { validationError: error, data }
+        { 
+          success: false,
+          error: 'Validation failed',
+          message: 'Invalid response data',
+          validationErrors: error as ValidationError[], 
+          data 
+        }
       );
     }
   }
@@ -99,7 +106,7 @@ async function validateResponse<T>(
 function createFetchOptions(
   method: string,
   options?: RequestOptions,
-  body?: any
+  body?: unknown
 ): RequestInit {
   // Start with required properties
   const fetchOptions: RequestInit = {
@@ -113,8 +120,8 @@ function createFetchOptions(
     ...options?.headers,
   };
 
-  // Only add body if it exists
-  if (body !== null) {
+  // Only add body if it is a string (from JSON.stringify) or valid BodyInit
+  if (typeof body === 'string' || body instanceof Blob || body instanceof FormData || body instanceof URLSearchParams || body instanceof ArrayBuffer || body instanceof ReadableStream) {
     fetchOptions.body = body;
   }
 
@@ -278,7 +285,7 @@ export async function trackVideoView(
   metadata?: Record<string, unknown>
 ): Promise<{ success: boolean; message?: string }> {
   try {
-    const response = await api.post('/api/analytics/video-view', {
+    await api.post('/api/analytics/video-view', {
       videoId: String(videoId),
       duration: duration || 0,
       timestamp: new Date().toISOString(),

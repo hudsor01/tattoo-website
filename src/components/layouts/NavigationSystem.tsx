@@ -9,10 +9,10 @@ export default function NavigationSystem() {
   
   // Determine which type of navigation to show
   const isHomePage = pathname === '/';
-  const isAdminDashboard = pathname.startsWith('/admin-dashboard');
+  const isAdminRoute = pathname.startsWith('/admin');
   
-  // Admin dashboard uses its own layout with navigation
-  if (isAdminDashboard) {
+  // Admin routes use their own layout with navigation
+  if (isAdminRoute) {
     return null;
   }
   

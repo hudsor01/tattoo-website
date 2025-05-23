@@ -133,7 +133,7 @@ export class ApiError extends Error {
       code: this.code,
       message: this.message,
       details: this.details,
-      stack: process.env.NODE_ENV === 'development' ? this.stack : null
+      ...(process.env.NODE_ENV === 'development' && this.stack && { stack: this.stack })
     };
   }
 }
@@ -200,7 +200,7 @@ export function handleApiError(error: unknown, showToast = true): ApiErrorRespon
     formattedError = {
       code: ErrorCode.UNKNOWN_ERROR,
       message: error.message || 'An unexpected error occurred',
-      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+      ...(process.env.NODE_ENV === 'development' && error.stack && { stack: error.stack })
     };
   } else {
     formattedError = {

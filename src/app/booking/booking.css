@@ -1,32 +1,70 @@
-/* Cal.com Embed Custom Styles */
+/**
+ * Cal.com Iframe Embed - Seamless Integration using Tailwind CSS v4
+ */
 
-/* Fix for Cal.com container size issues */
-.cal-embed-container {
-  min-height: 800px;
-  height: auto;
+@import "tailwindcss";
+
+@theme {
+  /* Booking-specific variables */
+  --cal-iframe-height: 700px;
+  --cal-iframe-height-mobile: 600px;
+  --cal-iframe-height-small: 550px;
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Wrapper for the Cal.com iframe */
+.cal-embed-wrapper {
   width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #000000;
-  margin-bottom: 40px;
+  max-width: none;
+  margin: 0 auto;
+  position: relative;
+  background: var(--gradient-primary);
+  border-radius: 16px;
+  padding: 4px;
+  box-shadow: 
+    0 25px 50px -12px --alpha(rgb(0 0 0) / 25%),
+    0 0 0 1px --alpha(rgb(255 255 255) / 5%);
 }
 
-/* Fix for Cal.com iframe responsiveness */
-iframe[data-cal-embed] {
+/* The actual iframe */
+.cal-embed-iframe {
   width: 100% !important;
-  min-height: 800px !important;
-  border: none;
-}
-
-/* Dynamic cal iframe style overrides */
-[data-cal-namespace] iframe {
-  width: 100% !important;
-  min-height: 800px !important;
+  height: var(--cal-iframe-height) !important;
   border: none !important;
+  border-radius: 12px !important;
+  background: white;
+  display: block;
+  box-shadow: 0 10px 15px -3px --alpha(rgb(0 0 0) / 10%);
+}
+
+/* Responsive adjustments using Tailwind v4 custom variants */
+@custom-variant tablet (&:where(@media (max-width: 768px)));
+@custom-variant mobile (&:where(@media (max-width: 480px)));
+
+.cal-embed-iframe {
+  @variant tablet {
+    height: var(--cal-iframe-height-mobile) !important;
+  }
+  
+  @variant mobile {
+    height: var(--cal-iframe-height-small) !important;
+  }
+}
+
+.cal-embed-wrapper {
+  @variant tablet {
+    border-radius: 12px;
+    padding: 3px;
+  }
+  
+  @variant mobile {
+    border-radius: 8px;
+    padding: 2px;
+  }
 }
 
 /* Loading Skeleton Animation */
-.booking-loading-skeleton {
+@utility booking-loading-skeleton {
   position: relative;
   overflow: hidden;
 }
@@ -41,10 +79,10 @@ iframe[data-cal-embed] {
   transform: translateX(-100%);
   background-image: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.05) 20%,
-    rgba(255, 255, 255, 0.1) 60%,
-    rgba(255, 255, 255, 0)
+    --alpha(rgb(255 255 255) / 0%) 0%,
+    --alpha(rgb(255 255 255) / 5%) 20%,
+    --alpha(rgb(255 255 255) / 10%) 60%,
+    --alpha(rgb(255 255 255) / 0%) 100%
   );
   animation: shimmer 2s infinite;
 }
@@ -55,42 +93,47 @@ iframe[data-cal-embed] {
   }
 }
 
-/* Fallback form styles */
-.fallback-booking label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
+/* Fallback form styles using Tailwind v4 utilities */
+@utility fallback-booking {
+  & label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
 
-.fallback-booking input,
-.fallback-booking textarea,
-.fallback-booking select {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  border: 1px solid;
-  border-color: rgba(156, 163, 175, 0.2);
-  background-color: rgba(255, 255, 255, 0.05);
-  transition: border-color 0.2s;
-}
+  & input,
+  & textarea,
+  & select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid --alpha(rgb(156 163 175) / 20%);
+    background-color: --alpha(rgb(255 255 255) / 5%);
+    transition: border-color 0.2s;
+  }
 
-.fallback-booking input:focus,
-.fallback-booking textarea:focus,
-.fallback-booking select:focus {
-  outline: none;
-  border-color: rgba(239, 68, 68, 0.5);
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+  & input:focus,
+  & textarea:focus,
+  & select:focus {
+    outline: none;
+    border-color: --alpha(var(--color-tattoo-red) / 50%);
+    box-shadow: 0 0 0 2px --alpha(var(--color-tattoo-red) / 20%);
+  }
 }
 
 /* Mobile responsiveness for booking form */
-@media (max-width: 640px) {
-  .cal-embed-container {
+@custom-variant mobile-sm (&:where(@media (max-width: 640px)));
+
+.cal-embed-container {
+  @variant mobile-sm {
     min-height: 600px;
   }
-  
-  iframe[data-cal-link],
-  iframe[data-cal-embed],
-  [data-cal-namespace] iframe {
+}
+
+iframe[data-cal-link],
+iframe[data-cal-embed],
+[data-cal-namespace] iframe {
+  @variant mobile-sm {
     min-height: 600px !important;
   }
 }

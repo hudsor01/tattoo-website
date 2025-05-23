@@ -1,38 +1,28 @@
-/**
- * Design tokens for the unified theme system
- * These tokens are consumed by both Tailwind CSS and Material UI
- * Enhanced with Tailwind CSS v4.1.5 features - OKLCH colors for wider gamut
- */
-
-// Color palette definition with OKLCH colors
 export const colors = {
-  // Brand colors - both hex and OKLCH for compatibility
   tattoo: {
     black: '#0a0a0a',
-    oklchBlack: 'oklch(0.10 0.01 0)', // OKLCH equivalent
+    oklchBlack: 'oklch(0.10 0.01 0)',
     red: {
       DEFAULT: '#d62828',
-      oklch: 'oklch(0.60 0.25 25)', // OKLCH equivalent
+      oklch: 'oklch(0.60 0.25 25)',
       dark: '#b21e1e',
-      oklchDark: 'oklch(0.51 0.22 25)', // OKLCH equivalent
+      oklchDark: 'oklch(0.51 0.22 25)',
       light: '#e05151',
-      oklchLight: 'oklch(0.65 0.27 25)', // OKLCH equivalent
+      oklchLight: 'oklch(0.65 0.27 25)',
     },
     blue: {
       DEFAULT: '#3b82f6',
-      oklch: 'oklch(0.65 0.18 255)', // OKLCH equivalent
+      oklch: 'oklch(0.65 0.18 255)',
       dark: '#2563eb',
-      oklchDark: 'oklch(0.58 0.18 255)', // OKLCH equivalent
+      oklchDark: 'oklch(0.58 0.18 255)',
       light: '#60a5fa',
-      oklchLight: 'oklch(0.72 0.18 255)', // OKLCH equivalent
+      oklchLight: 'oklch(0.72 0.18 255)',
     },
     white: '#ffffff',
-    oklchWhite: 'oklch(0.99 0.01 0)', // OKLCH equivalent
+    oklchWhite: 'oklch(0.99 0.01 0)',
     green: '#10b981',
-    oklchGreen: 'oklch(0.74 0.19 155)', // OKLCH equivalent
+    oklchGreen: 'oklch(0.74 0.19 155)',
   },
-
-  // Neutral colors
   neutral: {
     50: '#fafafa',
     oklch50: 'oklch(0.98 0.01 0)',
@@ -57,8 +47,6 @@ export const colors = {
     950: '#0a0a0a',
     oklch950: 'oklch(0.10 0.01 0)',
   },
-
-  // Semantic colors
   success: {
     light: '#4ade80',
     oklchLight: 'oklch(0.80 0.19 145)',
@@ -92,8 +80,6 @@ export const colors = {
     oklchDark: 'oklch(0.55 0.18 250)',
   },
 };
-
-// Typography definitions
 export const typography = {
   fontFamily: {
     heading: 'var(--font-montserrat)',
@@ -111,17 +97,17 @@ export const typography = {
     extrabold: 800,
   },
   fontSize: {
-    xs: '0.75rem', // 12px
-    sm: '0.875rem', // 14px
-    base: '1rem', // 16px
-    lg: '1.125rem', // 18px
-    xl: '1.25rem', // 20px
-    '2xl': '1.5rem', // 24px
-    '3xl': '1.875rem', // 30px
-    '4xl': '2.25rem', // 36px
-    '5xl': '3rem', // 48px
-    '6xl': '3.75rem', // 60px
-    '7xl': '4.5rem', // 72px
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
+    '4xl': '2.25rem',
+    '5xl': '3rem',
+    '6xl': '3.75rem',
+    '7xl': '4.5rem',
   },
   lineHeight: {
     none: 1,
@@ -141,59 +127,56 @@ export const typography = {
   },
 };
 
-// Spacing system
 export const spacing = {
   0: '0',
   px: '1px',
-  0.5: '0.125rem', // 2px
-  1: '0.25rem', // 4px
-  1.5: '0.375rem', // 6px
-  2: '0.5rem', // 8px
-  2.5: '0.625rem', // 10px
-  3: '0.75rem', // 12px
-  3.5: '0.875rem', // 14px
-  4: '1rem', // 16px
-  5: '1.25rem', // 20px
-  6: '1.5rem', // 24px
-  7: '1.75rem', // 28px
-  8: '2rem', // 32px
-  9: '2.25rem', // 36px
-  10: '2.5rem', // 40px
-  11: '2.75rem', // 44px
-  12: '3rem', // 48px
-  14: '3.5rem', // 56px
-  16: '4rem', // 64px
-  20: '5rem', // 80px
-  24: '6rem', // 96px
-  28: '7rem', // 112px
-  32: '8rem', // 128px
-  36: '9rem', // 144px
-  40: '10rem', // 160px
-  44: '11rem', // 176px
-  48: '12rem', // 192px
-  52: '13rem', // 208px
-  56: '14rem', // 224px
-  60: '15rem', // 240px
-  64: '16rem', // 256px
-  72: '18rem', // 288px
-  80: '20rem', // 320px
-  96: '24rem', // 384px
+  0.5: '0.125rem',
+  1: '0.25rem',
+  1.5: '0.375rem',
+  2: '0.5rem',
+  2.5: '0.625rem',
+  3: '0.75rem',
+  3.5: '0.875rem',
+  4: '1rem',
+  5: '1.25rem',
+  6: '1.5rem',
+  7: '1.75rem',
+  8: '2rem',
+  9: '2.25rem',
+  10: '2.5rem',
+  11: '2.75rem',
+  12: '3rem',
+  14: '3.5rem',
+  16: '4rem',
+  20: '5rem',
+  24: '6rem',
+  28: '7rem',
+  32: '8rem',
+  36: '9rem',
+  40: '10rem',
+  44: '11rem',
+  48: '12rem',
+  52: '13rem',
+  56: '14rem',
+  60: '15rem',
+  64: '16rem',
+  72: '18rem',
+  80: '20rem',
+  96: '24rem',
 };
 
-// Border radius
 export const borderRadius = {
   none: '0',
-  sm: '0.125rem', // 2px
-  DEFAULT: '0.25rem', // 4px
-  md: '0.375rem', // 6px
-  lg: '0.5rem', // 8px
-  xl: '0.75rem', // 12px
-  '2xl': '1rem', // 16px
-  '3xl': '1.5rem', // 24px
-  full: '9999px', // Circle
+  sm: '0.125rem',
+  DEFAULT: '0.25rem',
+  md: '0.375rem',
+  lg: '0.5rem',
+  xl: '0.75rem',
+  '2xl': '1rem',
+  '3xl': '1.5rem',
+  full: '9999px',
 };
 
-// Shadows
 export const shadows = {
   sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
   DEFAULT: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
@@ -203,14 +186,12 @@ export const shadows = {
   '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
   inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
   none: 'none',
-  // Colored shadows for v4.1.5 features
   redGlow: '0 0 15px rgba(214, 40, 40, 0.3)',
   redGlowHover: '0 0 25px rgba(214, 40, 40, 0.5)',
   blueGlow: '0 0 15px rgba(59, 130, 246, 0.3)',
   blueGlowHover: '0 0 25px rgba(59, 130, 246, 0.5)',
 };
 
-// Z-index
 export const zIndex = {
   0: '0',
   10: '10',
@@ -225,7 +206,6 @@ export const zIndex = {
   tooltip: '1500',
 };
 
-// Transitions
 export const transitions = {
   duration: {
     75: '75ms',
@@ -246,7 +226,6 @@ export const transitions = {
   },
 };
 
-// Backdrop filters (new in v4.1.5)
 export const backdropFilters = {
   none: 'none',
   sm: 'blur(4px)',
@@ -258,7 +237,6 @@ export const backdropFilters = {
   '3xl': 'blur(64px)',
 };
 
-// Export all tokens
 export const tokens = {
   colors,
   typography,

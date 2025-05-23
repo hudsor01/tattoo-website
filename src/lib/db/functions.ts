@@ -1,5 +1,4 @@
 import { executeStoredProcedure } from './prisma';
-import type { AppointmentCreateInput } from '@/types/booking-types';
 
 export async function getAvailableSlots() {
   return [];
@@ -51,9 +50,9 @@ export async function checkAppointmentAvailability(
 }
 
 /**
- * Calculate appointment duration based on tattoo size and complexity
+ * Calculate appointment duration with fallback - alternative to calculateAppointmentDuration
  */
-export async function calculateAppointmentDuration(
+export async function calculateAppointmentDurationWithFallback(
   size: string,
   complexity: number = 3
 ): Promise<string> {

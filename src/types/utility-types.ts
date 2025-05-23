@@ -346,20 +346,6 @@ export interface UsePagination {
   pageItems: <T>(items: T[]) => T[];
 }
 
-/**
- * Authentication hook result
- */
-export interface UseAuth<U = Record<string, unknown>> {
-  user: U | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => Promise<void>;
-  register: (data: Record<string, unknown>) => Promise<boolean>;
-  resetPassword: (email: string) => Promise<boolean>;
-  updatePassword: (token: string, password: string) => Promise<boolean>;
-  error: string | null;
-}
 
 /**
  * File upload hook result
@@ -638,6 +624,9 @@ export interface ActionConfig {
   template: string;
   data: Record<string, unknown>;
   recipient?: string;
+  to?: string | ((context: Record<string, unknown>) => string);
+  subject?: string | ((context: Record<string, unknown>) => string);
+  delay?: number;
 }
 
 // Step in a workflow

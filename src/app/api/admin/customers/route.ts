@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils/server';
+import type { Prisma } from '@prisma/client';
 
 /**
  * GET /api/admin/clients
@@ -17,16 +18,16 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
-    const status = searchParams.get('status');
+    // const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = (page - 1) * limit;
 
     // Build filters
-    const where: unknown = {};
+    const where: Prisma.CustomerWhereInput = {};
 
     if (search) {
-      (where as any).OR = [
+      where.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },
         { lastName: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     // Get clients with count
     const [clients, totalCount] = await Promise.all([
       prisma.customer.findMany({
-        where: where as any,
+        where,
         orderBy: {
           createdAt: 'desc',
         },
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
           tags: true,
         },
       }),
-      prisma.customer.count({ where: where as any }),
+      prisma.customer.count({ where }),
     ]);
 
     // Format response

@@ -11,7 +11,7 @@ const tattooImages = [
   '/images/traditional.jpg',
   '/images/realism.jpg',
   '/images/leg-piece.jpg',
-  '/images/clock-lion-left-arm.jpg',
+  '/images/dragonballz-left-arm.jpg',
   '/images/cover-ups.jpg',
 ];
 
@@ -104,7 +104,7 @@ export default function HomeClient() {
       {/* If you need a loading indicator in the future, implement it with proper state management */}
       
       {/* Persistent minimal navigation */}
-      <nav className="fixed top-6 right-6 z-40 flex gap-6">
+      <nav className="fixed top-8 right-8 z-40 flex gap-6">
         <Link href="/gallery" passHref>
           <motion.a 
             whileHover={{ scale: 1.1, y: -2 }}
@@ -136,10 +136,10 @@ export default function HomeClient() {
     
       <div className="fixed inset-0 overflow-hidden bg-black">
         {/* Main container with improved spacing */}
-        <div className="h-full w-full flex flex-col md:flex-row px-6 lg:px-8">
-          {/* Left side - Content with vertical alignment and reduced width */}
-          <div className="md:w-[45%] flex items-center justify-start py-12 md:py-0">
-            <div className="w-full md:max-w-xl">
+        <div className="h-full w-full flex flex-col md:flex-row px-6 lg:px-12">
+          {/* Left side - Content with proper spacing from navbar */}
+          <div className="md:w-[45%] flex items-center justify-start py-16 md:py-8 pl-4 md:pl-8">
+            <div className="w-full md:max-w-2xl">
               <h1 className="artist-name text-white mb-6">
                 TATTOOS BY<br />
                 <span className="gradient-text">
@@ -184,11 +184,11 @@ export default function HomeClient() {
             </div>
           </div>
 
-          {/* Right side - Enhanced image carousel with fixed width */}
-          <div className="md:w-[55%] flex items-center justify-center py-12 md:py-0">
-            <div className="h-full w-full max-h-[800px] flex items-center justify-center">
-              {/* Image carousel with improved sizing */}
-              <div className="h-[calc(100%-40px)] aspect-[3/4] md:max-w-[90%] relative">
+          {/* Right side - Large responsive image carousel */}
+          <div className="md:w-[55%] flex items-center justify-center py-16 md:py-8 pr-4 md:pr-8">
+            <div className="h-full w-full flex items-center justify-center">
+              {/* Image carousel with wider proportions matching original images */}
+              <div className="h-[60vh] w-full max-w-[500px] aspect-[9/16] relative">
                 <div 
                   className="w-full h-full relative overflow-hidden rounded-xl"
                   style={{ 

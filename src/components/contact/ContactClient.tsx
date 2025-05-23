@@ -3,10 +3,48 @@
 import React from 'react';
 import ContactForm from '@/components/ContactForm';
 import { motion } from 'framer-motion';
-import { Mail, Instagram, MapPin, Clock } from 'lucide-react';
+import { Mail, Instagram, MapPin, Clock, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import SharedLayout from '@/components/layouts/SharedLayout';
 
+// TikTok icon component
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-.88-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
+  </svg>
+);
+
 export default function ContactClient() {
+  // Animation variants matching the design system
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { 
+        duration: 0.6,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0
+      }
+    }
+  };
+
   // FAQ items for the contact page
   const faqItems = [
     {
@@ -34,12 +72,22 @@ export default function ContactClient() {
         transition={{ duration: 0.5 }}
       >
         {/* Page Title */}
-        <div className="mb-12 text-center">
-          <h1 className="heading-large gradient-text-muted mb-3">Get In Touch</h1>
-          <p className="paragraph-medium max-w-2xl mx-auto">
+        <motion.div 
+          className="mb-16 text-center"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeInUp}
+        >
+          <h1 className="heading-large gradient-text-muted mb-4">Get In Touch</h1>
+          <p className="paragraph-medium max-w-2xl mx-auto mb-6">
             Have questions? Ready to schedule a consultation? Reach out today.
           </p>
-        </div>
+          <motion.div 
+            className="h-1 w-24 mx-auto bg-gradient-to-r from-red-500 via-orange-500 to-amber-500"
+            variants={fadeInUp}
+          />
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Form Section */}
@@ -107,7 +155,7 @@ export default function ContactClient() {
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     title="Dallas-Fort Worth Metroplex Map"
-                  ></iframe>
+                  />
                 </div>
               </div>
             </div>
@@ -118,7 +166,7 @@ export default function ContactClient() {
             className="order-1 lg:order-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.5 }}
           >
             <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8 h-full flex flex-col">
               <h2 className="heading-small mb-6 flex items-center text-white">
@@ -142,41 +190,46 @@ export default function ContactClient() {
               </h2>
 
               <div className="space-y-6">
-                {/* Email */}
-                <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-tattoo-red/20 flex items-center justify-center text-tattoo-red mr-4">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">Email</h3>
-                    <a
-                      href={`mailto:fennyg83@gmail.com`}
-                      className="text-white hover:text-white/80 transition-colors"
+                {/* Social Links */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Connect With Me</h3>
+                  <div className="flex items-center space-x-6">
+                    {/* Email */}
+                    <motion.a
+                      href="mailto:fennyg83@gmail.com"
+                      className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500/20 to-orange-500/20 flex items-center justify-center text-red-400 hover:text-white transition-colors border border-red-500/30 hover:border-red-400"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      title="Send Email"
                     >
-                      Get in touch via email
-                    </a>
-                    <p className="text-xs text-white/50 mt-1">
-                      Response time: 24-48 hours
-                    </p>
-                  </div>
-                </div>
+                      <Mail className="w-7 h-7" />
+                    </motion.a>
 
-                {/* Instagram */}
-                <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center text-white mr-4">
-                    <Instagram className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">Instagram</h3>
-                    <a
+                    {/* Instagram */}
+                    <motion.a
                       href="https://instagram.com/fennyg83"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-white/70 hover:text-tattoo-red transition-colors"
+                      className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600/20 via-pink-500/20 to-orange-400/20 flex items-center justify-center text-pink-400 hover:text-white transition-colors border border-pink-500/30 hover:border-pink-400"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      title="Follow on Instagram"
                     >
-                      @fennyg83
-                    </a>
-                    <p className="text-xs text-white/50 mt-1">Follow for latest artwork</p>
+                      <Instagram className="w-7 h-7" />
+                    </motion.a>
+
+                    {/* TikTok */}
+                    <motion.a
+                      href="https://tiktok.com/@fennyg83"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-16 h-16 rounded-full bg-gradient-to-r from-black/40 to-red-500/20 flex items-center justify-center text-white hover:text-red-400 transition-colors border border-white/20 hover:border-red-400"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      title="Follow on TikTok"
+                    >
+                      <TikTokIcon className="w-7 h-7" />
+                    </motion.a>
                   </div>
                 </div>
 
@@ -212,14 +265,20 @@ export default function ContactClient() {
               </div>
 
               {/* Book Button */}
-              <div className="mt-8 mb-6">
-                <a
-                  href="/booking"
-                  className="block text-center py-3 px-6 rounded-lg bg-tattoo-red hover:bg-tattoo-red/90 text-white font-medium transition-colors"
+              <motion.div 
+                className="mt-8 mb-6"
+                variants={fadeInUp}
+              >
+                <Button 
+                  asChild 
+                  className="w-full bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 hover:scale-105 transition-all duration-300 group"
                 >
-                  Book a Consultation
-                </a>
-              </div>
+                  <Link href="/booking" className="flex items-center justify-center">
+                    Book a Consultation
+                    <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+              </motion.div>
 
               {/* FAQ Section */}
               <div className="mt-6">
@@ -243,30 +302,35 @@ export default function ContactClient() {
                   Quick FAQs
                 </h3>
 
-                <div className="space-y-4">
+                <motion.div 
+                  className="space-y-5"
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="visible"
+                >
                   {faqItems.map((faq, index) => (
                     <motion.div
                       key={index}
-                      className="bg-black/30 border border-white/10 rounded-md p-4 hover:border-tattoo-red/30 transition-colors"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.1 * index }}
+                      className="bg-black/30 border border-white/10 rounded-lg p-6 hover:border-red-500/30 transition-colors"
+                      variants={fadeInUp}
+                      whileHover={{ y: -2 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      <h4 className="font-medium text-white mb-1.5 text-sm flex items-center">
-                        <span className="w-5 h-5 rounded-full bg-tattoo-red/20 flex items-center justify-center text-tattoo-red mr-2 text-xs">
+                      <h4 className="font-medium text-white mb-3 text-base flex items-center">
+                        <span className="w-7 h-7 rounded-full bg-gradient-to-r from-red-500/20 to-orange-500/20 flex items-center justify-center text-red-400 mr-3 text-sm font-semibold">
                           Q
                         </span>
                         {faq.question}
                       </h4>
-                      <p className="text-white/70 text-xs pl-7">{faq.answer}</p>
+                      <p className="text-white/70 text-sm pl-10 leading-relaxed">{faq.answer}</p>
                     </motion.div>
                   ))}
-                </div>
+                </motion.div>
 
                 <div className="mt-4 text-center">
                   <a
                     href="/faq"
-                    className="text-tattoo-red hover:text-tattoo-red/80 text-sm font-medium"
+                    className="text-red-400 hover:text-red-300 text-sm font-medium"
                   >
                     View all FAQs
                   </a>
@@ -275,6 +339,58 @@ export default function ContactClient() {
             </div>
           </motion.div>
         </div>
+
+        {/* Closing CTA Section */}
+        <motion.section 
+          className="py-16 mt-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeInUp}
+        >
+          <div className="bg-gradient-to-br from-tattoo-black to-tattoo-black/90 rounded-2xl border border-tattoo-red/20 shadow-xl p-8 md:p-12">
+            <div className="max-w-3xl mx-auto text-center">
+              <motion.h2 
+                className="text-2xl md:text-3xl font-bold text-white mb-4"
+                variants={fadeInUp}
+              >
+                Ready to Bring Your Vision to Life?
+              </motion.h2>
+              <motion.p 
+                className="text-white/80 mb-8"
+                variants={fadeInUp}
+              >
+                Whether you have a clear design in mind or need help developing your concept, I'm here to guide you through every step of the tattoo process.
+              </motion.p>
+              
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+                variants={staggerContainer}
+              >
+                <motion.div variants={fadeInUp}>
+                  <Button size="lg" asChild className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group">
+                    <Link href="/booking" className="inline-flex items-center">
+                      Book a Consultation
+                      <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                </motion.div>
+                
+                <motion.div variants={fadeInUp}>
+                  <Button variant="outline" size="lg" asChild className="relative border-2 border-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 text-white hover:from-red-500/20 hover:via-orange-500/20 hover:to-amber-500/20 hover:scale-105 transition-all duration-300 group overflow-hidden">
+                    <Link href="/gallery" className="inline-flex items-center relative z-10">
+                      <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
+                        View My Gallery
+                      </span>
+                      <ChevronRight className="ml-2 h-4 w-4 text-amber-400 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                    </Link>
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.section>
       </motion.div>
     </SharedLayout>
   );

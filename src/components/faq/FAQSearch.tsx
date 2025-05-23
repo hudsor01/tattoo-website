@@ -67,18 +67,17 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       // Find the specific accordion item and expand it
-      setTimeout(() => {
-        const accordionItems = element.querySelectorAll('[data-state="closed"]');
-        for (let i = 0; i < accordionItems.length; i++) {
-          const trigger = accordionItems[i] as HTMLElement;
-          const triggerText = trigger.textContent || '';
+      // Immediately expand accordion item
+      const accordionItems = element.querySelectorAll('[data-state="closed"]');
+      for (let i = 0; i < accordionItems.length; i++) {
+        const trigger = accordionItems[i] as HTMLElement;
+        const triggerText = trigger.textContent || '';
 
-          if (triggerText.includes(question)) {
-            trigger.click();
-            break;
-          }
+        if (triggerText.includes(question)) {
+          trigger.click();
+          break;
         }
-      }, 500);
+      }
     }
   };
 
@@ -121,7 +120,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
                       key={index}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      transition={{ duration: 0.3 }}
                       className={`p-4 hover:bg-tattoo-blue/10 transition cursor-pointer group ${
                         index < results.length - 1 ? 'border-b border-white/10' : ''
                       }`}

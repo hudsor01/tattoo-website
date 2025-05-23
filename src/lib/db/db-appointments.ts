@@ -5,7 +5,7 @@
  */
 
 import { prisma, executeStoredProcedure } from './prisma';
-import { 
+import type { 
   AppointmentCreateInput 
 } from '@/types/booking-types';
 
@@ -28,22 +28,24 @@ export async function getUpcomingAppointments(userId: string, userType: 'custome
       orderBy: { startDate: 'asc' },
       take: limit,
       include: {
-        customer: {
+        Customer: {
           select: {
             firstName: true,
             lastName: true,
             email: true,
             phone: true,
-            profileImage: true
           }
         },
-        artist: {
+        Artist: {
           select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            profileImage: true
+            id: true,
+            specialty: true,
+            User: {
+              select: {
+                name: true,
+                email: true,
+              }
+            }
           }
         }
       }
@@ -62,22 +64,24 @@ export async function getAppointmentById(appointmentId: string) {
     return await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        customer: {
+        Customer: {
           select: {
             firstName: true,
             lastName: true,
             email: true,
             phone: true,
-            profileImage: true
           }
         },
-        artist: {
+        Artist: {
           select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            profileImage: true
+            id: true,
+            specialty: true,
+            User: {
+              select: {
+                name: true,
+                email: true,
+              }
+            }
           }
         }
       }

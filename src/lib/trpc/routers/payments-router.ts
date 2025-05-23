@@ -1,14 +1,8 @@
-/**
- * Payments Router
- *
- * This router handles all payment-related tRPC procedures.
- */
-
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure } from '../server';
-import { createClient } from '@/lib/supabase/server';
-import crypto from 'crypto';
+import { router, protectedProcedure, adminProcedure } from '../procedures';
+import { prisma } from '@/lib/db/prisma';
+import { PaymentStatus } from '@/types/enum-types';
 
 export const paymentsRouter = router({
   /**
@@ -19,45 +13,26 @@ export const paymentsRouter = router({
       limit: z.number().min(1).max(100).default(10),
       cursor: z.number().nullish(),
     }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const payments = await prisma.payment.findMany({
+          where: {
+            customerEmail: ctx.user.email!,
+          },
+          include: {
+            Booking: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: input.limit + 1,
+          ...(input.cursor && { cursor: { id: input.cursor } }),
+        });
         
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to view payments',
-          });
-        }
-        
-        // Build the query
-        let query = supabase
-          .from('payments')
-          .select('*, appointments(*)')
-          .eq('client_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(input.limit);
-          
-        // Apply cursor if provided
-        if (input.cursor) {
-          query = query.gte('id', input.cursor);
-        }
-        
-        const { data: payments, error } = await query;
-          
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error fetching payments',
-            cause: error,
-          });
-        }
-        
-        // Get the next cursor
-        let nextCursor: number | null = null;
-        if (payments.length === input.limit) {
-          nextCursor = payments[payments.length - 1].id;
+        let nextCursor: number | undefined;
+        if (payments.length > input.limit) {
+          const nextItem = payments.pop();
+          nextCursor = nextItem!.id;
         }
         
         return {
@@ -65,9 +40,6 @@ export const paymentsRouter = router({
           nextCursor,
         };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Error fetching payments',
@@ -77,34 +49,26 @@ export const paymentsRouter = router({
     }),
     
   /**
-   * Get payment by ID
+   * Get payment by ID (user can only see their own payments)
    */
   getById: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
-    .query(async ({ input }) => {
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input, ctx }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to view payments',
-          });
-        }
-        
-        const { data: payment, error } = await supabase
-          .from('payments')
-          .select('*, appointments(*)')
-          .eq('id', input.id)
-          .eq('client_id', user.id)
-          .single();
+        const payment = await prisma.payment.findFirst({
+          where: {
+            id: input.id,
+            customerEmail: ctx.user.email!,
+          },
+          include: {
+            Booking: true,
+          },
+        });
           
-        if (error || !payment) {
+        if (!payment) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Payment not found',
-            cause: error,
           });
         }
         
@@ -120,174 +84,150 @@ export const paymentsRouter = router({
         });
       }
     }),
-    
+
   /**
-   * Create payment intent for Stripe
+   * Admin: Get all payments with filtering
    */
-  createPaymentIntent: protectedProcedure
+  getAllPayments: adminProcedure
     .input(z.object({
-      amount: z.number().min(1),
-      appointmentId: z.string().uuid().optional(),
-      bookingId: z.number().int().positive().optional(),
-      paymentType: z.enum(['deposit', 'full', 'installment']).default('deposit'),
-      currency: z.string().length(3).default('usd'),
-      metadata: z.record(z.string()).optional(),
+      limit: z.number().min(1).max(100).default(50),
+      cursor: z.number().nullish(),
+      status: z.nativeEnum(PaymentStatus).optional(),
+      customerId: z.string().optional(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .query(async ({ input }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const where: any = {};
         
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to create a payment intent',
-          });
+        if (input.status) {
+          where.status = input.status;
         }
         
-        // Get user details for the payment
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('email, first_name, last_name')
-          .eq('id', user.id)
-          .single();
-          
-        if (userError || !userData) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error fetching user details',
-            cause: userError,
+        if (input.customerId) {
+          // Find customer email for filtering
+          const customer = await prisma.customer.findUnique({
+            where: { id: input.customerId },
+            select: { email: true },
           });
-        }
-        
-        // Verify appointment belongs to user if appointmentId is provided
-        if (input.appointmentId) {
-          const { data: appointment, error: appointmentError } = await supabase
-            .from('appointments')
-            .select('client_id')
-            .eq('id', input.appointmentId)
-            .single();
-            
-          if (appointmentError || !appointment) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Appointment not found',
-              cause: appointmentError,
-            });
-          }
-          
-          if (appointment.client_id !== user.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'You do not have permission to create a payment for this appointment',
-            });
+          if (customer) {
+            where.customerEmail = customer.email;
           }
         }
         
-        // Create a payment intent (for build, we'll stub this)
-        // In a real implementation, this would call Stripe API
-        const paymentIntent = {
-          id: `pi_${Date.now()}${crypto.randomBytes(4).toString('hex')}`,
-          client_secret: `pi_${Date.now()}_${crypto.randomBytes(8).toString('hex')}_secret`,
-          amount: input.amount,
-          currency: input.currency,
-          status: 'requires_payment_method',
-        };
+        if (input.startDate || input.endDate) {
+          where.createdAt = {};
+          if (input.startDate) {
+            where.createdAt.gte = input.startDate;
+          }
+          if (input.endDate) {
+            where.createdAt.lte = input.endDate;
+          }
+        }
         
-        // Record the payment intent in the database
-        const { error } = await supabase
-          .from('payments')
-          .insert({
-            client_id: user.id,
-            appointment_id: input.appointmentId,
-            booking_id: input.bookingId,
-            amount: input.amount,
-            currency: input.currency,
-            payment_type: input.paymentType,
-            payment_intent_id: paymentIntent.id,
-            payment_method: 'card',
-            status: 'pending',
-            metadata: input.metadata,
-            created_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-          
-        if (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Error creating payment record',
-            cause: error,
-          });
+        const payments = await prisma.payment.findMany({
+          where,
+          include: {
+            Booking: {
+              select: {
+                id: true,
+                createdAt: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: input.limit + 1,
+          ...(input.cursor && { cursor: { id: input.cursor } }),
+        });
+        
+        let nextCursor: number | undefined;
+        if (payments.length > input.limit) {
+          const nextItem = payments.pop();
+          nextCursor = nextItem!.id;
         }
         
         return {
-          clientSecret: paymentIntent.client_secret,
-          paymentIntentId: paymentIntent.id,
-          amount: input.amount,
-          currency: input.currency,
+          items: payments,
+          nextCursor,
         };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error creating payment intent',
+          message: 'Error fetching payments',
           cause: error,
         });
       }
     }),
-    
+
   /**
-   * Check payment status
+   * Get payment statistics for admin dashboard
    */
-  checkPaymentStatus: protectedProcedure
+  getPaymentStats: adminProcedure
     .input(z.object({
-      paymentIntentId: z.string(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
     }))
     .query(async ({ input }) => {
       try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const where: any = {};
         
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You must be logged in to check payment status',
-          });
+        if (input.startDate || input.endDate) {
+          where.createdAt = {};
+          if (input.startDate) {
+            where.createdAt.gte = input.startDate;
+          }
+          if (input.endDate) {
+            where.createdAt.lte = input.endDate;
+          }
         }
         
-        // Check payment in database
-        const { data: payment, error } = await supabase
-          .from('payments')
-          .select('*')
-          .eq('payment_intent_id', input.paymentIntentId)
-          .eq('client_id', user.id)
-          .single();
+        const [
+          totalRevenue,
+          totalPayments,
+          paymentsByStatus,
+          averagePayment,
+        ] = await Promise.all([
+          // Total revenue (completed payments only)
+          prisma.payment.aggregate({
+            where: { ...where, status: PaymentStatus.COMPLETED },
+            _sum: { amount: true },
+          }),
           
-        if (error || !payment) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Payment not found',
-            cause: error,
-          });
-        }
+          // Total number of payments
+          prisma.payment.count({ where }),
+          
+          // Payments by status
+          prisma.payment.groupBy({
+            by: ['status'],
+            where,
+            _count: { id: true },
+            _sum: { amount: true },
+          }),
+          
+          // Average payment amount
+          prisma.payment.aggregate({
+            where,
+            _avg: { amount: true },
+          }),
+        ]);
         
         return {
-          status: payment.status,
-          amount: payment.amount,
-          paymentId: payment.id,
-          paymentIntentId: payment.payment_intent_id,
-          createdAt: payment.created_at,
+          totalRevenue: totalRevenue._sum.amount || 0,
+          totalPayments,
+          averagePayment: averagePayment._avg.amount || 0,
+          paymentsByStatus: paymentsByStatus.map(item => ({
+            status: item.status,
+            count: item._count.id,
+            totalAmount: item._sum.amount || 0,
+          })),
         };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error checking payment status',
+          message: 'Error fetching payment statistics',
           cause: error,
         });
       }

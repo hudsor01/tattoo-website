@@ -47,7 +47,7 @@ interface ErrorBoundaryInnerProps {
 
 // Inner class component that implements the error boundary
 class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+  constructor(props: ErrorBoundaryInnerProps) {
     super(props);
     this.state = { hasError: false };
   }
@@ -134,20 +134,19 @@ export function ErrorBoundary({
   variant = 'card',
   onError,
 }: ErrorBoundaryProps): React.JSX.Element {
-  return (
-    <ErrorBoundaryInner 
-      fallback={fallback}
-      componentName={componentName}
-      onError={onError}
-      title={title}
-      description={description}
-      fullPage={fullPage}
-      showBackButton={showBackButton}
-      variant={variant}
-    >
-      {children}
-    </ErrorBoundaryInner>
-  );
+  const innerProps: ErrorBoundaryInnerProps = {
+    children,
+    fallback,
+    componentName,
+    title,
+    description,
+    fullPage,
+    showBackButton,
+    variant,
+    ...(onError && { onError }),
+  };
+
+  return <ErrorBoundaryInner {...innerProps} />;
 }
 
 /**
