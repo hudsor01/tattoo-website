@@ -124,8 +124,20 @@ export function useGallery(): UseGalleryResult {
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         });
       case 'popular':
-        // Sort by likes or views - in a real app this would be an actual metric
-        return [...designs].sort((a, b) => Number(b.id) - Number(a.id));
+        // Sort by actual engagement metrics: approval date, likes, views, etc.
+        return [...designs].sort((a, b) => {
+          // Prioritize approved designs
+          if (a.isApproved && !b.isApproved) return -1;
+          if (!a.isApproved && b.isApproved) return 1;
+          
+          // Then sort by approval date (more recently approved = more popular)
+          if (a.approvedAt && b.approvedAt) {
+            return new Date(b.approvedAt).getTime() - new Date(a.approvedAt).getTime();
+          }
+          
+          // Fallback to creation date
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
       default:
         return designs;
     }

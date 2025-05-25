@@ -97,7 +97,7 @@ export function InfiniteList<TableName extends SupabaseTableName>({
 
         {data.map((item, index) => renderItem(item, index))}
 
-        {isFetching && renderSkeleton && renderSkeleton(pageSize)}
+        {isFetching && renderSkeleton?.(pageSize)}
 
         <div ref={loadMoreSentinelRef} style={{ height: '1px' }} />
 

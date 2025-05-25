@@ -113,11 +113,15 @@ Book a consultation to discuss your ideas, and let's create something amazing to
 
   console.info('Sample customers created:', customers.length)
 
+  // Delete existing data to avoid duplicates (in correct order for foreign keys)
+  await prisma.payment.deleteMany({})
+  await prisma.appointment.deleteMany({})
+  await prisma.booking.deleteMany({})
+  
   // Create some sample bookings
   const bookings = await Promise.all([
     prisma.booking.create({
       data: {
-        id: 1,
         customerId: 'customer-john-doe',
         artistId: 'fernando-govea',
         name: 'John Doe',
@@ -238,11 +242,13 @@ Book a consultation to discuss your ideas, and let's create something amazing to
         id: 1,
         bookingId: 1,
         amount: 50.00,
-        paymentMethod: 'cal.com',
-        status: 'completed',
-        transactionId: 'cal-payment-001',
+        paymentMethod: 'card',
+        status: 'paid',
+        transactionId: 'cal_cal-booking-001',
         customerEmail: 'john.doe@example.com',
         customerName: 'John Doe',
+        paymentType: 'deposit',
+        calPaymentId: 'cal-booking-001',
         createdAt: new Date('2025-01-15'),
         updatedAt: new Date('2025-01-15'),
       }
@@ -252,11 +258,13 @@ Book a consultation to discuss your ideas, and let's create something amazing to
         id: 2,
         bookingId: 3,
         amount: 50.00,
-        paymentMethod: 'cal.com',
-        status: 'completed',
-        transactionId: 'cal-payment-003',
+        paymentMethod: 'card',
+        status: 'paid',
+        transactionId: 'cal_cal-booking-003',
         customerEmail: 'mike.johnson@example.com',
         customerName: 'Mike Johnson',
+        paymentType: 'deposit',
+        calPaymentId: 'cal-booking-003',
         createdAt: new Date('2025-01-10'),
         updatedAt: new Date('2025-01-10'),
       }
@@ -265,55 +273,9 @@ Book a consultation to discuss your ideas, and let's create something amazing to
 
   console.info('Sample payments created:', payments.length)
 
-  // Create some sample gallery designs
-  const designs = await Promise.all([
-    prisma.tattooDesign.create({
-      data: {
-        id: 'design-traditional-eagle',
-        name: 'Traditional Eagle',
-        description: 'Classic American traditional eagle with banner and roses',
-        designType: 'Traditional',
-        size: 'Medium',
-        artistId: 'fernando-govea',
-        isApproved: true,
-        fileUrl: '/images/traditional.jpg',
-        thumbnailUrl: '/images/traditional.jpg',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    }),
-    prisma.tattooDesign.create({
-      data: {
-        id: 'design-realistic-portrait',
-        name: 'Realistic Portrait',
-        description: 'Black and grey realistic portrait work',
-        designType: 'Realism',
-        size: 'Large',
-        artistId: 'fernando-govea',
-        isApproved: true,
-        fileUrl: '/images/realism.jpg',
-        thumbnailUrl: '/images/realism.jpg',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    }),
-    prisma.tattooDesign.create({
-      data: {
-        id: 'design-custom-mandala',
-        name: 'Custom Mandala',
-        description: 'Intricate mandala design with personal elements',
-        designType: 'Custom',
-        size: 'Large',
-        artistId: 'fernando-govea',
-        customerId: 'customer-jane-smith',
-        isApproved: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    })
-  ])
-
-  console.info('Sample designs created:', designs.length)
+  // Gallery designs are now handled by the migration script: scripts/migrate-gallery-data.ts
+  // This removes any duplicate or conflicting gallery data from the seed
+  console.info('Gallery designs will be created by migration script - not in seed')
 
   // Create some customer tags for organization
   const tags = await Promise.all([

@@ -280,6 +280,26 @@ export type Payment = z.infer<typeof PaymentSchema>;
 export type PaymentListParams = z.infer<typeof PaymentListParamsSchema>;
 export type PaymentListResponse = z.infer<typeof PaymentListResponseSchema>;
 
+// Actual database payment type that matches Prisma schema
+export interface DatabasePayment {
+  id: number;
+  bookingId: number;
+  amount: number;
+  paymentMethod: string;
+  status: string;
+  transactionId: string | null;
+  customerEmail: string;
+  customerName: string;
+  paymentType: string | null;
+  calPaymentId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  Booking?: {
+    id: number;
+    createdAt: Date;
+  };
+}
+
 // Export form-specific types for React Hook Form
 export type PaymentFormValues = PaymentCreateInput;
 

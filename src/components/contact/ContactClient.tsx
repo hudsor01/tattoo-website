@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Mail, Instagram, MapPin, Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import SharedLayout from '@/components/layouts/SharedLayout';
+import Footer from '@/components/layouts/Footer';
 
 // TikTok icon component
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -65,7 +65,7 @@ export default function ContactClient() {
   ];
 
   return (
-    <SharedLayout>
+    <div className="min-h-screen container mx-auto px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -392,6 +392,7 @@ export default function ContactClient() {
           </div>
         </motion.section>
       </motion.div>
-    </SharedLayout>
+      <Footer />
+    </div>
   );
 }

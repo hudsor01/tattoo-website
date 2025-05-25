@@ -8,7 +8,7 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { logger } from '@/lib/logger';
-import type { TRPCContext, ProtectedTRPCContext, AdminTRPCContext } from './types/context';
+import type { TRPCContext } from './types/context';
 
 // Initialize tRPC with context
 const t = initTRPC.context<TRPCContext>().create({
@@ -26,55 +26,31 @@ const t = initTRPC.context<TRPCContext>().create({
 export const router = t.router;
 export const middleware = t.middleware;
 
-// Create auth middleware
+// Create auth middleware for Clerk
 const authMiddleware = middleware(async ({ ctx, next }) => {
-  if (!ctx.userId || !ctx.auth) {
+  if (!ctx.userId) {
+    logger.debug('Auth middleware: No userId found', { 
+      userId: ctx.userId, 
+      hasUser: !!ctx.user,
+      userEmail: ctx.userEmail 
+    });
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'You must be logged in to access this resource',
     });
   }
   
-  return next({
-    ctx: {
-      ...ctx,
-      userId: ctx.userId!, // Ensured by the check above
-      auth: ctx.auth!, // Clerk auth object
-      db: ctx.prisma, // Ensure prisma is passed
-    },
+  logger.debug('Auth middleware: User authenticated', { 
+    userId: ctx.userId, 
+    userEmail: ctx.userEmail 
   });
-});
-
-// Create admin middleware
-const adminMiddleware = middleware(async ({ ctx, next }) => {
-  if (!ctx.userId || !ctx.auth) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'You must be logged in to access this resource',
-    });
-  }
-  
-  // Check if user is admin using Clerk's role system
-  // For now, we'll implement a simple admin check - later we can enhance with proper roles
-  // Clerk stores roles in the user's publicMetadata
-  const userMetadata = ctx.auth.sessionClaims?.publicMetadata as any;
-  const userRole = userMetadata?.role || 'user';
-  
-  const isAdmin = userRole === 'admin' || 
-                 (Array.isArray(userRole) && userRole.includes('admin'));
-  
-  if (!isAdmin) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You must be an admin to access this resource',
-    });
-  }
   
   return next({
     ctx: {
       ...ctx,
-      userId: ctx.userId!, // Ensured by the check above
-      auth: ctx.auth!, // Clerk auth object
+      userId: ctx.userId,
+      user: ctx.user, // Clerk session claims (can be null)
+      userEmail: ctx.userEmail, // User email
       db: ctx.prisma, // Ensure prisma is passed
     },
   });
@@ -109,7 +85,5 @@ export const protectedProcedure = t.procedure
   .use(loggerMiddleware)
   .use(authMiddleware);
 
-// Admin procedure - requires admin role
-export const adminProcedure = t.procedure
-  .use(loggerMiddleware)
-  .use(adminMiddleware);
+// Admin procedure - now just an alias for protected since all signed-in users are admins
+export const adminProcedure = protectedProcedure;

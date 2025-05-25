@@ -31,13 +31,20 @@ export async function sendEmail({
   text?: string;
 }) {
   try {
-    const result = await resend.emails.send({
+    const emailOptions: any = {
       to,
       from,
       subject,
-      html,
-      text,
-    });
+    };
+    
+    if (html) {
+      emailOptions.html = html;
+    }
+    if (text) {
+      emailOptions.text = text;
+    }
+    
+    const result = await resend.emails.send(emailOptions);
 
     return { success: true, data: result };
   } catch (error) {

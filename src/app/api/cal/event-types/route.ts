@@ -5,7 +5,7 @@ import { getCalEventTypes } from '@/lib/cal/api';
  * GET /api/cal/event-types
  * Fetch all event types from Cal.com to find IDs
  */
-export async function GET(req: NextRequest) {
+export async function GET(_: NextRequest) {
   try {
     const eventTypes = await getCalEventTypes();
     

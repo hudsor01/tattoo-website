@@ -4,8 +4,8 @@ import { verifyAdminAccess } from '@/lib/utils/server';
 import type { Prisma } from '@prisma/client';
 
 /**
- * GET /api/admin/clients
- * Get all clients with optional filtering
+ * GET /api/admin/customers
+ * Get all customers with optional filtering
  */
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
-    // const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = (page - 1) * limit;
@@ -35,13 +34,8 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Note: Customer model doesn't have status field
-    // if (status && status !== 'all') {
-    //   (where as any).status = status;
-    // }
-
-    // Get clients with count
-    const [clients, totalCount] = await Promise.all([
+    // Get customers with count
+    const [customers, totalCount] = await Promise.all([
       prisma.customer.findMany({
         where,
         orderBy: {
@@ -55,6 +49,10 @@ export async function GET(request: NextRequest) {
           lastName: true,
           email: true,
           phone: true,
+          address: true,
+          city: true,
+          state: true,
+          postalCode: true,
           notes: true,
           createdAt: true,
           updatedAt: true,
@@ -75,51 +73,57 @@ export async function GET(request: NextRequest) {
       prisma.customer.count({ where }),
     ]);
 
-    // Format response
-    const formattedClients = clients.map(client => {
+    // Format response to maintain compatibility
+    const formattedCustomers = customers.map(customer => {
       // Combine first and last name to maintain client compatibility
-      const name = `${client.firstName} ${client.lastName}`.trim();
+      const name = `${customer.firstName} ${customer.lastName}`.trim();
 
       // Extract tattoo style preference from notes if available
-      const tattooStyle = client.notes?.includes('tattoo style') ? 
-        client.notes.split('tattoo style preference:')[1]?.trim() || '' : '';
+      const tattooStyle = customer.notes?.includes('tattoo style') ? 
+        customer.notes.split('tattoo style preference:')[1]?.trim() || '' : '';
 
       // Determine status based on tags (default to 'new')
-      const status = client.tags.length > 0 ? 'active' : 'new';
+      const status = customer.tags.length > 0 ? 'active' : 'new';
 
       // Determine last contact from appointments
-      const lastContact = client.Appointment[0]?.startDate || null;
+      const lastContact = customer.Appointment[0]?.startDate || null;
 
       return {
-        id: client.id,
+        id: customer.id,
         name,
-        email: client.email,
-        phone: client.phone || '',
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email,
+        phone: customer.phone || '',
+        address: customer.address || '',
+        city: customer.city || '',
+        state: customer.state || '',
+        postalCode: customer.postalCode || '',
         status,
         tattooStyle,
-        notes: client.notes || '',
-        createdAt: client.createdAt,
-        updatedAt: client.updatedAt,
+        notes: customer.notes || '',
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt,
         lastContact,
       };
     });
 
     return NextResponse.json({
-      clients: formattedClients,
+      clients: formattedCustomers,
       total: totalCount,
       page,
       limit,
       pageCount: Math.ceil(totalCount / limit),
     });
   } catch (error) {
-    console.error('Error fetching clients:', error);
-    return NextResponse.json({ error: 'Failed to fetch clients' }, { status: 500 });
+    console.error('Error fetching customers:', error);
+    return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
   }
 }
 
 /**
- * POST /api/admin/clients
- * Create a new client
+ * POST /api/admin/customers
+ * Create a new customer
  */
 export async function POST(request: NextRequest) {
   try {
@@ -131,50 +135,90 @@ export async function POST(request: NextRequest) {
 
     // Get request body
     const data = await request.json();
+    console.log('Creating customer with data:', data);
 
-    // Validate required fields
-    if (!data.name || !data.email) {
-      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
+    // Support both name-based and firstName/lastName-based input
+    let firstName: string;
+    let lastName: string;
+
+    if (data.firstName && data.lastName) {
+      // New format: separate firstName and lastName
+      firstName = data.firstName.trim();
+      lastName = data.lastName.trim();
+    } else if (data.name) {
+      // Legacy format: combined name
+      if (data.name.includes(' ')) {
+        const nameParts = data.name.trim().split(' ');
+        firstName = nameParts[0];
+        lastName = nameParts.slice(1).join(' ');
+      } else {
+        firstName = data.name.trim();
+        lastName = '';
+      }
+    } else {
+      return NextResponse.json({ error: 'First name and last name are required' }, { status: 400 });
     }
 
-    // Check if client with this email already exists
-    const existingClient = await prisma.customer.findUnique({
+    // Validate required fields
+    if (!firstName || !data.email) {
+      return NextResponse.json({ error: 'First name and email are required' }, { status: 400 });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+
+    // Check if customer with this email already exists
+    const existingCustomer = await prisma.customer.findUnique({
       where: {
-        email: data.email,
+        email: data.email.toLowerCase().trim(),
       },
     });
 
-    if (existingClient) {
+    if (existingCustomer) {
       return NextResponse.json(
-        { error: 'A client with this email already exists' },
+        { error: 'A customer with this email already exists' },
         { status: 409 },
       );
     }
 
-    // Create new client
-    // Split name into firstName and lastName
-    let firstName = data.name;
-    let lastName = '';
+    // Create new customer with all supported fields
+    const customerData: Prisma.CustomerCreateInput = {
+      firstName,
+      lastName,
+      email: data.email.toLowerCase().trim(),
+      phone: data.phone?.trim() || null,
+      address: data.address?.trim() || null,
+      city: data.city?.trim() || null,
+      state: data.state?.trim() || null,
+      postalCode: data.postalCode?.trim() || null,
+      notes: data.notes?.trim() || null,
+    };
 
-    if (data.name && data.name.includes(' ')) {
-      const nameParts = data.name.split(' ');
-      firstName = nameParts[0];
-      lastName = nameParts.slice(1).join(' ');
-    }
-
-    const client = await prisma.customer.create({
-      data: {
-        firstName,
-        lastName,
-        email: data.email,
-        phone: data.phone || '',
-        notes: data.notes || (data.tattooStyle ? `Tattoo style preference: ${data.tattooStyle}` : ''),
+    const customer = await prisma.customer.create({
+      data: customerData,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        notes: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
-    return NextResponse.json(client, { status: 201 });
+    console.log('Customer created successfully:', customer);
+    return NextResponse.json(customer, { status: 201 });
   } catch (error) {
-    console.error('Error creating client:', error);
-    return NextResponse.json({ error: 'Failed to create client' }, { status: 500 });
+    console.error('Error creating customer:', error);
+    return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
   }
 }

@@ -130,9 +130,36 @@ export default async function DesignDetailPage({ params }: PageProps) {
     // Check if design is approved for public viewing
     // Only approved designs or designs viewed by authorized users should be visible
     if (!design.isApproved) {
-      // In a real app, you'd check user authentication here
-      // For now, we'll only show approved designs to public
-      notFound();
+      // Check user authentication and authorization
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
+      
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          // Not authenticated - can't view unapproved design
+          notFound();
+        }
+
+        // Check if user is admin or the design owner
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        const isAdmin = profile?.role === 'admin' || profile?.role === 'artist';
+        const isOwner = design.Customer?.email === user.email;
+
+        if (!isAdmin && !isOwner) {
+          // User is not authorized to view this unapproved design
+          notFound();
+        }
+      } catch (error) {
+        console.error('Error checking user authorization:', error);
+        notFound();
+      }
     }
 
   } catch (error) {

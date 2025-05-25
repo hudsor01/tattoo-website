@@ -7,8 +7,8 @@
  * THIS IS A SERVER-SIDE ONLY FILE
  */
 import 'server-only';
-import { auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { TRPCContext } from './types/context';
@@ -25,7 +25,7 @@ export async function createTRPCContext({
 }) {
   try {
     // Get Clerk auth state
-    const authState = await auth();
+    const { userId, sessionClaims } = await auth();
     
     // Get request headers
     const requestHeaders = Object.fromEntries(req.headers.entries());
@@ -38,8 +38,9 @@ export async function createTRPCContext({
     logger.debug('Creating tRPC context', {
       url,
       referer,
-      userId: authState.userId,
-      sessionId: authState.sessionId,
+      userId: userId,
+      userEmail: sessionClaims?.email,
+      authError: userId ? null : 'Auth session missing!',
     });
 
     // Return the context with database access and auth
@@ -48,9 +49,11 @@ export async function createTRPCContext({
       resHeaders,
       headers: requestHeaders,
       prisma,
-      auth: authState, // Clerk auth object
-      userId: authState.userId, // Direct access to user ID
-      url
+      user: sessionClaims, // Clerk session claims
+      userId: userId || null, // Direct access to user ID
+      userEmail: sessionClaims?.email || null, // Direct access to user email
+      url,
+      db: prisma // Add db alias for compatibility
     };
   } catch (error) {
     logger.error('Error creating TRPC context:', error);
@@ -61,9 +64,11 @@ export async function createTRPCContext({
       resHeaders,
       headers: Object.fromEntries(req.headers.entries()),
       prisma,
-      auth: null,
+      user: null,
       userId: null,
+      userEmail: null,
       url: '',
+      db: prisma // Add db alias for compatibility
     };
   }
 }
@@ -80,17 +85,19 @@ export type Context = TRPCContext;
 export async function createContextForRSC() {
   try {
     // Get Clerk auth state for RSC
-    const authState = await auth();
+    const { userId, sessionClaims } = await auth();
     
     logger.debug('Creating RSC tRPC context', {
-      userId: authState.userId,
-      sessionId: authState.sessionId,
+      userId: userId,
+      userEmail: sessionClaims?.email,
+      authError: userId ? null : 'Auth session missing!',
     });
     
     return {
       prisma,
-      auth: authState, // Clerk auth object
-      userId: authState.userId, // Direct access to user ID
+      user: sessionClaims, // Clerk session claims
+      userId: userId || null, // Direct access to user ID
+      userEmail: sessionClaims?.email || null, // Direct access to user email
       db: prisma, // Add db alias for consistency
     };
   } catch (error) {
@@ -98,8 +105,9 @@ export async function createContextForRSC() {
     
     return {
       prisma,
-      auth: null,
+      user: null,
       userId: null,
+      userEmail: null,
       db: prisma,
     };
   }

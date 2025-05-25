@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import SharedLayout from '@/components/layouts/SharedLayout';
+import Footer from '@/components/layouts/Footer';
 import { ServicesHeader } from '@/components/services/ServicesHeader';
 import { ServiceList } from '@/components/services/ServiceList';
 import { services } from '@/data/services-data';
@@ -15,11 +15,12 @@ import { services } from '@/data/services-data';
  */
 export default function ServicesClient() {
   return (
-    <SharedLayout>
+    <div className="min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+        className="container mx-auto px-4 py-8"
       >
         <ServicesHeader
           title="Tattoo Services"
@@ -29,6 +30,7 @@ export default function ServicesClient() {
         />
         <ServiceList services={services} />
       </motion.div>
-    </SharedLayout>
+      <Footer />
+    </div>
   );
 }

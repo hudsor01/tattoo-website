@@ -14,167 +14,20 @@ export interface MediaItem {
 // Helper to get CDN or static path based on environment
 const getImagePath = (path: string): string => {
   // If using a CDN or image hosting service in production, prefix the path
-  const cdnPrefix = process.env['NEXT_PUBLIC_MEDIA_CDN'] || '';
+  const cdnPrefix = process.env['NEXT_PUBLIC_MEDIA_CDN'] ?? '';
   return `${cdnPrefix}${path}`;
 };
 
-// Define the photos array with only the specified images
-export const galleryPhotos: MediaItem[] = [
-  // Images - Only the specified files
-  {
-    src: getImagePath('/images/christ-crosses.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Christ crosses tattoo design',
-    title: 'Christ Crosses',
-    category: 'Religious',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/cover-ups.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Cover-up tattoo design',
-    title: 'Cover-Up Work',
-    category: 'Cover-up',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/custom-designs.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Custom tattoo design',
-    title: 'Custom Design',
-    category: 'Custom',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/dragonballz-left-arm.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Dragon Ball Z themed tattoo',
-    title: 'Anime Inspired',
-    category: 'Anime',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/japanese.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Japanese style tattoo',
-    title: 'Japanese Art',
-    category: 'Japanese',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/leg-piece.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Detailed leg tattoo artwork',
-    title: 'Leg Piece',
-    category: 'Sleeve',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/praying-nun-left-arm.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Praying nun tattoo on left arm',
-    title: 'Praying Nun',
-    category: 'Religious',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/realism.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Realistic tattoo design',
-    title: 'Realism Work',
-    category: 'Portrait',
-    type: 'image',
-  },
-  {
-    src: getImagePath('/images/traditional.jpg'),
-    width: 1200,
-    height: 1800,
-    alt: 'Traditional style tattoo',
-    title: 'Traditional Style',
-    category: 'Traditional',
-    type: 'image',
-  },
-  // Videos - Only the specified video files
-  {
-    src: getImagePath('/images/christ-crosses.jpg'), // Thumbnail
-    width: 1200,
-    height: 800,
-    alt: 'Christ crosses left arm sleeve tattoo process',
-    title: 'Christ Crosses Sleeve Process',
-    category: 'Process',
-    type: 'video',
-    videoSrc: getImagePath('/videos/christ-crosses-left-arm-sleeve.mov'),
-  },
-  {
-    src: getImagePath('/images/realism.jpg'), // Thumbnail
-    width: 1200,
-    height: 800,
-    alt: 'Clock and lion tattoo process video',
-    title: 'Clock & Lion Process',
-    category: 'Process',
-    type: 'video',
-    videoSrc: getImagePath('/videos/clock-lion-left-arm.mov'),
-  },
-  {
-    src: getImagePath('/images/traditional.jpg'), // Thumbnail
-    width: 1200,
-    height: 800,
-    alt: 'Clock and roses tattoo process',
-    title: 'Clock & Roses Process',
-    category: 'Process',
-    type: 'video',
-    videoSrc: getImagePath('/videos/clock-roses.mov'),
-  },
-  {
-    src: getImagePath('/images/dragonballz-left-arm.jpg'), // Thumbnail
-    width: 1200,
-    height: 800,
-    alt: 'Dragon Ball Z tattoo process video',
-    title: 'Dragon Ball Z Process',
-    category: 'Process',
-    type: 'video',
-    videoSrc: getImagePath('/videos/dragonballz-left-arm.mov'),
-  },
-  {
-    src: getImagePath('/images/realism.jpg'), // Thumbnail
-    width: 1200,
-    height: 800,
-    alt: 'Praying hands tattoo process',
-    title: 'Praying Hands Process',
-    category: 'Process',
-    type: 'video',
-    videoSrc: getImagePath('/videos/praying-hands-left-arm.mov'),
-  },
-  {
-    src: getImagePath('/images/praying-nun-left-arm.jpg'), // Thumbnail
-    width: 1200,
-    height: 800,
-    alt: 'Praying nun tattoo process video',
-    title: 'Praying Nun Process',
-    category: 'Process',
-    type: 'video',
-    videoSrc: getImagePath('/videos/praying-nun.mov'),
-  },
-];
+// DEPRECATED: Gallery data is now stored in the database via TattooDesign model
+// This static array has been migrated to the database. The gallery now pulls from:
+// - Database table: TattooDesign 
+// - API endpoint: /api/trpc/gallery.getPublicDesigns
+// - Component: GalleryInfinite with useGalleryInfiniteQuery hook
+//
+// If you need to add new gallery items, use the admin panel or tRPC API instead
+// of modifying this file.
 
-// Tab types for the gallery
-export const mediaTypes = [
-  { id: 'images', label: 'Tattoo Gallery' },
-  { id: 'videos', label: 'Process Videos' },
-];
+export const galleryPhotos: MediaItem[] = [];
 
-// Add custom fields to the Photo type from react-photo-album
-declare module 'react-photo-album' {
-  interface Photo {
-    title?: string;
-    category?: string;
-  }
-}
+// Export helper function for backward compatibility
+export { getImagePath };

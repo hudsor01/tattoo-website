@@ -1,70 +1,32 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure, adminProcedure } from '../procedures';
+import { router, adminProcedure } from '../procedures';
 import { prisma } from '@/lib/db/prisma';
 import { PaymentStatus } from '@/types/enum-types';
 
+/**
+ * Admin-only payment router for business intelligence and dashboard features.
+ * Customer-facing payment operations are handled by Cal.com.
+ */
 export const paymentsRouter = router({
   /**
-   * Get all payments for the authenticated user
+   * Admin: Get payment by ID with full details
    */
-  getUserPayments: protectedProcedure
-    .input(z.object({
-      limit: z.number().min(1).max(100).default(10),
-      cursor: z.number().nullish(),
-    }))
-    .query(async ({ input, ctx }) => {
-      try {
-        const payments = await prisma.payment.findMany({
-          where: {
-            customerEmail: ctx.user.email!,
-          },
-          include: {
-            Booking: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: input.limit + 1,
-          ...(input.cursor && { cursor: { id: input.cursor } }),
-        });
-        
-        let nextCursor: number | undefined;
-        if (payments.length > input.limit) {
-          const nextItem = payments.pop();
-          nextCursor = nextItem!.id;
-        }
-        
-        return {
-          items: payments,
-          nextCursor,
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error fetching payments',
-          cause: error,
-        });
-      }
-    }),
-    
-  /**
-   * Get payment by ID (user can only see their own payments)
-   */
-  getById: protectedProcedure
+  getPaymentById: adminProcedure
     .input(z.object({ id: z.number() }))
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
-        const payment = await prisma.payment.findFirst({
-          where: {
-            id: input.id,
-            customerEmail: ctx.user.email!,
-          },
+        const payment = await prisma.payment.findUnique({
+          where: { id: input.id },
           include: {
-            Booking: true,
+            Booking: {
+              include: {
+                Customer: true,
+              },
+            },
           },
         });
-          
+        
         if (!payment) {
           throw new TRPCError({
             code: 'NOT_FOUND',

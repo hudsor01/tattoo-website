@@ -8,10 +8,11 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink, createTRPCClient } from '@trpc/client';
+import { httpLink, createTRPCClient } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { useState } from 'react';
-import type { AppRouter } from '@/lib/trpc/types';
+import superjson from 'superjson';
+import type { AppRouter } from '@/lib/trpc/app-router';
 
 // Create a tRPC React client with strict typing based on AppRouter
 export const trpc = createTRPCReact<AppRouter>();
@@ -51,8 +52,9 @@ export function TRPCProvider({
 
   const [trpcClient] = useState(() =>
     trpc.createClient({
+      transformer: superjson,
       links: [
-        httpBatchLink({
+        httpLink({
           url: `${getBaseUrl()}/api/trpc`,
           headers() {
             return {
@@ -80,7 +82,10 @@ export function TRPCProvider({
 }
 
 function getBaseUrl() {
-  if (typeof window !== 'undefined') return '';
+  if (typeof window !== 'undefined') {
+    // In the browser, use the current window's origin
+    return window.location.origin;
+  }
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }
@@ -89,7 +94,7 @@ function getBaseUrl() {
 export function createTRPCClientInstance() {
   return createTRPCClient<AppRouter>({
     links: [
-      httpBatchLink({
+      httpLink({
         url: `${getBaseUrl()}/api/trpc`,
       }),
     ],

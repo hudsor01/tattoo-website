@@ -2,7 +2,7 @@
 
 import React from 'react';
 import GalleryInfinite from "@/components/gallery/GalleryInfinite";
-import SharedLayout from "@/components/layouts/SharedLayout";
+import Footer from "@/components/layouts/Footer";
 import { motion } from "framer-motion";
 
 /**
@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
  */
 export default function GalleryClient() {
   return (
-    <SharedLayout>
+    <div className="min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -33,6 +33,7 @@ export default function GalleryClient() {
           itemsPerPage={24}
         />
       </motion.div>
-    </SharedLayout>
+      <Footer />
+    </div>
   );
 }

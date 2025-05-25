@@ -29,7 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useAuthStore } from "@/lib/auth-system"
+import { useClerk } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 
 export function NavUser({
@@ -42,12 +42,12 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const { logout } = useAuthStore()
+  const { signOut } = useClerk()
   const router = useRouter()
 
   const handleLogout = async () => {
-    await logout()
-    router.push('/admin/auth/login')
+    await signOut()
+    router.push('/sign-in')
   }
 
   return (

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { FAQAccordion } from '@/components/faq/FAQAccordion';
 import FAQSearch from '@/components/faq/FAQSearch';
@@ -13,11 +15,6 @@ import {
   MessageSquare,
 } from 'lucide-react';
 
-export const metadata = {
-  title: 'FAQ | Ink 37',
-  description:
-    'Find answers to common questions about tattoo services, process, and policies at Ink 37.',
-};
 
 // FAQ categories and items
 const faqCategories = [

@@ -20,8 +20,6 @@ export type GalleryInputs = RouterInputs['gallery'];
 export type BookingRouter = RouterOutputs['booking'];
 export type BookingInputs = RouterInputs['booking'];
 
-export type UserRouter = RouterOutputs['user'];
-export type UserInputs = RouterInputs['user'];
 
 export type AdminRouter = RouterOutputs['admin'];
 export type AdminInputs = RouterInputs['admin'];

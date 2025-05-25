@@ -90,15 +90,57 @@
   /* Masonry layout properties */
   --masonry-row-span: 30;
   
-  /* Font sizes */
-  --text-heading-1: 3rem;
-  --text-heading-2: 2.25rem;
-  --text-heading-3: 1.875rem;
-  --text-heading-4: 1.5rem;
-  --text-title-size: 1.25rem;
-  --text-body-size: 1rem;
-  --text-small-size: 0.875rem;
-  --text-xs-size: 0.75rem;
+  /* Typography Scale - Consistent text sizing */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.25rem;      /* 20px */
+  --font-size-2xl: 1.5rem;      /* 24px */
+  --font-size-3xl: 1.875rem;    /* 30px */
+  --font-size-4xl: 2.25rem;     /* 36px */
+  --font-size-5xl: 3rem;        /* 48px */
+  --font-size-6xl: 3.75rem;     /* 60px */
+  --font-size-7xl: 4.5rem;      /* 72px */
+  --font-size-8xl: 6rem;        /* 96px */
+  --font-size-9xl: 8rem;        /* 128px */
+  
+  /* Line Height Scale */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  
+  /* Letter Spacing Scale */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+  
+  /* Font Weight Scale */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+  
+  /* Legacy font size variables for backward compatibility */
+  --text-heading-1: var(--font-size-5xl);
+  --text-heading-2: var(--font-size-4xl);
+  --text-heading-3: var(--font-size-3xl);
+  --text-heading-4: var(--font-size-2xl);
+  --text-title-size: var(--font-size-xl);
+  --text-body-size: var(--font-size-base);
+  --text-small-size: var(--font-size-sm);
+  --text-xs-size: var(--font-size-xs);
 }
 
 /* Dark theme overrides */

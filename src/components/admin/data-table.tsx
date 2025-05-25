@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -127,21 +127,21 @@ export function DataTable<T extends Record<string, any>>({
         id: col.id,
         accessorKey: col.accessorKey || col.id,
         header: typeof col.header === "string" 
-          ? ({ column }) => (
+          ? ({ column }: any) => (
               col.enableSorting !== false ? (
                 <Button
                   variant="ghost"
                   onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                   className="h-8 px-2 lg:px-3"
                 >
-                  {col.header}
+                  {col.header as string}
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <span className="font-medium">{col.header}</span>
+                <span className="font-medium">{col.header as string}</span>
               )
             )
-          : col.header,
+          : col.header as any,
         cell: col.cell || (({ getValue }) => {
           const value = getValue()
           

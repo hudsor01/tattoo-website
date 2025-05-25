@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
-import SharedLayout from '@/components/layouts/SharedLayout';
+import Footer from '@/components/layouts/Footer';
 
 // Animation variants - matching gallery's animations
 const fadeInUp = {
@@ -47,7 +47,9 @@ const staggerContainer = {
 // AboutClient component
 export default function AboutClient() {
   return (
-    <SharedLayout>
+    <>
+      <main className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white">
+        <div className="w-full max-w-none px-6 py-16 pt-24">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -263,7 +265,10 @@ export default function AboutClient() {
             </div>
           </div>
         </motion.section>
-      </motion.div>
-    </SharedLayout>
+        </motion.div>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

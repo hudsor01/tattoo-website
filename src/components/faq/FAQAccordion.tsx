@@ -17,21 +17,69 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
   // Track which questions have received feedback
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean | null>>({});
 
-  // Function to handle feedback
-  const handleFeedback = (index: number, isHelpful: boolean) => {
-    setFeedbackGiven(prev => ({
-      ...prev,
-      [index]: isHelpful,
-    }));
+  // Function to handle feedback - now saves to database
+  const handleFeedback = async (index: number, isHelpful: boolean) => {
+    try {
+      // Send feedback to API
+      const response = await fetch('/api/faq/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionIndex: index,
+          question: items[index].question,
+          isHelpful,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        setFeedbackGiven(prev => ({
+          ...prev,
+          [index]: isHelpful,
+        }));
+      } else {
+        console.error('Failed to submit feedback');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+    }
   };
 
-  // Find related questions (simplified implementation)
+  // Find related questions using semantic similarity and categories
   const getRelatedQuestions = (currentIndex: number) => {
-    // This is a simple implementation - in a real app, you might use tags or categories
-    // to determine truly related questions
-    const allQuestions = items.map(item => item.question);
-    const filtered = allQuestions.filter((_, idx) => idx !== currentIndex).slice(0, 2);
-    return filtered;
+    const currentItem = items[currentIndex];
+    const currentQuestion = currentItem.question.toLowerCase();
+    
+    // Score other questions based on keyword overlap and semantic similarity
+    const scoredQuestions = items
+      .map((item, idx) => {
+        if (idx === currentIndex) return null;
+        
+        const questionWords = item.question.toLowerCase().split(' ');
+        const currentWords = currentQuestion.split(' ');
+        
+        // Calculate keyword overlap score
+        const overlap = questionWords.filter(word => 
+          currentWords.includes(word) && word.length > 3
+        ).length;
+        
+        // Boost score for questions in similar categories
+        const categoryBoost = item.category === currentItem.category ? 2 : 0;
+        
+        return {
+          question: item.question,
+          index: idx,
+          score: overlap + categoryBoost,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => (b?.score ?? 0) - (a?.score ?? 0))
+      .slice(0, 2)
+      .map(item => item?.question);
+
+    return scoredQuestions.filter(Boolean) as string[];
   };
 
   return (

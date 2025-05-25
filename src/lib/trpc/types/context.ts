@@ -1,49 +1,54 @@
 /**
  * tRPC Context Types
  * 
- * This file defines the context types for tRPC with Clerk authentication.
+ * This file defines the context types for tRPC with Supabase authentication.
  */
 
 import type { PrismaClient } from '@prisma/client';
 import type { NextRequest } from 'next/server';
-import type { Auth } from '@clerk/nextjs/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 
 /**
- * Base tRPC context with Clerk authentication
+ * Base tRPC context with Supabase authentication
  */
 export interface TRPCContext {
   req: NextRequest;
   resHeaders: Headers;
   headers: Record<string, string>;
   prisma: PrismaClient;
-  auth: Auth | null;
+  supabase: SupabaseClient | null;
+  user: User | null;
   userId: string | null;
+  userEmail: string | null;
   url: string;
-  // Legacy db alias for compatibility
-  db?: PrismaClient;
+  // db alias for compatibility
+  db: PrismaClient;
 }
 
 /**
  * Protected context - guaranteed to have auth
  */
 export interface ProtectedTRPCContext extends TRPCContext {
-  auth: Auth;
+  supabase: SupabaseClient;
+  user: User;
   userId: string;
+  userEmail: string;
 }
 
 /**
  * Admin context - guaranteed to have admin auth
  */
-export interface AdminTRPCContext extends ProtectedTRPCContext {
-  // Additional admin-specific context properties can be added here
-}
+export type AdminTRPCContext = ProtectedTRPCContext;
 
 /**
  * RSC (React Server Component) context
  */
 export interface RSCContext {
   prisma: PrismaClient;
-  auth: Auth | null;
+  supabase: SupabaseClient | null;
+  user: User | null;
   userId: string | null;
+  userEmail: string | null;
   db: PrismaClient;
 }

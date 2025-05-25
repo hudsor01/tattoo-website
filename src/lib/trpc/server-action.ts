@@ -5,9 +5,8 @@
  * It allows for type-safe API calls directly from server components.
  */
 import 'server-only';
-import { appRouter } from './app-router';
+import { appRouter, type AppRouter } from './app-router';
 import { createContextForRSC } from './context';
-import type { AppRouter } from './app-router';
 import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import { TRPCError } from '@trpc/server';
 import { NextRequest } from 'next/server';
