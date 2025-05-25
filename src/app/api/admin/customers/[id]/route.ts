@@ -6,7 +6,7 @@ import { verifyAdminAccess } from '@/lib/utils/server';
  * GET /api/admin/clients/[id]
  * Get a specific client
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Verify admin access
     const hasAccess = await verifyAdminAccess();
@@ -128,7 +128,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/admin/clients/[id]
  * Delete a client
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Verify admin access
     const hasAccess = await verifyAdminAccess();

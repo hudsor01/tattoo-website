@@ -137,8 +137,9 @@ export const subscriptionRouter = router({
     }).optional())
     .subscription(({ input, ctx }) => {
       // Verify user has access to booking events
-      const isAdmin = ctx.user?.role === 'admin';
-      const isArtist = ctx.user?.role === 'artist';
+      const userMetadata = ctx.user?.user_metadata || {};
+      const isAdmin = userMetadata.role === 'admin';
+      const isArtist = userMetadata.role === 'artist';
       
       if (!isAdmin && !isArtist && input?.artistId) {
         throw new Error('Unauthorized to subscribe to booking events');
@@ -161,7 +162,7 @@ export const subscriptionRouter = router({
           // Artists can only see their own bookings
           if (isArtist && data.data.artistId === input?.artistId) {
             emit.next(data);
-            return;
+            
           }
         };
         

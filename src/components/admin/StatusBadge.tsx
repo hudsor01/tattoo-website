@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge'; // unused in this file
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/styling';
 

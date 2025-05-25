@@ -12,9 +12,9 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 /**
  * Execute a stored procedure with parameters
  */
-export async function executeStoredProcedure<T = any>(
+export async function executeStoredProcedure<T = unknown>(
   procedureName: string,
-  params: any[] = []
+  params: unknown[] = []
 ): Promise<T> {
   try {
     // Format parameters for SQL query

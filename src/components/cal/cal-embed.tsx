@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CalendarIcon } from 'lucide-react';
-import { createCalBookingLink } from '@/lib/cal/api';
 
 interface CalEmbedProps {
   eventTypeSlug: string;

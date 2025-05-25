@@ -164,7 +164,7 @@ export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   options: Omit<ErrorBoundaryProps, 'children'> = {},
 ): React.FC<P> {
-  const { componentName = Component.displayName || Component.name } = options;
+  const { componentName = Component.displayName ?? Component.name } = options;
 
   const WithErrorBoundary: React.FC<P> = props => (
     <ErrorBoundary {...options} componentName={componentName}>

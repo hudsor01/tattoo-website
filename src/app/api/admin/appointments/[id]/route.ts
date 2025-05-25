@@ -6,7 +6,7 @@ import { verifyAdminAccess } from '@/lib/utils/server';
  * GET /api/admin/appointments/[id]
  * Get a specific appointment by ID
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Verify admin access
     const hasAccess = await verifyAdminAccess();
@@ -145,7 +145,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/admin/appointments/[id]
  * Delete a specific appointment
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Verify admin access
     const hasAccess = await verifyAdminAccess();

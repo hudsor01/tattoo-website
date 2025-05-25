@@ -7,6 +7,17 @@
 
 import { prisma } from './prisma';
 import { getErrorMessage } from '@/lib/utils/server';
+import type { DatabaseResult } from '@/types/database.types';
+
+/**
+ * Options for stored procedure execution
+ */
+export interface ExecuteStoredProcedureOptions {
+  /** Whether to log the parameters passed to the procedure */
+  logParams?: boolean;
+  /** Timeout in milliseconds for the query */
+  timeoutMs?: number;
+}
 
 /**
  * Execute a stored procedure using Prisma's $queryRaw
@@ -28,7 +39,7 @@ export async function executeStoredProcedure<T = unknown>(
   functionName: string,
   params: unknown[] = [],
   options: ExecuteStoredProcedureOptions = {},
-): Promise<T> {
+): DatabaseResult<T> {
   const { logParams = false, timeoutMs } = options;
 
   try {
@@ -76,7 +87,7 @@ export async function executeDbFunction<T = unknown>(
   functionName: string,
   params: unknown[] = [],
   options: ExecuteStoredProcedureOptions = {},
-): Promise<DatabaseResult<T>> {
+): DatabaseResult<T> {
   try {
     const data = await executeStoredProcedure<T>(functionName, params, options);
     return { data, error: null };

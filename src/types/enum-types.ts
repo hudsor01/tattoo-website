@@ -105,6 +105,15 @@ export enum BookingStatus {
   RESCHEDULED = 'rescheduled',
 }
 
+export enum CalBookingStatus {
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  NO_SHOW = 'no_show',
+  RESCHEDULED = 'rescheduled',
+}
+
 export enum ClientStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',

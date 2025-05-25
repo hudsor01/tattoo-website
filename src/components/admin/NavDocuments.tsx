@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { MoreHorizontal, type LucideIcon } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -26,7 +27,7 @@ export function NavDocuments({
   items: {
     name: string
     url: string
-    icon: LucideIcon
+    icon: React.ComponentType<any>
   }[]
 }) {
   const { isMobile } = useSidebar()
@@ -41,10 +42,10 @@ export function NavDocuments({
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton 
               asChild
-              className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200"
             >
-              <a href={item.url}>
-                <item.icon className="h-4 w-4" />
+              <a href={item.url} className="flex items-center gap-2">
+                <item.icon className="h-4 w-4 shrink-0" />
                 <span className="truncate">{item.name}</span>
               </a>
             </SidebarMenuButton>

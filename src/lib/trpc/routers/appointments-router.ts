@@ -15,8 +15,8 @@ export const appointmentsRouter = router({
       cursor: z.string().nullish(),
       status: z.nativeEnum(AppointmentStatus).optional(),
       customerId: z.string().optional(),
-      startDate: z.date().optional(),
-      endDate: z.date().optional(),
+      startDate: z.string().datetime().optional().transform(val => val ? new Date(val) : undefined),
+      endDate: z.string().datetime().optional().transform(val => val ? new Date(val) : undefined),
     }))
     .query(async ({ input }) => {
       try {
@@ -49,6 +49,8 @@ export const appointmentsRouter = router({
           ...(input.cursor && { cursor: { id: input.cursor } }),
         });
         
+        console.log(`Found ${appointments.length} appointments`);
+        
         let nextCursor: string | undefined;
         if (appointments.length > input.limit) {
           const nextItem = appointments.pop();
@@ -67,24 +69,36 @@ export const appointmentsRouter = router({
         // Transform the data to match our interface
         const transformedAppointments = appointments.map(appointment => {
           const customer = customerMap.get(appointment.customerId);
+          
+          // Calculate duration safely
+          let duration = 120; // default 2 hours
+          try {
+            if (appointment.endDate && appointment.startDate) {
+              duration = Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60));
+              if (duration <= 0) duration = 120;
+            }
+          } catch (error) {
+            console.warn('Error calculating appointment duration:', error);
+          }
+          
           return {
             id: appointment.id,
             customerId: appointment.customerId,
-            clientName: customer ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim() : '',
+            clientName: customer ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim() : 'Unknown Customer',
             clientEmail: customer?.email || '',
             clientPhone: customer?.phone || '',
-            appointmentDate: appointment.startDate,
-            duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
-            status: appointment.status,
+            appointmentDate: appointment.startDate?.toISOString() || new Date().toISOString(),
+            duration,
+            status: appointment.status as AppointmentStatus,
             depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
             depositAmount: appointment.deposit || 0,
             totalPrice: appointment.totalPrice || 0,
-            tattooStyle: '', // Not in schema
+            tattooStyle: appointment.title || '', // Use title as tattoo style
             description: appointment.description || '',
             location: appointment.location || '',
-            size: '', // Not in schema
-            createdAt: appointment.createdAt,
-            updatedAt: appointment.updatedAt,
+            size: '', // Not in schema, could be derived from description
+            createdAt: appointment.createdAt?.toISOString() || new Date().toISOString(),
+            updatedAt: appointment.updatedAt?.toISOString() || new Date().toISOString(),
           };
         });
         

@@ -476,5 +476,74 @@ export const adminRouter = router({
       }
       throw error;
     }
-  })
+  }),
+
+  // Create a new customer
+  createCustomer: adminProcedure
+    .input(
+      z.object({
+        firstName: z.string().min(1, 'First name is required'),
+        lastName: z.string().min(1, 'Last name is required'),  
+        email: z.string().email('Valid email is required'),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        notes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const customer = await ctx.db.customer.create({
+          data: {
+            firstName: input.firstName.trim(),
+            lastName: input.lastName.trim(),
+            email: input.email.trim().toLowerCase(),
+            phone: input.phone?.trim() || null,
+            address: input.address?.trim() || null,
+            city: input.city?.trim() || null,
+            state: input.state?.trim() || null,
+            postalCode: input.zipCode?.trim() || null,
+            notes: input.notes?.trim() || null,
+            tags: [], // Initialize as empty array
+          },
+          // Only select the fields we need to avoid serialization issues
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            address: true,
+            city: true,
+            state: true,
+            postalCode: true,
+            notes: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+
+        return customer;
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          // Handle unique constraint violation (email already exists)
+          if (error.code === 'P2002') {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'A customer with this email already exists',
+              cause: error,
+            });
+          }
+
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create customer: ${error.message}`,
+            cause: error,
+          });
+        }
+        throw error;
+      }
+    }),
 });

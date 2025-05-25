@@ -122,15 +122,19 @@ export const bookingRouter = router({
   // Get bookings for the current user
   getMine: protectedProcedure
     .query(async ({ ctx }) => {
+      // Get user role from Supabase user metadata
+      const userMetadata = ctx.user.user_metadata || {};
+      const userRole = userMetadata.role;
+      
       // Get artist profile if user is an artist
-      const artist = ctx.user.role === 'artist' ? 
+      const artist = userRole === 'artist' ? 
         await ctx.db.artist.findUnique({
-          where: { userId: ctx.user.id },
+          where: { userId: ctx.userId! },
         }) : null;
 
       // Get customer profile
       const customer = await ctx.db.customer.findFirst({
-        where: emailWhereCondition(ctx.user.email),
+        where: emailWhereCondition(ctx.userEmail || ''),
       });
 
       if (!artist && !customer) {
@@ -210,11 +214,12 @@ export const bookingRouter = router({
         }
 
         // Check if user has permission to update
-        const isAdmin = ctx.user.role === 'admin';
+        const userMetadata = ctx.user.user_metadata || {};
+        const isAdmin = userMetadata.role === 'admin';
         const isArtist = existingBooking.artistId && 
           await ctx.db.artist.findFirst({ 
             where: { 
-              userId: ctx.user.id,
+              userId: ctx.userId!,
               id: existingBooking.artistId
             } 
           });
@@ -222,7 +227,7 @@ export const bookingRouter = router({
           await ctx.db.customer.findFirst({
             where: {
               id: existingBooking.customerId,
-              ...emailWhereCondition(ctx.user.email)
+              ...emailWhereCondition(ctx.userEmail || '')
             }
           });
 

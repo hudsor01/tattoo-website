@@ -4,7 +4,7 @@
  * Type definitions related to database operations and Prisma.
  */
 
-import type { Prisma, PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 
 /**
  * ========================================================================
@@ -102,6 +102,11 @@ export interface BaseModel extends TimestampFields {
 }
 
 /**
+ * Base entity interface (alias for BaseModel)
+ */
+export interface BaseEntity extends BaseModel {}
+
+/**
  * ========================================================================
  * OPERATION TYPES
  * ========================================================================
@@ -132,9 +137,13 @@ export type {
   Booking,
   Appointment,
   Customer,
-  GalleryItem,
   Payment,
-  PricingTier,
+  Artist,
+  TattooDesign,
+  Contact,
+  Lead,
+  Tag,
+  Transaction,
 } from '@prisma/client';
 
 // Export Prisma namespace for advanced types

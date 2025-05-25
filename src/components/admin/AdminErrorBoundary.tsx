@@ -5,18 +5,18 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
-  fallback?: React.ComponentType<{ error?: Error; retry: () => void }>;
+  fallback?: React.ComponentType<{ error: Error | null; retry: () => void }>;
 }
 
 export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -24,7 +24,7 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('🚨 Admin Error Boundary - Component did catch:', {
       error: {
         name: error.name,
@@ -36,10 +36,10 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
   }
 
   retry = () => {
-    this.setState({ hasError: false, error: undefined });
+    this.setState({ hasError: false, error: null });
   };
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         const Fallback = this.props.fallback;
@@ -84,7 +84,7 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
 }
 
 // Fallback component for loading states with errors
-export function AdminLoadingFallback({ error, retry }: { error?: Error; retry: () => void }) {
+export function AdminLoadingFallback({ error, retry }: { error: Error | null; retry: () => void }) {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">

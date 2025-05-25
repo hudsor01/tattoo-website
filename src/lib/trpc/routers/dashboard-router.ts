@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { router, publicProcedure } from '@/lib/trpc/procedures';
 import { prisma } from '@/lib/db/prisma';
 import { TRPCError } from '@trpc/server';
-import { formatDateRange } from '@/lib/utils/date';
+import { formatDateRange } from '@/lib/utils/date-format';
 import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
 import { Prisma } from '@prisma/client';
 
@@ -504,7 +504,7 @@ export const dashboardRouter = router({
               id: true,
               startDate: true,
               status: true,
-              notes: true,
+              designNotes: true,
             }
           }
         }
@@ -530,7 +530,7 @@ export const dashboardRouter = router({
         bookings: bookings.map(booking => ({
           id: booking.id,
           customerId: booking.customerId,
-          appointmentId: booking.Appointment?.id || null,
+          appointmentId: null, // appointmentId field not available in Booking model
           name: booking.name,
           email: booking.email,
           tattooType: booking.tattooType,
@@ -543,8 +543,7 @@ export const dashboardRouter = router({
           depositPaid: booking.depositPaid,
           createdAt: booking.createdAt,
           updatedAt: booking.updatedAt,
-          Customer: booking.Customer,
-          Appointment: booking.Appointment,
+          Customer: null, // Customer relationship not included in this query
         })),
         nextCursor,
         totalCount,
@@ -1010,7 +1009,7 @@ function formatAppointmentTime(date: Date): string {
 
 // Helper function to get the previous period's date range
 function getPreviousRange(
-  period: string,
+  _period: string,
   startDate: Date,
   endDate: Date,
 ): { startDate: Date; endDate: Date } {

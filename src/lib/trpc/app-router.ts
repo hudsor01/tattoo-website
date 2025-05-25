@@ -16,6 +16,7 @@ import { calRouter } from './routers/cal-router';
 import { dashboardRouter } from './routers/dashboard-router';
 import { appointmentsRouter } from './routers/appointments-router';
 import { paymentsRouter } from './routers/payments-router';
+import { settingsRouter } from './routers/settings-router';
 
 /**
  * Main application router
@@ -32,6 +33,7 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   appointments: appointmentsRouter,
   payments: paymentsRouter,
+  settings: settingsRouter,
 });
 
 // Export type definition of the API

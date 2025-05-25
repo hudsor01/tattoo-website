@@ -103,7 +103,7 @@ export function TableLoading({ columns, rows = 5 }: TableLoadingProps) {
 // Button loading state
 export function ButtonLoading({ 
   text = 'Loading...', 
-  size = 'sm' 
+  size: _ = 'sm' 
 }: { 
   text?: string;
   size?: 'sm' | 'md' | 'lg';

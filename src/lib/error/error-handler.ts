@@ -45,7 +45,7 @@ export interface ErrorContext {
  * Determine if an error should be displayed to the user
  */
 function shouldDisplayToUser(category: ErrorCategory, context?: ErrorContext): boolean {
-  if (context && context.displayToUser !== undefined) {
+  if (context?.displayToUser !== undefined) {
     return !!context.displayToUser;
   }
 

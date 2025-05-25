@@ -105,33 +105,30 @@ export default function HomeClient() {
       
       {/* Persistent minimal navigation */}
       <nav className="fixed top-8 right-8 z-40 flex gap-6">
-        <Link href="/gallery" passHref>
-          <motion.a 
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+        <motion.div whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}>
+          <Link
+            href="/gallery"
             className="text-white/70 hover:text-white text-sm uppercase tracking-wide font-medium transition-colors"
           >
             Gallery
-          </motion.a>
-        </Link>
-        <Link href="/services" passHref>
-          <motion.a 
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+          </Link>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}>
+          <Link
+            href="/services"
             className="text-white/70 hover:text-white text-sm uppercase tracking-wide font-medium transition-colors"
           >
             Services
-          </motion.a>
-        </Link>
-        <Link href="/contact" passHref>
-          <motion.a 
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+          </Link>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}>
+          <Link
+            href="/contact"
             className="text-white/70 hover:text-white text-sm uppercase tracking-wide font-medium transition-colors"
           >
             Contact
-          </motion.a>
-        </Link>
+          </Link>
+        </motion.div>
       </nav>
     
       <div className="fixed inset-0 overflow-hidden bg-black">

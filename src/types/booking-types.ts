@@ -238,7 +238,6 @@ export interface CreateAppointmentParams {
 
 // Appointment entity
 export interface Appointment extends BaseEntity {
-  id: ID;
   clientId: ID;
   bookingId?: ID;
   startTime: DateString;
@@ -867,7 +866,7 @@ export interface CustomerType {
 }
 
 /**
- * Appointment type for admin dashboard
+ * Appointment type for admin dashboard (database model)
  */
 export interface AppointmentType {
   id: string;
@@ -887,6 +886,29 @@ export interface AppointmentType {
   size?: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/**
+ * Appointment type as serialized by tRPC (dates as strings)
+ */
+export interface AppointmentSerializedType {
+  id: string;
+  customerId: string;
+  clientName?: string | null;
+  clientEmail?: string | null;
+  clientPhone?: string | null;
+  appointmentDate: string;
+  duration: number;
+  status: string;
+  depositPaid?: boolean;
+  depositAmount?: number;
+  totalPrice?: number;
+  tattooStyle?: string | null;
+  description?: string | null;
+  location?: string | null;
+  size?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

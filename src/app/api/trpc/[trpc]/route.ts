@@ -8,7 +8,6 @@ import { NextRequest } from 'next/server';
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/lib/trpc/app-router';
 import { createTRPCContext } from '@/lib/trpc/context';
-import { fixSupabaseUrl, ensureCorrectSupabaseUrl } from '@/lib/utils/url-utils';
 import { logger } from '@/lib/logger';
 
 /**
@@ -23,11 +22,10 @@ import { logger } from '@/lib/logger';
 export async function POST(req: NextRequest) {
   // Debug logging
   const url = req.url || '';
-  const cleanUrl = fixSupabaseUrl(ensureCorrectSupabaseUrl(url));
   const cookieHeader = req.headers.get('cookie') || '';
 
   logger.debug('tRPC API route called', {
-    url: cleanUrl,
+    url,
     method: req.method,
     hasCookies: !!cookieHeader,
   });
@@ -48,7 +46,6 @@ export async function POST(req: NextRequest) {
           path,
           message: error.message,
           code: error.code,
-          // Note: error.data may not exist on TRPCError in this version
           cause: error.cause || null,
         });
       },
@@ -69,16 +66,17 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     // Log the top-level error
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('tRPC handler error', {
-      url: cleanUrl,
-      error: error instanceof Error ? error.message : String(error),
+      url,
+      error: errorMessage,
     });
 
     // Return a 500 response
     return new Response(
       JSON.stringify({
         message: 'Internal server error',
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage,
       }),
       {
         status: 500,
