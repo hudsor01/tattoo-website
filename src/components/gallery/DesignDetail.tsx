@@ -61,7 +61,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
   
   // Handle back navigation
   const handleBack = () => {
-    router.back();
+    void router.back();
   };
   
   // Handle share button click
@@ -69,16 +69,16 @@ export function DesignDetail({ id }: DesignDetailProps) {
     // Share analytics tracking removed
     
     if (navigator.share) {
-      navigator.share({
-        title: design?.name || 'Tattoo Design',
+      void navigator.share({
+        title: design?.name ?? 'Tattoo Design',
         text: `Check out this awesome tattoo design from Ink 37: ${design?.name}`,
         url: window.location.href,
       }).catch((error) => {
-        console.error('Error sharing', error);
+        void console.error('Error sharing', error);
       });
     } else {
       // Copy link to clipboard if Web Share API not available
-      navigator.clipboard.writeText(window.location.href);
+      void navigator.clipboard.writeText(window.location.href);
       setShowShareModal(true);
       setTimeout(() => setShowShareModal(false), 3000);
     }
@@ -89,7 +89,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
     // Booking analytics tracking removed
     
     // Navigate to booking page
-    router.push(`/booking?designId=${id}`);
+    void router.push(`/booking?designId=${id}`);
   };
   
   // We shouldn't hit this but just in case
@@ -216,7 +216,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
               >
                 <Avatar className="h-10 w-10">
                   {design.Artist.User.image ? (
-                    <AvatarImage src={design.Artist.User.image} alt={design.Artist.User.name || 'Artist'} />
+                    <AvatarImage src={design.Artist.User.image} alt={design.Artist.User.name ?? 'Artist'} />
                   ) : (
                     <AvatarFallback>
                       {design.Artist.User.name ? design.Artist.User.name.charAt(0).toUpperCase() : 'A'}

@@ -9,7 +9,7 @@ import './globals.css';
 
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env['NEXT_PUBLIC_BASE_URL'] || 'https://ink37tattoos.com'),
+  metadataBase: new URL(process.env['NEXT_PUBLIC_BASE_URL'] ?? 'https://ink37tattoos.com'),
   title: 'Ink 37 | Dallas/Fort Worth',
   description:
     'Ink 37 is a premier tattoo artist in the Dallas/Fort Worth metroplex specializing in custom designs. Book your consultation today and bring your vision to life.',

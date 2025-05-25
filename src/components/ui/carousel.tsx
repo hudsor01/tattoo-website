@@ -87,29 +87,29 @@ const Carousel = React.forwardRef<
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'ArrowLeft') {
-          event.preventDefault();
+          void event.preventDefault();
           scrollPrev();
         } else if (event.key === 'ArrowRight') {
-          event.preventDefault();
+          void event.preventDefault();
           scrollNext();
         }
       },
       [scrollPrev, scrollNext]
     );
 
-    React.useEffect(() => {
-      if (!api) return;
+    void React.useEffect(() => {
+      if (!api) return undefined;
 
       onSelect();
-      api.on('reInit', onSelect);
-      api.on('select', onSelect);
+      void api.on('reInit', onSelect);
+      void api.on('select', onSelect);
 
       return () => {
-        api.off('select', onSelect);
+        void api.off('select', onSelect);
       };
     }, [api, onSelect]);
 
-    React.useEffect(() => {
+    void React.useEffect(() => {
       if (api && setApi) {
         setApi(api);
       }
@@ -260,9 +260,9 @@ const CarouselDots = React.forwardRef<
       className={cn("flex justify-center gap-1 mt-4", className)}
       {...props}
     >
-      {Array.from({ length: count }).map((_, index) => (
+      {Array.from({ length: count }, (_, i) => `dot-${i}`).map((key, index) => (
         <button
-          key={index}
+          key={key}
           className={cn(
             "h-2 w-2 rounded-full transition-all",
             activeIndex === index 

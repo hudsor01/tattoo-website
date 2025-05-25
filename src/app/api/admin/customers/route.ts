@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = parseInt(searchParams.get('page') ?? '1');
+    const limit = parseInt(searchParams.get('limit') ?? '50');
     const skip = (page - 1) * limit;
 
     // Build filters
@@ -80,13 +80,13 @@ export async function GET(request: NextRequest) {
 
       // Extract tattoo style preference from notes if available
       const tattooStyle = customer.notes?.includes('tattoo style') ? 
-        customer.notes.split('tattoo style preference:')[1]?.trim() || '' : '';
+        customer.notes.split('tattoo style preference:')[1]?.trim() ?? '' : '';
 
       // Determine status based on tags (default to 'new')
       const status = customer.tags.length > 0 ? 'active' : 'new';
 
       // Determine last contact from appointments
-      const lastContact = customer.Appointment[0]?.startDate || null;
+      const lastContact = customer.Appointment[0]?.startDate ?? null;
 
       return {
         id: customer.id,
@@ -94,14 +94,14 @@ export async function GET(request: NextRequest) {
         firstName: customer.firstName,
         lastName: customer.lastName,
         email: customer.email,
-        phone: customer.phone || '',
-        address: customer.address || '',
-        city: customer.city || '',
-        state: customer.state || '',
-        postalCode: customer.postalCode || '',
+        phone: customer.phone ?? '',
+        address: customer.address ?? '',
+        city: customer.city ?? '',
+        state: customer.state ?? '',
+        postalCode: customer.postalCode ?? '',
         status,
         tattooStyle,
-        notes: customer.notes || '',
+        notes: customer.notes ?? '',
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         lastContact,
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
       pageCount: Math.ceil(totalCount / limit),
     });
   } catch (error) {
-    console.error('Error fetching customers:', error);
+    void console.error('Error fetching customers:', error);
     return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
   }
 }
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     // Get request body
     const data = await request.json();
-    console.log('Creating customer with data:', data);
+    void console.warn('Creating customer with data:', data);
 
     // Support both name-based and firstName/lastName-based input
     let firstName: string;
@@ -189,12 +189,12 @@ export async function POST(request: NextRequest) {
       firstName,
       lastName,
       email: data.email.toLowerCase().trim(),
-      phone: data.phone?.trim() || null,
-      address: data.address?.trim() || null,
-      city: data.city?.trim() || null,
-      state: data.state?.trim() || null,
-      postalCode: data.postalCode?.trim() || null,
-      notes: data.notes?.trim() || null,
+      phone: data.phone?.trim() ?? null,
+      address: data.address?.trim() ?? null,
+      city: data.city?.trim() ?? null,
+      state: data.state?.trim() ?? null,
+      postalCode: data.postalCode?.trim() ?? null,
+      notes: data.notes?.trim() ?? null,
     };
 
     const customer = await prisma.customer.create({
@@ -215,10 +215,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('Customer created successfully:', customer);
+    void console.warn('Customer created successfully:', customer);
     return NextResponse.json(customer, { status: 201 });
   } catch (error) {
-    console.error('Error creating customer:', error);
+    void console.error('Error creating customer:', error);
     return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
   }
 }

@@ -126,7 +126,7 @@ function getErrorMessage(error: unknown): string {
  * Standard error handler for API routes
  */
 export function handleApiError(error: unknown) {
-  console.error('API error:', error);
+  void console.error('API error:', error);
 
   if (error instanceof z.ZodError) {
     return NextResponse.json(

@@ -23,7 +23,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
 
       // Open the share URL in a new window for social platforms
       if (platform !== "email") {
-        window.open(result.shareUrl, "_blank", "noopener,noreferrer")
+        void window.open(result.shareUrl, "_blank", "noopener,noreferrer")
       } else {
         // For email, we'll just open the mailto link
         window.location.href = result.shareUrl
@@ -34,7 +34,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
         description: `Content shared on ${platform}`,
       })
     } catch (error) {
-      console.error("Share error:", error)
+      void console.error("Share error:", error)
       toast({
         title: "Share failed",
         description: "Could not share content. Please try again.",
@@ -55,7 +55,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
         description: "Link copied to clipboard successfully",
       })
     } catch (err) {
-      console.error("Failed to copy:", err)
+      void console.error("Failed to copy:", err)
       toast({
         title: "Copy failed",
         description: "Could not copy to clipboard. Please try manually.",
@@ -104,7 +104,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
             <div className="flex items-start gap-3">
               <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0 overflow-hidden">
                 <img
-                  src={shareMetadata.image || "/placeholder.svg"}
+                  src={shareMetadata.image ?? "/placeholder.svg"}
                   alt={shareMetadata.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -126,7 +126,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
               <Button
                 key={button.name}
                 className={`${button.color} text-white`}
-                onClick={() => handleShare(button.name)}
+                onClick={() => void handleShare(button.name)}
                 disabled={isLoading[button.name]}
               >
                 {isLoading[button.name] ? (
@@ -140,10 +140,10 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
           </div>
 
           <div className="flex items-center space-x-2">
-            <Input value={shareUrl || previewUrl} readOnly className="flex-1" />
+            <Input value={shareUrl ?? previewUrl} readOnly className="flex-1" />
             <Button
               size="icon"
-              onClick={() => copyToClipboard(shareUrl || previewUrl)}
+              onClick={() => void copyToClipboard(shareUrl ?? previewUrl)}
               aria-label="Copy link to clipboard"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

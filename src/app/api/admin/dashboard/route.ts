@@ -15,7 +15,6 @@ export async function GET() {
     }
 
     const today = new Date();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const startOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     const endOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 
@@ -39,8 +38,7 @@ export async function GET() {
       prisma.customer.count({
         where: {
           createdAt: {
-            gte: startOfMonth,
-            lte: today,
+            gte: today,
           },
         },
       }),
@@ -128,8 +126,7 @@ export async function GET() {
       prisma.transaction.aggregate({
         where: {
           createdAt: {
-            gte: startOfMonth,
-            lte: today,
+            gte: today,
           },
           status: 'completed',
         },
@@ -184,9 +181,9 @@ export async function GET() {
       status: appointment.status,
       client: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
       clientId: appointment.Customer.id,
-      deposit: appointment.deposit || 0,
+      deposit: appointment.deposit ?? 0,
       depositPaid: appointment.deposit ? true : false,
-      service: appointment.description || appointment.title,
+      service: appointment.description ?? appointment.title,
     }));
 
     // Calculate percentage change in clients
@@ -198,8 +195,8 @@ export async function GET() {
           : 0;
 
     // Calculate percentage change in revenue
-    const currentMonthRevenue = currentMonthPayments._sum.amount || 0;
-    const prevMonthRevenue = prevMonthPayments._sum.amount || 0;
+    const currentMonthRevenue = currentMonthPayments._sum.amount ?? 0;
+    const prevMonthRevenue = prevMonthPayments._sum.amount ?? 0;
     const revenuePercentChange =
       prevMonthRevenue > 0
         ? Math.round(((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
@@ -254,7 +251,7 @@ export async function GET() {
       todayAppointments,
     });
   } catch (error) {
-    console.error('Error fetching dashboard data:', error);
+    void console.error('Error fetching dashboard data:', error);
     return NextResponse.json({ error: 'Failed to fetch dashboard data' }, { status: 500 });
   }
 }

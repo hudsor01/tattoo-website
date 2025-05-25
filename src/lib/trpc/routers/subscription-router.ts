@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { publicProcedure, protectedProcedure, adminProcedure, router } from '../server';
 import { observable } from '@trpc/server/observable';
 import { EventEmitter } from 'events';
+import type { UserMetadata } from '@/types/clerk-types';
 
 // Global event emitter for real-time updates
 const ee = new EventEmitter();
@@ -113,19 +114,19 @@ type GalleryEvent = {
 
 // Export helper functions to emit events
 export function emitBookingEvent(event: BookingEvent) {
-  ee.emit('booking', event);
+  void ee.emit('booking', event);
 }
 
 export function emitAppointmentEvent(event: AppointmentEvent) {
-  ee.emit('appointment', event);
+  void ee.emit('appointment', event);
 }
 
 export function emitCustomerEvent(event: CustomerEvent) {
-  ee.emit('customer', event);
+  void ee.emit('customer', event);
 }
 
 export function emitGalleryEvent(event: GalleryEvent) {
-  ee.emit('gallery', event);
+  void ee.emit('gallery', event);
 }
 
 // Export the subscription router with all procedures
@@ -137,9 +138,9 @@ export const subscriptionRouter = router({
     }).optional())
     .subscription(({ input, ctx }) => {
       // Verify user has access to booking events
-      const userMetadata = ctx.user?.user_metadata || {};
-      const isAdmin = userMetadata.role === 'admin';
-      const isArtist = userMetadata.role === 'artist';
+      const userRole = ctx.user?.role ?? (ctx.user?.publicMetadata as UserMetadata)?.role ?? 'user';
+      const isAdmin = userRole === 'admin';
+      const isArtist = userRole === 'artist';
       
       if (!isAdmin && !isArtist && input?.artistId) {
         throw new Error('Unauthorized to subscribe to booking events');
@@ -155,23 +156,23 @@ export const subscriptionRouter = router({
           
           // Admin can see all events
           if (isAdmin) {
-            emit.next(data);
+            void emit.next(data);
             return;
           }
           
           // Artists can only see their own bookings
           if (isArtist && data.data.artistId === input?.artistId) {
-            emit.next(data);
+            void emit.next(data);
             
           }
         };
         
         // Subscribe to booking events
-        ee.on('booking', onBookingEvent);
+        void ee.on('booking', onBookingEvent);
         
         // Cleanup when client unsubscribes
         return () => {
-          ee.off('booking', onBookingEvent);
+          void ee.off('booking', onBookingEvent);
         };
       });
     }),
@@ -196,15 +197,15 @@ export const subscriptionRouter = router({
             return;
           }
           
-          emit.next(data);
+          void emit.next(data);
         };
         
         // Subscribe to appointment events
-        ee.on('appointment', onAppointmentEvent);
+        void ee.on('appointment', onAppointmentEvent);
         
         // Cleanup when client unsubscribes
         return () => {
-          ee.off('appointment', onAppointmentEvent);
+          void ee.off('appointment', onAppointmentEvent);
         };
       });
     }),
@@ -223,15 +224,15 @@ export const subscriptionRouter = router({
             return;
           }
           
-          emit.next(data);
+          void emit.next(data);
         };
         
         // Subscribe to customer events
-        ee.on('customer', onCustomerEvent);
+        void ee.on('customer', onCustomerEvent);
         
         // Cleanup when client unsubscribes
         return () => {
-          ee.off('customer', onCustomerEvent);
+          void ee.off('customer', onCustomerEvent);
         };
       });
     }),
@@ -244,16 +245,16 @@ export const subscriptionRouter = router({
         const onGalleryEvent = (data: GalleryEvent) => {
           // Only emit events for approved designs or all events for approved designs
           if (data.type === 'approved' || (data.type === 'created' && data.data.isApproved)) {
-            emit.next(data);
+            void emit.next(data);
           }
         };
         
         // Subscribe to gallery events
-        ee.on('gallery', onGalleryEvent);
+        void ee.on('gallery', onGalleryEvent);
         
         // Cleanup when client unsubscribes
         return () => {
-          ee.off('gallery', onGalleryEvent);
+          void ee.off('gallery', onGalleryEvent);
         };
       });
     }),
@@ -265,15 +266,15 @@ export const subscriptionRouter = router({
       return observable<GalleryEvent>((emit) => {
         const onGalleryEvent = (data: GalleryEvent) => {
           // Admin sees all gallery events
-          emit.next(data);
+          void emit.next(data);
         };
         
         // Subscribe to gallery events
-        ee.on('gallery', onGalleryEvent);
+        void ee.on('gallery', onGalleryEvent);
         
         // Cleanup when client unsubscribes
         return () => {
-          ee.off('gallery', onGalleryEvent);
+          void ee.off('gallery', onGalleryEvent);
         };
       });
     }),
@@ -285,7 +286,7 @@ export const subscriptionRouter = router({
       return observable<DashboardActivityEvent>((emit) => {
         // Combined event handler for all activity types
         const onActivity = (type: string, data: BookingEvent | AppointmentEvent | CustomerEvent | GalleryEvent) => {
-          emit.next({
+          void emit.next({
             type,
             data,
             timestamp: new Date(),
@@ -298,17 +299,17 @@ export const subscriptionRouter = router({
         const onCustomer = (data: CustomerEvent) => onActivity('customer', data);
         const onGallery = (data: GalleryEvent) => onActivity('gallery', data);
         
-        ee.on('booking', onBooking);
-        ee.on('appointment', onAppointment);
-        ee.on('customer', onCustomer);
-        ee.on('gallery', onGallery);
+        void ee.on('booking', onBooking);
+        void ee.on('appointment', onAppointment);
+        void ee.on('customer', onCustomer);
+        void ee.on('gallery', onGallery);
         
         // Cleanup when client unsubscribes
         return () => {
-          ee.off('booking', onBooking);
-          ee.off('appointment', onAppointment);
-          ee.off('customer', onCustomer);
-          ee.off('gallery', onGallery);
+          void ee.off('booking', onBooking);
+          void ee.off('appointment', onAppointment);
+          void ee.off('customer', onCustomer);
+          void ee.off('gallery', onGallery);
         };
       });
     }),

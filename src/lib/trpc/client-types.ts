@@ -17,8 +17,6 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 export type GalleryRouter = RouterOutputs['gallery'];
 export type GalleryInputs = RouterInputs['gallery'];
 
-export type BookingRouter = RouterOutputs['booking'];
-export type BookingInputs = RouterInputs['booking'];
 
 
 export type AdminRouter = RouterOutputs['admin'];

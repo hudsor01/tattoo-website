@@ -34,7 +34,7 @@ interface CalWebhookPayload {
       title: string;
       slug: string;
     };
-    metadata?: Record<string, any>;
+    metadata?: Record<string, string | number | boolean | null>;
     rescheduleUid?: string;
     cancelReason?: string;
   };
@@ -48,7 +48,7 @@ function verifySignature(req: NextRequest, body: string): boolean {
   const webhookSecret = process.env.CAL_WEBHOOK_SECRET;
   
   if (!calSignature || !webhookSecret) {
-    logger.warn('Missing Cal.com webhook signature or secret');
+    void logger.warn('Missing Cal.com webhook signature or secret');
     return false;
   }
   
@@ -64,7 +64,7 @@ function verifySignature(req: NextRequest, body: string): boolean {
     // Compare signatures securely
     return signature === expectedSignature;
   } catch (error) {
-    logger.error('Error verifying Cal.com webhook signature:', error);
+    void logger.error('Error verifying Cal.com webhook signature:', error);
     return false;
   }
 }
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     
     // Verify webhook signature for security
     if (!verifySignature(req, rawBody)) {
-      logger.warn('Invalid Cal.com webhook signature');
+      void logger.warn('Invalid Cal.com webhook signature');
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     
     // Handle Cal.com ping test
     if (payload.triggerEvent === 'PING' || payload.event === 'ping') {
-      logger.info('Cal.com webhook ping test received');
+      void logger.info('Cal.com webhook ping test received');
       return NextResponse.json({ 
         success: true, 
         message: 'Webhook endpoint is working'
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
     });
     
   } catch (error) {
-    logger.error('Error processing Cal.com webhook:', error);
+    void logger.error('Error processing Cal.com webhook:', error);
     return NextResponse.json({ 
       success: false, 
       error: 'Webhook processing error'
@@ -140,23 +140,23 @@ async function processBookingEvent(payload: CalWebhookPayload) {
     // Find or create customer
     const attendee = booking.attendees[0];
     if (!attendee) {
-      logger.warn('No attendee found in booking payload');
+      void logger.warn('No attendee found in booking payload');
       return;
     }
 
     const customer = await prisma.customer.upsert({
       where: { email: attendee.email },
       update: {
-        firstName: attendee.name.split(' ')[0] || attendee.name,
-        lastName: attendee.name.split(' ').slice(1).join(' ') || '',
-        phone: attendee.phone || null,
+        firstName: attendee.name.split(' ')[0] ?? attendee.name,
+        lastName: attendee.name.split(' ').slice(1).join(' ') ?? '',
+        phone: attendee.phone ?? null,
         updatedAt: new Date(),
       },
       create: {
-        firstName: attendee.name.split(' ')[0] || attendee.name,
-        lastName: attendee.name.split(' ').slice(1).join(' ') || '',
+        firstName: attendee.name.split(' ')[0] ?? attendee.name,
+        lastName: attendee.name.split(' ').slice(1).join(' ') ?? '',
         email: attendee.email,
-        phone: attendee.phone || null,
+        phone: attendee.phone ?? null,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -184,13 +184,13 @@ async function processBookingEvent(payload: CalWebhookPayload) {
         break;
         
       default:
-        logger.info(`Unhandled Cal.com event: ${eventType}`);
+        void logger.info(`Unhandled Cal.com event: ${eventType}`);
     }
     
-    logger.info(`Successfully processed ${eventType} for booking ${booking.uid}`);
+    void logger.info(`Successfully processed ${eventType} for booking ${booking.uid}`);
     
   } catch (error) {
-    logger.error(`Error processing booking event ${eventType}:`, error);
+    void logger.error(`Error processing booking event ${eventType}:`, error);
     throw error;
   }
 }
@@ -198,7 +198,9 @@ async function processBookingEvent(payload: CalWebhookPayload) {
 /**
  * Create a new booking in the database
  */
-async function createBooking(booking: any, customerId: string, status: CalBookingStatus) {
+async function createBooking(booking: CalWebhookPayload['payload'], customerId: string, status: CalBookingStatus) {
+  if (!booking) return;
+  
   await prisma.booking.create({
     data: {
       calBookingUid: booking.uid,
@@ -209,13 +211,13 @@ async function createBooking(booking: any, customerId: string, status: CalBookin
       tattooType: 'Consultation', // Default for Cal.com bookings
       size: 'Medium',
       placement: 'TBD',
-      description: booking.description || booking.title || 'Cal.com booking',
+      description: booking.title ?? 'Cal.com booking',
       preferredDate: new Date(booking.startTime),
       preferredTime: new Date(booking.startTime).toLocaleTimeString(),
       paymentMethod: 'Unspecified',
       calStatus: status,
       calEventTypeId: booking.eventType?.id,
-      calMetadata: booking.metadata || {},
+      calMetadata: booking.metadata ?? {},
       updatedAt: new Date(),
     },
   });
@@ -224,9 +226,11 @@ async function createBooking(booking: any, customerId: string, status: CalBookin
 /**
  * Reschedule an existing booking
  */
-async function rescheduleBooking(booking: any, status: CalBookingStatus) {
+async function rescheduleBooking(booking: CalWebhookPayload['payload'], status: CalBookingStatus) {
+  if (!booking) return;
+  
   await prisma.booking.updateMany({
-    where: { calBookingUid: booking.rescheduleUid || booking.uid },
+    where: { calBookingUid: booking.rescheduleUid ?? booking.uid },
     data: {
       preferredDate: new Date(booking.startTime),
       preferredTime: new Date(booking.startTime).toLocaleTimeString(),
@@ -239,12 +243,14 @@ async function rescheduleBooking(booking: any, status: CalBookingStatus) {
 /**
  * Cancel a booking
  */
-async function cancelBooking(booking: any, cancelReason?: string) {
+async function cancelBooking(booking: CalWebhookPayload['payload'], cancelReason?: string) {
+  if (!booking) return;
+  
   await prisma.booking.updateMany({
     where: { calBookingUid: booking.uid },
     data: {
       calStatus: CalBookingStatus.CANCELLED,
-      notes: cancelReason,
+      ...(cancelReason && { notes: cancelReason }),
       updatedAt: new Date(),
     },
   });
@@ -253,7 +259,9 @@ async function cancelBooking(booking: any, cancelReason?: string) {
 /**
  * Confirm a booking
  */
-async function confirmBooking(booking: any) {
+async function confirmBooking(booking: CalWebhookPayload['payload']) {
+  if (!booking) return;
+  
   await prisma.booking.updateMany({
     where: { calBookingUid: booking.uid },
     data: {

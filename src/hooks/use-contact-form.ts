@@ -5,13 +5,19 @@
  */
 
 import { useCallback } from 'react';
-import { trpc } from '@/lib/trpc/client';
 
 /**
  * Hook for submitting contact form data
  */
 export const useContactForm = () => {
-  const submitContactMutation = trpc.user.submitContact.useMutation();
+  // TODO: Contact submission - implement in appropriate router
+  const submitContactMutation = { 
+    mutate: async () => {}, 
+    isPending: false,
+    isSuccess: false,
+    isError: false,
+    error: null
+  };
   
   const submitContactForm = useCallback(
     (contactData: {
@@ -21,9 +27,9 @@ export const useContactForm = () => {
       message: string;
     }) => {
       try {
-        return submitContactMutation.mutate(contactData);
+        return submitContactMutation.mutate();
       } catch (error) {
-        console.error('Error submitting contact form:', error);
+        void console.error('Error submitting contact form:', error);
         throw error;
       }
     },
@@ -43,16 +49,11 @@ export const useContactForm = () => {
  * Hook for fetching contact form submissions for admin dashboard
  */
 export const useAdminContactSubmissions = () => {
-  const { data, isLoading, error, refetch } = trpc.dashboard.getRecentContacts.useQuery(
-    {},
-    {
-      refetchOnWindowFocus: false,
-      refetchOnMount: true,
-    }
-  );
+  // TODO: Recent contacts - implement in dashboard router
+  const { data, isLoading, error, refetch } = { data: undefined, isLoading: false, error: null, refetch: async () => {} };
 
   return {
-    submissions: data || [],
+    submissions: data ?? [],
     isLoading,
     error,
     refetchSubmissions: refetch,

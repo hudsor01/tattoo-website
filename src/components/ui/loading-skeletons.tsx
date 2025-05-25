@@ -14,16 +14,16 @@ export function TableSkeleton() {
       <div className="border rounded-md">
         <div className="p-4 border-b">
           <div className="flex items-center gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-4 flex-1" />
+            {Array.from({ length: 4 }, (_, i) => `table-header-${i}`).map((key) => (
+              <Skeleton key={key} className="h-4 flex-1" />
             ))}
           </div>
         </div>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="p-4 border-b last:border-b-0">
+        {Array.from({ length: 5 }, (_, i) => `table-row-${i}`).map((rowKey) => (
+          <div key={rowKey} className="p-4 border-b last:border-b-0">
             <div className="flex items-center gap-4">
-              {Array.from({ length: 4 }).map((_, j) => (
-                <Skeleton key={j} className="h-4 flex-1" />
+              {Array.from({ length: 4 }, (_, j) => `${rowKey}-cell-${j}`).map((cellKey) => (
+                <Skeleton key={cellKey} className="h-4 flex-1" />
               ))}
             </div>
           </div>
@@ -58,8 +58,8 @@ export function DashboardSkeleton() {
       
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <CardSkeleton key={i} />
+        {Array.from({ length: 4 }, (_, i) => `dashboard-card-${i}`).map((key) => (
+          <CardSkeleton key={key} />
         ))}
       </div>
       
@@ -82,8 +82,8 @@ export function DashboardSkeleton() {
 export function CustomerListSkeleton() {
   return (
     <div className="space-y-4">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
+      {Array.from({ length: 6 }, (_, i) => `customer-${i}`).map((key) => (
+        <div key={key} className="flex items-center space-x-4 p-4 border rounded-lg">
           <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
             <Skeleton className="h-4 w-32" />
@@ -102,8 +102,8 @@ export function CustomerListSkeleton() {
 export function GallerySkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="space-y-3">
+      {Array.from({ length: 8 }, (_, i) => `gallery-item-${i}`).map((key) => (
+        <div key={key} className="space-y-3">
           <Skeleton className="aspect-square w-full rounded-lg" />
           <div className="space-y-2">
             <Skeleton className="h-4 w-3/4" />
@@ -123,8 +123,8 @@ export function FormSkeleton() {
         <Skeleton className="h-4 w-64" />
       </div>
       <div className="space-y-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="space-y-2">
+        {Array.from({ length: 4 }, (_, i) => `form-field-${i}`).map((key) => (
+          <div key={key} className="space-y-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-10 w-full" />
           </div>
@@ -155,8 +155,8 @@ export function BookingDetailSkeleton() {
             <Skeleton className="h-5 w-32" />
           </CardHeader>
           <CardContent className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex justify-between">
+            {Array.from({ length: 4 }, (_, i) => `booking-detail-${i}`).map((key) => (
+              <div key={key} className="flex justify-between">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-32" />
               </div>
@@ -169,8 +169,8 @@ export function BookingDetailSkeleton() {
             <Skeleton className="h-5 w-32" />
           </CardHeader>
           <CardContent className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex justify-between">
+            {Array.from({ length: 3 }, (_, i) => `booking-payment-${i}`).map((key) => (
+              <div key={key} className="flex justify-between">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-32" />
               </div>

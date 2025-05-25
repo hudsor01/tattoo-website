@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const { userId } = await auth();
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    logger.info('✅ Admin access granted - production mode');
+    void logger.info('✅ Admin access granted - production mode');
 
     // Fetch bookings from database
     const bookings = await prisma.booking.findMany({
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Failed to fetch bookings', {
+    void logger.error('Failed to fetch bookings', {
       error: error instanceof Error ? error.message : String(error),
     });
 

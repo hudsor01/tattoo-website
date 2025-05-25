@@ -67,7 +67,7 @@ function checkMemory(): HealthCheckResult {
         external: Math.round(usage.external / 1024 / 1024), // MB
       },
     };
-  } catch (error) {
+  } catch {
     return {
       status: 'fail',
       error: 'Failed to check memory usage',
@@ -81,7 +81,7 @@ async function checkExternalServices(): Promise<HealthCheckResult> {
     const supabaseCheck = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/`, {
       method: 'HEAD',
       headers: {
-        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
       },
     });
 
@@ -92,7 +92,7 @@ async function checkExternalServices(): Promise<HealthCheckResult> {
         statusCode: supabaseCheck.status,
       },
     };
-  } catch (error) {
+  } catch {
     return {
       status: 'warn',
       error: 'Failed to check external services',
@@ -118,17 +118,17 @@ export async function GET() {
       external: externalCheck,
     };
 
-    const hasFailure = Object.values(checks).some(check => check.status === 'fail');
-    const hasWarning = Object.values(checks).some(check => check.status === 'warn');
+    const hasFailure = Object.values(checks).some(check => check?.status === 'fail');
+    const hasWarning = Object.values(checks).some(check => check?.status === 'warn');
     
     const overallStatus = hasFailure ? 'unhealthy' : hasWarning ? 'degraded' : 'healthy';
     
     const response: HealthCheck = {
       status: overallStatus,
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '0.1.0',
-      environment: process.env.NODE_ENV || 'unknown',
-      buildTime: process.env.BUILD_TIME || 'unknown',
+      version: process.env.npm_package_version ?? '0.1.0',
+      environment: process.env.NODE_ENV ?? 'unknown',
+      buildTime: process.env.BUILD_TIME ?? 'unknown',
       uptime: process.uptime(),
       checks,
       metadata: {
@@ -148,12 +148,12 @@ export async function GET() {
       },
     });
     
-  } catch (error) {
+  } catch {
     const errorResponse: Partial<HealthCheck> = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '0.1.0',
-      environment: process.env.NODE_ENV || 'unknown',
+      version: process.env.npm_package_version ?? '0.1.0',
+      environment: process.env.NODE_ENV ?? 'unknown',
       checks: {
         database: { status: 'fail', error: 'Health check failed' },
         memory: { status: 'fail', error: 'Health check failed' },

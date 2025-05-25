@@ -93,3 +93,27 @@ export interface DashboardSummary {
     end: string;
   };
 }
+
+/**
+ * Dashboard Stats for InteractiveCharts component
+ */
+export interface DashboardStats {
+  summary: DashboardSummary;
+}
+
+/**
+ * Service Statistics for chart display
+ */
+export interface ServiceStat {
+  name: string;
+  value: number;
+  color?: string;
+}
+
+/**
+ * Time Statistics for chart display
+ */
+export interface TimeStatItem {
+  name: string;
+  bookings: number;
+}

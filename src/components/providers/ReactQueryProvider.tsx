@@ -52,7 +52,7 @@ export function ReactQueryProvider({
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: `${process.env['NEXT_PUBLIC_BASE_URL'] || ''}/api/trpc`,
+          url: `${process.env['NEXT_PUBLIC_BASE_URL'] ?? ''}/api/trpc`,
           transformer: superjson,
           // Optional: include credentials for same-origin requests
           headers: {

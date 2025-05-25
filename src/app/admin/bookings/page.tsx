@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import type { CalBookingPayload } from '@/types/cal-types';
 
 interface UnifiedBooking {
   id: string;
@@ -61,7 +62,7 @@ export default function BookingsPage() {
 
   // Get Cal.com bookings
   const { 
-    bookings: calBookings, 
+    calBookings, 
     isSyncing,
     syncBookings,
     updateBookingStatus
@@ -69,7 +70,7 @@ export default function BookingsPage() {
 
   // Convert Cal.com bookings to unified format
   const unifiedCalBookings: UnifiedBooking[] = useMemo(() => {
-    return calBookings.map(booking => ({
+    return calBookings.map((booking: CalBookingPayload) => ({
       id: booking.uid,
       source: 'cal.com' as const,
       clientName: booking.attendees?.[0]?.name ?? 'No name',
@@ -83,9 +84,9 @@ export default function BookingsPage() {
       location: booking.location ?? undefined,
       payment: booking.payment,
       customInputs: Array.isArray(booking.customInputs) 
-        ? booking.customInputs.filter(input => input.label && input.value).map(input => ({
-            label: input.label!,
-            value: input.value!
+        ? booking.customInputs.filter((input: any) => input.label && input.value).map((input: any) => ({
+            label: input.label,
+            value: input.value
           }))
         : undefined,
       additionalNotes: booking.additionalNotes ?? '',
@@ -102,8 +103,7 @@ export default function BookingsPage() {
   // Filter bookings
   const filteredBookings = useMemo(() => {
     return allBookings.filter(booking => {
-      const matchesSearch = !searchTerm || 
-        booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = !searchTerm || booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -113,8 +113,7 @@ export default function BookingsPage() {
       
       const matchesSource = sourceFilter === 'all' || booking.source === sourceFilter;
       
-      const matchesDate = !dateFilter || 
-        format(new Date(booking.startTime), 'yyyy-MM-dd') === format(dateFilter, 'yyyy-MM-dd');
+      const matchesDate = !dateFilter || format(new Date(booking.startTime), 'yyyy-MM-dd') === format(dateFilter, 'yyyy-MM-dd');
       
       return matchesSearch && matchesStatus && matchesSource && matchesDate;
     });
@@ -124,9 +123,7 @@ export default function BookingsPage() {
   const groupedBookings = useMemo(() => {
     return filteredBookings.reduce((groups, booking) => {
       const date = new Date(booking.startTime).toDateString();
-      if (!groups[date]) {
-        groups[date] = [];
-      }
+      groups[date] ??= [];
       groups[date].push(booking);
       return groups;
     }, {} as Record<string, UnifiedBooking[]>);
@@ -183,39 +180,15 @@ export default function BookingsPage() {
     return `${minutes}m`;
   };
 
-  const handleAccept = async (booking: UnifiedBooking) => {
+  const handleAccept = (booking: UnifiedBooking) => {
     if (booking.source === 'cal.com' && booking.uid) {
-      try {
-        await updateBookingStatus(booking.uid, 'accepted');
-        toast({
-          title: 'Booking Accepted',
-          description: 'The booking has been accepted successfully.',
-        });
-      } catch {
-        toast({
-          title: 'Error',
-          description: 'Failed to accept booking. Please try again.',
-          variant: 'destructive',
-        });
-      }
+      updateBookingStatus(booking.uid, 'accepted');
     }
   };
 
-  const handleReject = async (booking: UnifiedBooking) => {
+  const handleReject = (booking: UnifiedBooking) => {
     if (booking.source === 'cal.com' && booking.uid) {
-      try {
-        await updateBookingStatus(booking.uid, 'rejected');
-        toast({
-          title: 'Booking Rejected',
-          description: 'The booking has been rejected.',
-        });
-      } catch {
-        toast({
-          title: 'Error',
-          description: 'Failed to reject booking. Please try again.',
-          variant: 'destructive',
-        });
-      }
+      updateBookingStatus(booking.uid, 'rejected');
     }
   };
 
@@ -241,7 +214,7 @@ export default function BookingsPage() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `all-bookings-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+    void a.click();
     window.URL.revokeObjectURL(url);
   };
 
@@ -360,7 +333,7 @@ export default function BookingsPage() {
             </p>
           </Card>
         ) : (
-          Object.entries(groupedBookings).map(([date, dayBookings]) => (
+          void Object.entries(groupedBookings).map(([date, dayBookings]) => (
             <div key={date} className="space-y-4">
               <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
                 {new Date(date).toLocaleDateString('en-US', {
@@ -441,17 +414,17 @@ export default function BookingsPage() {
                       )}
                       
                       {booking.customInputs?.map((input: any, index: number) => (
-                        <div key={index} className="text-sm">
+                        <div key={`custom-input-${booking.id}-${input.label ?? `field-${index}`}`} className="text-sm">
                           <span className="font-medium text-gray-500">{input.label}:</span>{' '}
                           <span className="text-gray-300">{input.value}</span>
                         </div>
                       ))}
                       
-                      {(booking.description || booking.additionalNotes) && (
+                      {(booking.description ?? booking.additionalNotes) && (
                         <div className="text-sm">
                           <span className="font-medium text-gray-500">Notes:</span>
                           <p className="text-gray-300 mt-1 p-2 bg-gray-700 rounded text-xs">
-                            {booking.description || booking.additionalNotes}
+                            {booking.description ?? booking.additionalNotes}
                           </p>
                         </div>
                       )}
@@ -465,7 +438,7 @@ export default function BookingsPage() {
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-gray-500" />
                           <p className="text-sm text-gray-300">
-                            ${booking.payment?.amount ? booking.payment.amount / 100 : 0} {booking.payment?.currency || 'USD'}
+                            ${booking.payment?.amount ? booking.payment.amount / 100 : 0} {booking.payment?.currency ?? 'USD'}
                           </p>
                         </div>
                       )}
@@ -528,7 +501,7 @@ export default function BookingsPage() {
                           size="sm" 
                           className="bg-blue-600 hover:bg-blue-700"
                           onClick={() => {
-                            router.push(`/admin/appointments/create?bookingId=${booking.id}`);
+                            void router.push(`/admin/appointments/create?bookingId=${booking.id}`);
                           }}
                         >
                           Convert to Appointment

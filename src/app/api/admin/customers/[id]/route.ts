@@ -55,7 +55,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
     return NextResponse.json(client);
   } catch (error) {
-    console.error('Error fetching client:', error);
+    void console.error('Error fetching client:', error);
     return NextResponse.json({ error: 'Failed to fetch client' }, { status: 500 });
   }
 }
@@ -108,8 +108,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         id: params.id,
       },
       data: {
-        firstName: data.firstName || data.name?.split(' ')[0] || '',
-        lastName: data.lastName || data.name?.split(' ').slice(1).join(' ') || '',
+        firstName: data.firstName ?? data.name?.split(' ')[0] ?? '',
+        lastName: data.lastName ?? data.name?.split(' ').slice(1).join(' ') ?? '',
         email: data.email,
         phone: data.phone,
         notes: data.notes,
@@ -119,7 +119,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(client);
   } catch (error) {
-    console.error('Error updating client:', error);
+    void console.error('Error updating client:', error);
     return NextResponse.json({ error: 'Failed to update client' }, { status: 500 });
   }
 }
@@ -175,7 +175,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json({ message: 'Client deleted successfully' });
   } catch (error) {
-    console.error('Error deleting client:', error);
+    void console.error('Error deleting client:', error);
     return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
   }
 }

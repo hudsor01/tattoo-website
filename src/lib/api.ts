@@ -81,7 +81,7 @@ async function validateResponse<T>(
     try {
       return schema.parse(data);
     } catch (error) {
-      console.error('Response validation error:', error);
+      void console.error('Response validation error:', error);
       throw new ApiError(
         'Invalid response data',
         response.status,
@@ -154,9 +154,9 @@ export const api = {
     // Add query parameters if provided
     if (params) {
       const searchParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
+      void Object.entries(params).forEach(([key, value]) => {
         if (value !== null) {
-          searchParams.append(key, String(value));
+          void searchParams.append(key, String(value));
         }
       });
       
@@ -287,7 +287,7 @@ export async function trackVideoView(
   try {
     await api.post('/api/analytics/video-view', {
       videoId: String(videoId),
-      duration: duration || 0,
+      duration: duration ?? 0,
       timestamp: new Date().toISOString(),
       metadata: {
         ...metadata,
@@ -299,7 +299,7 @@ export async function trackVideoView(
 
     return { success: true };
   } catch (error) {
-    console.error('Failed to track video view:', error);
+    void console.error('Failed to track video view:', error);
     return { 
       success: false, 
       message: error instanceof Error ? error.message : 'Unknown error' 
@@ -340,10 +340,10 @@ export async function shareContent(
     // Return success with the share URL
     return {
       success: true,
-      shareUrl: shareUrls[platform] || baseUrl
+      shareUrl: shareUrls[platform] ?? baseUrl
     };
   } catch (error) {
-    console.error('Share content error:', error);
+    void console.error('Share content error:', error);
     // Return error with default URL
     return {
       success: false,

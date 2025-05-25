@@ -20,7 +20,7 @@ export function sanitizeForPrisma<T extends Record<string, unknown>>(data: T): T
   const result = {} as T;
   
   // Convert undefined values to null for Prisma
-  Object.entries(data).forEach(([key, value]) => {
+  void Object.entries(data).forEach(([key, value]) => {
     const typedKey = key as keyof T;
     
     // If value is undefined, convert it to null
@@ -39,7 +39,7 @@ export function sanitizeForPrisma<T extends Record<string, unknown>>(data: T): T
  * Creates a where condition for email searches that handles undefined
  */
 export function emailWhereCondition(email: string | undefined | null) {
-  return { email: email || null };
+  return { email: email ?? null };
 }
 
 /**
@@ -51,7 +51,7 @@ export function createPrismaUpdate<T extends Record<string, unknown>>(data: T): 
   const updateData: Record<string, unknown> = {};
   
   // Process each field in the data
-  Object.entries(data).forEach(([key, value]) => {
+  void Object.entries(data).forEach(([key, value]) => {
     // If undefined, skip this field entirely
     if (value === undefined) {
       return;

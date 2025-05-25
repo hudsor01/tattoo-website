@@ -30,7 +30,7 @@ export const LinkComponent: React.FC<LinkProps> = ({
   });
 
   // If noWrapper is true or children contains an anchor tag, use passHref with a fragment
-  if (noWrapper || hasNestedAnchor) {
+  if (noWrapper ?? hasNestedAnchor) {
     return (
       <NextLink href={href} passHref legacyBehavior {...props}>
         {children}

@@ -646,10 +646,9 @@ export type CreateContextReturn = Context;
 
 /**
  * tRPC router input/output types
- * Import from lib/trpc/types.ts to avoid duplication
+ * NOTE: RouterInputs and RouterOutputs types need to be properly defined
  */
-import type { RouterInputs, RouterOutputs } from '@/lib/trpc/types';
-export type { RouterInputs, RouterOutputs };
+// Types RouterInputs and RouterOutputs are not available in lib/trpc/types
 
 /**
  * ========================================================================

@@ -26,7 +26,7 @@ export function useSidebarSettings() {
         setSettings({ ...defaultSettings, ...parsed })
       }
     } catch (error) {
-      console.warn('Failed to load sidebar settings:', error)
+      void console.warn('Failed to load sidebar settings:', error)
     }
   }, [])
 
@@ -35,9 +35,9 @@ export function useSidebarSettings() {
     const updated = { ...settings, ...newSettings }
     setSettings(updated)
     try {
-      localStorage.setItem(SIDEBAR_SETTINGS_KEY, JSON.stringify(updated))
+      void localStorage.setItem(SIDEBAR_SETTINGS_KEY, JSON.stringify(updated))
     } catch (error) {
-      console.warn('Failed to save sidebar settings:', error)
+      void console.warn('Failed to save sidebar settings:', error)
     }
   }
 

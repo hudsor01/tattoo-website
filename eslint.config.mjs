@@ -144,30 +144,8 @@ const typeScriptConfig = {
   },
 };
 
-// Test files configuration
-const testConfig = {
-  files: [
-    '**/*.test.{ts,tsx,js,jsx}',
-    '**/*.spec.{ts,tsx,js,jsx}',
-    '**/tests/**/*.{ts,tsx,js,jsx}',
-    '**/e2e/**/*.{ts,tsx,js,jsx}',
-  ],
-  languageOptions: {
-    globals: {
-      ...globals.jest,
-      ...globals.node,
-    },
-  },
-  rules: {
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'off',
-    'no-console': 'off',
-  },
-};
-
 export default [
   baseConfig,
   reactConfig,
   typeScriptConfig,
-  testConfig,
 ];

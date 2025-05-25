@@ -76,11 +76,11 @@ export default function SettingsPage() {
   // Update local state when settings data loads
   useEffect(() => {
     if (settings) {
-      setGeneralSettings(settings.general)
-      setBookingSettings(settings.booking)
-      setEmailSettings(settings.email)
-      setSecuritySettings(settings.security)
-      setNotificationSettings(settings.notifications)
+      setGeneralSettings((settings as any).general)
+      setBookingSettings((settings as any).booking)
+      setEmailSettings((settings as any).email)
+      setSecuritySettings((settings as any).security)
+      setNotificationSettings((settings as any).notifications)
     }
   }, [settings])
 
@@ -88,37 +88,37 @@ export default function SettingsPage() {
   const updateGeneralMutation = trpc.settings.updateGeneralSettings.useMutation({
     onSuccess: () => {
       toast({ title: 'General settings saved successfully' })
-      refetch()
+      void refetch()
     },
-    onError: (error: any) => {
-      toast({ title: 'Error saving general settings', description: error.message, variant: 'destructive' })
+    onError: (error: unknown) => {
+      toast({ title: 'Error saving general settings', description: (error as any).message, variant: 'destructive' })
     }
   })
 
   const updateBookingMutation = trpc.settings.updateBookingSettings.useMutation({
     onSuccess: () => {
       toast({ title: 'Booking settings saved successfully' })
-      refetch()
+      void refetch()
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({ title: 'Error saving booking settings', description: error.message, variant: 'destructive' })
     }
-  } as any)
+  })
 
   const updateEmailMutation = trpc.settings.updateEmailSettings.useMutation({
     onSuccess: () => {
       toast({ title: 'Email settings saved successfully' })
-      refetch()
+      void refetch()
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({ title: 'Error saving email settings', description: error.message, variant: 'destructive' })
     }
-  } as any)
+  })
 
   const updateSecurityMutation = trpc.settings.updateSecuritySettings.useMutation({
     onSuccess: () => {
       toast({ title: 'Security settings saved successfully' })
-      refetch()
+      void refetch()
     },
     onError: (error) => {
       toast({ title: 'Error saving security settings', description: error.message, variant: 'destructive' })
@@ -128,7 +128,7 @@ export default function SettingsPage() {
   const updateNotificationsMutation = trpc.settings.updateNotificationSettings.useMutation({
     onSuccess: () => {
       toast({ title: 'Notification settings saved successfully' })
-      refetch()
+      void refetch()
     },
     onError: (error) => {
       toast({ title: 'Error saving notification settings', description: error.message, variant: 'destructive' })
@@ -164,35 +164,35 @@ export default function SettingsPage() {
 
   // Handler functions
   const handleSaveGeneral = () => {
-    updateGeneralMutation.mutate(generalSettings)
+    void updateGeneralMutation.mutate(generalSettings)
   }
 
   const handleSaveBooking = () => {
-    updateBookingMutation.mutate(bookingSettings)
+    void updateBookingMutation.mutate(bookingSettings)
   }
 
   const handleSaveEmail = () => {
-    updateEmailMutation.mutate(emailSettings)
+    void updateEmailMutation.mutate(emailSettings)
   }
 
   const handleSaveSecurity = () => {
-    updateSecurityMutation.mutate(securitySettings)
+    void updateSecurityMutation.mutate(securitySettings)
   }
 
   const handleSaveNotifications = () => {
-    updateNotificationsMutation.mutate(notificationSettings)
+    void updateNotificationsMutation.mutate(notificationSettings)
   }
 
   const handleTestEmail = () => {
-    sendTestEmailMutation.mutate({ email: emailSettings.replyToEmail })
+    void sendTestEmailMutation.mutate({ email: emailSettings.replyToEmail })
   }
 
   const handleBackupDatabase = () => {
-    backupDatabaseMutation.mutate()
+    void backupDatabaseMutation.mutate()
   }
 
   const handleClearCache = () => {
-    clearCacheMutation.mutate()
+    void clearCacheMutation.mutate()
   }
 
   if (isLoading) {
@@ -202,8 +202,8 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold">Settings</h1>
         </div>
         <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i}>
+          {Array.from({ length: 5 }, (_, i) => `settings-card-${i}`).map((key) => (
+            <Card key={key}>
               <CardHeader>
                 <Skeleton className="h-6 w-48" />
               </CardHeader>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { Plus, Search, Edit, FileText, Eye, User, Mail, Phone, MapPin } from 'lucide-react'
+import { Plus, Search, Edit, Eye, User, Mail, Phone, MapPin, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { useTRPCInfiniteQuery } from '@/hooks/use-trpc-infinite-query'
 import { trpc } from '@/lib/trpc/client'
 import { format } from 'date-fns'
 
@@ -61,12 +60,11 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
   const {
     data: customersData,
     isLoading,
-    isFetching,
     refetch,
   } = trpc.admin.getCustomers.useQuery({
     page: 1,
     limit: 100, // Get more customers for infinite scroll
-    search: searchTerm || undefined,
+    search: searchTerm ?? undefined,
   })
 
   // Flatten paginated data for rendering/filtering
@@ -110,33 +108,11 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
     }
   })
 
-  // Intersection observer for infinite scrolling
-  const loadMoreRef = React.useRef<HTMLDivElement>(null)
-  
-  React.useEffect(() => {
-    if (!hasMore || isFetching) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          void fetchNextPage()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current)
-    }
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [hasMore, isFetching, fetchNextPage])
+  // Note: Infinite scrolling would be implemented here with intersection observer
 
   // Helper function to get customer display name
   const getCustomerName = (customer: CustomerData): string => {
-    return `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() || 'Unknown Customer'
+    return `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() ?? 'Unknown Customer'
   }
 
   // Helper function to format currency
@@ -189,12 +165,12 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
       firstName: newCustomer.firstName.trim(),
       lastName: newCustomer.lastName.trim(),
       email: newCustomer.email.trim(),
-      phone: newCustomer.phone?.trim() || undefined,
-      address: newCustomer.address?.trim() || undefined,
-      city: newCustomer.city?.trim() || undefined,
-      state: newCustomer.state?.trim() || undefined,
-      zipCode: newCustomer.zipCode?.trim() || undefined,
-      notes: newCustomer.notes?.trim() || undefined,
+      phone: newCustomer.phone?.trim() ?? undefined,
+      address: newCustomer.address?.trim() ?? undefined,
+      city: newCustomer.city?.trim() ?? undefined,
+      state: newCustomer.state?.trim() ?? undefined,
+      zipCode: newCustomer.zipCode?.trim() ?? undefined,
+      notes: newCustomer.notes?.trim() ?? undefined,
     }
 
     createCustomerMutation.mutate(customerData)
@@ -204,8 +180,8 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
   if (isLoading) {
     return (
       <div className={`space-y-4 ${className}`}>
-        {[...Array(5)].map((_, index) => (
-          <Card key={`loading-skeleton-${index}`} className="animate-pulse">
+        {Array.from({ length: 5 }, (_, i) => `loading-skeleton-${i}`).map((key) => (
+          <Card key={key} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-3/4"></div>
@@ -269,8 +245,8 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                           </h3>
                           {customer.tags && customer.tags.length > 0 && (
                             <div className="flex gap-1">
-                              {customer.tags.map((tag: string, index: number) => (
-                                <Badge key={`${tag}-${index}`} variant="secondary" className="text-xs">
+                              {customer.tags.map((tag: string) => (
+                                <Badge key={tag} variant="secondary" className="text-xs">
                                   {tag}
                                 </Badge>
                               ))}
@@ -341,36 +317,9 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
             ))}
           </div>
 
-          {/* Load More */}
-          {hasMore && (
-            <div ref={loadMoreRef} className="flex justify-center py-8">
-              {isFetching ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                  <span className="text-gray-500">Loading more customers...</span>
-                </div>
-              ) : (
-                <Button 
-                  variant="outline" 
-                  onClick={() => void fetchNextPage()}
-                  className="px-8"
-                >
-                  Load More Customers
-                </Button>
-              )}
-            </div>
-          )}
-
-          {/* End Message */}
-          {!hasMore && customers.length > 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">You've seen all {totalCount ?? customers.length} customers</p>
-            </div>
-          )}
-
           {/* Summary */}
           <div className="text-center text-sm text-gray-500">
-            Showing {customers.length} of {totalCount ?? customers.length} customers
+            Showing {customers.length} customers
           </div>
         </>
       )}
@@ -400,7 +349,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                   <Label className="text-sm font-medium">Address</Label>
                   <p className="text-sm text-gray-600">
                     {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.zipCode]
-                      .filter(Boolean).join(', ') || 'Not provided'}
+                      .filter(Boolean).join(', ') ?? 'Not provided'}
                   </p>
                 </div>
               </div>

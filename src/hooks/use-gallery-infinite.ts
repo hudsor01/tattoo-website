@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { useGalleryInfiniteQuery } from './use-trpc-infinite-query';
 
@@ -67,14 +67,14 @@ export function useGalleryInfinite(): UseGalleryInfiniteResult {
     refetch: refetchDesigns,
     count: totalCount,
   } = useGalleryInfiniteQuery({
-    designType: category ? category : undefined,
+    ...(category && { designType: category }),
     limit: 20,
   });
 
   // Handle errors in useEffect instead of onError callback
   useEffect(() => {
     if (isError && error) {
-      console.error('Error fetching gallery designs:', error);
+      void console.error('Error fetching gallery designs:', error);
       toast({
         title: 'Error loading gallery',
         description: 'Failed to load tattoo designs. Please try again later.',
@@ -96,9 +96,7 @@ export function useGalleryInfinite(): UseGalleryInfiniteResult {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(design => 
-        design.name.toLowerCase().includes(query) || 
-        design.description?.toLowerCase().includes(query) ||
-        design.designType?.toLowerCase().includes(query)
+        design.name.toLowerCase().includes(query) ?? design.description?.toLowerCase().includes(query) ?? design.designType?.toLowerCase().includes(query)
       );
     }
     
@@ -141,7 +139,7 @@ export function useGalleryInfinite(): UseGalleryInfiniteResult {
 
   // Filter by category - this will trigger a new query with the category filter
   const filterByCategory = (newCategory?: string) => {
-    setCategory(newCategory || null);
+    setCategory(newCategory ?? null);
     // Reset search and other filters when changing category
     setSearchQuery('');
     setArtistId(null);
@@ -149,7 +147,7 @@ export function useGalleryInfinite(): UseGalleryInfiniteResult {
 
   // Filter by artist
   const filterByArtist = (newArtistId?: string) => {
-    setArtistId(newArtistId || null);
+    setArtistId(newArtistId ?? null);
   };
 
   // Sort designs

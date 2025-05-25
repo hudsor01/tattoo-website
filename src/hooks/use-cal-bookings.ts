@@ -1,126 +1,93 @@
 /**
- * Hook for managing Cal.com bookings
+ * Cal.com Bookings Hook
+ * 
+ * Custom hook for managing Cal.com bookings through tRPC
  */
-import { useState } from 'react';
-import { trpc } from '@/lib/trpc/client';
+
+import { useState, useCallback } from 'react';
+import { api } from '@/lib/trpc/client';
 import { toast } from '@/components/ui/use-toast';
 
-interface UseCalBookingsOptions {
-  limit?: number;
-  status?: string;
-  eventTypeId?: number;
+export interface CalBooking {
+  uid: string;
+  title: string;
+  description?: string;
+  status: string;
+  startTime: string;
+  endTime: string;
+  attendees?: Array<{
+    name: string;
+    email: string;
+    phone?: string;
+  }>;
+  eventType?: {
+    id: number;
+    title: string;
+    duration: number;
+  };
 }
 
-export function useCalBookings(options: UseCalBookingsOptions = {}) {
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+export function useCalBookings() {
   const [isSyncing, setIsSyncing] = useState(false);
-  
-  // Fetch bookings from tRPC
+
+  // Get Cal.com bookings
   const { 
-    data: bookings = [], 
-    isLoading,
-    error,
-    refetch
-  } = trpc.cal.getBookings.useQuery(options, {
-    // Cache for 5 minutes
-    staleTime: 5 * 60 * 1000,
-    // onError is not supported in newer tRPC versions
-  });
-
-  // Check Cal.com configuration
-  const { data: configStatus } = trpc.cal.getConfigStatus.useQuery(undefined, {
-    staleTime: Infinity,
-  });
-
-  // Mutation for syncing bookings
-  const syncMutation = trpc.cal.syncBookings.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: 'Bookings synced successfully',
-        description: `Created: ${data.stats.created}, Updated: ${data.stats.updated}`,
-      });
-      refetch();
-      setIsSyncing(false);
-    },
-    onError: (err) => {
-      toast({
-        title: 'Error syncing bookings',
-        description: err.message,
-        variant: 'destructive',
-      });
-      setIsSyncing(false);
-    },
-  });
-
-  // Mutation for updating booking status
-  const updateStatusMutation = trpc.cal.updateBookingStatus.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Booking status updated',
-        description: 'The booking status has been updated successfully.',
-      });
-      refetch();
-    },
-    onError: (err) => {
-      toast({
-        title: 'Error updating booking status',
-        description: err.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Mutation for rescheduling bookings
-  const rescheduleMutation = trpc.cal.rescheduleBooking.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Booking rescheduled',
-        description: 'The booking has been rescheduled successfully.',
-      });
-      refetch();
-    },
-    onError: (err) => {
-      toast({
-        title: 'Error rescheduling booking',
-        description: err.message,
-        variant: 'destructive',
-      });
-    },
-  });
+    data: calBookings = [], 
+    isLoading, 
+    refetch 
+  } = api.cal.getBookings.useQuery();
 
   // Sync bookings
-  const syncBookings = async () => {
+  const syncBookings = useCallback(async () => {
     setIsSyncing(true);
-    syncMutation.mutate();
-  };
+    try {
+      await refetch();
+      toast({
+        title: 'Success',
+        description: 'Bookings synced successfully',
+      });
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to sync bookings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [refetch]);
 
   // Update booking status
-  const updateBookingStatus = async (uid: string, status: 'accepted' | 'rejected' | 'cancelled') => {
-    updateStatusMutation.mutate({ uid, status });
-  };
+  const updateBookingMutation = api.cal.updateBookingStatus.useMutation({
+    onSuccess: () => {
+      void refetch();
+      toast({
+        title: 'Success',
+        description: 'Booking status updated',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update booking status',
+        variant: 'destructive',
+      });
+    },
+  });
 
-  // Reschedule booking
-  const rescheduleBooking = async (uid: string, newTime: { start: string; end: string }) => {
-    rescheduleMutation.mutate({ uid, newTime });
-  };
-
-  // Filter bookings by status
-  const filteredBookings = filterStatus === 'all' 
-    ? bookings 
-    : bookings.filter(booking => booking.status === filterStatus);
+  const updateBookingStatus = useCallback(
+    (uid: string, status: 'accepted' | 'cancelled' | 'rejected') => {
+      updateBookingMutation.mutate({ uid, status });
+    },
+    [updateBookingMutation]
+  );
 
   return {
-    bookings: filteredBookings,
-    allBookings: bookings,
+    calBookings,
     isLoading,
-    error,
     isSyncing,
-    filterStatus,
-    setFilterStatus,
     syncBookings,
     updateBookingStatus,
-    rescheduleBooking,
     refetch,
-    isConfigured: configStatus?.configured || false,
   };
 }

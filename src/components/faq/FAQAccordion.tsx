@@ -40,10 +40,10 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
           [index]: isHelpful,
         }));
       } else {
-        console.error('Failed to submit feedback');
+        void console.error('Failed to submit feedback');
       }
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      void console.error('Error submitting feedback:', error);
     }
   };
 
@@ -90,7 +90,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
 
         return (
           <motion.div
-            key={index}
+            key={item.question}
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -110,8 +110,8 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
                         Related Questions
                       </h4>
                       <ul className="space-y-2">
-                        {relatedQuestions.map((question, idx) => (
-                          <li key={idx} className="pl-6 relative">
+                        {relatedQuestions.map((question) => (
+                          <li key={question} className="pl-6 relative">
                             <div className="absolute left-0 top-2 w-2 h-2 rounded-full bg-tattoo-blue/40"></div>
                             <button
                               className="text-sm text-tattoo-blue hover:text-tattoo-red transition-colors duration-200 text-left"
@@ -121,7 +121,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
                                   item => item.question === question,
                                 );
                                 if (questionIndex >= 0) {
-                                  document.getElementById(`item-${questionIndex}`)?.click();
+                                  void document.getElementById(`item-${questionIndex}`)?.click();
                                 }
                               }}
                             >
@@ -140,14 +140,14 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
                         <p className="text-sm text-white/60">Was this answer helpful?</p>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleFeedback(index, true)}
+                            onClick={() => void handleFeedback(index, true)}
                             className="flex items-center px-3 py-1.5 text-xs bg-tattoo-blue/10 hover:bg-tattoo-blue/20 text-white rounded-full transition"
                           >
                             <ThumbsUp className="h-3 w-3 mr-1.5" />
                             Yes
                           </button>
                           <button
-                            onClick={() => handleFeedback(index, false)}
+                            onClick={() => void handleFeedback(index, false)}
                             className="flex items-center px-3 py-1.5 text-xs bg-tattoo-black/30 hover:bg-tattoo-black/50 text-white rounded-full transition"
                           >
                             <ThumbsDown className="h-3 w-3 mr-1.5" />

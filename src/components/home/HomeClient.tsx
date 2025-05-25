@@ -22,8 +22,8 @@ export default function HomeClient() {
   // Auto-advance carousel with very slow transition (10 seconds)
   const [isPaused, setIsPaused] = React.useState(false);
   
-  React.useEffect(() => {
-    if (isPaused) return;
+  void React.useEffect(() => {
+    if (isPaused) return undefined;
     
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => 
@@ -49,13 +49,13 @@ export default function HomeClient() {
   
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.targetTouches && e.targetTouches.length > 0) {
-      setTouchStart(e.targetTouches[0]?.clientX || 0);
+      setTouchStart(e.targetTouches[0]?.clientX ?? 0);
     }
   };
   
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.targetTouches && e.targetTouches.length > 0) {
-      setTouchEnd(e.targetTouches[0]?.clientX || 0);
+      setTouchEnd(e.targetTouches[0]?.clientX ?? 0);
     }
   };
   
@@ -74,7 +74,7 @@ export default function HomeClient() {
   };
   
   // Disable scrolling on the page
-  React.useEffect(() => {
+  void React.useEffect(() => {
     // Disable scrolling on this page
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
@@ -91,8 +91,8 @@ export default function HomeClient() {
   }, []);
   
   // Preload images for better performance
-  React.useEffect(() => {
-    tattooImages.forEach((src) => {
+  void React.useEffect(() => {
+    void tattooImages.forEach((src) => {
       const img = new window.Image();
       img.src = src;
     });
@@ -248,9 +248,9 @@ export default function HomeClient() {
                   
                   {/* Carousel Controls */}
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-                    {tattooImages.map((_, index) => (
+                    {tattooImages.map((imagePath, index) => (
                       <button
-                        key={index}
+                        key={imagePath}
                         onClick={() => setCurrentImageIndex(index)}
                         className={`w-2 h-2 rounded-full transition-all ${
                           index === currentImageIndex 

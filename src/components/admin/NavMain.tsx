@@ -4,7 +4,6 @@ import * as React from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
 
 import {
   Collapsible,
@@ -28,7 +27,7 @@ export function NavMain({
   items: {
     title: string
     url: string
-    icon?: React.ComponentType<any>
+    icon?: React.ComponentType<{ className?: string }>
     isActive?: boolean
     items?: {
       title: string
@@ -40,13 +39,13 @@ export function NavMain({
   const [openItems, setOpenItems] = React.useState<Set<string>>(new Set())
 
   // Initialize open items based on current path
-  React.useEffect(() => {
+  void React.useEffect(() => {
     const newOpenItems = new Set<string>()
-    items.forEach((item) => {
+    void items.forEach((item) => {
       if (item.items) {
         const hasActiveSubItem = item.items.some(subItem => pathname === subItem.url)
-        if (hasActiveSubItem || pathname === item.url) {
-          newOpenItems.add(item.title)
+        if (hasActiveSubItem ?? pathname === item.url) {
+          void newOpenItems.add(item.title)
         }
       }
     })
@@ -57,9 +56,9 @@ export function NavMain({
     setOpenItems(prev => {
       const newSet = new Set(prev)
       if (newSet.has(itemTitle)) {
-        newSet.delete(itemTitle)
+        void newSet.delete(itemTitle)
       } else {
-        newSet.add(itemTitle)
+        void newSet.add(itemTitle)
       }
       return newSet
     })

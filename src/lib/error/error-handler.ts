@@ -109,7 +109,7 @@ export function handleError(error: unknown, context?: ErrorContext): void {
   const severity = determineErrorSeverity(category, context);
   
   // Log the error - convert the object to a string with JSON.stringify
-  logger.error(`Error occurred: ${message}. Details: ${JSON.stringify({
+  void logger.error(`Error occurred: ${message}. Details: ${JSON.stringify({
     category,
     severity,
     component: context?.component,
@@ -240,7 +240,7 @@ function extractErrorMessage(error: unknown): string {
   
   // Handle Error objects
   if (error instanceof Error) {
-    return error.message || 'An unknown error occurred';
+    return error.message ?? 'An unknown error occurred';
   }
   
   // Handle Zod validation errors
@@ -252,14 +252,14 @@ function extractErrorMessage(error: unknown): string {
     if (issues.length === 1) {
       // Add null check to ensure issues[0] exists before accessing its properties
       const issue = issues[0];
-      return issue && issue.path ? `${issue.path.join('.')}: ${issue.message}` : issue?.message || 'Unknown error';
+      return issue && issue.path ? `${issue.path.join('.')}: ${issue.message}` : issue?.message ?? 'Unknown error';
     }
     return `Validation failed with ${issues.length} issues`;
   }
   
   // Handle TRPC client errors
   if (error instanceof TRPCClientError) {
-    return error.message || 'API request failed';
+    return error.message ?? 'API request failed';
   }
   
   // Handle objects with message property
@@ -269,7 +269,7 @@ function extractErrorMessage(error: unknown): string {
   
   // Handle other types
   try {
-    return JSON.stringify(error) || 'An unknown error occurred';
+    return JSON.stringify(error) ?? 'An unknown error occurred';
   } catch {
     return 'An unknown error occurred';
   }
@@ -325,23 +325,14 @@ function categorizeError(error: unknown): ErrorCategory {
     // Network related errors
     if (
       error.name === 'NetworkError' || 
-      message.includes('network') || 
-      message.includes('connection') ||
-      message.includes('offline') ||
-      message.includes('timeout')
+      (message.includes('network') || message.includes('connection') || message.includes('offline') || message.includes('timeout'))
     ) {
       return ErrorCategory.NETWORK;
     }
     
     // Authentication/Authorization errors
     if (
-      message.includes('unauthorized') || 
-      message.includes('unauthenticated') ||
-      message.includes('authentication') || 
-      message.includes('login') ||
-      message.includes('permission') || 
-      message.includes('forbidden') ||
-      message.includes('access denied')
+      message.includes('unauthorized') || message.includes('unauthenticated') || message.includes('authentication') || message.includes('login') || message.includes('permission') || message.includes('forbidden') || message.includes('access denied')
     ) {
       return message.includes('permission') || message.includes('forbidden') 
         ? ErrorCategory.AUTHORIZATION 
@@ -355,18 +346,14 @@ function categorizeError(error: unknown): ErrorCategory {
     
     // Validation errors
     if (
-      message.includes('validation') ||
-      message.includes('invalid') ||
-      message.includes('required')
+      message.includes('validation') || message.includes('invalid') || message.includes('required')
     ) {
       return ErrorCategory.VALIDATION;
     }
     
     // Server errors
     if (
-      message.includes('server') || 
-      message.includes('internal') ||
-      message.includes('500')
+      message.includes('server') || message.includes('internal') || message.includes('500')
     ) {
       return ErrorCategory.SERVER;
     }

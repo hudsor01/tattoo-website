@@ -61,7 +61,7 @@ export function useGallery(): UseGalleryResult {
   } = api.gallery.getPublicDesigns.useQuery(
     {
       limit: 100,
-      designType: category || undefined
+      designType: category ?? undefined
     },
     {
       retry: 1,
@@ -72,7 +72,7 @@ export function useGallery(): UseGalleryResult {
   // Handle errors in useEffect instead of onError callback
   useEffect(() => {
     if (isError && error) {
-      console.error('Error fetching gallery designs:', error);
+      void console.error('Error fetching gallery designs:', error);
       toast({
         title: 'Error loading gallery',
         description: 'Failed to load tattoo designs. Please try again later.',
@@ -83,7 +83,7 @@ export function useGallery(): UseGalleryResult {
 
   // Get raw designs from the response - cast to our type since we know the structure includes Artist relation
   const designs = useMemo(
-    () => (galleryData?.designs || []) as GalleryDesign[],
+    () => (galleryData?.designs ?? []) as GalleryDesign[],
     [galleryData]
   );
 
@@ -100,9 +100,7 @@ export function useGallery(): UseGalleryResult {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(design => 
-        design.name.toLowerCase().includes(query) || 
-        design.description?.toLowerCase().includes(query) ||
-        design.designType?.toLowerCase().includes(query)
+        design.name.toLowerCase().includes(query) ?? design.description?.toLowerCase().includes(query) ?? design.designType?.toLowerCase().includes(query)
       );
     }
     
@@ -145,12 +143,12 @@ export function useGallery(): UseGalleryResult {
 
   // Filter by category - this will trigger a new query with the category filter
   const filterByCategory = (newCategory?: string) => {
-    setCategory(newCategory || null);
+    setCategory(newCategory ?? null);
   };
 
   // Filter by artist
   const filterByArtist = (newArtistId?: string) => {
-    setArtistId(newArtistId || null);
+    setArtistId(newArtistId ?? null);
   };
 
   // Sort designs
@@ -209,7 +207,7 @@ export function useDesign(id: string): UseDesignResult {
   // Handle errors in useEffect
   useEffect(() => {
     if (isError && error) {
-      console.error(`Error fetching design ID ${id}:`, error);
+      void console.error(`Error fetching design ID ${id}:`, error);
       toast({
         title: 'Error loading design',
         description: 'Failed to load tattoo design details. Please try again later.',
@@ -224,7 +222,7 @@ export function useDesign(id: string): UseDesignResult {
   };
 
   return {
-    design: (design as GalleryDesign) || null,
+    design: (design as GalleryDesign) ?? null,
     isLoading,
     isError,
     error: error instanceof Error ? error : null,

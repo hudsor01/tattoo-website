@@ -1,12 +1,18 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { toast } from '@/components/ui/toast'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from '@/components/ui/use-toast'
 
 export interface RealtimeUpdate {
   type: 'booking' | 'appointment' | 'customer' | 'payment' | 'analytics'
   action: 'created' | 'updated' | 'deleted' | 'status_changed'
-  data: any
+  data: {
+    clientName?: string
+    status?: string
+    amount?: number
+    name?: string
+    [key: string]: unknown
+  }
   timestamp: Date
   id: string
 }
@@ -48,7 +54,7 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const mountedRef = useRef(true)
 
-  const connect = () => {
+  const connect = useCallback(() => {
     if (!mountedRef.current || state.isConnected || state.isConnecting) {
       return
     }
@@ -71,7 +77,11 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
         }))
 
         if (enableNotifications) {
-          toast.success('Real-time updates connected', 'Dashboard will update automatically')
+          toast({
+            title: 'Real-time updates connected',
+            description: 'Dashboard will update automatically',
+            variant: 'default'
+          })
         }
       }
 
@@ -95,7 +105,7 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
             showUpdateNotification(update)
           }
         } catch (error) {
-          console.error('Failed to parse realtime update:', error)
+          void console.error('Failed to parse realtime update:', error)
         }
       }
 
@@ -108,7 +118,7 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
           isConnecting: false,
         }))
 
-        eventSource.close()
+        void eventSource.close()
         eventSourceRef.current = null
 
         // Auto-reconnect with exponential backoff
@@ -125,14 +135,11 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
             }
           }, delay)
         } else if (enableNotifications && state.connectionAttempts >= maxReconnectAttempts) {
-          toast.error(
-            'Connection lost',
-            'Real-time updates disconnected. Refresh the page to reconnect.',
-            {
-              label: 'Refresh',
-              onClick: () => window.location.reload(),
-            }
-          )
+          toast({
+            title: 'Connection lost',
+            description: 'Real-time updates disconnected. Refresh the page to reconnect.',
+            variant: 'destructive'
+          })
         }
       }
     } catch (error) {
@@ -141,9 +148,9 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
         isConnected: false,
         isConnecting: false,
       }))
-      console.error('Failed to establish realtime connection:', error)
+      void console.error('Failed to establish realtime connection:', error)
     }
-  }
+  }, [state.isConnected, state.isConnecting, state.connectionAttempts, enableNotifications, autoReconnect, maxReconnectAttempts, reconnectInterval, onUpdate])
 
   const disconnect = () => {
     if (reconnectTimeoutRef.current) {
@@ -169,29 +176,53 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
     switch (type) {
       case 'booking':
         if (action === 'created') {
-          toast.info('New booking received', `${data.clientName} booked an appointment`)
+          toast({
+            title: 'New booking received',
+            description: `${data.clientName ?? 'Client'} booked an appointment`,
+            variant: 'default'
+          })
         } else if (action === 'status_changed') {
-          toast.info('Booking updated', `Booking status changed to ${data.status}`)
+          toast({
+            title: 'Booking updated',
+            description: `Booking status changed to ${data.status ?? 'unknown'}`,
+            variant: 'default'
+          })
         }
         break
 
       case 'appointment':
         if (action === 'created') {
-          toast.info('New appointment scheduled', `Appointment for ${data.clientName}`)
+          toast({
+            title: 'New appointment scheduled',
+            description: `Appointment for ${data.clientName ?? 'client'}`,
+            variant: 'default'
+          })
         } else if (action === 'updated') {
-          toast.info('Appointment updated', `Changes made to ${data.clientName}'s appointment`)
+          toast({
+            title: 'Appointment updated',
+            description: `Changes made to ${data.clientName ?? 'client'}'s appointment`,
+            variant: 'default'
+          })
         }
         break
 
       case 'payment':
         if (action === 'created') {
-          toast.success('Payment received', `$${data.amount} payment processed`)
+          toast({
+            title: 'Payment received',
+            description: `$${data.amount ?? 0} payment processed`,
+            variant: 'default'
+          })
         }
         break
 
       case 'customer':
         if (action === 'created') {
-          toast.info('New customer', `${data.name} joined`)
+          toast({
+            title: 'New customer',
+            description: `${data.name ?? 'Customer'} joined`,
+            variant: 'default'
+          })
         }
         break
     }
@@ -205,7 +236,7 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
       mountedRef.current = false
       disconnect()
     }
-  }, [])
+  }, [connect])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -224,17 +255,17 @@ export function useRealtimeUpdates(options: UseRealtimeUpdatesOptions = {}) {
 }
 
 // Polling fallback for when SSE is not available
-export function usePollingUpdates(
-  fetcher: () => Promise<any>,
+export function usePollingUpdates<T = unknown>(
+  fetcher: () => Promise<T>,
   interval: number = 30000,
   enabled: boolean = true
 ) {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<T | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const poll = async () => {
+  const poll = useCallback(async () => {
     if (!enabled) return
 
     try {
@@ -247,23 +278,26 @@ export function usePollingUpdates(
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [enabled, fetcher])
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) return undefined
 
     // Initial fetch
-    poll()
+    void poll()
 
     // Set up polling
-    intervalRef.current = setInterval(poll, interval)
+    intervalRef.current = setInterval(() => {
+      void poll()
+    }, interval)
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
     }
-  }, [enabled, interval])
+  }, [enabled, interval, poll])
 
   return {
     data,
@@ -295,7 +329,7 @@ export function useDashboardRealtime() {
           if (update.action === 'created') {
             setMetrics(prev => ({
               ...prev,
-              totalRevenue: prev.totalRevenue + update.data.amount,
+              totalRevenue: prev.totalRevenue + (update.data.amount ?? 0),
               pendingPayments: Math.max(0, prev.pendingPayments - 1),
             }))
           }
@@ -317,11 +351,18 @@ export function useDashboardRealtime() {
   }
 }
 
+// WebSocket message type
+export interface WebSocketMessage {
+  type: string;
+  payload: unknown;
+  timestamp: Date;
+}
+
 // WebSocket alternative (for more complex real-time needs)
 export function useWebSocketUpdates(url: string) {
   const [socket, setSocket] = useState<WebSocket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<WebSocketMessage[]>([])
 
   useEffect(() => {
     const ws = new WebSocket(url)
@@ -336,7 +377,7 @@ export function useWebSocketUpdates(url: string) {
         const message = JSON.parse(event.data)
         setMessages(prev => [message, ...prev.slice(0, 99)])
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error)
+        void console.error('Failed to parse WebSocket message:', error)
       }
     }
 
@@ -346,17 +387,17 @@ export function useWebSocketUpdates(url: string) {
     }
 
     ws.onerror = (error) => {
-      console.error('WebSocket error:', error)
+      void console.error('WebSocket error:', error)
     }
 
     return () => {
-      ws.close()
+      void ws.close()
     }
   }, [url])
 
-  const sendMessage = (message: any) => {
+  const sendMessage = (message: unknown) => {
     if (socket && isConnected) {
-      socket.send(JSON.stringify(message))
+      void socket.send(JSON.stringify(message))
     }
   }
 

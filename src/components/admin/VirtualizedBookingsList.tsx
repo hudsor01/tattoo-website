@@ -26,7 +26,7 @@ export default function VirtualizedBookingsList({
   containerHeight = 600 
 }: VirtualizedBookingsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>(defaultStatus || 'all')
+  const [statusFilter, setStatusFilter] = useState<string>(defaultStatus ?? 'all')
   const [sortBy, setSortBy] = useState<string>('date-desc')
   const [expandedBookings, setExpandedBookings] = useState<Set<number>>(new Set())
 
@@ -43,11 +43,12 @@ export default function VirtualizedBookingsList({
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(booking => 
-        booking.Customer?.firstName?.toLowerCase().includes(searchLower) ||
-        booking.Customer?.lastName?.toLowerCase().includes(searchLower) ||
-        booking.Customer?.email?.toLowerCase().includes(searchLower) ||
-        booking.tattooType?.toLowerCase().includes(searchLower) ||
-        booking.placement?.toLowerCase().includes(searchLower)
+        booking.Customer?.firstName?.toLowerCase().includes(searchLower) ??
+        booking.Customer?.lastName?.toLowerCase().includes(searchLower) ??
+        booking.Customer?.email?.toLowerCase().includes(searchLower) ??
+        booking.tattooType?.toLowerCase().includes(searchLower) ??
+        booking.placement?.toLowerCase().includes(searchLower) ??
+        false
       )
     }
 
@@ -59,13 +60,13 @@ export default function VirtualizedBookingsList({
         case 'date-desc':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         case 'name-asc': {
-          const nameA = `${a.Customer?.firstName || ''} ${a.Customer?.lastName || ''}`.trim()
-          const nameB = `${b.Customer?.firstName || ''} ${b.Customer?.lastName || ''}`.trim()
+          const nameA = `${a.Customer?.firstName ?? ''} ${a.Customer?.lastName ?? ''}`.trim()
+          const nameB = `${b.Customer?.firstName ?? ''} ${b.Customer?.lastName ?? ''}`.trim()
           return nameA.localeCompare(nameB)
         }
         case 'name-desc': {
-          const nameA2 = `${a.Customer?.firstName || ''} ${a.Customer?.lastName || ''}`.trim()
-          const nameB2 = `${b.Customer?.firstName || ''} ${b.Customer?.lastName || ''}`.trim()
+          const nameA2 = `${a.Customer?.firstName ?? ''} ${a.Customer?.lastName ?? ''}`.trim()
+          const nameB2 = `${b.Customer?.firstName ?? ''} ${b.Customer?.lastName ?? ''}`.trim()
           return nameB2.localeCompare(nameA2)
         }
         default:
@@ -86,19 +87,12 @@ export default function VirtualizedBookingsList({
     setExpandedBookings(newExpanded)
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
-  }
-
   if (isLoading) {
     return (
       <div style={{ height: containerHeight }} className="flex items-center justify-center">
         <div className="animate-pulse space-y-4 w-full">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-20 bg-gray-200 rounded"></div>
+          {Array.from({ length: 5 }, (_, i) => `loading-skeleton-${i}`).map((key) => (
+            <div key={key} className="h-20 bg-gray-200 rounded"></div>
           ))}
         </div>
       </div>
@@ -180,9 +174,9 @@ export default function VirtualizedBookingsList({
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge 
-                          className={statusColors[(booking.calStatus || 'pending') as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}
+                          className={statusColors[(booking.calStatus ?? 'pending') as keyof typeof statusColors] ?? 'bg-gray-100 text-gray-800'}
                         >
-                          {booking.calStatus || 'pending'}
+                          {booking.calStatus ?? 'pending'}
                         </Badge>
                         <div className="text-right text-sm">
                           <p className="font-medium">
@@ -212,9 +206,9 @@ export default function VirtualizedBookingsList({
                           Tattoo Details
                         </h4>
                         <div className="space-y-1 text-sm">
-                          <p><span className="text-gray-500">Type:</span> {booking.tattooType || 'Not specified'}</p>
-                          <p><span className="text-gray-500">Size:</span> {booking.size || 'Not specified'}</p>
-                          <p><span className="text-gray-500">Placement:</span> {booking.placement || 'Not specified'}</p>
+                          <p><span className="text-gray-500">Type:</span> {booking.tattooType ?? 'Not specified'}</p>
+                          <p><span className="text-gray-500">Size:</span> {booking.size ?? 'Not specified'}</p>
+                          <p><span className="text-gray-500">Placement:</span> {booking.placement ?? 'Not specified'}</p>
                           <p><span className="text-gray-500">Est. Price:</span> Estimate pending</p>
                         </div>
                       </div>
@@ -226,8 +220,8 @@ export default function VirtualizedBookingsList({
                           Contact Info
                         </h4>
                         <div className="space-y-1 text-sm">
-                          <p><span className="text-gray-500">Phone:</span> {booking.Customer?.phone || 'Not provided'}</p>
-                          <p><span className="text-gray-500">Address:</span> {booking.Customer?.address || 'Not provided'}</p>
+                          <p><span className="text-gray-500">Phone:</span> {booking.Customer?.phone ?? 'Not provided'}</p>
+                          <p><span className="text-gray-500">Address:</span> {booking.Customer?.address ?? 'Not provided'}</p>
                           {booking.Customer?.city && booking.Customer?.state && (
                             <p><span className="text-gray-500">Location:</span> {booking.Customer.city}, {booking.Customer.state}</p>
                           )}
@@ -292,7 +286,7 @@ export default function VirtualizedBookingsList({
       {/* Summary */}
       <div className="flex-shrink-0 mt-4 pt-4 border-t">
         <p className="text-sm text-gray-500">
-          Showing {filteredBookings.length} of {bookingsData?.length || 0} bookings
+          Showing {filteredBookings.length} of {bookingsData?.length ?? 0} bookings
         </p>
       </div>
     </div>

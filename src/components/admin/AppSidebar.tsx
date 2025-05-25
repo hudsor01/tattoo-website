@@ -18,7 +18,6 @@ import { NavMain } from '@/components/admin/NavMain'
 import { NavUser } from '@/components/admin/NavUser'
 import { NavSecondary } from '@/components/admin/NavSecondary'
 import { SidebarSearch } from '@/components/admin/SidebarSearch'
-import { SidebarToggle } from '@/components/admin/SidebarToggle'
 import {
   Sidebar,
   SidebarContent,
@@ -75,13 +74,13 @@ const staticData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser()
-  const { state, toggleSidebar } = useSidebar()
+  useSidebar()
   const [isFixed, setIsFixed] = React.useState(true)
   
   const userData = user ? {
-    name: user.fullName || user.firstName || 'Admin',
-    email: user.primaryEmailAddress?.emailAddress || 'admin@ink37.com',
-    avatar: user.imageUrl || '/logo.png',
+    name: user.fullName ?? user.firstName ?? 'Admin',
+    email: user.primaryEmailAddress?.emailAddress ?? 'admin@ink37.com',
+    avatar: user.imageUrl ?? '/logo.png',
   } : {
     name: 'Admin',
     email: 'admin@ink37.com', 

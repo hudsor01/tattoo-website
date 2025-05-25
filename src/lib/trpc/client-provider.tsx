@@ -44,7 +44,7 @@ export function TRPCProvider({
           },
           mutations: {
             retry: 1,
-            retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
           },
         },
       }),
@@ -52,7 +52,6 @@ export function TRPCProvider({
 
   const [trpcClient] = useState(() =>
     trpc.createClient({
-      transformer: superjson,
       links: [
         httpLink({
           url: `${getBaseUrl()}/api/trpc`,
@@ -60,13 +59,14 @@ export function TRPCProvider({
             return {
               ...headers,
               ...Object.fromEntries(
-                Object.entries(cookies || {}).map(([key, value]) => [
+                Object.entries(cookies ?? {}).map(([key, value]) => [
                   `cookie-${key}`,
                   value,
                 ]),
               ),
             };
           },
+          transformer: superjson,
         }),
       ],
     }),
@@ -96,6 +96,7 @@ export function createTRPCClientInstance() {
     links: [
       httpLink({
         url: `${getBaseUrl()}/api/trpc`,
+        transformer: superjson,
       }),
     ],
   });

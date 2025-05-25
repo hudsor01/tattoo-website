@@ -41,6 +41,6 @@ export interface ContactFormEmailData {
  */
 export interface EmailResult {
   success: boolean;
-  data?: any;
-  error?: any;
+  data?: unknown;
+  error?: Error | string | unknown;
 }

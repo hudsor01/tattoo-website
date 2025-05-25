@@ -199,9 +199,9 @@ export default function AboutClient() {
                 title: "Safe Environment",
                 description: "Your safety and comfort are paramount. We maintain the highest standards of cleanliness and follow all health regulations."
               }
-            ].map((value, index) => (
+            ].map((value) => (
               <motion.div 
-                key={index}
+                key={value.title}
                 className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-white/10 hover:border-orange-500/30 transition-colors shadow-lg"
                 variants={fadeInUp}
                 whileHover={{ y: -5 }}

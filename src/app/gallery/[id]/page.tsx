@@ -44,10 +44,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       };
     }
 
-    const artistName = design.Artist?.User?.name || 'Unknown Artist';
+    const artistName = design.Artist?.User?.name ?? 'Unknown Artist';
     const title = `${design.name} by ${artistName} | Ink 37 Tattoo Gallery`;
-    const description = design.description || 
-      `View this ${design.designType || 'tattoo'} design by ${artistName}. Professional tattoo art and custom designs.`;
+    const description = design.description ?? `View this ${design.designType ?? 'tattoo'} design by ${artistName}. Professional tattoo art and custom designs.`;
 
     return {
       title,
@@ -82,7 +81,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ].filter(Boolean) as string[],
     };
   } catch (error) {
-    console.error('Error generating metadata for design:', error);
+    void console.error('Error generating metadata for design:', error);
     return {
       title: 'Tattoo Design | Ink 37',
       description: 'View tattoo design details at Ink 37 professional tattoo studio.',
@@ -157,13 +156,13 @@ export default async function DesignDetailPage({ params }: PageProps) {
           notFound();
         }
       } catch (error) {
-        console.error('Error checking user authorization:', error);
+        void console.error('Error checking user authorization:', error);
         notFound();
       }
     }
 
   } catch (error) {
-    console.error('Error fetching design:', error);
+    void console.error('Error fetching design:', error);
     notFound();
   }
 

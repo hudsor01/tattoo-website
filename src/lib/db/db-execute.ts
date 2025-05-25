@@ -7,7 +7,6 @@
 
 import { prisma } from './prisma';
 import { getErrorMessage } from '@/lib/utils/server';
-import type { DatabaseResult } from '@/types/database.types';
 
 /**
  * Options for stored procedure execution
@@ -39,12 +38,12 @@ export async function executeStoredProcedure<T = unknown>(
   functionName: string,
   params: unknown[] = [],
   options: ExecuteStoredProcedureOptions = {},
-): DatabaseResult<T> {
+): Promise<T> {
   const { logParams = false, timeoutMs } = options;
 
   try {
     if (logParams) {
-      console.error(`Executing ${functionName} with params:`, params);
+      void console.error(`Executing ${functionName} with params:`, params);
     }
 
     // Create the query string - we use the ANY parameter syntax for flexibility
@@ -69,7 +68,7 @@ export async function executeStoredProcedure<T = unknown>(
       ? ((result.length === 1 ? result[0] : result) as T)
       : ({} as T);
   } catch (error) {
-    console.error(`Error executing ${functionName}:`, error);
+    void console.error(`Error executing ${functionName}:`, error);
     throw error;
   }
 }
@@ -87,12 +86,12 @@ export async function executeDbFunction<T = unknown>(
   functionName: string,
   params: unknown[] = [],
   options: ExecuteStoredProcedureOptions = {},
-): DatabaseResult<T> {
+): Promise<{ data: T | null; error: { message: string; originalError: unknown } | null }> {
   try {
     const data = await executeStoredProcedure<T>(functionName, params, options);
     return { data, error: null };
   } catch (error) {
-    console.error(`Error executing database function ${functionName}:`, error);
+    void console.error(`Error executing database function ${functionName}:`, error);
     return {
       data: null,
       error: {

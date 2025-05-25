@@ -28,7 +28,7 @@ export function getBrowserLanguage(): string {
     return 'en';
   }
   
-  return window.navigator.language || 'en';
+  return window.navigator.language ?? 'en';
 }
 
 /**

@@ -15,7 +15,7 @@ import { randomUUID } from 'node:crypto';
 export const designValidator = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  images: z.array(z.string()).min(1, "At least one image is required"),
+  image: z.string().min(1, "Image is required"),
   designType: z.string().optional(),
   size: z.string().optional(),
   isApproved: z.boolean().default(false),
@@ -138,20 +138,20 @@ export const galleryRouter = router({
   create: protectedProcedure
     .input(designValidator)
     .mutation(async ({ input, ctx }) => {
-      console.log('tRPC gallery.create input received:', JSON.stringify(input, null, 2))
-      console.log('Input validation result:', designValidator.safeParse(input))
+      void console.warn('tRPC gallery.create input received:', JSON.stringify(input, null, 2))
+      void console.warn('Input validation result:', designValidator.safeParse(input))
 
       try {
         // Create the design - artist already exists in database
         const designData = {
           id: randomUUID(),
           name: input.name,
-          description: input.description || null,
-          fileUrl: input.images[0],
-          thumbnailUrl: input.images[0],
-          designType: input.designType || null,
-          size: input.size || null,
-          isApproved: input.isApproved || false,
+          description: input.description ?? null,
+          fileUrl: input.image,
+          thumbnailUrl: input.image,
+          designType: input.designType ?? null,
+          size: input.size ?? null,
+          isApproved: input.isApproved ?? false,
           artistId: 'fernando-govea',
           updatedAt: new Date(),
         };
@@ -192,7 +192,7 @@ export const galleryRouter = router({
       id: z.string(),
       name: z.string().min(2).optional(),
       description: z.string().optional(),
-      images: z.array(z.string()).optional(),
+      image: z.string().optional(),
       designType: z.string().optional(),
       size: z.string().optional(),
       isApproved: z.boolean().optional(),
@@ -230,9 +230,9 @@ export const galleryRouter = router({
         // Only include fields that are defined (not undefined)
         if (data.name !== undefined) updateData.name = data.name;
         if (data.description !== undefined) updateData.description = data.description;
-        if (data.images !== undefined && data.images.length > 0) {
-          updateData.fileUrl = data.images[0];
-          updateData.thumbnailUrl = data.images[0]; // Auto-update thumbnail to same as fileUrl
+        if (data.image !== undefined) {
+          updateData.fileUrl = data.image;
+          updateData.thumbnailUrl = data.image; // Auto-update thumbnail to same as fileUrl
         }
         if (data.designType !== undefined) updateData.designType = data.designType;
         if (data.size !== undefined) updateData.size = data.size;

@@ -104,7 +104,7 @@ export interface BaseModel extends TimestampFields {
 /**
  * Base entity interface (alias for BaseModel)
  */
-export interface BaseEntity extends BaseModel {}
+export type BaseEntity = BaseModel
 
 /**
  * ========================================================================

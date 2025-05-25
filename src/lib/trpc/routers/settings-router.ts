@@ -91,8 +91,8 @@ export const settingsRouter = router({
           email: {
             emailProvider: 'resend' as const,
             fromName: "Fernando's Tattoo Studio",
-            fromEmail: 'noreply@fernandostattoo.com',
-            replyToEmail: 'contact@fernandostattoo.com',
+            fromEmail: 'noreply@ink37tattoos.com',
+            replyToEmail: 'contact@ink37tattoos.com',
             sendWelcomeEmails: true,
             sendBookingConfirmations: true,
             sendPaymentConfirmations: true,
@@ -120,14 +120,14 @@ export const settingsRouter = router({
       }
 
       return {
-        general: settings.generalSettings as any,
-        booking: settings.bookingSettings as any,
-        email: settings.emailSettings as any,
-        security: settings.securitySettings as any,
-        notifications: settings.notificationSettings as any
+        general: settings.generalSettings as unknown,
+        booking: settings.bookingSettings as unknown,
+        email: settings.emailSettings as unknown,
+        security: settings.securitySettings as unknown,
+        notifications: settings.notificationSettings as unknown
       }
     } catch (error) {
-      console.error('Error fetching settings:', error)
+      void console.error('Error fetching settings:', error)
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch settings'
@@ -157,7 +157,7 @@ export const settingsRouter = router({
 
         return { success: true, settings }
       } catch (error) {
-        console.error('Error updating general settings:', error)
+        void console.error('Error updating general settings:', error)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update general settings'
@@ -187,7 +187,7 @@ export const settingsRouter = router({
 
         return { success: true, settings }
       } catch (error) {
-        console.error('Error updating booking settings:', error)
+        void console.error('Error updating booking settings:', error)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update booking settings'
@@ -217,7 +217,7 @@ export const settingsRouter = router({
 
         return { success: true, settings }
       } catch (error) {
-        console.error('Error updating email settings:', error)
+        void console.error('Error updating email settings:', error)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update email settings'
@@ -247,7 +247,7 @@ export const settingsRouter = router({
 
         return { success: true, settings }
       } catch (error) {
-        console.error('Error updating security settings:', error)
+        void console.error('Error updating security settings:', error)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update security settings'
@@ -277,7 +277,7 @@ export const settingsRouter = router({
 
         return { success: true, settings }
       } catch (error) {
-        console.error('Error updating notification settings:', error)
+        void console.error('Error updating notification settings:', error)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update notification settings'
@@ -291,12 +291,12 @@ export const settingsRouter = router({
     .mutation(async ({ input }) => {
       try {
         // TODO: Implement actual email sending logic using Resend
-        console.log('Sending test email to:', input.email)
+        void console.warn('Sending test email to:', input.email)
         
         // For now, just return success
         return { success: true, message: 'Test email sent successfully' }
       } catch (error) {
-        console.error('Error sending test email:', error)
+        void console.error('Error sending test email:', error)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to send test email'
@@ -308,12 +308,12 @@ export const settingsRouter = router({
   backupDatabase: protectedProcedure.mutation(async () => {
     try {
       // TODO: Implement actual database backup logic
-      console.log('Creating database backup...')
+      void console.warn('Creating database backup...')
       
       // For now, just return success
       return { success: true, message: 'Database backup initiated' }
     } catch (error) {
-      console.error('Error creating backup:', error)
+      void console.error('Error creating backup:', error)
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to create backup'
@@ -325,12 +325,12 @@ export const settingsRouter = router({
   clearCache: protectedProcedure.mutation(async () => {
     try {
       // TODO: Implement actual cache clearing logic
-      console.log('Clearing cache...')
+      void console.warn('Clearing cache...')
       
       // For now, just return success
       return { success: true, message: 'Cache cleared successfully' }
     } catch (error) {
-      console.error('Error clearing cache:', error)
+      void console.error('Error clearing cache:', error)
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to clear cache'
