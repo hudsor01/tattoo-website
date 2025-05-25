@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { Search, X, Command, FileText, Users, Calendar, CreditCard, Settings, Image } from 'lucide-react'
+import { useCallback } from 'react'
+import { Search, X, Command, Users, Calendar, CreditCard, Settings, Image } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -185,18 +186,16 @@ export function SidebarSearch() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, results, selectedIndex])
+  }, [isOpen, results, selectedIndex, handleSelect])
 
-  const handleSelect = (result: SearchResult) => {
+  const handleSelect = useCallback((result: SearchResult) => {
     router.push(result.path)
     setIsOpen(false)
     setQuery('')
-  }
+  }, [router])
 
   const groupedResults = results.reduce((acc, result) => {
-    if (!acc[result.category]) {
-      acc[result.category] = []
-    }
+    acc[result.category] ??= []
     acc[result.category].push(result)
     return acc
   }, {} as Record<string, SearchResult[]>)

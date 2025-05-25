@@ -39,7 +39,7 @@ export default function PaymentsPage() {
   const [endDate] = useState(() => new Date())
   const [startDate] = useState(() => {
     const date = new Date()
-    date.setDate(date.getDate() - 30)
+    void date.setDate(date.getDate() - 30)
     return date
   })
 
@@ -63,7 +63,7 @@ export default function PaymentsPage() {
   //     setRefundReason('')
   //     refetchPayments()
   //   },
-  //   onError: (error: any) => {
+  //   onError: (error: unknown) => {
   //     toast({
   //       title: 'Error processing refund',
   //       description: error.message,
@@ -72,12 +72,12 @@ export default function PaymentsPage() {
   //   }
   // })
 
-  const handleViewPayment = (payment: any) => {
+  const handleViewPayment = (payment: DatabasePayment) => {
     setSelectedPayment(payment)
     setViewDialogOpen(true)
   }
 
-  const handleRefundPayment = (payment: any) => {
+  const handleRefundPayment = (payment: DatabasePayment) => {
     setSelectedPayment(payment)
     setRefundDialogOpen(true)
   }
@@ -90,9 +90,9 @@ export default function PaymentsPage() {
     // refundPaymentMutation.mutate({
     //   paymentId: selectedPayment.id,
     //   amount,
-    //   reason: refundReason || undefined,
+    //   reason: refundReason ?? undefined,
     // })
-    console.log('Refund not implemented', selectedPayment.id, amount, refundReason)
+    void console.warn('Refund not implemented', selectedPayment.id, amount, refundReason)
   }
 
   const formatCurrency = (amount: number) => {
@@ -106,20 +106,20 @@ export default function PaymentsPage() {
     return method.charAt(0).toUpperCase() + method.slice(1)
   }
 
-  if (paymentsLoading || statsLoading) {
+  if (paymentsLoading ?? statsLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            {Array.from({ length: 4 }, (_, i) => `payment-card-${i}`).map((key) => (
+              <div key={key} className="h-24 bg-gray-200 rounded"></div>
             ))}
           </div>
           <div className="h-10 bg-gray-200 rounded"></div>
           <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+            {Array.from({ length: 5 }, (_, i) => `payment-row-${i}`).map((key) => (
+              <div key={key} className="h-16 bg-gray-200 rounded"></div>
             ))}
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function PaymentsPage() {
     )
   }
 
-  const payments = paymentsData?.items || []
+  const payments = (paymentsData as any)?.items ?? []
   const stats = paymentStats
 
   return (
@@ -135,7 +135,7 @@ export default function PaymentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Payments</h1>
-        <Button onClick={() => refetchPayments()}>
+        <Button onClick={() => (refetchPayments as any)()}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>
@@ -151,7 +151,7 @@ export default function PaymentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue || 0)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue ?? 0)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -162,7 +162,7 @@ export default function PaymentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalPayments || 0}</div>
+            <div className="text-2xl font-bold">{stats?.totalPayments ?? 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -173,7 +173,7 @@ export default function PaymentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.averagePayment || 0)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats?.averagePayment ?? 0)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -183,7 +183,7 @@ export default function PaymentsPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {stats?.paymentsByStatus && stats.totalPayments > 0
-                ? Math.round((stats.paymentsByStatus.find(s => s.status === PaymentStatus.COMPLETED)?.count || 0) / stats.totalPayments * 100)
+                ? Math.round((stats.paymentsByStatus.find(s => s.status === PaymentStatus.COMPLETED)?.count ?? 0) / stats.totalPayments * 100)
                 : 0}%
             </div>
           </CardContent>
@@ -200,7 +200,7 @@ export default function PaymentsPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {stats.paymentsByStatus.map((statusData) => (
                 <div key={statusData.status} className="text-center">
-                  <Badge className={statusColors[statusData.status] || 'bg-gray-100 text-gray-800'}>
+                  <Badge className={statusColors[statusData.status] ?? 'bg-gray-100 text-gray-800'}>
                     {statusData.status}
                   </Badge>
                   <div className="mt-2">
@@ -251,7 +251,7 @@ export default function PaymentsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {payments.map((payment) => (
+              {payments.map((payment: any) => (
                 <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
@@ -269,7 +269,7 @@ export default function PaymentsPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <Badge className={statusColors[payment.status] || 'bg-gray-100 text-gray-800'}>
+                    <Badge className={statusColors[payment.status] ?? 'bg-gray-100 text-gray-800'}>
                       {payment.status}
                     </Badge>
                     <p className="text-sm text-muted-foreground mt-1">

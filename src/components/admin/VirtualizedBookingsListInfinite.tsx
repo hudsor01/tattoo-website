@@ -61,7 +61,7 @@ export default function VirtualizedBookingsListInfinite({
   containerHeight = 600 
 }: VirtualizedBookingsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>(defaultStatus || 'all')
+  const [statusFilter, setStatusFilter] = useState<string>(defaultStatus ?? 'all')
   const [sortBy, setSortBy] = useState<string>('date-desc')
   const [expandedBookings, setExpandedBookings] = useState<Set<number>>(new Set())
 
@@ -74,7 +74,7 @@ export default function VirtualizedBookingsListInfinite({
     fetchNextPage,
     count: totalCount
   } = useBookingsInfiniteQuery({
-    status: statusFilter === 'all' ? undefined : (statusFilter || undefined),
+    status: statusFilter === 'all' ? undefined : (statusFilter ?? undefined),
     limit: 20, // Load 20 items per page
   })
 
@@ -88,11 +88,12 @@ export default function VirtualizedBookingsListInfinite({
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(booking => 
-        booking.Customer?.firstName?.toLowerCase().includes(searchLower) ||
-        booking.Customer?.lastName?.toLowerCase().includes(searchLower) ||
-        booking.Customer?.email?.toLowerCase().includes(searchLower) ||
-        booking.tattooType?.toLowerCase().includes(searchLower) ||
-        booking.placement?.toLowerCase().includes(searchLower)
+        booking.Customer?.firstName?.toLowerCase().includes(searchLower) ??
+        booking.Customer?.lastName?.toLowerCase().includes(searchLower) ??
+        booking.Customer?.email?.toLowerCase().includes(searchLower) ??
+        booking.tattooType?.toLowerCase().includes(searchLower) ??
+        booking.placement?.toLowerCase().includes(searchLower) ??
+        false
       )
     }
 
@@ -104,13 +105,13 @@ export default function VirtualizedBookingsListInfinite({
         case 'date-desc':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         case 'name-asc': {
-          const nameA = `${a.Customer?.firstName || ''} ${a.Customer?.lastName || ''}`.trim()
-          const nameB = `${b.Customer?.firstName || ''} ${b.Customer?.lastName || ''}`.trim()
+          const nameA = `${a.Customer?.firstName ?? ''} ${a.Customer?.lastName ?? ''}`.trim()
+          const nameB = `${b.Customer?.firstName ?? ''} ${b.Customer?.lastName ?? ''}`.trim()
           return nameA.localeCompare(nameB)
         }
         case 'name-desc': {
-          const nameA2 = `${a.Customer?.firstName || ''} ${a.Customer?.lastName || ''}`.trim()
-          const nameB2 = `${b.Customer?.firstName || ''} ${b.Customer?.lastName || ''}`.trim()
+          const nameA2 = `${a.Customer?.firstName ?? ''} ${a.Customer?.lastName ?? ''}`.trim()
+          const nameB2 = `${b.Customer?.firstName ?? ''} ${b.Customer?.lastName ?? ''}`.trim()
           return nameB2.localeCompare(nameA2)
         }
         default:
@@ -142,12 +143,12 @@ export default function VirtualizedBookingsListInfinite({
   const loadMoreRef = React.useRef<HTMLDivElement>(null)
   
   React.useEffect(() => {
-    if (!hasMore || isFetching) return
+    if (!hasMore || isFetching) return undefined
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          fetchNextPage()
+          void fetchNextPage()
         }
       },
       { threshold: 0.1 }
@@ -164,8 +165,8 @@ export default function VirtualizedBookingsListInfinite({
     return (
       <div style={{ height: containerHeight }} className="flex items-center justify-center">
         <div className="animate-pulse space-y-4 w-full">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-20 bg-gray-200 rounded"></div>
+          {Array.from({ length: 5 }, (_, i) => `loading-skeleton-${i}`).map((key) => (
+            <div key={key} className="h-20 bg-gray-200 rounded"></div>
           ))}
         </div>
       </div>
@@ -280,9 +281,9 @@ export default function VirtualizedBookingsListInfinite({
                             Tattoo Details
                           </h4>
                           <div className="space-y-1 text-sm">
-                            <p><span className="text-gray-500">Type:</span> {booking.tattooType || 'Not specified'}</p>
-                            <p><span className="text-gray-500">Size:</span> {booking.size || 'Not specified'}</p>
-                            <p><span className="text-gray-500">Placement:</span> {booking.placement || 'Not specified'}</p>
+                            <p><span className="text-gray-500">Type:</span> {booking.tattooType ?? 'Not specified'}</p>
+                            <p><span className="text-gray-500">Size:</span> {booking.size ?? 'Not specified'}</p>
+                            <p><span className="text-gray-500">Placement:</span> {booking.placement ?? 'Not specified'}</p>
                             {booking.estimatedPrice && (
                               <p><span className="text-gray-500">Est. Price:</span> {formatCurrency(booking.estimatedPrice)}</p>
                             )}
@@ -296,8 +297,8 @@ export default function VirtualizedBookingsListInfinite({
                             Contact Info
                           </h4>
                           <div className="space-y-1 text-sm">
-                            <p><span className="text-gray-500">Phone:</span> {booking.Customer?.phone || 'Not provided'}</p>
-                            <p><span className="text-gray-500">Address:</span> {booking.Customer?.address || 'Not provided'}</p>
+                            <p><span className="text-gray-500">Phone:</span> {booking.Customer?.phone ?? 'Not provided'}</p>
+                            <p><span className="text-gray-500">Address:</span> {booking.Customer?.address ?? 'Not provided'}</p>
                             {booking.Customer?.city && booking.Customer?.state && (
                               <p><span className="text-gray-500">Location:</span> {booking.Customer.city}, {booking.Customer.state}</p>
                             )}

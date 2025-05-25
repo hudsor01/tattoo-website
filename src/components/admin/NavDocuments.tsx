@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { MoreHorizontal } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -27,7 +26,7 @@ export function NavDocuments({
   items: {
     name: string
     url: string
-    icon: React.ComponentType<any>
+    icon: React.ComponentType<{ className?: string }>
   }[]
 }) {
   const { isMobile } = useSidebar()

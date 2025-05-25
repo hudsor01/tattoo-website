@@ -64,11 +64,11 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, ErrorBoundar
     }
 
     // Update state with error details
-    this.setState({ error, errorInfo });
+    void this.setState({ error, errorInfo });
 
     // Log error to console in development
     if (process.env.NODE_ENV !== 'production') {
-      console.error('Error caught by ErrorBoundary:', error, errorInfo);
+      void console.error('Error caught by ErrorBoundary:', error, errorInfo);
     }
   }
 
@@ -94,7 +94,7 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, ErrorBoundar
         <ErrorFallback
           error={this.state.error}
           resetErrorBoundary={() => {
-            this.setState({ hasError: false, error: null, errorInfo: null });
+            void this.setState({ hasError: false, error: null, errorInfo: null });
           }}
           title={title}
           description={description}

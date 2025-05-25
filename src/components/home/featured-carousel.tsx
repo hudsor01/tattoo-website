@@ -39,14 +39,14 @@ export default function FeaturedCarousel({
   showDots = true,
   showInfo = true,
 }: FeaturedCarouselProps) {
-  const [api, setApi] = React.useState<CarouselApi>(null);
+  const [api, setApi] = React.useState<CarouselApi>();
 
   // Auto-play functionality
-  React.useEffect(() => {
-    if (!api || !autoPlayInterval) return;
+  void React.useEffect(() => {
+    if (!api || !autoPlayInterval) return undefined;
 
     const intervalId = setInterval(() => {
-      api.scrollNext();
+      void api.scrollNext();
     }, autoPlayInterval);
 
     return () => clearInterval(intervalId);
@@ -66,7 +66,7 @@ export default function FeaturedCarousel({
     >
       <CarouselContent>
         {images.map((image, index) => (
-          <CarouselItem key={index} className="relative">
+          <CarouselItem key={image.src} className="relative">
             <div className={cn(
               "overflow-hidden rounded-xl relative",
               aspectRatio === 'portrait' ? 'aspect-[3/4]' : 'aspect-square',
@@ -93,7 +93,7 @@ export default function FeaturedCarousel({
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10"></div>
                   
                   {/* Image information */}
-                  {showInfo && (image.title || image.description) && (
+                  {showInfo && (image.title ?? image.description) && (
                     <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
                       {image.title && (
                         <h3 className="text-white text-lg font-semibold mb-1">{image.title}</h3>

@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { galleryPhotos } from './gallery-photos';
 import Image from 'next/image';
@@ -74,21 +73,21 @@ export function GalleryGrid({
         type: 'video' as const,
         sources: [
           {
-            src: (photo as VideoGalleryItem).videoSrc || photo.src,
+            src: (photo as VideoGalleryItem).videoSrc ?? photo.src,
             type: 'video/mp4',
           },
         ],
         poster: photo.src,
-        width: photo.width || 1200,
-        height: photo.height || 800,
+        width: photo.width ?? 1200,
+        height: photo.height ?? 800,
         title: photo.title,
         description: photo.category,
       };
     } else {
       return {
         src: photo.src,
-        width: photo.width || 1200,
-        height: photo.height || 800,
+        width: photo.width ?? 1200,
+        height: photo.height ?? 800,
         title: photo.title,
         description: photo.category,
       };
@@ -97,7 +96,7 @@ export function GalleryGrid({
 
   // Debug logging
   useEffect(() => {
-    console.info('Gallery Debug Info:', {
+    void console.warn('Gallery Debug Info:', {
       activeTab,
       totalPhotos: galleryPhotos.length,
       filteredPhotos: filteredPhotos.length,
@@ -217,26 +216,26 @@ export function GalleryGrid({
             >
               {displayPhotos.map((photo, index) => (
                 <motion.div
-                  key={index}
+                  key={photo.src}
                   className="relative group cursor-pointer"
                   variants={itemVariants}
                   whileHover={{ y: -8 }}
                   onClick={() => {
-                    console.info('Clicked item:', { index, photo, type: photo.type });
+                    void console.warn('Clicked item:', { index, photo, type: photo.type });
                     openLightbox(index);
                   }}
                 >
                   <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-zinc-800/50 border border-zinc-700/30 group-hover:border-red-500/50 transition-all duration-300">
                     <Image
                       src={photo.src}
-                      alt={photo.alt || ''}
+                      alt={photo.alt ?? ''}
                       fill
                       priority={index < 12} 
                       quality={95}
                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
                       className="object-cover object-center transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {
-                        console.error(`Failed to load image: ${photo.src}`);
+                        void console.error(`Failed to load image: ${photo.src}`);
                         e.currentTarget.src = '/images/traditional.jpg';
                       }}
                     />
@@ -274,26 +273,26 @@ export function GalleryGrid({
             >
               {displayPhotos.map((photo, index) => (
                 <motion.div
-                  key={index}
+                  key={photo.src}
                   className="relative group cursor-pointer"
                   variants={itemVariants}
                   whileHover={{ y: -12 }}
                   onClick={() => {
-                    console.info('Clicked item:', { index, photo, type: photo.type });
+                    void console.warn('Clicked item:', { index, photo, type: photo.type });
                     openLightbox(index);
                   }}
                 >
                   <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-zinc-800/50 border border-zinc-700/30 group-hover:border-red-500/50 transition-all duration-300 shadow-xl group-hover:shadow-2xl">
                     <Image
                       src={photo.src}
-                      alt={photo.alt || ''}
+                      alt={photo.alt ?? ''}
                       fill
                       priority={index < 6} 
                       quality={95}
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover object-center transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {
-                        console.error(`Failed to load image: ${photo.src}`);
+                        void console.error(`Failed to load image: ${photo.src}`);
                         e.currentTarget.src = '/images/traditional.jpg';
                       }}
                     />
@@ -362,7 +361,6 @@ export function GalleryGrid({
         video={{
           controls: true,
           playsInline: true,
-          poster: true,
         }}
         styles={{
           container: { backgroundColor: 'rgba(0, 0, 0, 0.95)' },

@@ -21,6 +21,7 @@ import 'yet-another-react-lightbox/styles.css'
 import 'yet-another-react-lightbox/plugins/captions.css'
 import 'yet-another-react-lightbox/plugins/counter.css'
 import 'yet-another-react-lightbox/plugins/thumbnails.css'
+import type { GalleryDesignDto } from '@/types/gallery-types'
 
 interface GalleryInfiniteProps {
   className?: string
@@ -60,24 +61,27 @@ export default function GalleryInfinite({
     limit: itemsPerPage,
   })
 
+  // Type assertion for designs
+  const typedDesigns = (designs as GalleryDesignDto[]) || []
+
   // Filter designs by search term (client-side filtering)
   const filteredDesigns = React.useMemo(() => {
-    if (!designs) return []
+    if (!typedDesigns) return []
     
-    let filtered = designs
+    let filtered = typedDesigns
     
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      filtered = filtered.filter(design => 
+      filtered = filtered.filter((design: GalleryDesignDto) => 
         design.name.toLowerCase().includes(searchLower) ||
-        design.description?.toLowerCase().includes(searchLower) ||
-        design.designType?.toLowerCase().includes(searchLower)
+        (design.description?.toLowerCase().includes(searchLower) ?? false) ||
+        (design.designType?.toLowerCase().includes(searchLower) ?? false)
       )
     }
     
     // Sort (Note: server already sorts by latest, but we can re-sort client-side)
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = [...filtered].sort((a: GalleryDesignDto, b: GalleryDesignDto) => {
       switch (sortBy) {
         case 'latest':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -92,18 +96,18 @@ export default function GalleryInfinite({
     })
     
     return sorted
-  }, [designs, searchTerm, sortBy])
+  }, [typedDesigns, searchTerm, sortBy])
 
   // Prepare slides for lightbox
   const lightboxSlides = React.useMemo(() => {
     if (!enableLightbox) return []
     
-    return filteredDesigns.map((design) => ({
-      src: design.fileUrl || design.thumbnailUrl || '/images/placeholder-tattoo.jpg',
+    return filteredDesigns.map((design: GalleryDesignDto) => ({
+      src: design.fileUrl ?? design.thumbnailUrl ?? '/images/placeholder-tattoo.jpg',
       width: 1200,
       height: 800,
       title: design.name,
-      description: design.description || design.designType || '',
+      description: design.description ?? design.designType ?? '',
     }))
   }, [filteredDesigns, enableLightbox])
 
@@ -123,12 +127,12 @@ export default function GalleryInfinite({
   const loadMoreRef = React.useRef<HTMLDivElement>(null)
   
   React.useEffect(() => {
-    if (!hasMore || isFetching) return
+    if (!hasMore || isFetching) return undefined
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage()
+        if (entries[0]?.isIntersecting) {
+          void fetchNextPage()
         }
       },
       { threshold: 0.1 }
@@ -170,7 +174,7 @@ export default function GalleryInfinite({
             </div>
 
             {/* Category Filter */}
-            <Select value={designType || 'all'} onValueChange={(value) => setDesignType(value === 'all' ? undefined : value)}>
+            <Select value={designType ?? 'all'} onValueChange={(value) => setDesignType(value === 'all' ? undefined : value)}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
@@ -224,8 +228,8 @@ export default function GalleryInfinite({
             ? `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridCols}` 
             : 'grid-cols-1'
         }`}>
-          {[...Array(itemsPerPage)].map((_, i) => (
-            <div key={i} className="animate-pulse">
+          {Array.from({ length: itemsPerPage }, (_, i) => `skeleton-${i}`).map((key) => (
+            <div key={key} className="animate-pulse">
               <div className="bg-gray-200 aspect-square rounded-lg mb-3"></div>
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-3/4"></div>
@@ -251,18 +255,59 @@ export default function GalleryInfinite({
                 ? `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridCols}` 
                 : 'grid-cols-1'
             }`}>
-              {filteredDesigns.map((design, index) => {
-                const CardComponent = enableLightbox ? 'div' : Link
-                const cardProps = enableLightbox 
-                  ? { onClick: () => openLightbox(index) }
-                  : { href: `/gallery/${design.id}` }
+              {filteredDesigns.map((design: GalleryDesignDto, index: number) => {
+                if (enableLightbox) {
+                  return (
+                    <div key={design.id} onClick={() => openLightbox(index)}>
+                      <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
+                        <div className="relative aspect-square">
+                          <Image
+                            src={design.thumbnailUrl ?? design.fileUrl ?? '/images/placeholder-tattoo.jpg'}
+                            alt={design.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          />
+                          {design.designType && (
+                            <Badge className="absolute top-2 left-2 bg-black/70 text-white">
+                              {design.designType}
+                            </Badge>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <div className="bg-white/90 rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300">
+                              <Eye className="w-6 h-6 text-gray-900" />
+                            </div>
+                          </div>
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors">
+                            {design.name}
+                          </h3>
+                          {design.description && (
+                            <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                              {design.description}
+                            </p>
+                          )}
+                          {design.artist?.user?.name && (
+                            <p className="text-xs text-gray-500">
+                              by {design.artist.user.name}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(design.createdAt).toLocaleDateString()}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )
+                }
 
                 return (
-                  <CardComponent key={design.id} {...cardProps}>
+                  <Link key={design.id} href={`/gallery/${design.id}`}>
                     <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
                       <div className="relative aspect-square">
                         <Image
-                          src={design.thumbnailUrl || design.fileUrl || '/images/placeholder-tattoo.jpg'}
+                          src={design.thumbnailUrl ?? design.fileUrl ?? '/images/placeholder-tattoo.jpg'}
                           alt={design.name}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -272,13 +317,6 @@ export default function GalleryInfinite({
                           <Badge className="absolute top-2 left-2 bg-black/70 text-white">
                             {design.designType}
                           </Badge>
-                        )}
-                        {enableLightbox && (
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <div className="bg-white/90 rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300">
-                              <Eye className="w-6 h-6 text-gray-900" />
-                            </div>
-                          </div>
                         )}
                       </div>
                       <CardContent className="p-4">
@@ -290,9 +328,9 @@ export default function GalleryInfinite({
                             {design.description}
                           </p>
                         )}
-                        {design.Artist?.User?.name && (
+                        {design.artist?.user?.name && (
                           <p className="text-xs text-gray-500">
-                            by {design.Artist.User.name}
+                            by {design.artist.user.name}
                           </p>
                         )}
                         <p className="text-xs text-gray-400 mt-1">
@@ -300,7 +338,7 @@ export default function GalleryInfinite({
                         </p>
                       </CardContent>
                     </Card>
-                  </CardComponent>
+                  </Link>
                 )
               })}
             </div>
@@ -317,7 +355,7 @@ export default function GalleryInfinite({
               ) : (
                 <Button 
                   variant="outline" 
-                  onClick={fetchNextPage}
+                  onClick={() => void fetchNextPage()}
                   className="px-8"
                 >
                   Load More Designs
@@ -382,10 +420,10 @@ export default function GalleryInfinite({
             container: { backgroundColor: 'rgba(0, 0, 0, 0.95)' },
             slide: { padding: 0 },
           }}
-          render={{
-            buttonPrev: lightboxSlides.length <= 1 ? () => null : undefined,
-            buttonNext: lightboxSlides.length <= 1 ? () => null : undefined,
-          }}
+          render={lightboxSlides.length <= 1 ? {
+            buttonPrev: () => null,
+            buttonNext: () => null,
+          } : {}}
         />
       )}
     </div>

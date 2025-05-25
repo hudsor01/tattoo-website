@@ -22,7 +22,7 @@ interface ProvidersProps {
  */
 export default function Providers({ children, cookies, headers }: ProvidersProps) {
   return (
-    <TrpcClientProvider cookies={cookies} headers={headers}>
+    <TrpcClientProvider cookies={cookies ?? {}} headers={headers ?? {}}>
       <ThemeProvider 
         attribute="class" 
         defaultTheme="dark" 

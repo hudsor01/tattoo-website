@@ -45,13 +45,13 @@ const nextConfig = {
     ];
   },
 
-  // Build optimizations
+  // Build configuration - enable checks for production
   eslint: {
-    ignoreDuringBuilds: true, // Temporarily ignore for testing
+    ignoreDuringBuilds: false, // Enable ESLint during builds
   },
   
   typescript: {
-    ignoreBuildErrors: true, // Temporarily ignore for testing
+    ignoreBuildErrors: false, // Enable TypeScript checking during builds
   },
   
   // Image optimization

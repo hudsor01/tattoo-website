@@ -26,7 +26,7 @@ interface UseTRPCInfiniteQueryResult<T> {
   error: TRPCClientError<any> | null
   hasMore: boolean
   fetchNextPage: () => void
-  refetch: () => Promise<any>
+  refetch: () => Promise<unknown>
 }
 
 export function useTRPCInfiniteQuery<T>({
@@ -58,10 +58,10 @@ export function useTRPCInfiniteQuery<T>({
   })
 
   // Flatten the paginated data
-  const flatData = queryData?.pages.flatMap((page) => page.data) || []
+  const flatData = queryData?.pages.flatMap((page) => page.data) ?? []
   
   // Get total count from the first page (assuming it's consistent)
-  const totalCount = queryData?.pages[0]?.totalCount || 0
+  const totalCount = queryData?.pages[0]?.totalCount ?? 0
 
   return {
     data: flatData,
@@ -71,9 +71,9 @@ export function useTRPCInfiniteQuery<T>({
     isFetching,
     isError,
     error: error as TRPCClientError<any> | null,
-    hasMore: hasNextPage || false,
-    fetchNextPage,
-    refetch,
+    hasMore: hasNextPage ?? false,
+    fetchNextPage: () => void fetchNextPage(),
+    refetch: async () => { await refetch(); },
   }
 }
 
@@ -88,12 +88,12 @@ export function useGalleryInfiniteQuery({
   enabled?: boolean
 } = {}) {
   return useTRPCInfiniteQuery({
-    queryKey: ['gallery', 'getPublicDesigns', { designType, limit }],
+    queryKey: ['gallery', 'getPublicDesigns', designType || 'all', limit],
     queryFn: async ({ pageParam }) => {
       const response = await api.gallery.getPublicDesigns.query({
         limit,
         cursor: pageParam as number | undefined,
-        designType: designType || undefined,
+        designType: designType ?? undefined,
       })
       
       return {
@@ -117,20 +117,20 @@ export function useBookingsInfiniteQuery({
   enabled?: boolean
 } = {}) {
   return useTRPCInfiniteQuery({
-    queryKey: ['dashboard', 'getRecentBookings', { status, limit }],
+    queryKey: ['dashboard', 'getRecentBookings', status || 'all', limit],
     queryFn: async ({ pageParam }) => {
       // Note: This assumes the dashboard router supports cursor-based pagination
       // You may need to update the dashboard router to support this
       const response = await api.dashboard.getRecentBookings.query({
         limit,
         cursor: pageParam as number | undefined,
-        status: status === 'all' ? undefined : (status || undefined),
+        status: status === 'all' ? undefined : (status ?? undefined),
       })
       
       return {
-        data: response.bookings || [],
+        data: response.bookings ?? [],
         nextCursor: response.nextCursor,
-        totalCount: response.totalCount || response.bookings?.length || 0,
+        totalCount: response.totalCount ?? response.bookings?.length ?? 0,
       }
     },
     enabled,

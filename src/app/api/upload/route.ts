@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
     // Get form data
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const bucket = formData.get('bucket') as string || 'gallery'
-    const folder = formData.get('folder') as string || 'tattoos'
+    const bucket = formData.get('bucket') as string ?? 'gallery'
+    const folder = formData.get('folder') as string ?? 'tattoos'
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
 
     // Create Supabase client - using anon key since we removed RLS
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
       {
         auth: {
           autoRefreshToken: false,
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (error) {
-      console.error('Upload error:', error)
+      void console.error('Upload error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       path: data.path
     })
   } catch (error) {
-    console.error('Upload failed:', error)
+    void console.error('Upload failed:', error)
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Upload failed' 
     }, { status: 500 })
@@ -83,8 +83,8 @@ export async function DELETE(request: NextRequest) {
 
     // Create Supabase client - using anon key since we removed RLS
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
       {
         auth: {
           autoRefreshToken: false,
@@ -99,13 +99,13 @@ export async function DELETE(request: NextRequest) {
       .remove([path])
 
     if (error) {
-      console.error('Delete error:', error)
+      void console.error('Delete error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Delete failed:', error)
+    void console.error('Delete failed:', error)
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Delete failed' 
     }, { status: 500 })

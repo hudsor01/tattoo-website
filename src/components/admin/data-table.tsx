@@ -37,12 +37,13 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import type { RecordObject } from "@/types/utility-types"
 
-export interface DataTableColumn<T> {
+export interface DataTableColumn<T extends RecordObject> {
   id: string
   accessorKey?: string
-  header: string | ((props: any) => React.ReactNode)
-  cell?: (props: any) => React.ReactNode
+  header: string | (() => React.ReactNode)
+  cell?: (props: { row: { original: T }, getValue: () => unknown }) => React.ReactNode
   enableSorting?: boolean
   enableHiding?: boolean
   meta?: {
@@ -50,14 +51,14 @@ export interface DataTableColumn<T> {
   }
 }
 
-export interface DataTableAction<T> {
+export interface DataTableAction<T extends RecordObject> {
   label: string
   icon?: React.ReactNode
   onClick: (row: T) => void
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
 }
 
-export interface DataTableProps<T> {
+export interface DataTableProps<T extends RecordObject> {
   data: T[]
   columns: DataTableColumn<T>[]
   loading?: boolean
@@ -72,7 +73,7 @@ export interface DataTableProps<T> {
   className?: string
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends RecordObject>({
   data,
   columns: columnsProp,
   loading = false,
@@ -125,9 +126,9 @@ export function DataTable<T extends Record<string, any>>({
     cols.push(
       ...columnsProp.map((col): ColumnDef<T> => ({
         id: col.id,
-        accessorKey: col.accessorKey || col.id,
+        accessorKey: col.accessorKey ?? col.id,
         header: typeof col.header === "string" 
-          ? ({ column }: any) => (
+          ? ({ column }: { column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => false | 'asc' | 'desc' } }) => (
               col.enableSorting !== false ? (
                 <Button
                   variant="ghost"
@@ -141,8 +142,8 @@ export function DataTable<T extends Record<string, any>>({
                 <span className="font-medium">{col.header as string}</span>
               )
             )
-          : col.header as any,
-        cell: col.cell || (({ getValue }) => {
+          : col.header,
+        cell: col.cell ?? (({ getValue }) => {
           const value = getValue()
           
           // Handle different value types
@@ -166,7 +167,7 @@ export function DataTable<T extends Record<string, any>>({
         }),
         enableSorting: col.enableSorting,
         enableHiding: col.enableHiding,
-        meta: col.meta,
+        meta: col.meta ?? undefined,
       }))
     )
 
@@ -189,9 +190,9 @@ export function DataTable<T extends Record<string, any>>({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {actions.map((action, index) => (
+                {actions.map((action) => (
                   <DropdownMenuItem
-                    key={index}
+                    key={`action-${action.label}`}
                     onClick={() => action.onClick(rowData)}
                     className="cursor-pointer"
                   >
@@ -253,18 +254,18 @@ export function DataTable<T extends Record<string, any>>({
           <Table>
             <TableHeader>
               <TableRow>
-                {[...Array(columns.length)].map((_, i) => (
-                  <TableHead key={i}>
+                {Array.from({ length: columns.length }, (_, i) => `header-${i}`).map((key) => (
+                  <TableHead key={key}>
                     <Skeleton className="h-4 w-full" />
                   </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[...Array(5)].map((_, i) => (
-                <TableRow key={i}>
-                  {[...Array(columns.length)].map((_, j) => (
-                    <TableCell key={j}>
+              {Array.from({ length: 5 }, (_, i) => `row-${i}`).map((rowKey) => (
+                <TableRow key={rowKey}>
+                  {Array.from({ length: columns.length }, (_, j) => `${rowKey}-cell-${j}`).map((cellKey) => (
+                    <TableCell key={cellKey}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}

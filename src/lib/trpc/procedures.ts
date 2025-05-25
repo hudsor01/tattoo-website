@@ -8,7 +8,7 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { logger } from '@/lib/logger';
-import type { TRPCContext } from './types/context';
+import type { TRPCContext } from './context';
 
 // Initialize tRPC with context
 const t = initTRPC.context<TRPCContext>().create({
@@ -29,7 +29,7 @@ export const middleware = t.middleware;
 // Create auth middleware for Clerk
 const authMiddleware = middleware(async ({ ctx, next }) => {
   if (!ctx.userId) {
-    logger.debug('Auth middleware: No userId found', { 
+    void logger.debug('Auth middleware: No userId found', {
       userId: ctx.userId, 
       hasUser: !!ctx.user,
       userEmail: ctx.userEmail 
@@ -40,7 +40,7 @@ const authMiddleware = middleware(async ({ ctx, next }) => {
     });
   }
   
-  logger.debug('Auth middleware: User authenticated', { 
+  void logger.debug('Auth middleware: User authenticated', {
     userId: ctx.userId, 
     userEmail: ctx.userEmail 
   });
@@ -63,7 +63,7 @@ const loggerMiddleware = middleware(async ({ path, next, type }) => {
   const result = await next();
   
   const duration = Date.now() - start;
-  logger.info(`[tRPC] ${type} ${path} - ${duration}ms`);
+  void logger.info(`[tRPC] ${type} ${path} - ${duration}ms`);
   
   return result;
 });

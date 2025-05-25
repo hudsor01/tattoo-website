@@ -14,6 +14,7 @@ import {
   rescheduleCalBooking,
   getCalAvailability
 } from '@/lib/cal/api';
+import type { GetCalBookingsOptions } from '@/types/cal-types';
 import { TRPCError } from '@trpc/server';
 import { isCalConfigured } from '@/lib/cal/config';
 import { prisma } from '@/lib/db/prisma';
@@ -24,7 +25,7 @@ export const calRouter = router({
     const configured = isCalConfigured();
     return {
       configured,
-      calUsername: process.env['NEXT_PUBLIC_CAL_USERNAME'] || null,
+      calUsername: process.env['NEXT_PUBLIC_CAL_USERNAME'] ?? null,
       hasApiKey: Boolean(process.env['CAL_API_KEY']),
       hasWebhookSecret: Boolean(process.env['CAL_WEBHOOK_SECRET']),
     };
@@ -41,10 +42,10 @@ export const calRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        const options: Record<string, unknown> = {};
-        if (input?.['limit'] !== undefined) options['limit'] = input['limit'];
-        if (input?.['status'] !== undefined) options['status'] = input['status'];
-        if (input?.['eventTypeId'] !== undefined) options['eventTypeId'] = input['eventTypeId'];
+        const options: GetCalBookingsOptions = {};
+        if (input?.limit !== undefined) options.limit = input.limit;
+        if (input?.status !== undefined) options.status = input.status;
+        if (input?.eventTypeId !== undefined) options.eventTypeId = input.eventTypeId;
         return await getCalBookings(options);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -193,15 +194,20 @@ export const calRouter = router({
             if (booking.attendees.length > 0) {
               // Extract attendee information safely
               const attendeeName = booking.attendees && booking.attendees.length > 0 ? 
-                booking.attendees[0]?.name || 'Unknown' : 'Unknown';
+                booking.attendees[0]?.name ?? 'Unknown' : 'Unknown';
               const attendeeEmail = booking.attendees && booking.attendees.length > 0 ? 
-                booking.attendees[0]?.email || 'unknown@example.com' : 'unknown@example.com';
+                booking.attendees[0]?.email ?? 'unknown@example.com' : 'unknown@example.com';
                 
               // Extract customInputs if they exist
-              const customInputs = Array.isArray(booking.customInputs) ? booking.customInputs : [];
-              const getTattooTypeInput = customInputs.find((i: { label: string; value: string }) => i.label === 'Tattoo Type');
-              const getSizeInput = customInputs.find((i: { label: string; value: string }) => i.label === 'Size');
-              const getPlacementInput = customInputs.find((i: { label: string; value: string }) => i.label === 'Placement');
+              interface CustomInput {
+                label: string;
+                value: string;
+              }
+              
+              const customInputs = Array.isArray(booking.customInputs) ? booking.customInputs as CustomInput[] : [];
+              const getTattooTypeInput = customInputs.find((i) => i.label === 'Tattoo Type');
+              const getSizeInput = customInputs.find((i) => i.label === 'Size');
+              const getPlacementInput = customInputs.find((i) => i.label === 'Placement');
               
               // Create the booking record
               await prisma.booking.create({
@@ -212,12 +218,12 @@ export const calRouter = router({
                   calBookingUid: booking.uid,
                   calEventTypeId: booking.eventType ? booking.eventType.id : null,
                   calStatus: booking.status,
-                  calMeetingUrl: booking.meetingUrl || null,
+                  calMeetingUrl: booking.meetingUrl ?? null,
 
-                  tattooType: getTattooTypeInput?.value || 'Not specified',
-                  size: getSizeInput?.value || 'Not specified',
-                  placement: getPlacementInput?.value || 'Not specified',
-                  description: booking.description || 'Cal.com booking',
+                  tattooType: getTattooTypeInput?.value ?? 'Not specified',
+                  size: getSizeInput?.value ?? 'Not specified',
+                  placement: getPlacementInput?.value ?? 'Not specified',
+                  description: booking.description ?? 'Cal.com booking',
                   preferredDate: new Date(booking.startTime),
                   preferredTime: new Date(booking.startTime).toLocaleTimeString(),
                   paymentMethod: 'None',

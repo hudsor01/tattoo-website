@@ -4,52 +4,53 @@
  * This router handles all admin-related API endpoints,
  * including dashboard data and user management.
  */
-import { z } from '../utils/safe-zod';
-import { adminProcedure, router } from '../server';
+import { z } from 'zod';
+import { adminProcedure, router } from '../procedures';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import { prisma } from '@/lib/db/prisma';
 
 // Export the admin router with all procedures
 export const adminRouter = router({
   // Get dashboard overview stats
-  getDashboardStats: adminProcedure.query(async ({ ctx }) => {
-    // Get counts from different entities
-    const usersCount = await ctx.db.user.count();
-    const customersCount = await ctx.db.customer.count();
-    const bookingsCount = await ctx.db.booking.count();
-    const appointmentsCount = await ctx.db.appointment.count();
-    const artistsCount = await ctx.db.artist.count();
-    const testimonialsCount = await ctx.db.testimonial.count();
-    const designsCount = await ctx.db.tattooDesign.count();
+  getDashboardStats: adminProcedure.query(async () => {
+  // Get counts from different entities
+  const usersCount = await prisma.user.count();
+  const customersCount = await prisma.customer.count();
+  const bookingsCount = await prisma.booking.count();
+  const appointmentsCount = await prisma.appointment.count();
+  const artistsCount = await prisma.artist.count();
+  const testimonialsCount = await prisma.testimonial.count();
+  const designsCount = await prisma.tattooDesign.count();
 
     // Get recent bookings
-    const recentBookings = await ctx.db.booking.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        Customer: true,
-        Artist: {
-          include: {
-            User: true,
-          },
-        },
-      },
+    const recentBookings = await prisma.booking.findMany({
+    take: 5,
+    orderBy: { createdAt: 'desc' },
+    include: {
+    Customer: true,
+    Artist: {
+    include: {
+    User: true,
+    },
+    },
+    },
     });
-
+    
     // Get upcoming appointments
-    const upcomingAppointments = await ctx.db.appointment.findMany({
-      where: {
-        startDate: {
-          gte: new Date(),
-        },
-      },
-      take: 5,
-      orderBy: { startDate: 'asc' },
-      include: {
-        Customer: true,
-        Artist: true,
-      },
+    const upcomingAppointments = await prisma.appointment.findMany({
+    where: {
+    startDate: {
+    gte: new Date(),
+    },
+    },
+    take: 5,
+    orderBy: { startDate: 'asc' },
+    include: {
+    Customer: true,
+    Artist: true,
+    },
     });
 
     // Return all stats
@@ -70,33 +71,33 @@ export const adminRouter = router({
 
   // Customer endpoints
   customers: router({
-    getAll: adminProcedure
-      .input(
-        z.object({
-          limit: z.number().min(1).max(1000).default(100),
-          cursor: z.string().nullish(),
-          search: z.string().optional(),
-        }),
-      )
-      .query(async ({ input, ctx }) => {
-        const { limit, cursor, search } = input;
-
-        // Build the where clause
-        let where: Prisma.CustomerWhereInput = {};
-
-        // Add search filter if provided
-        if (search) {
-          where = {
-            OR: [
-              { firstName: { contains: search, mode: 'insensitive' } },
-              { lastName: { contains: search, mode: 'insensitive' } },
-              { email: { contains: search, mode: 'insensitive' } },
-              { phone: { contains: search, mode: 'insensitive' } },
-            ],
-          };
-        }
-
-        const customers = await ctx.db.customer.findMany({
+  getAll: adminProcedure
+  .input(
+  z.object({
+  limit: z.number().min(1).max(1000).default(100),
+  cursor: z.string().nullish(),
+  search: z.string().optional(),
+  }),
+  )
+      .query(async ({ input }) => {
+      const { limit, cursor, search } = input;
+      
+      // Build the where clause
+      let where: Prisma.CustomerWhereInput = {};
+      
+      // Add search filter if provided
+      if (search) {
+      where = {
+      OR: [
+      { firstName: { contains: search, mode: 'insensitive' } },
+      { lastName: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+      { phone: { contains: search, mode: 'insensitive' } },
+      ],
+      };
+      }
+      
+      const customers = await prisma.customer.findMany({
           where,
           take: limit + 1,
           ...(cursor ? { cursor: { id: cursor } } : {}),
@@ -115,7 +116,7 @@ export const adminRouter = router({
         let nextCursor: string | undefined;
         if (customers.length > limit) {
           const nextItem = customers.pop();
-          nextCursor = nextItem!.id;
+          nextCursor = nextItem?.id;
         }
 
         return {
@@ -127,37 +128,37 @@ export const adminRouter = router({
 
   // Get customer list with pagination
   getCustomers: adminProcedure
-    .input(
-      z.object({
-        page: z.number().min(1).default(1),
-        limit: z.number().min(1).max(100).default(20),
-        search: z.string().optional(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const { page, limit, search } = input;
-      const skip = (page - 1) * limit;
-
-      // Build the where clause
-      let where: Prisma.CustomerWhereInput = {};
-
-      // Add search filter if provided
-      if (search) {
-        where = {
-          OR: [
-            { firstName: { contains: search, mode: 'insensitive' } },
-            { lastName: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
-            { phone: { contains: search, mode: 'insensitive' } },
-          ],
-        };
-      }
-
-      // Get total count for pagination
-      const totalCount = await ctx.db.customer.count({ where });
-
-      // Get customers
-      const customers = await ctx.db.customer.findMany({
+  .input(
+  z.object({
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(100).default(20),
+  search: z.string().optional(),
+  }),
+  )
+    .query(async ({ input }) => {
+    const { page, limit, search } = input;
+    const skip = (page - 1) * limit;
+    
+    // Build the where clause
+    let where: Prisma.CustomerWhereInput = {};
+    
+    // Add search filter if provided
+    if (search) {
+    where = {
+    OR: [
+    { firstName: { contains: search, mode: 'insensitive' } },
+    { lastName: { contains: search, mode: 'insensitive' } },
+    { email: { contains: search, mode: 'insensitive' } },
+    { phone: { contains: search, mode: 'insensitive' } },
+    ],
+    };
+    }
+    
+    // Get total count for pagination
+    const totalCount = await prisma.customer.count({ where });
+    
+    // Get customers
+    const customers = await prisma.customer.findMany({
         where,
         skip,
         take: limit,
@@ -191,11 +192,79 @@ export const adminRouter = router({
       };
     }),
 
+  // Get customers with infinite scroll pagination
+  getCustomersInfinite: adminProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(20),
+        cursor: z.number().nullish(),
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { limit, cursor, search } = input;
+      
+      // Build the where clause
+      let where: Prisma.CustomerWhereInput = {};
+      
+      // Add search filter if provided
+      if (search) {
+        where = {
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { phone: { contains: search, mode: 'insensitive' } },
+          ],
+        };
+      }
+      
+      // Get total count for reference
+      const totalCount = await prisma.customer.count({ where });
+      
+      // Get customers with cursor pagination  
+      const findManyOptions: Prisma.CustomerFindManyArgs = {
+        where,
+        take: limit + 1, // Take one extra to check if there's more
+        orderBy: { createdAt: 'desc' },
+        include: {
+          Booking: {
+            select: {
+              id: true,
+            },
+          },
+          Appointment: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      };
+      
+      if (cursor) {
+        findManyOptions.cursor = { id: cursor.toString() };
+      }
+      
+      const customers = await prisma.customer.findMany(findManyOptions);
+      
+      let nextCursor: number | null = null;
+      if (customers.length > limit) {
+        const nextItem = customers.pop();
+        nextCursor = nextItem ? parseInt(nextItem.id) : null;
+      }
+      
+      return {
+        customers,
+        nextCursor,
+        totalCount,
+      };
+    }),
+
   // Get customer details by ID
   getCustomerById: adminProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const customer = await ctx.db.customer.findUnique({
+    .query(async ({ input }) => {
+    const customer = await prisma.customer.findUnique({
         where: { id: input.id },
         include: {
           Booking: {
@@ -234,46 +303,46 @@ export const adminRouter = router({
 
   // Update customer details
   updateCustomer: adminProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        firstName: z.string().min(1).optional(),
-        lastName: z.string().min(1).optional(),
-        email: z.string().email().optional(),
-        phone: z.string().optional(),
-        address: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        postalCode: z.string().optional(),
-        country: z.string().optional(),
-        birthDate: z.date().optional(),
-        allergies: z.string().optional(),
-        source: z.string().optional(),
-        personalNotes: z.string().optional(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { id } = input;
-
-      try {
-        // Convert the input data to a format acceptable by Prisma
-        const updateData: Prisma.CustomerUpdateInput = {};
-        
-        if (input.firstName !== null && input.firstName !== undefined) updateData.firstName = input.firstName;
-        if (input.lastName !== null && input.lastName !== undefined) updateData.lastName = input.lastName;
-        if (input.email !== null && input.email !== undefined) updateData.email = input.email;
-        if (input.phone !== null && input.phone !== undefined) updateData.phone = input.phone;
-        if (input.address !== null && input.address !== undefined) updateData.address = input.address;
-        if (input.city !== null && input.city !== undefined) updateData.city = input.city;
-        if (input.state !== null && input.state !== undefined) updateData.state = input.state;
-        if (input.postalCode !== null && input.postalCode !== undefined) updateData.postalCode = input.postalCode;
-        if (input.country !== null && input.country !== undefined) updateData.country = input.country;
-        if (input.birthDate !== null && input.birthDate !== undefined) updateData.birthDate = input.birthDate;
-        if (input.allergies !== null && input.allergies !== undefined) updateData.allergies = input.allergies;
-        if (input.source !== null && input.source !== undefined) updateData.source = input.source;
-        if (input.personalNotes !== null && input.personalNotes !== undefined) updateData.notes = input.personalNotes;
-        
-        const updatedCustomer = await ctx.db.customer.update({
+  .input(
+  z.object({
+  id: z.string(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().optional(),
+  birthDate: z.date().optional(),
+  allergies: z.string().optional(),
+  source: z.string().optional(),
+  personalNotes: z.string().optional(),
+  }),
+  )
+    .mutation(async ({ input }) => {
+    const { id } = input;
+    
+    try {
+    // Convert the input data to a format acceptable by Prisma
+    const updateData: Prisma.CustomerUpdateInput = {};
+    
+    if (input.firstName !== null && input.firstName !== undefined) updateData.firstName = input.firstName;
+    if (input.lastName !== null && input.lastName !== undefined) updateData.lastName = input.lastName;
+    if (input.email !== null && input.email !== undefined) updateData.email = input.email;
+    if (input.phone !== null && input.phone !== undefined) updateData.phone = input.phone;
+    if (input.address !== null && input.address !== undefined) updateData.address = input.address;
+    if (input.city !== null && input.city !== undefined) updateData.city = input.city;
+    if (input.state !== null && input.state !== undefined) updateData.state = input.state;
+    if (input.postalCode !== null && input.postalCode !== undefined) updateData.postalCode = input.postalCode;
+    if (input.country !== null && input.country !== undefined) updateData.country = input.country;
+    if (input.birthDate !== null && input.birthDate !== undefined) updateData.birthDate = input.birthDate;
+    if (input.allergies !== null && input.allergies !== undefined) updateData.allergies = input.allergies;
+    if (input.source !== null && input.source !== undefined) updateData.source = input.source;
+    if (input.personalNotes !== null && input.personalNotes !== undefined) updateData.notes = input.personalNotes;
+    
+    const updatedCustomer = await prisma.customer.update({
           where: { id },
           data: updateData,
         });
@@ -293,26 +362,26 @@ export const adminRouter = router({
 
   // Add a note to a customer (placeholders until Note model is added)
   addCustomerNote: adminProcedure
-    .input(
-      z.object({
-        customerId: z.string(),
-        content: z.string().min(1),
-        type: z.string().default('manual'),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        // Since the Note model doesn't exist, we'll update the customer's notes field
-        const customer = await ctx.db.customer.findUnique({
+  .input(
+  z.object({
+  customerId: z.string(),
+  content: z.string().min(1),
+  type: z.string().default('manual'),
+  }),
+  )
+    .mutation(async ({ input }) => {
+    try {
+    // Since the Note model doesn't exist, we'll update the customer's notes field
+    const customer = await prisma.customer.findUnique({
           where: { id: input.customerId },
           select: { notes: true },
         });
         
-        const currentNotes = customer?.notes || '';
+        const currentNotes = customer?.notes ?? '';
         const newNote = `[${new Date().toISOString()}] ${input.content}`;
         const updatedNotes = currentNotes ? `${currentNotes}\n\n${newNote}` : newNote;
         
-        await ctx.db.customer.update({
+        await prisma.customer.update({
           where: { id: input.customerId },
           data: { notes: updatedNotes },
         });
@@ -341,15 +410,15 @@ export const adminRouter = router({
 
   // Manage customer tags
   addTagToCustomer: adminProcedure
-    .input(
-      z.object({
-        customerId: z.string(),
-        tagId: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const customer = await ctx.db.customer.update({
+  .input(
+  z.object({
+  customerId: z.string(),
+  tagId: z.string(),
+  }),
+  )
+    .mutation(async ({ input }) => {
+    try {
+    const customer = await prisma.customer.update({
           where: { id: input.customerId },
           data: {
             Tag: {
@@ -376,15 +445,15 @@ export const adminRouter = router({
 
   // Remove tag from customer
   removeTagFromCustomer: adminProcedure
-    .input(
-      z.object({
-        customerId: z.string(),
-        tagId: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const customer = await ctx.db.customer.update({
+  .input(
+  z.object({
+  customerId: z.string(),
+  tagId: z.string(),
+  }),
+  )
+    .mutation(async ({ input }) => {
+    try {
+    const customer = await prisma.customer.update({
           where: { id: input.customerId },
           data: {
             Tag: {
@@ -410,23 +479,23 @@ export const adminRouter = router({
     }),
 
   // Get all tags
-  getTags: adminProcedure.query(async ({ ctx }) => {
-    return ctx.db.tag.findMany({
+  getTags: adminProcedure.query(async () => {
+  return prisma.tag.findMany({
       orderBy: { name: 'asc' },
     });
   }),
 
   // Create a new tag
   createTag: adminProcedure
-    .input(
-      z.object({
-        name: z.string().min(1),
-        color: z.string().default('gray'),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const tag = await ctx.db.tag.create({
+  .input(
+  z.object({
+  name: z.string().min(1),
+  color: z.string().default('gray'),
+  }),
+  )
+    .mutation(async ({ input }) => {
+    try {
+    const tag = await prisma.tag.create({
           data: {
             id: randomUUID(),
             name: input.name,
@@ -459,9 +528,9 @@ export const adminRouter = router({
     }),
 
   // Delete a tag
-  deleteTag: adminProcedure.input(z.object({ id: z.string() })).mutation(async ({ input, ctx }) => {
-    try {
-      await ctx.db.tag.delete({
+  deleteTag: adminProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+  try {
+  await prisma.tag.delete({
         where: { id: input.id },
       });
 
@@ -480,32 +549,31 @@ export const adminRouter = router({
 
   // Create a new customer
   createCustomer: adminProcedure
-    .input(
-      z.object({
-        firstName: z.string().min(1, 'First name is required'),
-        lastName: z.string().min(1, 'Last name is required'),  
-        email: z.string().email('Valid email is required'),
-        phone: z.string().optional(),
-        address: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        zipCode: z.string().optional(),
-        notes: z.string().optional(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const customer = await ctx.db.customer.create({
+  .input(
+  z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),  
+  email: z.string().email('Valid email is required'),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  notes: z.string().optional(),
+  })
+  ).mutation(async ({ input }) => {
+    try {
+      const customer = await prisma.customer.create({
           data: {
             firstName: input.firstName.trim(),
             lastName: input.lastName.trim(),
             email: input.email.trim().toLowerCase(),
-            phone: input.phone?.trim() || null,
-            address: input.address?.trim() || null,
-            city: input.city?.trim() || null,
-            state: input.state?.trim() || null,
-            postalCode: input.zipCode?.trim() || null,
-            notes: input.notes?.trim() || null,
+            phone: input.phone?.trim() ?? null,
+            address: input.address?.trim() ?? null,
+            city: input.city?.trim() ?? null,
+            state: input.state?.trim() ?? null,
+            postalCode: input.zipCode?.trim() ?? null,
+            notes: input.notes?.trim() ?? null,
             tags: [], // Initialize as empty array
           },
           // Only select the fields we need to avoid serialization issues

@@ -14,6 +14,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  type TooltipProps,
 } from 'recharts'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,7 +22,8 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar, TrendingUp, Users, Clock, Loader2 } from 'lucide-react'
 import { trpc } from '@/lib/trpc/client'
-import { format, parseISO, startOfMonth, endOfMonth, eachMonthOfInterval, subDays, startOfDay, endOfDay } from 'date-fns'
+import { format } from 'date-fns'
+import type { ServiceStat, TimeStatItem } from '@/types/dashboard-types'
 
 // Types for chart data
 interface RevenueData {
@@ -37,10 +39,12 @@ interface ServiceData {
   color: string
 }
 
+
 interface TimeSlotData {
   time: string
   bookings: number
 }
+
 
 // Color palette for charts
 const CHART_COLORS = [
@@ -54,14 +58,14 @@ const CHART_COLORS = [
   '#14b8a6', // teal
 ]
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload?.length) {
     return (
       <div className="bg-background border border-border rounded-lg shadow-lg p-3">
         <p className="font-medium text-foreground">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {typeof entry.value === 'number' && entry.name.includes('revenue') 
+        {payload.map((entry) => (
+          <p key={entry.dataKey ?? entry.name ?? 'unknown'} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {typeof entry.value === 'number' && (entry.name?.includes('revenue') ?? false)
               ? `$${entry.value.toLocaleString()}` 
               : entry.value}
           </p>
@@ -79,22 +83,9 @@ interface RevenueChartProps {
 export function RevenueChart({ timeRange }: RevenueChartProps) {
   const [animationKey, setAnimationKey] = React.useState(0)
 
-  // Calculate date range based on timeRange
-  const getDateRange = () => {
-    const now = new Date()
-    switch (timeRange) {
-      case '7d':
-        return { start: subDays(now, 7), end: now }
-      case '90d':
-        return { start: subDays(now, 90), end: now }
-      case '1y':
-        return { start: subDays(now, 365), end: now }
-      default: // 30d
-        return { start: subDays(now, 30), end: now }
-    }
-  }
+  // Date range calculation based on timeRange (currently not used but available for future use)
 
-  const { start, end } = getDateRange()
+  // const { start, end } = getDateRange()
 
   // Fetch revenue data from API
   const { data: revenueStats, isLoading, error } = trpc.dashboard.getStats.useQuery({
@@ -110,8 +101,8 @@ export function RevenueChart({ timeRange }: RevenueChartProps) {
       month: timeRange === '1y' 
         ? format(new Date(), 'MMM yyyy')
         : format(new Date(), 'MMM dd'),
-      revenue: revenueStats.summary.revenue?.period || 0,
-      bookings: revenueStats.summary.appointments?.period || 0
+      revenue: revenueStats.summary.revenue?.period ?? 0,
+      bookings: revenueStats.summary.appointments?.period ?? 0
     }]
   }, [revenueStats, timeRange])
 
@@ -222,13 +213,13 @@ export function ServiceBreakdownChart() {
   const serviceData: ServiceData[] = React.useMemo(() => {
     if (!serviceStats || !Array.isArray(serviceStats)) return []
 
-    const total = serviceStats.reduce((sum: number, service: any) => sum + service.value, 0)
+    const total = serviceStats.reduce((sum: number, service: ServiceStat) => sum + service.value, 0)
 
-    return serviceStats.map((service: any, index: number) => ({
+    return serviceStats.map((service: ServiceStat, index: number) => ({
       name: service.name,
       value: Math.round((service.value / total) * 100),
       sessions: service.value,
-      color: service.color || CHART_COLORS[index % CHART_COLORS.length]
+      color: service.color ?? CHART_COLORS[index % CHART_COLORS.length]
     }))
   }, [serviceStats])
 
@@ -280,7 +271,7 @@ export function ServiceBreakdownChart() {
                     >
                       {serviceData.map((entry, index) => (
                         <Cell
-                          key={`cell-${index}`}
+                          key={`cell-${entry.name}`}
                           fill={entry.color}
                           stroke={hoveredIndex === index ? '#ffffff' : 'transparent'}
                           strokeWidth={hoveredIndex === index ? 2 : 0}
@@ -295,8 +286,8 @@ export function ServiceBreakdownChart() {
                     </Pie>
                     <Tooltip
                       content={({ active, payload }) => {
-                        if (active && payload?.length) {
-                          const data = payload[0].payload
+                        if (active && payload?.length && payload[0]?.payload) {
+                          const data = payload[0].payload as ServiceData
                           return (
                             <div className="bg-background border border-border rounded-lg shadow-lg p-3">
                               <p className="font-medium">{data.name}</p>
@@ -357,7 +348,7 @@ export function BookingTimesChart() {
   const timeSlotData: TimeSlotData[] = React.useMemo(() => {
     if (!timeStats || !Array.isArray(timeStats)) return []
 
-    return timeStats.map((day: any) => ({
+    return timeStats.map((day: TimeStatItem) => ({
       time: day.name,
       bookings: day.bookings
     }))

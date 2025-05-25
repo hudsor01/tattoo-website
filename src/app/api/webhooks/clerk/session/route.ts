@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { Webhook } from 'svix'
 import { logger } from '@/lib/logger'
+import type { ClerkWebhookEvent, ClerkSessionWebhookData } from '@/types/clerk-types'
 
 export async function POST(req: Request) {
   // Get the headers
@@ -18,9 +19,9 @@ export async function POST(req: Request) {
   const payload = await req.text()
 
   // Create a new Svix instance with your webhook secret
-  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!)
+  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET ?? "")
 
-  let evt: any
+  let evt: ClerkWebhookEvent
 
   // Verify the payload with the headers
   try {
@@ -28,38 +29,39 @@ export async function POST(req: Request) {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
-    })
+    }) as ClerkWebhookEvent
   } catch (err) {
-    console.error('Error verifying webhook:', err)
+    void console.error('Error verifying webhook:', err)
     return Response.json({ error: 'Verification failed' }, { status: 400 })
   }
 
   // Handle the webhook
-  const { id } = evt.data
+  const sessionData = evt.data as unknown as ClerkSessionWebhookData
+  const { id } = sessionData
   const eventType = evt.type
 
   try {
     switch (eventType) {
       case 'session.created':
-        await handleSessionCreated(evt.data)
+        await handleSessionCreated(sessionData)
         break
       case 'session.ended':
-        await handleSessionEnded(evt.data)
+        await handleSessionEnded(sessionData)
         break
       default:
-        console.log(`Unhandled session event type: ${eventType}`)
+        void console.warn(`Unhandled session event type: ${eventType}`)
     }
 
-    logger.info(`Processed session webhook: ${eventType}`, { sessionId: id, eventType })
+    void logger.info(`Processed session webhook: ${eventType}`, { sessionId: id, eventType })
     return Response.json({ success: true })
     
   } catch (error) {
-    logger.error('Error processing session webhook', { error, sessionId: id, eventType })
+    void logger.error('Error processing session webhook', { error, sessionId: id, eventType })
     return Response.json({ error: 'Processing failed' }, { status: 500 })
   }
 }
 
-async function handleSessionCreated(sessionData: any) {
+async function handleSessionCreated(sessionData: ClerkSessionWebhookData) {
   const { 
     id, 
     user_id, 
@@ -70,7 +72,7 @@ async function handleSessionCreated(sessionData: any) {
   } = sessionData
   
   // Log admin login activity
-  logger.info('Admin session created', {
+  void logger.info('Admin session created', {
     sessionId: id,
     userId: user_id,
     clientId: client_id,
@@ -80,7 +82,7 @@ async function handleSessionCreated(sessionData: any) {
     timestamp: new Date().toISOString()
   })
   
-  console.log(`🔐 Admin login: User ${user_id} - Session ${id}`)
+  void console.warn(`🔐 Admin login: User ${user_id} - Session ${id}`)
   
   // Optional: Store login activity in database
   // You could create a LoginActivity table to track admin logins
@@ -89,7 +91,7 @@ async function handleSessionCreated(sessionData: any) {
     data: {
       sessionId: id,
       userId: user_id,
-      loginTime: new Date(created_at),
+      loginTime: new Date(created_at * 1000),
       ipAddress: '', // Would need to extract from request
       userAgent: '', // Would need to extract from request
     }
@@ -97,31 +99,29 @@ async function handleSessionCreated(sessionData: any) {
   */
 }
 
-async function handleSessionEnded(sessionData: any) {
+async function handleSessionEnded(sessionData: ClerkSessionWebhookData) {
   const { 
     id, 
     user_id, 
-    ended_at,
     status 
   } = sessionData
   
   // Log admin logout activity
-  logger.info('Admin session ended', {
+  void logger.info('Admin session ended', {
     sessionId: id,
     userId: user_id,
-    endedAt: ended_at,
     status,
     timestamp: new Date().toISOString()
   })
   
-  console.log(`🚪 Admin logout: User ${user_id} - Session ${id}`)
+  void console.warn(`🚪 Admin logout: User ${user_id} - Session ${id}`)
   
   // Optional: Update session end time in database
   /*
   await prisma.loginActivity.updateMany({
     where: { sessionId: id },
     data: { 
-      logoutTime: new Date(ended_at),
+      logoutTime: new Date(),
       status: 'ended'
     }
   })

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { FadeIn, ScaleOnHover } from '@/components/ui/animated-page'
+import { FadeIn } from '@/components/ui/animated-page'
 
 // Simplified customer type
 interface Customer {
@@ -102,12 +102,12 @@ export default function CustomersOptimistic() {
       // Transform API response to match component expectations
       const transformedCustomers = (data.clients ?? []).map((client: ClientApiResponse) => {
         // Handle both new format (with firstName/lastName) and legacy format (with name)
-        let firstName = client.firstName || '';
-        let lastName = client.lastName || '';
+        let firstName = client.firstName ?? '';
+        let lastName = client.lastName ?? '';
         
         if (client.name && (!firstName || !lastName)) {
           const nameParts = client.name.split(' ');
-          firstName = nameParts[0] || '';
+          firstName = nameParts[0] ?? '';
           lastName = nameParts.slice(1).join(' ') || '';
         }
         
@@ -115,19 +115,19 @@ export default function CustomersOptimistic() {
           ...client,
           firstName,
           lastName,
-          phone: client.phone || '',
-          address: client.address || '',
-          city: client.city || '',
-          state: client.state || '',
-          postalCode: client.postalCode || '',
-          notes: client.notes || '',
+          phone: client.phone ?? '',
+          address: client.address ?? '',
+          city: client.city ?? '',
+          state: client.state ?? '',
+          postalCode: client.postalCode ?? '',
+          notes: client.notes ?? '',
         } as Customer;
       })
       
       setCustomers(transformedCustomers)
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load customers')
-      toast.error('Failed to load customers')
+      void toast.error('Failed to load customers')
     } finally {
       setIsLoading(false)
     }
@@ -148,15 +148,15 @@ export default function CustomersOptimistic() {
         firstName: input.firstName.trim(),
         lastName: input.lastName.trim(),
         email: input.email.trim().toLowerCase(),
-        phone: input.phone?.trim() || null,
-        address: input.address?.trim() || null,
-        city: input.city?.trim() || null,
-        state: input.state?.trim() || null,
-        postalCode: input.postalCode?.trim() || null,
-        notes: input.notes?.trim() || null,
+        phone: input.phone?.trim() ?? null,
+        address: input.address?.trim() ?? null,
+        city: input.city?.trim() ?? null,
+        state: input.state?.trim() ?? null,
+        postalCode: input.postalCode?.trim() ?? null,
+        notes: input.notes?.trim() ?? null,
       }
       
-      console.log('Sending customer data:', customerData)
+      void console.warn('Sending customer data:', customerData)
       
       const response = await fetch('/api/admin/customers', {
         method: 'POST',
@@ -172,31 +172,31 @@ export default function CustomersOptimistic() {
       }
 
       const data = await response.json()
-      console.log('Customer created response:', data)
+      void console.warn('Customer created response:', data)
       
       // Create customer object with all fields from response
       const newCustomer: Customer = {
         id: data.id,
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-        email: data.email || '',
-        phone: data.phone || '',
-        address: data.address || '',
-        city: data.city || '',
-        state: data.state || '',
-        postalCode: data.postalCode || '',
-        notes: data.notes || '',
+        firstName: data.firstName ?? '',
+        lastName: data.lastName ?? '',
+        email: data.email ?? '',
+        phone: data.phone ?? '',
+        address: data.address ?? '',
+        city: data.city ?? '',
+        state: data.state ?? '',
+        postalCode: data.postalCode ?? '',
+        notes: data.notes ?? '',
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       }
       
       setCustomers(prev => [newCustomer, ...prev])
-      toast.success('Customer created successfully!')
+      void toast.success('Customer created successfully!')
       
       return newCustomer
     } catch (error) {
-      console.error('Error creating customer:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to create customer')
+      void console.error('Error creating customer:', error)
+      void toast.error(error instanceof Error ? error.message : 'Failed to create customer')
       throw error
     } finally {
       setIsCreating(false)
@@ -224,24 +224,24 @@ export default function CustomersOptimistic() {
     
     // Validate required fields
     if (!newCustomer.firstName.trim()) {
-      toast.error('First name is required')
+      void toast.error('First name is required')
       return
     }
     
     if (!newCustomer.lastName.trim()) {
-      toast.error('Last name is required')
+      void toast.error('Last name is required')
       return
     }
     
     if (!newCustomer.email.trim()) {
-      toast.error('Email is required')
+      void toast.error('Email is required')
       return
     }
     
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(newCustomer.email)) {
-      toast.error('Please enter a valid email address')
+      void toast.error('Please enter a valid email address')
       return
     }
     
@@ -253,7 +253,7 @@ export default function CustomersOptimistic() {
       setCreateDialogOpen(false)
       
     } catch (error) {
-      console.error('Failed to create customer:', error)
+      void console.error('Failed to create customer:', error)
       // Error is already handled by createCustomer function
     }
   }
@@ -266,7 +266,7 @@ export default function CustomersOptimistic() {
 
   // Get customer display name
   const getCustomerName = (customer: Customer) => {
-    return `${customer.firstName} ${customer.lastName}`.trim() || 'Unknown Customer'
+    return `${customer.firstName} ${customer.lastName}`.trim() ?? 'Unknown Customer'
   }
 
   // Filter customers based on search
@@ -274,9 +274,7 @@ export default function CustomersOptimistic() {
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
     return (
-      customer.firstName.toLowerCase().includes(query) ||
-      customer.lastName.toLowerCase().includes(query) ||
-      customer.email.toLowerCase().includes(query)
+      customer.firstName.toLowerCase().includes(query) || customer.lastName.toLowerCase().includes(query) || customer.email.toLowerCase().includes(query)
     )
   })
 
@@ -598,7 +596,7 @@ export default function CustomersOptimistic() {
                     {selectedCustomer.firstName} {selectedCustomer.lastName}
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Customer since {format(new Date(selectedCustomer.createdAt || ''), 'MMMM yyyy')}
+                    Customer since {format(new Date(selectedCustomer.createdAt ?? ''), 'MMMM yyyy')}
                   </p>
                 </div>
               </div>
@@ -666,7 +664,7 @@ export default function CustomersOptimistic() {
                   size="sm" 
                   onClick={() => {
                     // TODO: Implement booking flow
-                    toast.success('Booking feature coming soon!')
+                    void toast.success('Booking feature coming soon!')
                   }}
                 >
                   Schedule Appointment

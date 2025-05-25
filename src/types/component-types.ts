@@ -20,7 +20,7 @@ import type { ThemeColor } from './enum-types';
 import { z } from 'zod';
 import type { Target, TargetAndTransition } from 'framer-motion';
 
-import type { FixedSizeList } from 'react-window';
+// Removed react-window import - package not installed
 
 /**
  * ========================================================================
@@ -65,7 +65,7 @@ export interface InfiniteLoaderProps {
       overscanStartIndex: number;
       overscanStopIndex: number;
     }) => void;
-    ref: React.RefObject<FixedSizeList>;
+    ref: React.RefObject<unknown>; // FixedSizeList type not available
   }) => ReactNode;
 }
 
@@ -786,7 +786,7 @@ export interface DataTableProps<T = Record<string, unknown>> {
   title?: string;
   searchPlaceholder?: string;
   customToolbarActions?: React.ReactNode;
-  columns?: any[];
+  columns?: Column<T>[];
 }
 
 export interface VirtualizedBookingsListProps {

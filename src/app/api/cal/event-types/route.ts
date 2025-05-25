@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getCalEventTypes } from '@/lib/cal/api';
 
 /**
  * GET /api/cal/event-types
  * Fetch all event types from Cal.com to find IDs
  */
-export async function GET(_: NextRequest) {
+export async function GET() {
   try {
     const eventTypes = await getCalEventTypes();
     
@@ -15,7 +15,7 @@ export async function GET(_: NextRequest) {
       message: 'Event types retrieved successfully'
     });
   } catch (error) {
-    console.error('Error fetching Cal.com event types:', error);
+    void console.error('Error fetching Cal.com event types:', error);
     
     return NextResponse.json({
       success: false,

@@ -45,9 +45,10 @@ export function NavUser({
   const { signOut } = useClerk()
   const router = useRouter()
 
-  const handleLogout = async () => {
-    await signOut()
-    router.push('/sign-in')
+  const handleLogout = (): void => {
+    void signOut().then(() => {
+      void router.push('/sign-in')
+    })
   }
 
   return (
@@ -116,7 +117,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
               className="hover:bg-destructive hover:text-destructive-foreground text-destructive"
             >
               <LogOut className="h-4 w-4" />

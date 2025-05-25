@@ -7,8 +7,7 @@
 import 'server-only';
 import { appRouter, type AppRouter } from './app-router';
 import { createContextForRSC } from './context';
-import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
-import { TRPCError } from '@trpc/server';
+import { TRPCError, type inferRouterOutputs, type inferRouterInputs } from '@trpc/server';
 import { NextRequest } from 'next/server';
 
 // Define types for router inputs and outputs

@@ -38,7 +38,7 @@ export function CalEmbed({ eventTypeSlug, prefillData, className = '' }: CalEmbe
       setBookingUrl(link);
     } catch (err) {
       setError('Error creating Cal.com booking link');
-      console.error(err);
+      void console.error(err);
     }
     
     setIsLoading(false);
@@ -64,7 +64,7 @@ export function CalEmbed({ eventTypeSlug, prefillData, className = '' }: CalEmbe
           <h3 className="text-lg font-medium text-red-500">Calendar Error</h3>
         </div>
         <div className="p-4 text-center">
-          <p className="text-gray-600">{error || 'Unable to load booking calendar'}</p>
+          <p className="text-gray-600">{error ?? 'Unable to load booking calendar'}</p>
           <p className="text-sm text-gray-500 mt-2">
             Please contact us directly to schedule your appointment.
           </p>
@@ -95,7 +95,7 @@ export function TattooConsultationBooking({ prefillData }: { prefillData?: Recor
   return (
     <CalEmbed 
       eventTypeSlug="consultation"
-      prefillData={prefillData || {}}
+      prefillData={prefillData ?? {}}
       className="mt-6"
     />
   );
@@ -108,7 +108,7 @@ export function TattooAppointmentBooking({ prefillData }: { prefillData?: Record
   return (
     <CalEmbed 
       eventTypeSlug="tattoo-session"
-      prefillData={prefillData || {}}
+      prefillData={prefillData ?? {}}
       className="mt-6"
     />
   );

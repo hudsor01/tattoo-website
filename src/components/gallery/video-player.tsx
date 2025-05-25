@@ -28,12 +28,12 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
   const [showControls, setShowControls] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewTracked, setViewTracked] = useState(false)
-  const [controlsTimeout, setControlsTimeout] = useState<number | null>(null)
+  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null)
 
   // Initialize video
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video) return undefined
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration)
@@ -59,34 +59,34 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
       setIsFullscreen(!!document.fullscreenElement)
     }
 
-    video.addEventListener("loadedmetadata", handleLoadedMetadata)
-    video.addEventListener("timeupdate", handleTimeUpdate)
-    video.addEventListener("error", handleError)
-    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    void video.addEventListener("loadedmetadata", handleLoadedMetadata)
+    void video.addEventListener("timeupdate", handleTimeUpdate)
+    void video.addEventListener("error", handleError)
+    void document.addEventListener("fullscreenchange", handleFullscreenChange)
 
     // Auto-play once loaded
-    video.load()
+    void video.load()
     video
       .play()
       .then(() => {
         setIsPlaying(true)
       })
       .catch((err) => {
-        console.info("Auto-play prevented:", err)
+        void console.warn("Auto-play prevented:", err)
       })
 
     return () => {
-      video.removeEventListener("loadedmetadata", handleLoadedMetadata)
-      video.removeEventListener("timeupdate", handleTimeUpdate)
-      video.removeEventListener("error", handleError)
-      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+      void video.removeEventListener("loadedmetadata", handleLoadedMetadata)
+      void video.removeEventListener("timeupdate", handleTimeUpdate)
+      void video.removeEventListener("error", handleError)
+      void document.removeEventListener("fullscreenchange", handleFullscreenChange)
     }
   }, [videoId, viewTracked])
 
   // Handle mouse movement to show/hide controls
   useEffect(() => {
     const container = containerRef.current
-    if (!container) return
+    if (!container) return undefined
 
     const handleMouseMove = () => {
       setShowControls(true)
@@ -112,12 +112,12 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
       }
     }
 
-    container.addEventListener("mousemove", handleMouseMove)
-    container.addEventListener("mouseleave", handleMouseLeave)
+    void container.addEventListener("mousemove", handleMouseMove)
+    void container.addEventListener("mouseleave", handleMouseLeave)
 
     return () => {
-      container.removeEventListener("mousemove", handleMouseMove)
-      container.removeEventListener("mouseleave", handleMouseLeave)
+      void container.removeEventListener("mousemove", handleMouseMove)
+      void container.removeEventListener("mouseleave", handleMouseLeave)
       if (controlsTimeout) {
         clearTimeout(controlsTimeout)
       }
@@ -130,10 +130,10 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
     if (!video) return
 
     if (isPlaying) {
-      video.pause()
+      void video.pause()
     } else {
       video.play().catch((err) => {
-        console.error("Failed to play video:", err)
+        void console.error("Failed to play video:", err)
         setError("Failed to play video. Please try again.")
       })
     }
@@ -183,11 +183,11 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
 
     if (!isFullscreen) {
       if (container.requestFullscreen) {
-        container.requestFullscreen()
+        void container.requestFullscreen()
       }
     } else {
       if (document.exitFullscreen) {
-        document.exitFullscreen()
+        void document.exitFullscreen()
       }
     }
   }
@@ -241,7 +241,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
           size="icon"
           variant="ghost"
           onClick={(e) => {
-            e.stopPropagation()
+            void e.stopPropagation()
             onClose()
           }}
           className="text-white h-8 w-8"
@@ -279,7 +279,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
           <Slider
             value={[currentTime]}
             min={0}
-            max={duration || 100}
+            max={duration ?? 100}
             step={0.1}
             onValueChange={handleSeek}
             className="w-full cursor-pointer"
@@ -305,14 +305,14 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
                 size="sm"
                 variant="ghost"
                 onClick={(e) => {
-                  e.stopPropagation()
+                  void e.stopPropagation()
                   toggleMute()
                 }}
                 onMouseEnter={() => setShowVolume(true)}
                 className="text-white p-2 h-8 w-8"
                 aria-label={isMuted ? "Unmute" : "Mute"}
               >
-                {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                {isMuted ?? volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </Button>
 
               {/* Volume slider - appears on hover */}
@@ -348,7 +348,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
             size="sm"
             variant="ghost"
             onClick={(e) => {
-              e.stopPropagation()
+              void e.stopPropagation()
               toggleFullscreen()
             }}
             className="text-white p-2 h-8 w-8"

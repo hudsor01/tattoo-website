@@ -1,20 +1,15 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { useInfiniteQuery } from '@/hooks/use-infinite-query'
-import type {
-  SupabaseQueryHandler,
-  SupabaseTableData,
-  SupabaseTableName,
-} from '@/hooks/use-infinite-query'
 import * as React from 'react'
 
-interface InfiniteListProps<TableName extends SupabaseTableName> {
-  tableName: TableName
-  columns?: string
-  pageSize?: number
-  trailingQuery?: SupabaseQueryHandler<TableName>
-  renderItem: (item: SupabaseTableData<TableName>, index: number) => React.ReactNode
+interface InfiniteListProps<T> {
+  data: T[]
+  isLoading?: boolean
+  isFetching?: boolean
+  hasMore?: boolean
+  fetchMore?: () => void
+  renderItem: (item: T, index: number) => React.ReactNode
   className?: string
   renderNoResults?: () => React.ReactNode
   renderEndMessage?: () => React.ReactNode
@@ -29,80 +24,80 @@ const DefaultEndMessage = () => (
   <div className="text-center text-muted-foreground py-4 text-sm">You&apos;ve reached the end.</div>
 )
 
-const defaultSkeleton = (count: number) => (
-  <div className="flex flex-col gap-2 px-4">
-    {Array.from({ length: count }).map((_, index) => (
-      <div key={index} className="h-4 w-full bg-muted animate-pulse" />
+const DefaultSkeleton = (count: number) => (
+  <>
+    {Array.from({ length: count }, (_, i) => `skeleton-${i}`).map((key) => (
+      <div
+        key={key}
+        className="animate-pulse bg-muted h-16 rounded-md"
+      />
     ))}
-  </div>
+  </>
 )
 
-export function InfiniteList<TableName extends SupabaseTableName>({
-  tableName,
-  columns = '*',
-  pageSize = 20,
-  trailingQuery,
+export function InfiniteList<T>({
+  data,
+  isLoading = false,
+  isFetching = false,
+  hasMore = false,
+  fetchMore,
   renderItem,
   className,
   renderNoResults = DefaultNoResults,
   renderEndMessage = DefaultEndMessage,
-  renderSkeleton = defaultSkeleton,
-}: InfiniteListProps<TableName>) {
-  // build options and only include trailingQuery when defined
-  const queryOptions = {
-    tableName,
-    columns,
-    pageSize,
-    ...(trailingQuery && { trailingQuery }),
-  }
-
-  const { data, isFetching, hasMore, fetchNextPage, isSuccess } = useInfiniteQuery(queryOptions)
-
-  // Ref for the scrolling container
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null)
-
-  // Intersection observer logic - target the last rendered *item* or a dedicated sentinel
-  const loadMoreSentinelRef = React.useRef<HTMLDivElement>(null)
-  const observer = React.useRef<IntersectionObserver | null>(null)
+  renderSkeleton = DefaultSkeleton,
+}: InfiniteListProps<T>) {
+  const observerRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    if (observer.current) observer.current.disconnect()
-
-    observer.current = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting && hasMore && !isFetching) {
-          fetchNextPage()
+        if (entries[0]?.isIntersecting && hasMore && !isFetching && fetchMore) {
+          fetchMore()
         }
       },
-      {
-        root: scrollContainerRef.current,
-        threshold: 0.1,
-        rootMargin: '0px 0px 100px 0px',
-      }
+      { threshold: 0.1 }
     )
 
-    if (loadMoreSentinelRef.current) {
-      observer.current.observe(loadMoreSentinelRef.current)
+    const currentObserverRef = observerRef.current
+    if (currentObserverRef) {
+      observer.observe(currentObserverRef)
     }
 
     return () => {
-      if (observer.current) observer.current.disconnect()
+      if (currentObserverRef) {
+        observer.unobserve(currentObserverRef)
+      }
     }
-  }, [isFetching, hasMore, fetchNextPage])
+  }, [hasMore, isFetching, fetchMore])
+
+  if (isLoading) {
+    return (
+      <div className={cn('space-y-4', className)}>
+        {renderSkeleton(5)}
+      </div>
+    )
+  }
+
+  if (!data.length) {
+    return renderNoResults()
+  }
 
   return (
-    <div ref={scrollContainerRef} className={cn('relative h-full overflow-auto', className)}>
-      <div>
-        {isSuccess && data.length === 0 && renderNoResults()}
-
+    <div className={cn('space-y-2', className)}>
+      <div className="space-y-2">
         {data.map((item, index) => renderItem(item, index))}
-
-        {isFetching && renderSkeleton?.(pageSize)}
-
-        <div ref={loadMoreSentinelRef} style={{ height: '1px' }} />
-
-        {!hasMore && data.length > 0 && renderEndMessage()}
       </div>
+      
+      {isFetching && (
+        <div className="space-y-2">
+          {renderSkeleton(3)}
+        </div>
+      )}
+      
+      {hasMore && <div ref={observerRef} className="h-4" />}
+      
+      {!hasMore && data.length > 0 && renderEndMessage()}
     </div>
   )
 }

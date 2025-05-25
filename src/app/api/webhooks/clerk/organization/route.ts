@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { Webhook } from 'svix'
 import { logger } from '@/lib/logger'
+import type { ClerkWebhookEvent, ClerkOrganizationMembershipWebhookData } from '@/types/clerk-types'
 
 export async function POST(req: Request) {
   // Get the headers
@@ -18,9 +19,9 @@ export async function POST(req: Request) {
   const payload = await req.text()
 
   // Create a new Svix instance with your webhook secret
-  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!)
+  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET ?? "")
 
-  let evt: any
+  let evt: ClerkWebhookEvent
 
   // Verify the payload with the headers
   try {
@@ -28,41 +29,41 @@ export async function POST(req: Request) {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
-    })
+    }) as ClerkWebhookEvent
   } catch (err) {
-    console.error('Error verifying webhook:', err)
+    void console.error('Error verifying webhook:', err)
     return Response.json({ error: 'Verification failed' }, { status: 400 })
   }
 
   // Handle the webhook
-  const { id } = evt.data
+  const membershipData = evt.data as unknown as ClerkOrganizationMembershipWebhookData
   const eventType = evt.type
 
   try {
     switch (eventType) {
       case 'organizationMembership.created':
-        await handleMembershipCreated(evt.data)
+        await handleMembershipCreated(membershipData)
         break
       case 'organizationMembership.updated':
-        await handleMembershipUpdated(evt.data)
+        await handleMembershipUpdated(membershipData)
         break
       case 'organizationMembership.deleted':
-        await handleMembershipDeleted(evt.data)
+        await handleMembershipDeleted(membershipData)
         break
       default:
-        console.log(`Unhandled organization event type: ${eventType}`)
+        void console.warn(`Unhandled organization event type: ${eventType}`)
     }
 
-    logger.info(`Processed organization webhook: ${eventType}`, { membershipId: id, eventType })
+    void logger.info(`Processed organization webhook: ${eventType}`, { membershipId: membershipData.id, eventType })
     return Response.json({ success: true })
     
   } catch (error) {
-    logger.error('Error processing organization webhook', { error, membershipId: id, eventType })
+    void logger.error('Error processing organization webhook', { error, membershipId: membershipData.id, eventType })
     return Response.json({ error: 'Processing failed' }, { status: 500 })
   }
 }
 
-async function handleMembershipCreated(membershipData: any) {
+async function handleMembershipCreated(membershipData: ClerkOrganizationMembershipWebhookData) {
   const { 
     id, 
     organization_id, 
@@ -72,7 +73,7 @@ async function handleMembershipCreated(membershipData: any) {
   } = membershipData
   
   // Log organization membership creation
-  logger.info('Organization membership created', {
+  void logger.info('Organization membership created', {
     membershipId: id,
     organizationId: organization_id,
     userId: user_id,
@@ -81,15 +82,15 @@ async function handleMembershipCreated(membershipData: any) {
     timestamp: new Date().toISOString()
   })
   
-  console.log(`👥 New org member: User ${user_id} added to org ${organization_id} as ${role}`)
+  void console.warn(`👥 New org member: User ${user_id} added to org ${organization_id} as ${role}`)
   
   // Optional: Update user permissions based on org role
   if (role === 'admin' || role === 'org:admin') {
-    console.log(`🔑 User ${user_id} granted admin access via organization`)
+    void console.warn(`🔑 User ${user_id} granted admin access via organization`)
   }
 }
 
-async function handleMembershipUpdated(membershipData: any) {
+async function handleMembershipUpdated(membershipData: ClerkOrganizationMembershipWebhookData) {
   const { 
     id, 
     organization_id, 
@@ -99,7 +100,7 @@ async function handleMembershipUpdated(membershipData: any) {
   } = membershipData
   
   // Log organization membership update
-  logger.info('Organization membership updated', {
+  void logger.info('Organization membership updated', {
     membershipId: id,
     organizationId: organization_id,
     userId: user_id,
@@ -108,17 +109,17 @@ async function handleMembershipUpdated(membershipData: any) {
     timestamp: new Date().toISOString()
   })
   
-  console.log(`🔄 Org role updated: User ${user_id} role changed to ${role}`)
+  void console.warn(`🔄 Org role updated: User ${user_id} role changed to ${role}`)
   
   // Optional: Update user permissions based on new role
   if (role === 'admin' || role === 'org:admin') {
-    console.log(`⬆️ User ${user_id} promoted to admin via organization`)
+    void console.warn(`⬆️ User ${user_id} promoted to admin via organization`)
   } else {
-    console.log(`⬇️ User ${user_id} role changed to ${role}`)
+    void console.warn(`⬇️ User ${user_id} role changed to ${role}`)
   }
 }
 
-async function handleMembershipDeleted(membershipData: any) {
+async function handleMembershipDeleted(membershipData: ClerkOrganizationMembershipWebhookData) {
   const { 
     id, 
     organization_id, 
@@ -127,7 +128,7 @@ async function handleMembershipDeleted(membershipData: any) {
   } = membershipData
   
   // Log organization membership deletion
-  logger.info('Organization membership deleted', {
+  void logger.info('Organization membership deleted', {
     membershipId: id,
     organizationId: organization_id,
     userId: user_id,
@@ -135,8 +136,8 @@ async function handleMembershipDeleted(membershipData: any) {
     timestamp: new Date().toISOString()
   })
   
-  console.log(`❌ Org member removed: User ${user_id} removed from org ${organization_id}`)
+  void console.warn(`❌ Org member removed: User ${user_id} removed from org ${organization_id}`)
   
   // Optional: Revoke permissions if this was their only admin access
-  console.log(`🔒 Check if User ${user_id} should lose admin access`)
+  void console.warn(`🔒 Check if User ${user_id} should lose admin access`)
 }

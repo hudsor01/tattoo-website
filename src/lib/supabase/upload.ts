@@ -12,9 +12,9 @@ export async function uploadFile(
   try {
     // Create form data for the API
     const formData = new FormData()
-    formData.append('file', file)
-    formData.append('bucket', bucket)
-    formData.append('folder', folder)
+    void formData.append('file', file)
+    void formData.append('bucket', bucket)
+    void formData.append('folder', folder)
 
     // Upload via API route
     const response = await fetch('/api/upload', {
@@ -25,7 +25,7 @@ export async function uploadFile(
     const result = await response.json()
 
     if (!response.ok) {
-      return { url: '', path: '', error: result.error || 'Upload failed' }
+      return { url: '', path: '', error: result.error ?? 'Upload failed' }
     }
 
     return {
@@ -33,7 +33,7 @@ export async function uploadFile(
       path: result.path
     }
   } catch (error) {
-    console.error('Upload failed:', error)
+    void console.error('Upload failed:', error)
     const errorMessage = (() => {
       if (error instanceof Error) return error.message
       if (typeof error === 'string') return error
@@ -68,13 +68,13 @@ export async function deleteFile(
     const result = await response.json()
 
     if (!response.ok) {
-      console.error('Delete error:', result.error)
+      void console.error('Delete error:', result.error)
       return false
     }
 
     return true
   } catch (error) {
-    console.error('Delete failed:', error)
+    void console.error('Delete failed:', error)
     return false
   }
 }

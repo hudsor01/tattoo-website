@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Progress } from '@/components/ui/progress'
-import { Loader2, CheckCircle, AlertCircle, XCircle } from 'lucide-react'
-import { type ReactNode } from 'react'
+import { Loader2, CheckCircle, XCircle } from 'lucide-react'
 
 interface LinearProgressProps {
   value: number
@@ -178,7 +177,7 @@ export function StepIndicator({ steps, className }: StepIndicatorProps) {
         const Icon = config.icon
 
         return (
-          <div key={index} className="flex items-start">
+          <div key={step.label} className="flex items-start">
             <div className="flex flex-col items-center mr-4">
               <motion.div
                 className={`flex items-center justify-center w-8 h-8 rounded-full ${
@@ -247,7 +246,7 @@ export function LoadingDots({ size = 'md', className }: LoadingDotsProps) {
     <div className={`flex space-x-1 ${className}`}>
       {[0, 1, 2].map((index) => (
         <motion.div
-          key={index}
+          key={`item-${index}`}
           className={`${sizeClasses[size]} bg-current rounded-full`}
           animate={{
             scale: [1, 1.2, 1],

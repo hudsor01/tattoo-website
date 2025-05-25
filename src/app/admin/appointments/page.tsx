@@ -36,7 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc/client';
 import { format } from 'date-fns';
 import { AppointmentStatus } from '@/types/enum-types';
-import type { CustomerType, AppointmentType, AppointmentSerializedType } from '@/types/booking-types';
+import type { AppointmentType } from '@/types/booking-types';
 
 interface AppointmentFormDialogProps {
   open: boolean;
@@ -85,11 +85,11 @@ function AppointmentFormDialog({
 }: AppointmentFormDialogProps) {
   const [formData, setFormData] = useState<Partial<AppointmentType>>({});
 
-  React.useEffect(() => {
+  void React.useEffect(() => {
     const defaultStartTime = new Date();
-    defaultStartTime.setMinutes(Math.floor(defaultStartTime.getMinutes() / 15) * 15);
+    void defaultStartTime.setMinutes(Math.floor(defaultStartTime.getMinutes() / 15) * 15);
     const defaultEndTime = new Date(defaultStartTime);
-    defaultEndTime.setHours(defaultEndTime.getHours() + 2);
+    void defaultEndTime.setHours(defaultEndTime.getHours() + 2);
 
     setFormData(
       initialData ?? {
@@ -146,7 +146,7 @@ function AppointmentFormDialog({
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+    void event.preventDefault();
     await onSubmit(formData);
   };
 
@@ -175,8 +175,8 @@ function AppointmentFormDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {customers.map(customer => (
-                    <SelectItem key={customer.id || 'unknown'} value={customer.id || ''}>
-                      {customer.firstName || 'Unknown'} {customer.lastName || ''} ({customer.email || 'No email'})
+                    <SelectItem key={customer.id ?? 'unknown'} value={customer.id ?? ''}>
+                      {customer.firstName ?? 'Unknown'} {customer.lastName ?? ''} ({customer.email ?? 'No email'})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -363,7 +363,7 @@ export default function AppointmentsPage() {
     onError: (error: { message: string }) => {
       toast({ 
         title: "Error", 
-        description: error.message || "Failed to create appointment",
+        description: error.message ?? "Failed to create appointment",
         variant: "destructive" 
       });
     },
@@ -378,7 +378,7 @@ export default function AppointmentsPage() {
     onError: (error: { message: string }) => {
       toast({ 
         title: "Error", 
-        description: error.message || "Failed to update appointment",
+        description: error.message ?? "Failed to update appointment",
         variant: "destructive" 
       });
     },
@@ -389,28 +389,33 @@ export default function AppointmentsPage() {
   //     toast({ title: "Success", description: "Appointment deleted successfully" });
   //     refetchAppointments();
   //   },
-  //   onError: (error: any) => {
+  //   onError: (error: unknown) => {
   //     toast({ 
   //       title: "Error", 
-  //       description: error.message || "Failed to delete appointment",
+  //       description: error.message ?? "Failed to delete appointment",
   //       variant: "destructive" 
   //     });
   //   },
   // });
 
   const appointments = appointmentsData?.items ?? [];
-  const customers = customersData?.items ?? [];
+  const customers = (customersData?.items ?? []).map(customer => ({
+    id: customer.id,
+    firstName: customer.firstName,
+    lastName: customer.lastName,
+    email: customer.email,
+    phone: customer.phone,
+    createdAt: customer.createdAt.toISOString(),
+    updatedAt: customer.updatedAt.toISOString(),
+  }));
   const loading = false; // Don't show loading spinner - render table immediately
-  const error = appointmentsError || customersError;
+  const error = appointmentsError ?? customersError;
 
   // Filter appointments based on search value
   const filteredAppointments = appointments.filter((appointment) => {
     const searchTerm = searchValue.toLowerCase();
     return (
-      appointment.clientName?.toLowerCase().includes(searchTerm) ||
-      appointment.clientEmail?.toLowerCase().includes(searchTerm) ||
-      appointment.tattooStyle?.toLowerCase().includes(searchTerm) ||
-      appointment.description?.toLowerCase().includes(searchTerm)
+      appointment.clientName?.toLowerCase().includes(searchTerm) ?? appointment.clientEmail?.toLowerCase().includes(searchTerm) ?? appointment.tattooStyle?.toLowerCase().includes(searchTerm) ?? appointment.description?.toLowerCase().includes(searchTerm)
     );
   });
 
@@ -467,26 +472,26 @@ export default function AppointmentsPage() {
     }
 
     if (editingAppointment?.id) {
-      updateAppointment.mutate({ 
+      void updateAppointment.mutate({
         id: editingAppointment.id,
         appointmentDate: formData.appointmentDate ? new Date(formData.appointmentDate) : undefined,
         duration: formData.duration,
         status: formData.status as AppointmentStatus,
         depositAmount: formData.depositAmount,
         totalPrice: formData.totalPrice,
-        description: formData.description || undefined,
-        location: formData.location || undefined,
+        description: formData.description ?? undefined,
+        location: formData.location ?? undefined,
       });
     } else {
-      createAppointment.mutate({
+      void createAppointment.mutate({
         customerId: formData.customerId,
         appointmentDate: new Date(formData.appointmentDate),
         duration: formData.duration ?? 120,
         status: formData.status as AppointmentStatus,
         depositAmount: formData.depositAmount ?? 0,
         totalPrice: formData.totalPrice ?? 0,
-        description: formData.description || undefined,
-        location: formData.location || undefined,
+        description: formData.description ?? undefined,
+        location: formData.location ?? undefined,
       });
     }
   };
@@ -534,7 +539,7 @@ export default function AppointmentsPage() {
             header: 'Customer',
             cell: ({ getValue, row }) => {
               const clientName = (getValue() as string) || '';
-              const appointment = row.original as AppointmentType;
+              const appointment = row.original as any;
               return (
                 <div className="flex items-center">
                   <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center mr-3 text-red-500 font-bold text-sm">
@@ -569,10 +574,10 @@ export default function AppointmentsPage() {
             accessorKey: 'tattooStyle',
             header: 'Style & Details',
             cell: ({ row }) => {
-              const appointment = row.original as AppointmentType;
+              const appointment = row.original as any;
               return (
                 <div>
-                  <p className="text-sm font-medium">{appointment.tattooStyle || 'Not specified'}</p>
+                  <p className="text-sm font-medium">{appointment.tattooStyle ?? 'Not specified'}</p>
                   <p className="text-xs text-gray-500">
                     {appointment.size && `Size: ${appointment.size}`}
                     {appointment.duration && ` • ${appointment.duration} min`}
@@ -598,7 +603,7 @@ export default function AppointmentsPage() {
             id: 'depositInfo',
             header: 'Deposit',
             cell: ({ row }) => {
-              const appointment = row.original as AppointmentType;
+              const appointment = row.original as any;
               return (
                 <div className="flex items-center">
                   {appointment.depositPaid ? (
@@ -628,7 +633,7 @@ export default function AppointmentsPage() {
             id: 'actions',
             header: 'Actions',
             cell: ({ row }) => {
-              const appointment = row.original as AppointmentType;
+              const appointment = row.original as any;
               return (
                 <div className="flex gap-1">
                   <Button

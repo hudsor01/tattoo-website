@@ -3,6 +3,7 @@
  */
 
 import type { CalBookingPayload } from '@/types/booking-types';
+import type { CalEventType, CalAvailabilityResponse } from '@/types/cal-types';
 
 const CAL_API_KEY = process.env["CAL_API_KEY"];
 const CAL_API_URL = 'https://api.cal.com/v1';
@@ -26,7 +27,7 @@ export async function getCalBookings({
   }
 
   const params = new URLSearchParams();
-  params.append('limit', String(limit));
+  void params.append('limit', String(limit));
   if (status) params.append('status', status);
   if (eventTypeId) params.append('eventTypeId', String(eventTypeId));
 
@@ -43,7 +44,7 @@ export async function getCalBookings({
   }
 
   const data = await response.json();
-  return data.bookings || [];
+  return data.bookings ?? [];
 }
 
 /**
@@ -72,7 +73,7 @@ export async function getCalBookingByUid(uid: string): Promise<CalBookingPayload
 /**
  * Get available event types from Cal.com API
  */
-export async function getCalEventTypes(): Promise<unknown[]> {
+export async function getCalEventTypes(): Promise<CalEventType[]> {
   if (!CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
@@ -90,7 +91,7 @@ export async function getCalEventTypes(): Promise<unknown[]> {
   }
 
   const data = await response.json();
-  return data.event_types || [];
+  return data.event_types ?? [];
 }
 
 /**
@@ -162,7 +163,7 @@ export async function getCalAvailability(
   eventTypeId: number,
   startDate: string,
   endDate: string
-): Promise<unknown> {
+): Promise<CalAvailabilityResponse> {
   if (!CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
@@ -203,7 +204,7 @@ export function createCalBookingLink(eventTypeId: number, prefillData: Record<st
   const searchParams = new URLSearchParams();
   
   for (const [key, value] of Object.entries(prefillData)) {
-    searchParams.append(key, value);
+    void searchParams.append(key, value);
   }
   
   return `${baseUrl}?${searchParams.toString()}`;

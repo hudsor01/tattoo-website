@@ -11,18 +11,16 @@ export * from './lib/utils/common';
 
 // Export formatting and date utilities with namespaces to avoid conflicts
 import * as formatUtils from './lib/utils/date-format';
-import * as dateUtils from './lib/utils/date-format';
 
 // Export image utilities
 export * from './lib/utils/image';
 
 // Export utilities with namespace to avoid conflicts
-export { formatUtils, dateUtils };
+export { formatUtils };
 
 // Export individual functions with renamed versions
 export const formatCurrency = formatUtils.formatCurrency;
 export const formatPhoneNumber = formatUtils.formatPhoneNumber;
 
-// Rename the conflicting formatDate functions
+// Export formatDate function
 export const formatDisplayDate = formatUtils.formatDate;
-export const formatDateWithOptions = dateUtils.formatDate;

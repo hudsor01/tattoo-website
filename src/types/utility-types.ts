@@ -7,7 +7,6 @@
 
 import { z } from 'zod';
 import type { Dispatch, SetStateAction } from 'react';
-import type { UseEmblaCarouselType } from 'embla-carousel-react';
 
 /**
  * ========================================================================
@@ -18,11 +17,11 @@ import type { UseEmblaCarouselType } from 'embla-carousel-react';
 // Common primitive types
 export type ID = string | number;
 export type DateString = string;
-export type OptionalString = string | null | null;
-export type OptionalNumber = number | null | null;
-export type OptionalBoolean = boolean | null | null;
-export type OptionalArray<T> = T[] | null | null;
-export type OptionalRecord<K extends string | number | symbol, V> = Record<K, V> | null | null;
+export type OptionalString = string | null;
+export type OptionalNumber = number | null;
+export type OptionalBoolean = boolean | null;
+export type OptionalArray<T> = T[] | null;
+export type OptionalRecord<K extends string | number | symbol, V> = Record<K, V> | null;
 
 // For general record objects with string keys
 export type RecordObject = Record<string, unknown>;
@@ -37,7 +36,7 @@ export type NumericKeyObject = Record<number, unknown>;
 export type ConfigObject = Record<string, unknown>;
 
 // For filter/query objects
-export type FilterOptions = Record<string, string | number | boolean | null | null>;
+export type FilterOptions = Record<string, string | number | boolean | null>;
 
 // For event handlers
 export type EventHandler<T = Element> = React.EventHandler<React.SyntheticEvent<T>>;
@@ -60,8 +59,7 @@ export type ApiHandler<T = unknown, R = unknown> = (data: T) => Promise<R>;
  * ========================================================================
  */
 
-// Carousel API type from embla-carousel
-export type CarouselApi = UseEmblaCarouselType[1];
+
 
 // UUID validation schema
 export const uuidParamSchema = z.object({
@@ -723,6 +721,8 @@ export const apiResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
   });
 
 // Utility to help share types between frontend and backend
-export type InferResponseType<T extends z.ZodType> = z.infer<
-  ReturnType<typeof apiResponseSchema<T>>
->;
+export type InferResponseType<T extends z.ZodType> = {
+  success: boolean;
+  data: z.infer<T>;
+  message?: string;
+};

@@ -63,7 +63,7 @@ export class ApiError extends Error {
     this.details = details;
     
     // Ensures proper stack trace in Node.js
-    Error.captureStackTrace(this, this.constructor);
+    void Error.captureStackTrace(this, this.constructor);
   }
   
   // Convert to TRPC error for API routes
@@ -85,14 +85,7 @@ export class ApiError extends Error {
     
     // Direct mappings
     if (
-      this.code === ErrorCode.BAD_REQUEST ||
-      this.code === ErrorCode.UNAUTHORIZED ||
-      this.code === ErrorCode.FORBIDDEN ||
-      this.code === ErrorCode.NOT_FOUND ||
-      this.code === ErrorCode.CONFLICT ||
-      this.code === ErrorCode.PAYLOAD_TOO_LARGE ||
-      this.code === ErrorCode.TOO_MANY_REQUESTS ||
-      this.code === ErrorCode.INTERNAL_SERVER_ERROR
+      this.code === ErrorCode.BAD_REQUEST || this.code === ErrorCode.UNAUTHORIZED || this.code === ErrorCode.FORBIDDEN || this.code === ErrorCode.NOT_FOUND || this.code === ErrorCode.CONFLICT || this.code === ErrorCode.PAYLOAD_TOO_LARGE || this.code === ErrorCode.TOO_MANY_REQUESTS || this.code === ErrorCode.INTERNAL_SERVER_ERROR
     ) {
       return this.code;
     }
@@ -190,7 +183,7 @@ export const ApiErrors = {
  * Utility for handling API errors in client-side code
  */
 export function handleApiError(error: unknown, showToast = true): ApiErrorResponse {
-  console.error('API Error:', error);
+  void console.error('API Error:', error);
   
   let formattedError: ApiErrorResponse;
   
@@ -199,7 +192,7 @@ export function handleApiError(error: unknown, showToast = true): ApiErrorRespon
   } else if (error instanceof Error) {
     formattedError = {
       code: ErrorCode.UNKNOWN_ERROR,
-      message: error.message || 'An unexpected error occurred',
+      message: error.message ?? 'An unexpected error occurred',
       ...(process.env.NODE_ENV === 'development' && error.stack && { stack: error.stack })
     };
   } else {
@@ -210,7 +203,7 @@ export function handleApiError(error: unknown, showToast = true): ApiErrorRespon
   }
   
   if (showToast) {
-    toast.error(formattedError.message);
+    void toast.error(formattedError.message);
   }
   
   return formattedError;

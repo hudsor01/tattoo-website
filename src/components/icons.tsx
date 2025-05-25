@@ -116,7 +116,7 @@ import {
   Phone,
   User2,
   Folder,
-  CalendarDays,
+  CalendarDays
 } from 'lucide-react';
 
 // Export all icons directly

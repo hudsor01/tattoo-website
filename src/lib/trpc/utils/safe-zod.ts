@@ -17,12 +17,12 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
  * @param schema The schema for array elements
  * @returns A Zod schema that safely validates arrays
  */
-export function safeArray<T extends z.ZodTypeAny>(schema: T) {
+export function safeArray<T extends z.ZodTypeAny>(schema: T): z.ZodTypeAny {
   if (IS_PRODUCTION) {
     // In production, use a simplified validator that just checks if it's an array
     return z.preprocess(
       (val) => (Array.isArray(val) ? val : typeof val === 'string' ? [val] : []),
-      z.any()
+      z.unknown()
     );
   }
   

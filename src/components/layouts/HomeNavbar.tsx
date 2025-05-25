@@ -31,14 +31,14 @@ export function HomeNavbar() {
     };
 
     // Add scroll event listener
-    window.addEventListener('scroll', handleScroll);
+    void window.addEventListener('scroll', handleScroll);
     
     // Set initial state
     handleScroll();
     
     // Clean up
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      void window.removeEventListener('scroll', handleScroll);
     };
   }, [visible]);
 
@@ -50,7 +50,7 @@ export function HomeNavbar() {
   // Track the current path for client-side rendering
   const [path, setPath] = React.useState('/');
   
-  React.useEffect(() => {
+  void React.useEffect(() => {
     setPath(window.location.pathname);
   }, []);
 

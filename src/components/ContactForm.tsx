@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useContactForm } from '@/hooks/use-contact-form';
 import { Mail, Send, CheckCircle } from 'lucide-react';
-import type { ContactFormData } from '@/types/component-types';
 
 // Contact form validation schema
 const contactFormSchema = z.object({
@@ -48,7 +47,7 @@ export default function ContactForm() {
       setIsSubmitted(true);
       reset();
     } catch (err) {
-      console.error('Failed to submit contact form:', err);
+      void console.error('Failed to submit contact form:', err);
     }
   };
 
@@ -57,7 +56,7 @@ export default function ContactForm() {
     reset();
   };
 
-  if (isSubmitted || isSuccess) {
+  if (isSubmitted ?? isSuccess) {
     return (
       <div className="text-center py-8">
         <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -79,7 +78,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-6">
       {/* Name Field */}
       <div className="space-y-2">
         <Label htmlFor="name" className="text-white font-medium">
@@ -152,7 +151,7 @@ export default function ContactForm() {
           <p className="text-red-400 text-sm">{errors.message.message}</p>
         )}
         <p className="text-white/50 text-xs">
-          Characters remaining: {2000 - (watch('message')?.length || 0)}
+          Characters remaining: {2000 - (watch('message')?.length ?? 0)}
         </p>
       </div>
 
@@ -160,7 +159,7 @@ export default function ContactForm() {
       {isError && (
         <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
           <p className="text-red-400 text-sm">
-            {error?.message || 'Failed to send message. Please try again or contact me directly.'}
+            {error?.message ?? 'Failed to send message. Please try again or contact me directly.'}
           </p>
         </div>
       )}

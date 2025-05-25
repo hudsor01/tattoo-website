@@ -153,7 +153,7 @@ export function useStableReference<T extends object>(value: T): T {
   
   // Update the ref when the value changes
   useEffect(() => {
-    Object.assign(ref.current, value);
+    void Object.assign(ref.current, value);
   }, [value]);
   
   return ref.current;

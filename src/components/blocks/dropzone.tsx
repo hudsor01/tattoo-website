@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react';
-import { useDropzone, type DropzoneProps, type FileWithPath, type FileRejection, type FileError } from 'react-dropzone';
+import { useDropzone, type DropzoneProps, type FileWithPath, type FileRejection, type FileError, type DropEvent } from 'react-dropzone';
 import { useCallback, useRef, useState, useContext, createContext } from 'react';
 
 export const formatBytes = (
@@ -69,7 +69,7 @@ const Dropzone = ({
       Object.assign(file, {
         preview: URL.createObjectURL(file),
         errors: [],
-      })
+      }) as DropzoneFile
     ));
     setErrors(fileRejections.map((rej) => ({
       name: rej.file.name,
@@ -77,11 +77,16 @@ const Dropzone = ({
     })));
     setIsSuccess(false);
     setSuccesses([]);
-  }, []);
+    
+    // Call external onDrop if provided
+    if (restProps.onDrop) {
+      restProps.onDrop(acceptedFiles, fileRejections, new Event('drop') as DropEvent);
+    }
+  }, [restProps]);
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     ...restProps,
-    onDrop,
+    onDrop, // Use our internal onDrop which will call external onDrop
   });
 
   // Provide all necessary context values

@@ -51,7 +51,7 @@ export async function getUpcomingAppointments(userId: string, userType: 'custome
       }
     });
   } catch (error) {
-    console.error('Error getting upcoming appointments:', error);
+    void console.error('Error getting upcoming appointments:', error);
     throw error;
   }
 }
@@ -87,7 +87,7 @@ export async function getAppointmentById(appointmentId: string) {
       }
     });
   } catch (error) {
-    console.error('Error getting appointment details:', error);
+    void console.error('Error getting appointment details:', error);
     throw error;
   }
 }
@@ -108,7 +108,7 @@ export async function checkAppointmentAvailability(
     if (!endTime && size) {
       const result = await executeStoredProcedure(
         'check_appointment_availability',
-        [artistId, startTime, null, appointmentId, size, complexity || '3'],
+        [artistId, startTime, null, appointmentId, size, complexity ?? '3'],
       );
       return result;
     }
@@ -119,7 +119,7 @@ export async function checkAppointmentAvailability(
     );
     return result;
   } catch (error) {
-    console.error('Error checking appointment availability:', error);
+    void console.error('Error checking appointment availability:', error);
     return {
       isAvailable: false,
       conflicts: null,
@@ -161,7 +161,7 @@ export async function scheduleAppointment(params: AppointmentCreateInput) {
     
     return result;
   } catch (error) {
-    console.error('Error scheduling appointment:', error);
+    void console.error('Error scheduling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error scheduling appointment',
@@ -180,11 +180,11 @@ export async function rescheduleAppointment(
   try {
     const result = await executeStoredProcedure(
       'reschedule_appointment',
-      [appointmentId, newStartDate, reason || null],
+      [appointmentId, newStartDate, reason ?? null],
     );
     return result;
   } catch (error) {
-    console.error('Error rescheduling appointment:', error);
+    void console.error('Error rescheduling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error rescheduling appointment',
@@ -207,7 +207,7 @@ export async function cancelAppointment(
     );
     return result;
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
+    void console.error('Error cancelling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error applying cancellation policy',
@@ -238,14 +238,14 @@ export async function getAppointmentCountsByStatus(
     
     // Count by status
     const counts: Record<string, number> = {};
-    appointments.forEach(appointment => {
+    void appointments.forEach(appointment => {
       const status = appointment.status;
-      counts[status] = (counts[status] || 0) + 1;
+      counts[status] = (counts[status] ?? 0) + 1;
     });
     
     return counts;
   } catch (error) {
-    console.error('Error getting appointment counts by status:', error);
+    void console.error('Error getting appointment counts by status:', error);
     throw error;
   }
 }

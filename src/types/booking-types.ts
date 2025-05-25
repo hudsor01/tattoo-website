@@ -838,7 +838,7 @@ export const CalWebhookSchema = z.object({
       paymentMethod: z.string().optional(),
       externalId: z.string().optional(),
     }).optional(),
-    metadata: z.record(z.any()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     cancellationReason: z.string().optional(),
     previousBookingId: z.string().optional(),
     createdAt: z.string(),

@@ -68,8 +68,8 @@ export function CardLoading({
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {[...Array(rows)].map((_, i) => (
-            <Skeleton key={i} className="h-4 w-full" />
+          {Array.from({ length: rows }, (_, i) => `card-skeleton-${i}`).map((key) => (
+            <Skeleton key={key} className="h-4 w-full" />
           ))}
         </div>
       </CardContent>
@@ -83,16 +83,16 @@ export function TableLoading({ columns, rows = 5 }: TableLoadingProps) {
     <div className="space-y-3">
       {/* Header skeleton */}
       <div className="flex gap-4">
-        {[...Array(columns)].map((_, i) => (
-          <Skeleton key={i} className="h-6 flex-1" />
+        {Array.from({ length: columns }, (_, i) => `table-header-${i}`).map((key) => (
+          <Skeleton key={key} className="h-6 flex-1" />
         ))}
       </div>
       
       {/* Rows skeleton */}
-      {[...Array(rows)].map((_, rowIndex) => (
-        <div key={rowIndex} className="flex gap-4">
-          {[...Array(columns)].map((_, colIndex) => (
-            <Skeleton key={colIndex} className="h-8 flex-1" />
+      {Array.from({ length: rows }, (_, rowIndex) => `table-row-${rowIndex}`).map((rowKey) => (
+        <div key={rowKey} className="flex gap-4">
+          {Array.from({ length: columns }, (_, colIndex) => `${rowKey}-col-${colIndex}`).map((cellKey) => (
+            <Skeleton key={cellKey} className="h-8 flex-1" />
           ))}
         </div>
       ))}
@@ -102,11 +102,9 @@ export function TableLoading({ columns, rows = 5 }: TableLoadingProps) {
 
 // Button loading state
 export function ButtonLoading({ 
-  text = 'Loading...', 
-  size: _ = 'sm' 
+  text = 'Loading...'
 }: { 
   text?: string;
-  size?: 'sm' | 'md' | 'lg';
 }) {
   return (
     <div className="flex items-center gap-2">

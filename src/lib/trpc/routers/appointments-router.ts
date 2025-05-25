@@ -4,6 +4,7 @@ import { router, protectedProcedure, adminProcedure } from '../procedures';
 import { prisma } from '@/lib/db/prisma';
 import { AppointmentStatus } from '@/types/enum-types';
 import { randomUUID } from 'node:crypto';
+import { Prisma } from '@prisma/client';
 
 export const appointmentsRouter = router({
   /**
@@ -20,7 +21,7 @@ export const appointmentsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const where: any = {};
+        const where: Prisma.AppointmentWhereInput = {};
         
         if (input.status) {
           where.status = input.status;
@@ -31,13 +32,14 @@ export const appointmentsRouter = router({
         }
         
         if (input.startDate || input.endDate) {
-          where.startDate = {};
+          const dateFilter: Prisma.DateTimeFilter = {};
           if (input.startDate) {
-            where.startDate.gte = input.startDate;
+            dateFilter.gte = input.startDate;
           }
           if (input.endDate) {
-            where.startDate.lte = input.endDate;
+            dateFilter.lte = input.endDate;
           }
+          where.startDate = dateFilter;
         }
         
         const appointments = await prisma.appointment.findMany({
@@ -49,12 +51,12 @@ export const appointmentsRouter = router({
           ...(input.cursor && { cursor: { id: input.cursor } }),
         });
         
-        console.log(`Found ${appointments.length} appointments`);
+        console.warn(`Found ${appointments.length} appointments`);
         
         let nextCursor: string | undefined;
         if (appointments.length > input.limit) {
           const nextItem = appointments.pop();
-          nextCursor = nextItem!.id;
+          nextCursor = nextItem?.id;
         }
         
         // Get customer info for each appointment
@@ -84,21 +86,21 @@ export const appointmentsRouter = router({
           return {
             id: appointment.id,
             customerId: appointment.customerId,
-            clientName: customer ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim() : 'Unknown Customer',
-            clientEmail: customer?.email || '',
-            clientPhone: customer?.phone || '',
-            appointmentDate: appointment.startDate?.toISOString() || new Date().toISOString(),
+            clientName: customer ? `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() : 'Unknown Customer',
+            clientEmail: customer?.email ?? '',
+            clientPhone: customer?.phone ?? '',
+            appointmentDate: appointment.startDate?.toISOString() ?? new Date().toISOString(),
             duration,
             status: appointment.status as AppointmentStatus,
             depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
-            depositAmount: appointment.deposit || 0,
-            totalPrice: appointment.totalPrice || 0,
-            tattooStyle: appointment.title || '', // Use title as tattoo style
-            description: appointment.description || '',
-            location: appointment.location || '',
+            depositAmount: appointment.deposit ?? 0,
+            totalPrice: appointment.totalPrice ?? 0,
+            tattooStyle: appointment.title ?? '', // Use title as tattoo style
+            description: appointment.description ?? '',
+            location: appointment.location ?? '',
             size: '', // Not in schema, could be derived from description
-            createdAt: appointment.createdAt?.toISOString() || new Date().toISOString(),
-            updatedAt: appointment.updatedAt?.toISOString() || new Date().toISOString(),
+            createdAt: appointment.createdAt?.toISOString() ?? new Date().toISOString(),
+            updatedAt: appointment.updatedAt?.toISOString() ?? new Date().toISOString(),
           };
         });
         
@@ -163,32 +165,32 @@ export const appointmentsRouter = router({
             id: randomUUID(),
             customerId: input.customerId,
             artistId: artistId,
-            title: input.title || 'Tattoo Appointment',
+            title: input.title ?? 'Tattoo Appointment',
             startDate: input.appointmentDate,
             endDate: new Date(input.appointmentDate.getTime() + (input.duration * 60 * 1000)),
             status: input.status,
             deposit: input.depositAmount,
             totalPrice: input.totalPrice,
-            description: input.description || null,
-            location: input.location || null,
+            description: input.description ?? null,
+            location: input.location ?? null,
           },
         });
         
         return {
           id: appointment.id,
           customerId: appointment.customerId,
-          clientName: `${customer.firstName || ''} ${customer.lastName || ''}`.trim(),
-          clientEmail: customer.email || '',
-          clientPhone: customer.phone || '',
+          clientName: `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim(),
+          clientEmail: customer.email ?? '',
+          clientPhone: customer.phone ?? '',
           appointmentDate: appointment.startDate,
           duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
           status: appointment.status,
           depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
-          depositAmount: appointment.deposit || 0,
-          totalPrice: appointment.totalPrice || 0,
+          depositAmount: appointment.deposit ?? 0,
+          totalPrice: appointment.totalPrice ?? 0,
           tattooStyle: '',
-          description: appointment.description || '',
-          location: appointment.location || '',
+          description: appointment.description ?? '',
+          location: appointment.location ?? '',
           size: '',
           createdAt: appointment.createdAt,
           updatedAt: appointment.updatedAt,
@@ -224,16 +226,23 @@ export const appointmentsRouter = router({
       try {
         const { id, appointmentDate, duration, depositAmount, ...updateData } = input;
         
-        // Build update data object with correct field mapping
-        const data: any = { ...updateData };
+        // Build update data object with correct field mapping, filtering out undefined values
+        const data: Prisma.AppointmentUpdateInput = {};
+        
+        // Only include defined values
+        if (updateData.title !== undefined) data.title = updateData.title;
+        if (updateData.status !== undefined) data.status = updateData.status;
+        if (updateData.totalPrice !== undefined) data.totalPrice = updateData.totalPrice;
+        if (updateData.description !== undefined) data.description = updateData.description;
+        if (updateData.location !== undefined) data.location = updateData.location;
         if (appointmentDate) {
-          data.startDate = appointmentDate;
-          if (duration) {
-            data.endDate = new Date(appointmentDate.getTime() + (duration * 60 * 1000));
-          }
+        data.startDate = appointmentDate;
+        if (duration) {
+        data.endDate = new Date(appointmentDate.getTime() + (duration * 60 * 1000));
+        }
         }
         if (depositAmount !== undefined) {
-          data.deposit = depositAmount;
+        data.deposit = depositAmount;
         }
         
         const appointment = await prisma.appointment.update({
@@ -255,18 +264,18 @@ export const appointmentsRouter = router({
         return {
           id: appointment.id,
           customerId: appointment.customerId,
-          clientName: `${appointment.Customer?.firstName || ''} ${appointment.Customer?.lastName || ''}`.trim(),
-          clientEmail: appointment.Customer?.email || '',
-          clientPhone: appointment.Customer?.phone || '',
+          clientName: `${appointment.Customer?.firstName ?? ''} ${appointment.Customer?.lastName ?? ''}`.trim(),
+          clientEmail: appointment.Customer?.email ?? '',
+          clientPhone: appointment.Customer?.phone ?? '',
           appointmentDate: appointment.startDate,
           duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
           status: appointment.status,
           depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
-          depositAmount: appointment.deposit || 0,
-          totalPrice: appointment.totalPrice || 0,
+          depositAmount: appointment.deposit ?? 0,
+          totalPrice: appointment.totalPrice ?? 0,
           tattooStyle: '',
-          description: appointment.description || '',
-          location: appointment.location || '',
+          description: appointment.description ?? '',
+          location: appointment.location ?? '',
           size: '',
           createdAt: appointment.createdAt,
           updatedAt: appointment.updatedAt,

@@ -9,16 +9,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { supabase } from '@/lib/supabase/client'
 import { format } from 'date-fns'
-import { useSupabaseInfinite, type SupabaseTableData } from '@/hooks/use-supabase-infinite'
+import { api } from '@/lib/trpc/client'
+import type { Customer } from '@/types/customer-types'
 
 interface CustomersModernProps {
   className?: string
 }
 
-// Type for Customer table from Supabase
-type CustomerData = SupabaseTableData<'Customer'>
+// Type for Customer data
+type CustomerData = Customer
 
 export default function CustomersModern({ className }: CustomersModernProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,32 +40,40 @@ export default function CustomersModern({ className }: CustomersModernProps) {
     notes: '',
   })
 
-  // Supabase client is imported above
-
-  // Use the infinite query hook for customers
-  const {
-    data: customers,
-    isLoading,
-    isFetching,
-    hasMore,
-    fetchNextPage,
-    count,
-    isSuccess,
-    refetch
-  } = useSupabaseInfinite({
-    tableName: 'Customer',
-    columns: '*',
-    pageSize: 20,
-    trailingQuery: (query) => {
-      let q = query.order('createdAt', { ascending: false })
-      
-      if (searchQuery.trim()) {
-        q = q.or(`firstName.ilike.%${searchQuery}%,lastName.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
-      }
-      
-      return q
+  // Create customer mutation
+  const createCustomerMutation = api.admin.createCustomer.useMutation({
+    onSuccess: () => {
+      toast.success('Customer created successfully!')
+      setCreateDialogOpen(false)
+      resetForm()
+      void refetch()
+    },
+    onError: (error) => {
+      toast.error('Failed to create customer: ' + error.message)
     }
   })
+
+  // Use tRPC infinite query for customers
+  const {
+    data,
+    isLoading,
+    isFetching,
+    hasNextPage: hasMore,
+    fetchNextPage,
+    isSuccess,
+    refetch
+  } = api.admin.getCustomersInfinite.useInfiniteQuery(
+    {
+      limit: 20,
+      search: searchQuery.trim() || undefined,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  )
+
+  const customers = data?.pages.flatMap(page => page.customers) ?? []
+  const count = data?.pages[0]?.totalCount ?? 0
 
   // Reset new customer form
   const resetForm = () => {
@@ -88,67 +96,46 @@ export default function CustomersModern({ className }: CustomersModernProps) {
     
     // Validate required fields
     if (!newCustomer.firstName.trim()) {
-      toast.error('First name is required')
+      void toast.error('First name is required')
       return
     }
     
     if (!newCustomer.lastName.trim()) {
-      toast.error('Last name is required')
+      void toast.error('Last name is required')
       return
     }
     
     if (!newCustomer.email.trim()) {
-      toast.error('Email is required')
+      void toast.error('Email is required')
       return
     }
     
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(newCustomer.email)) {
-      toast.error('Please enter a valid email address')
+      void toast.error('Please enter a valid email address')
       return
     }
     
     setIsCreating(true)
     
     try {
-      
-      // Direct insert to Customer table
-      const { error } = await supabase
-        .from('Customer')
-        .insert({
-          firstName: newCustomer.firstName.trim(),
-          lastName: newCustomer.lastName.trim(),
-          email: newCustomer.email.trim().toLowerCase(),
-          phone: newCustomer.phone?.trim() || null,
-          address: newCustomer.address?.trim() || null,
-          city: newCustomer.city?.trim() || null,
-          state: newCustomer.state?.trim() || null,
-          postalCode: newCustomer.zipCode?.trim() || null,
-          notes: newCustomer.notes?.trim() || null,
-          tags: [],
-        })
-        .select()
-        .single()
-
-      if (error) {
-        console.error('❌ Supabase insert error:', error)
-        toast.error(`Failed to create customer: ${error.message}`)
-        return
-      }
-
-      toast.success('Customer created successfully!')
-      
-      // Reset form and close dialog
-      resetForm()
-      setCreateDialogOpen(false)
-      
-      // Refresh the data
+      await createCustomerMutation.mutateAsync({
+        firstName: newCustomer.firstName.trim(),
+        lastName: newCustomer.lastName.trim(),
+        email: newCustomer.email.trim().toLowerCase(),
+        phone: newCustomer.phone?.trim() || undefined,
+        address: newCustomer.address?.trim() || undefined,
+        city: newCustomer.city?.trim() || undefined,
+        state: newCustomer.state?.trim() || undefined,
+        zipCode: newCustomer.zipCode?.trim() || undefined,
+        notes: newCustomer.notes?.trim() || undefined,
+      })
       void refetch()
       
     } catch (error) {
-      console.error('❌ Unexpected error:', error)
-      toast.error(`Failed to create customer: ${error}`)
+      void console.error('❌ Unexpected error:', error)
+      void toast.error(`Failed to create customer: ${error}`)
     } finally {
       setIsCreating(false)
     }
@@ -164,7 +151,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
   const getCustomerName = (customer: CustomerData) => {
     const firstName = customer.firstName ?? ''
     const lastName = customer.lastName ?? ''
-    return `${firstName} ${lastName}`.trim() || 'Unknown Customer'
+    return `${firstName} ${lastName}`.trim() ?? 'Unknown Customer'
   }
 
   // Filter customers based on search
@@ -455,7 +442,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   <Label className="text-sm font-medium">Address</Label>
                   <p className="text-sm text-gray-600">
                     {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.postalCode]
-                      .filter(Boolean).join(', ') || 'Not provided'}
+                      .filter(Boolean).join(', ') ?? 'Not provided'}
                   </p>
                 </div>
               </div>

@@ -13,7 +13,7 @@ export default function BookingClient() {
   useEffect(() => {
     if (isCalLoaded && typeof window !== 'undefined' && window.Cal) {
       // Initialize Cal.com with full-width, natural sizing
-      window.Cal('init', {
+      void window.Cal('init', {
         origin: 'https://cal.com'
       });
     }

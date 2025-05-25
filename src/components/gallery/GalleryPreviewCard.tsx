@@ -37,7 +37,7 @@ export function GalleryPreviewCard({ mediaItem, category }: GalleryPreviewCardPr
       <div className="relative aspect-[3/4]">
         <Image
           src={mediaItem.src}
-          alt={mediaItem.alt || `${category} tattoo`}
+          alt={mediaItem.alt ?? `${category} tattoo`}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           priority
@@ -65,7 +65,7 @@ export function GalleryPreviewCard({ mediaItem, category }: GalleryPreviewCardPr
         {/* Text content */}
         <div className="absolute bottom-0 left-0 right-0 p-5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
           <h3 className="text-lg font-bold text-white mb-2">
-            {mediaItem.title || category}
+            {mediaItem.title ?? category}
           </h3>
           
           <Link

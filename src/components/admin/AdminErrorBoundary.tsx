@@ -20,12 +20,12 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    console.error('🚨 Admin Error Boundary caught error:', error);
+    void console.error('🚨 Admin Error Boundary caught error:', error);
     return { hasError: true, error };
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🚨 Admin Error Boundary - Component did catch:', {
+    void console.error('🚨 Admin Error Boundary - Component did catch:', {
       error: {
         name: error.name,
         message: error.message,
@@ -36,7 +36,7 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
   }
 
   retry = () => {
-    this.setState({ hasError: false, error: null });
+    void this.setState({ hasError: false, error: null });
   };
 
   override render() {
@@ -55,7 +55,7 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
             </h1>
             <div className="bg-gray-900 rounded-lg p-4 mb-6">
               <p className="text-gray-300 text-sm mb-2">
-                Error: {this.state.error?.message || 'Unknown error'}
+                Error: {this.state.error?.message ?? 'Unknown error'}
               </p>
               {this.state.error?.stack && (
                 <details className="mt-2">
@@ -94,7 +94,7 @@ export function AdminLoadingFallback({ error, retry }: { error: Error | null; re
             Failed to load admin panel
           </h2>
           <p className="text-gray-400 mb-4">
-            {error.message || 'An unexpected error occurred'}
+            {error.message ?? 'An unexpected error occurred'}
           </p>
           <button
             onClick={retry}
