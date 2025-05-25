@@ -33,7 +33,7 @@ export async function sendEmail({
   try {
     const emailOptions = {
       to,
-      from: from || process.env.ARTIST_EMAIL || 'noreply@tattooartist.com',
+      from: from ?? process.env.ARTIST_EMAIL ?? 'noreply@tattooartist.com',
       subject,
       ...(html && { html }),
       ...(text && { text }),

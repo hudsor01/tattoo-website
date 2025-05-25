@@ -27,7 +27,7 @@ export const useContactForm = () => {
       message: string;
     }) => {
       try {
-        return submitContactMutation.mutate();
+        return submitContactMutation.mutate(contactData);
       } catch (error) {
         void console.error('Error submitting contact form:', error);
         throw error;

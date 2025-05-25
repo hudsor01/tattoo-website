@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DataTable from '@/components/admin/data-table';
 import StatusBadge from '@/components/admin/StatusBadge';
+import type { AppointmentSerializedType, AppointmentType } from '@/types/booking-types';
 import { 
   CalendarDays, 
   DollarSign, 
@@ -36,7 +37,6 @@ import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc/client';
 import { format } from 'date-fns';
 import { AppointmentStatus } from '@/types/enum-types';
-import type { AppointmentType } from '@/types/booking-types';
 
 interface AppointmentFormDialogProps {
   open: boolean;
@@ -539,7 +539,7 @@ export default function AppointmentsPage() {
             header: 'Customer',
             cell: ({ getValue, row }) => {
               const clientName = (getValue() as string) || '';
-              const appointment = row.original as any;
+              const appointment = row.original as AppointmentSerializedType;
               return (
                 <div className="flex items-center">
                   <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center mr-3 text-red-500 font-bold text-sm">
@@ -574,7 +574,7 @@ export default function AppointmentsPage() {
             accessorKey: 'tattooStyle',
             header: 'Style & Details',
             cell: ({ row }) => {
-              const appointment = row.original as any;
+              const appointment = row.original as AppointmentSerializedType;
               return (
                 <div>
                   <p className="text-sm font-medium">{appointment.tattooStyle ?? 'Not specified'}</p>
@@ -603,7 +603,7 @@ export default function AppointmentsPage() {
             id: 'depositInfo',
             header: 'Deposit',
             cell: ({ row }) => {
-              const appointment = row.original as any;
+              const appointment = row.original as AppointmentSerializedType;
               return (
                 <div className="flex items-center">
                   {appointment.depositPaid ? (
@@ -633,7 +633,7 @@ export default function AppointmentsPage() {
             id: 'actions',
             header: 'Actions',
             cell: ({ row }) => {
-              const appointment = row.original as any;
+              const appointment = row.original as AppointmentSerializedType;
               return (
                 <div className="flex gap-1">
                   <Button

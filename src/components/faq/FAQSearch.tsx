@@ -115,7 +115,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
                   results found for "{searchTerm}"
                 </p>
                 <div className="bg-tattoo-black/70 backdrop-blur-md rounded-xl border border-tattoo-white/10 overflow-hidden shadow-lg">
-                  {results.map((result) => (
+                  {results.map((result, index) => (
                     <motion.div
                       key={`${result.id}-${result.item.question}`}
                       initial={{ opacity: 0, y: 10 }}

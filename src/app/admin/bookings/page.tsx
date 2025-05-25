@@ -82,14 +82,16 @@ export default function BookingsPage() {
       endTime: booking.endTime,
       createdAt: booking.startTime, // Use start time as created date for sorting
       location: booking.location ?? undefined,
-      payment: booking.payment,
+      payment: booking.payment && Array.isArray(booking.payment) && booking.payment.length > 0 
+        ? { amount: undefined, currency: undefined } 
+        : null,
       customInputs: Array.isArray(booking.customInputs) 
-        ? booking.customInputs.filter((input: any) => input.label && input.value).map((input: any) => ({
+        ? booking.customInputs.filter((input: { label: string; value: string }) => input.label && input.value).map((input: { label: string; value: string }) => ({
             label: input.label,
             value: input.value
           }))
         : undefined,
-      additionalNotes: booking.additionalNotes ?? '',
+      additionalNotes: booking.description ?? '',
       uid: booking.uid
     }));
   }, [calBookings]);
@@ -413,7 +415,7 @@ export default function BookingsPage() {
                         </div>
                       )}
                       
-                      {booking.customInputs?.map((input: any, index: number) => (
+                      {booking.customInputs?.map((input: { label: string; value: string }, index: number) => (
                         <div key={`custom-input-${booking.id}-${input.label ?? `field-${index}`}`} className="text-sm">
                           <span className="font-medium text-gray-500">{input.label}:</span>{' '}
                           <span className="text-gray-300">{input.value}</span>
