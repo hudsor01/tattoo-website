@@ -131,6 +131,8 @@ model Payment {
   transactionId String?
   customerEmail String
   customerName  String
+  paymentType   String?  // 'deposit', 'final', 'refund'
+  calPaymentId  String?  // Cal.com payment reference
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   Booking       Booking  @relation(fields: [bookingId], references: [id])
@@ -350,6 +352,17 @@ model NotificationQueue {
   actionUrl     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+model Settings {
+  id                   Int      @id @default(1)
+  generalSettings      Json     @default("{}")
+  bookingSettings      Json     @default("{}")
+  emailSettings        Json     @default("{}")
+  securitySettings     Json     @default("{}")
+  notificationSettings Json     @default("{}")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 enum action_type {

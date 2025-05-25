@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
-import { VariantProps, cva } from "class-variance-authority"
+import { type VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -102,7 +102,7 @@ const SidebarProvider = React.forwardRef<
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed"
 
-  const contextValue = React.useMemo<SidebarContext>(
+  const contextValue = React.useMemo<SidebarContextType>(
     () => ({
       state,
       open,

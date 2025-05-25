@@ -3,7 +3,11 @@
 // Fix for window global in SSR
 declare global {
   namespace globalThis {
-    var _supressRequestInterceptors: boolean | null;
+    let _supressRequestInterceptors: boolean | null;
+  }
+  
+  interface Window {
+    Cal?: (action: string, options?: unknown) => void;
   }
 }
 

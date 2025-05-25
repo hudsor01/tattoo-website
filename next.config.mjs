@@ -1,91 +1,128 @@
 /** @type {import('next').NextConfig} */
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
-const withBundleAnalyzer = process.env.ANALYZE === 'true' 
-  ? require('@next/bundle-analyzer')({ enabled: true })
-  : (config) => config;
-
 const nextConfig = {
+  // Production optimizations
   reactStrictMode: true,
+  poweredByHeader: false,
+  compress: true,
   
-  // Enable source maps for debugging
-  productionBrowserSourceMaps: true,
-  
-  
+  // Performance optimizations
   experimental: {
-    optimizeCss: false,
     optimisticClientCache: true,
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    optimizePackageImports: ['lucide-react'],
+  },
+
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+    ];
+  },
+
+  // Build optimizations
+  eslint: {
+    ignoreDuringBuilds: true, // Temporarily ignore for testing
   },
   
-  // Webpack configuration for better debugging
-  webpack: (config, { dev }) => {
-    // Disable minification in development to prevent env var corruption
-    if (dev) {
-      config.optimization.minimize = false
-    }
-    
-    return config
-  },
-  eslint: {
-    ignoreDuringBuilds: true
-  },
   typescript: {
-    // Disable TypeScript checks during builds to avoid frequent issues
-    ignoreBuildErrors: true
+    ignoreBuildErrors: true, // Temporarily ignore for testing
   },
+  
+  // Image optimization
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
       },
     ],
     formats: ['image/avif', 'image/webp'],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: true,
+    minimumCacheTTL: 60,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  serverExternalPackages: [
-    'zod', 
-    '@trpc/server', 
-    '@trpc/next', 
-    'winston', 
-    'superjson', 
-    'stripe',
-    '@prisma/client',
-    '@calcom/embed-react'
-  ],
+
+  // Environment-specific optimizations
+  env: {
+    BUILD_TIME: new Date().toISOString(),
+  },
+
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Production client-side optimizations
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+            enforce: true,
+          },
+          trpc: {
+            test: /[\\/]node_modules[\\/]@trpc[\\/]/,
+            name: 'trpc',
+            priority: 20,
+            enforce: true,
+          },
+        },
+      };
+    }
+    
+    return config;
+  },
+
+  // Output configuration for deployment
   output: 'standalone',
-  async rewrites() {
+  
+  // Redirects for SEO
+  async redirects() {
     return [
       {
-        source: '/api/webhooks/stripe',
-        destination: '/api/webhooks/stripe',
-        has: [
-          {
-            type: 'header',
-            key: 'stripe-signature',
-          },
-        ],
+        source: '/admin-dashboard/:path*',
+        destination: '/admin/:path*',
+        permanent: true,
       },
-      // Add Cal.com webhook handling
-      {
-        source: '/api/webhooks/cal',
-        destination: '/api/booking',
-        has: [
-          {
-            type: 'header',
-            key: 'X-Cal-Signature-256',
-          },
-        ],
-      },
-    ]
-  }
+    ];
+  },
 }
 
-export default withBundleAnalyzer(nextConfig);
+export default nextConfig;

@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { contactFormSchema } from '@/lib/validations';
+import { contactFormSchema } from '@/lib/validation-schemas';
 
 // ========================================
 // EXPORTED VALIDATION TYPES

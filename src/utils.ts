@@ -10,8 +10,8 @@ export { cn, parseColorVar } from './lib/utils/styling';
 export * from './lib/utils/common';
 
 // Export formatting and date utilities with namespaces to avoid conflicts
-import * as formatUtils from './lib/utils/format';
-import * as dateUtils from './lib/utils/date';
+import * as formatUtils from './lib/utils/date-format';
+import * as dateUtils from './lib/utils/date-format';
 
 // Export image utilities
 export * from './lib/utils/image';

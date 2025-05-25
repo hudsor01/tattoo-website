@@ -13,7 +13,7 @@ import type { CalBookingPayload } from '@/types/booking-types';
  */
 export async function sendAppointmentConfirmationEmail(booking: CalBookingPayload): Promise<void> {
   console.info('Email templates disabled - would send confirmation for booking:', booking.id);
-  return;
+  
 }
 
 /**
@@ -22,7 +22,7 @@ export async function sendAppointmentConfirmationEmail(booking: CalBookingPayloa
  */
 export async function sendAppointmentCancellationEmail(booking: CalBookingPayload): Promise<void> {
   console.info('Email templates disabled - would send cancellation for booking:', booking.id);
-  return;
+  
 }
 
 /**

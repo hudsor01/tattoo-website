@@ -8,22 +8,45 @@
 import type { User } from '@clerk/nextjs/server';
 
 /**
+ * Permission enumeration
+ */
+export const Permission = {
+  // Admin permissions
+  MANAGE_USERS: 'manage_users',
+  MANAGE_BOOKINGS: 'manage_bookings',
+  MANAGE_PAYMENTS: 'manage_payments',
+  MANAGE_GALLERY: 'manage_gallery',
+  MANAGE_SETTINGS: 'manage_settings',
+  
+  // Artist permissions
+  VIEW_BOOKINGS: 'view_bookings',
+  UPDATE_GALLERY: 'update_gallery',
+  
+  // User permissions
+  CREATE_BOOKING: 'create_booking',
+  VIEW_OWN_BOOKINGS: 'view_own_bookings',
+} as const;
+
+export type PermissionType = typeof Permission[keyof typeof Permission];
+
+/**
  * Extended user metadata for our application
  */
 export interface UserMetadata {
   role?: 'admin' | 'artist' | 'user';
-  permissions?: string[];
+  permissions?: PermissionType[];
   preferences?: {
     emailNotifications?: boolean;
     smsNotifications?: boolean;
     marketingEmails?: boolean;
   };
+  [key: string]: any; // Add index signature for compatibility with Clerk
 }
 
 /**
  * Extended user type with custom metadata
  */
-export interface ExtendedUser extends User {
+export interface ExtendedUser extends Partial<User> {
   publicMetadata: UserMetadata;
   privateMetadata?: {
     internalNotes?: string;
@@ -71,28 +94,6 @@ export const UserRole = {
 export type UserRoleType = typeof UserRole[keyof typeof UserRole];
 
 /**
- * Permission enumeration
- */
-export const Permission = {
-  // Admin permissions
-  MANAGE_USERS: 'manage_users',
-  MANAGE_BOOKINGS: 'manage_bookings',
-  MANAGE_PAYMENTS: 'manage_payments',
-  MANAGE_GALLERY: 'manage_gallery',
-  MANAGE_SETTINGS: 'manage_settings',
-  
-  // Artist permissions
-  VIEW_BOOKINGS: 'view_bookings',
-  UPDATE_GALLERY: 'update_gallery',
-  
-  // User permissions
-  CREATE_BOOKING: 'create_booking',
-  VIEW_OWN_BOOKINGS: 'view_own_bookings',
-} as const;
-
-export type PermissionType = typeof Permission[keyof typeof Permission];
-
-/**
  * Default permissions by role
  */
 export const DEFAULT_PERMISSIONS: Record<UserRoleType, PermissionType[]> = {
@@ -125,10 +126,7 @@ export const DEFAULT_PERMISSIONS: Record<UserRoleType, PermissionType[]> = {
 export function isAdmin(user: ExtendedUser | null): boolean {
   if (!user) return false;
   
-  return user.publicMetadata?.role === 'admin' ||
-         user.emailAddresses.some(email => 
-           email.emailAddress === 'fennyg83@gmail.com'
-         );
+  return user.publicMetadata?.role === 'admin';
 }
 
 /**

@@ -13,14 +13,12 @@ import { randomUUID } from 'node:crypto';
 
 // Validation schema for creating a design
 export const designValidator = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  fileUrl: z.string().optional(),
-  thumbnailUrl: z.string().optional(),
+  images: z.array(z.string()).min(1, "At least one image is required"),
   designType: z.string().optional(),
   size: z.string().optional(),
   isApproved: z.boolean().default(false),
-  artistId: z.string(),
   customerId: z.string().optional(),
 });
 
@@ -125,43 +123,12 @@ export const galleryRouter = router({
         });
       }
       
-      // Only allow access to non-approved designs for admins, the artist, or the customer
-      if (!design.isApproved) {
-        const user = ctx.user;
-        if (!user) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to view this design',
-          });
-        }
-        
-        // Check if user is admin
-        const isAdmin = user.role === 'admin';
-        
-        // Check if user is the artist
-        const isArtist = design.artistId && 
-          await ctx.db.artist.findFirst({ 
-            where: { 
-              userId: user.id,
-              id: design.artistId
-            } 
-          });
-          
-        // Check if user is the customer
-        const isCustomer = design.customerId && 
-          await ctx.db.customer.findFirst({
-            where: {
-              id: design.customerId,
-              email: user.email!
-            }
-          });
-          
-        if (!isAdmin && !isArtist && !isCustomer) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to view this design',
-          });
-        }
+      // Only allow access to non-approved designs for authenticated users
+      if (!design.isApproved && !ctx.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to view this design',
+        });
       }
       
       return design;
@@ -171,52 +138,38 @@ export const galleryRouter = router({
   create: protectedProcedure
     .input(designValidator)
     .mutation(async ({ input, ctx }) => {
+      console.log('tRPC gallery.create input received:', JSON.stringify(input, null, 2))
+      console.log('Input validation result:', designValidator.safeParse(input))
+
       try {
-        // Check if user is the artist or an admin
-        const user = ctx.user;
-        
-        // Verify artist exists
-        const artist = await ctx.db.artist.findUnique({
-          where: { id: input.artistId },
-          include: { User: true },
-        });
-        
-        if (!artist) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: `Artist with ID ${input.artistId} not found`,
-          });
-        }
-        
-        // Check permissions
-        const isAdmin = user.role === 'admin';
-        const isArtist = artist.userId === user.id;
-        
-        if (!isAdmin && !isArtist) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to create designs for this artist',
-          });
-        }
-        
-        // Create the design with proper null handling
+        // Create the design - artist already exists in database
         const designData = {
           id: randomUUID(),
           name: input.name,
           description: input.description || null,
-          fileUrl: input.fileUrl || null,
-          thumbnailUrl: input.thumbnailUrl || null,
+          fileUrl: input.images[0],
+          thumbnailUrl: input.images[0],
           designType: input.designType || null,
           size: input.size || null,
-          isApproved: input.isApproved,
-          artistId: input.artistId,
-          customerId: input.customerId || null,
-          createdAt: new Date(),
+          isApproved: input.isApproved || false,
+          artistId: 'fernando-govea',
           updatedAt: new Date(),
         };
 
         const design = await ctx.db.tattooDesign.create({
           data: designData,
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            fileUrl: true,
+            thumbnailUrl: true,
+            designType: true,
+            size: true,
+            isApproved: true,
+            createdAt: true,
+            updatedAt: true,
+          }
         });
         
         return design;
@@ -239,8 +192,7 @@ export const galleryRouter = router({
       id: z.string(),
       name: z.string().min(2).optional(),
       description: z.string().optional(),
-      fileUrl: z.string().optional(),
-      thumbnailUrl: z.string().optional(),
+      images: z.array(z.string()).optional(),
       designType: z.string().optional(),
       size: z.string().optional(),
       isApproved: z.boolean().optional(),
@@ -262,62 +214,45 @@ export const galleryRouter = router({
           });
         }
         
-        // Check permissions
-        const user = ctx.user;
-        const isAdmin = user.role === 'admin';
-        const isArtist = existingDesign.artistId && 
-          await ctx.db.artist.findFirst({ 
-            where: { 
-              userId: user.id,
-              id: existingDesign.artistId
-            } 
-          });
-          
-        if (!isAdmin && !isArtist) {
+        // Check permissions - only authenticated users can update
+        if (!ctx.userId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'You do not have permission to update this design',
           });
         }
         
-        // Only admins can approve designs
-        if (data.isApproved !== null && data.isApproved !== existingDesign.isApproved && !isAdmin) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Only administrators can approve designs',
-          });
-        }
-        
-        // Convert input data to Prisma update format with proper handling of undefined values
-        const updateData: Prisma.TattooDesignUpdateInput = {};
+        // Convert input data to standard Prisma update format
+        const updateData: Prisma.TattooDesignUpdateInput = {
+          updatedAt: new Date(),
+        };
         
         // Only include fields that are defined (not undefined)
-        if (data.name !== undefined) updateData.name = { set: data.name };
-        if (data.description !== undefined) updateData.description = { set: data.description };
-        if (data.fileUrl !== undefined) updateData.fileUrl = { set: data.fileUrl };
-        if (data.thumbnailUrl !== undefined) updateData.thumbnailUrl = { set: data.thumbnailUrl };
-        if (data.designType !== undefined) updateData.designType = { set: data.designType };
-        if (data.size !== undefined) updateData.size = { set: data.size };
-        if (data.isApproved !== undefined) updateData.isApproved = { set: data.isApproved };
-        
-        // Always update the updatedAt timestamp
-        updateData.updatedAt = new Date();
+        if (data.name !== undefined) updateData.name = data.name;
+        if (data.description !== undefined) updateData.description = data.description;
+        if (data.images !== undefined && data.images.length > 0) {
+          updateData.fileUrl = data.images[0];
+          updateData.thumbnailUrl = data.images[0]; // Auto-update thumbnail to same as fileUrl
+        }
+        if (data.designType !== undefined) updateData.designType = data.designType;
+        if (data.size !== undefined) updateData.size = data.size;
+        if (data.isApproved !== undefined) updateData.isApproved = data.isApproved;
         
         // Update the design
         const updatedDesign = await ctx.db.tattooDesign.update({
           where: { id },
           data: updateData,
-          include: {
-            Artist: {
-              include: {
-                User: {
-                  select: {
-                    name: true,
-                    image: true,
-                  }
-                }
-              }
-            }
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            fileUrl: true,
+            thumbnailUrl: true,
+            designType: true,
+            size: true,
+            isApproved: true,
+            createdAt: true,
+            updatedAt: true,
           }
         });
         
@@ -352,18 +287,8 @@ export const galleryRouter = router({
           });
         }
         
-        // Check permissions
-        const user = ctx.user;
-        const isAdmin = user.role === 'admin';
-        const isArtist = existingDesign.artistId && 
-          await ctx.db.artist.findFirst({ 
-            where: { 
-              userId: user.id,
-              id: existingDesign.artistId
-            } 
-          });
-          
-        if (!isAdmin && !isArtist) {
+        // Check permissions - only authenticated users can delete
+        if (!ctx.userId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'You do not have permission to delete this design',

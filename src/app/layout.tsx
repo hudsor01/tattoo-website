@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import { inter, montserrat, pacifico, satisfy } from '../styles/fonts.ts';
+import { ClerkProvider } from '@clerk/nextjs';
+import { cookies } from 'next/headers';
+import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
 import './globals.css';
@@ -83,30 +85,58 @@ type RootLayoutProps = {
   children: ReactNode;
 };
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  // Get cookies for authentication
+  const cookieStore = await cookies();
+  const cookieEntries = Object.fromEntries(
+    cookieStore.getAll().map(cookie => [cookie.name, cookie.value])
+  );
+
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${montserrat.variable} ${pacifico.variable} ${satisfy.variable}`}
-      data-theme="dark"
-      suppressHydrationWarning
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/admin"
+      afterSignUpUrl="/admin"
+      appearance={{
+        variables: {
+          colorPrimary: '#dc2626', // Red theme for tattoo branding
+          colorBackground: '#000000',
+          colorText: '#ffffff',
+        },
+        elements: {
+          card: 'bg-zinc-900 border-zinc-800',
+          headerTitle: 'text-white',
+          headerSubtitle: 'text-zinc-400',
+          socialButtonsBlockButton: 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700',
+          formButtonPrimary: 'bg-red-600 hover:bg-red-700',
+          footerActionLink: 'text-red-500 hover:text-red-400',
+        },
+      }}
     >
-      <head>
-        {/* Add an emotion insertion point to control CSS order */}
-        <meta name="emotion-insertion-point" content="" />
-      </head>
-      <body className="font-inter bg-black text-white antialiased">
-        {/* Structured data for business */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
-        />
-        {/* Providers system */}
-        <Providers>
-          <NavigationSystem />
-          {children}
-        </Providers>
-      </body>
-    </html>
+      <html
+        lang="en"
+        className={`${inter.variable} ${montserrat.variable} ${pacifico.variable} ${satisfy.variable}`}
+        data-theme="dark"
+        suppressHydrationWarning
+      >
+        <head>
+          {/* Add an emotion insertion point to control CSS order */}
+          <meta name="emotion-insertion-point" content="" />
+        </head>
+        <body className="font-inter bg-black text-white antialiased">
+          {/* Structured data for business */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+          />
+          {/* Providers system */}
+          <Providers cookies={cookieEntries}>
+            <NavigationSystem />
+            {children}
+          </Providers>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

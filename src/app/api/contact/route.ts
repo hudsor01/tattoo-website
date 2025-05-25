@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { contactFormSchema } from '@/lib/validations';
+import { contactFormSchema } from '@/lib/validation-schemas';
 import { prisma } from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/email';
 import { z } from 'zod';
@@ -129,10 +129,7 @@ export async function POST(request: NextRequest) {
     
     // Send notification email to admin
     await sendEmail({
-      to: { 
-        email: process.env['ADMIN_EMAIL'] || 'fennyg83@gmail.com',
-        name: 'Admin'
-      },
+      to: process.env['ADMIN_EMAIL'] || 'fennyg83@gmail.com',
       subject: `New Contact Form Submission: ${validatedData.subject || 'Website Inquiry'}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -149,10 +146,7 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to user
     await sendEmail({
-      to: { 
-        email: validatedData.email || '',
-        name: validatedData.name || 'Customer'
-      },
+      to: validatedData.email || '',
       subject: 'Thank you for contacting me about your tattoo',
       html: `
         <h2>Thank you for contacting me about your tattoo</h2>

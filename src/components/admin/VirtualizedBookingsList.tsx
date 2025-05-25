@@ -31,16 +31,13 @@ export default function VirtualizedBookingsList({
   const [expandedBookings, setExpandedBookings] = useState<Set<number>>(new Set())
 
   // Fetch bookings with tRPC
-  const { data: bookingsData, isLoading } = trpc.booking.getAll.useQuery({
-    limit: 100, // Get more bookings for the virtualized list
-    status: statusFilter === 'all' ? undefined : statusFilter,
-  })
+  const { data: bookingsData, isLoading } = trpc.booking.getAll.useQuery()
 
   // Process and filter bookings
   const filteredBookings = useMemo(() => {
-    if (!bookingsData?.bookings) return []
+    if (!bookingsData) return []
     
-    let filtered = bookingsData.bookings
+    let filtered = bookingsData
 
     // Search filter
     if (searchTerm) {
@@ -77,7 +74,7 @@ export default function VirtualizedBookingsList({
     })
 
     return sorted
-  }, [bookingsData?.bookings, searchTerm, sortBy])
+  }, [bookingsData, searchTerm, sortBy])
 
   const toggleExpanded = (bookingId: number) => {
     const newExpanded = new Set(expandedBookings)
@@ -183,9 +180,9 @@ export default function VirtualizedBookingsList({
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge 
-                          className={statusColors[booking.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}
+                          className={statusColors[(booking.calStatus || 'pending') as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}
                         >
-                          {booking.status}
+                          {booking.calStatus || 'pending'}
                         </Badge>
                         <div className="text-right text-sm">
                           <p className="font-medium">
@@ -218,9 +215,7 @@ export default function VirtualizedBookingsList({
                           <p><span className="text-gray-500">Type:</span> {booking.tattooType || 'Not specified'}</p>
                           <p><span className="text-gray-500">Size:</span> {booking.size || 'Not specified'}</p>
                           <p><span className="text-gray-500">Placement:</span> {booking.placement || 'Not specified'}</p>
-                          {booking.estimatedPrice && (
-                            <p><span className="text-gray-500">Est. Price:</span> {formatCurrency(booking.estimatedPrice)}</p>
-                          )}
+                          <p><span className="text-gray-500">Est. Price:</span> Estimate pending</p>
                         </div>
                       </div>
 
@@ -275,12 +270,12 @@ export default function VirtualizedBookingsList({
                       <Button variant="outline" size="sm">
                         Edit
                       </Button>
-                      {booking.status === 'pending' && (
+                      {(booking.calStatus === 'pending' || !booking.calStatus) && (
                         <Button size="sm">
                           Confirm
                         </Button>
                       )}
-                      {booking.status !== 'cancelled' && (
+                      {booking.calStatus !== 'cancelled' && (
                         <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
                           Cancel
                         </Button>
@@ -297,7 +292,7 @@ export default function VirtualizedBookingsList({
       {/* Summary */}
       <div className="flex-shrink-0 mt-4 pt-4 border-t">
         <p className="text-sm text-gray-500">
-          Showing {filteredBookings.length} of {bookingsData?.bookings?.length || 0} bookings
+          Showing {filteredBookings.length} of {bookingsData?.length || 0} bookings
         </p>
       </div>
     </div>
