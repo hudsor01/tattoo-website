@@ -156,7 +156,7 @@ const AnimatedToast = React.forwardRef<
     >
       <Toast ref={ref} variant={variant} {...props}>
         <div className="flex items-start gap-3 flex-1">
-          <ToastIcon variant={variant || undefined} />
+          <ToastIcon {...(variant ? { variant } : {})} />
           <div className="flex-1">{children}</div>
         </div>
       </Toast>

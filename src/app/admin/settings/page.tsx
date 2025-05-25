@@ -76,11 +76,11 @@ export default function SettingsPage() {
   // Update local state when settings data loads
   useEffect(() => {
     if (settings) {
-      setGeneralSettings((settings as any).general)
-      setBookingSettings((settings as any).booking)
-      setEmailSettings((settings as any).email)
-      setSecuritySettings((settings as any).security)
-      setNotificationSettings((settings as any).notifications)
+      setGeneralSettings(settings.general || {})
+      setBookingSettings(settings.booking || {})
+      setEmailSettings(settings.email || {})
+      setSecuritySettings(settings.security || {})
+      setNotificationSettings(settings.notifications || {})
     }
   }, [settings])
 
@@ -90,8 +90,8 @@ export default function SettingsPage() {
       toast({ title: 'General settings saved successfully' })
       void refetch()
     },
-    onError: (error: unknown) => {
-      toast({ title: 'Error saving general settings', description: (error as any).message, variant: 'destructive' })
+    onError: (error: { message: string }) => {
+      toast({ title: 'Error saving general settings', description: error.message, variant: 'destructive' })
     }
   })
 

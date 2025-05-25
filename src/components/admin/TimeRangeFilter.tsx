@@ -151,7 +151,7 @@ export function TimeRangeFilter({
     setIsOpen(false)
   }
 
-  const handleCustomRangeSelect = (range: { from?: Date; to?: Date } | undefined) => {
+  const handleCustomRangeSelect = (range: ReactDayPickerDateRange | undefined) => {
     if (range?.from && range?.to) {
       const validRange: DateRange = {
         from: range.from,
@@ -321,7 +321,10 @@ export function useTimeRange(initialRange?: string) {
   
   const currentRange = React.useMemo(() => {
     const preset = presets.find(p => p.value === selectedRange)
-    return preset?.range ?? presets[3]?.range ?? presets[0].range // Default to 30 days or first preset
+    return preset?.range ?? presets[3]?.range ?? presets[0]?.range ?? {
+      from: new Date(),
+      to: new Date()
+    } // Default to 30 days or first preset or today
   }, [selectedRange, presets])
 
   const setRange = React.useCallback((value: string) => {
