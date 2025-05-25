@@ -12,7 +12,12 @@ import { useCallback } from 'react';
 export const useContactForm = () => {
   // TODO: Contact submission - implement in appropriate router
   const submitContactMutation = { 
-    mutate: async () => {}, 
+    mutate: async (_contactData: {
+      name: string;
+      email: string;
+      phone?: string;
+      message: string;
+    }) => {}, 
     isPending: false,
     isSuccess: false,
     isError: false,
@@ -33,7 +38,7 @@ export const useContactForm = () => {
         throw error;
       }
     },
-    [submitContactMutation],
+    [],
   );
 
   return {
