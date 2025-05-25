@@ -217,9 +217,9 @@ export function ServiceBreakdownChart() {
 
     return serviceStats.map((service: ServiceStat, index: number) => ({
       name: service.name,
-      value: Math.round((service.value / total) * 100),
+      value: total > 0 ? Math.round((service.value / total) * 100) : 0,
       sessions: service.value,
-      color: service.color || CHART_COLORS[index % CHART_COLORS.length]
+      color: service.color ?? CHART_COLORS[index % CHART_COLORS.length]
     }))
   }, [serviceStats])
 

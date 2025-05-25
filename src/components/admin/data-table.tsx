@@ -165,8 +165,8 @@ export function DataTable<T extends RecordObject>({
           
           return <div className={col.meta?.className}>{String(value)}</div>
         }),
-        enableSorting: col.enableSorting,
-        enableHiding: col.enableHiding,
+        ...(col.enableSorting !== undefined && { enableSorting: col.enableSorting }),
+        ...(col.enableHiding !== undefined && { enableHiding: col.enableHiding }),
         ...(col.meta && { meta: col.meta }),
       }))
     )

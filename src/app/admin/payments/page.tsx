@@ -127,7 +127,7 @@ export default function PaymentsPage() {
     )
   }
 
-  const payments = (paymentsData as any)?.items ?? []
+  const payments = paymentsData?.items ?? []
   const stats = paymentStats
 
   return (
@@ -135,7 +135,7 @@ export default function PaymentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Payments</h1>
-        <Button onClick={() => (refetchPayments as any)()}>
+        <Button onClick={() => void refetchPayments()}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>
@@ -251,7 +251,7 @@ export default function PaymentsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {payments.map((payment: any) => (
+              {payments.map((payment: DatabasePayment) => (
                 <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">

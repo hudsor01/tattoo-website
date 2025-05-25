@@ -74,7 +74,7 @@ export default function VirtualizedBookingsListInfinite({
     fetchNextPage,
     count: totalCount
   } = useBookingsInfiniteQuery({
-    status: statusFilter === 'all' ? undefined : (statusFilter ?? undefined),
+    ...(statusFilter && statusFilter !== 'all' && { status: statusFilter }),
     limit: 20, // Load 20 items per page
   })
 
@@ -147,7 +147,7 @@ export default function VirtualizedBookingsListInfinite({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0]?.isIntersecting) {
           void fetchNextPage()
         }
       },
