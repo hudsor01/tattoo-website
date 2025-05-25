@@ -70,8 +70,8 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
           currentWords.includes(word) && word.length > 3
         ).length;
         
-        // Boost score for questions in similar categories
-        const categoryBoost = item.category === currentItem.category ? 2 : 0;
+        // No category boost since items don't have category property
+        const categoryBoost = 0;
         
         return {
           question: item.question,

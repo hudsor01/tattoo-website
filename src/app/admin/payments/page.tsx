@@ -135,7 +135,7 @@ export default function PaymentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Payments</h1>
-        <Button onClick={() => void refetchPayments()}>
+        <Button onClick={() => { void refetchPayments() }}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
         </Button>

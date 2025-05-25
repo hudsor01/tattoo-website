@@ -2,7 +2,6 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { trpc } from '@/lib/trpc/client'
-import type { TRPCClientError } from '@trpc/client'
 
 interface UseTRPCInfiniteQueryProps<T> {
   queryKey: string[]
