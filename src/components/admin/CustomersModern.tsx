@@ -441,7 +441,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                 <div>
                   <Label className="text-sm font-medium">Address</Label>
                   <p className="text-sm text-gray-600">
-                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.postalCode]
+                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.zipCode]
                       .filter(Boolean).join(', ') ?? 'Not provided'}
                   </p>
                 </div>

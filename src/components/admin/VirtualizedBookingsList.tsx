@@ -31,23 +31,25 @@ export default function VirtualizedBookingsList({
   const [expandedBookings, setExpandedBookings] = useState<Set<number>>(new Set())
 
   // Fetch bookings with tRPC
-  const { data: bookingsData, isLoading } = trpc.booking.getAll.useQuery()
+  const { data: bookingsData, isLoading } = trpc.dashboard.getRecentBookings.useQuery({
+    limit: 50,
+    status: statusFilter === 'all' ? undefined : statusFilter
+  })
 
   // Process and filter bookings
   const filteredBookings = useMemo(() => {
-    if (!bookingsData) return []
+    if (!bookingsData?.bookings) return []
     
-    let filtered = bookingsData
+    let filtered = bookingsData.bookings
 
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(booking => 
-        booking.Customer?.firstName?.toLowerCase().includes(searchLower) ??
-        booking.Customer?.lastName?.toLowerCase().includes(searchLower) ??
-        booking.Customer?.email?.toLowerCase().includes(searchLower) ??
-        booking.tattooType?.toLowerCase().includes(searchLower) ??
-        booking.placement?.toLowerCase().includes(searchLower) ??
+        booking.name?.toLowerCase().includes(searchLower) ||
+        booking.email?.toLowerCase().includes(searchLower) ||
+        booking.tattooType?.toLowerCase().includes(searchLower) ||
+        booking.placement?.toLowerCase().includes(searchLower) ||
         false
       )
     }
@@ -60,14 +62,14 @@ export default function VirtualizedBookingsList({
         case 'date-desc':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         case 'name-asc': {
-          const nameA = `${a.Customer?.firstName ?? ''} ${a.Customer?.lastName ?? ''}`.trim()
-          const nameB = `${b.Customer?.firstName ?? ''} ${b.Customer?.lastName ?? ''}`.trim()
+          const nameA = a.name || ''
+          const nameB = b.name || ''
           return nameA.localeCompare(nameB)
         }
         case 'name-desc': {
-          const nameA2 = `${a.Customer?.firstName ?? ''} ${a.Customer?.lastName ?? ''}`.trim()
-          const nameB2 = `${b.Customer?.firstName ?? ''} ${b.Customer?.lastName ?? ''}`.trim()
-          return nameB2.localeCompare(nameA2)
+          const nameA = a.name || ''
+          const nameB = b.name || ''
+          return nameB.localeCompare(nameA)
         }
         default:
           return 0
@@ -164,19 +166,19 @@ export default function VirtualizedBookingsList({
                           <User className="w-4 h-4 text-gray-500" />
                           <div>
                             <CardTitle className="text-base">
-                              {booking.Customer?.firstName} {booking.Customer?.lastName}
+                              {booking.name}
                             </CardTitle>
                             <p className="text-sm text-muted-foreground">
-                              {booking.Customer?.email}
+                              {booking.email}
                             </p>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge 
-                          className={statusColors[(booking.calStatus ?? 'pending') as keyof typeof statusColors] ?? 'bg-gray-100 text-gray-800'}
+                          className={statusColors[(booking.status ?? 'pending') as keyof typeof statusColors] ?? 'bg-gray-100 text-gray-800'}
                         >
-                          {booking.calStatus ?? 'pending'}
+                          {booking.status ?? 'pending'}
                         </Badge>
                         <div className="text-right text-sm">
                           <p className="font-medium">
@@ -220,11 +222,8 @@ export default function VirtualizedBookingsList({
                           Contact Info
                         </h4>
                         <div className="space-y-1 text-sm">
-                          <p><span className="text-gray-500">Phone:</span> {booking.Customer?.phone ?? 'Not provided'}</p>
-                          <p><span className="text-gray-500">Address:</span> {booking.Customer?.address ?? 'Not provided'}</p>
-                          {booking.Customer?.city && booking.Customer?.state && (
-                            <p><span className="text-gray-500">Location:</span> {booking.Customer.city}, {booking.Customer.state}</p>
-                          )}
+                          <p><span className="text-gray-500">Email:</span> {booking.email}</p>
+                          <p><span className="text-gray-500">Customer ID:</span> {booking.customerId ?? 'Not linked'}</p>
                         </div>
                       </div>
 
@@ -264,12 +263,12 @@ export default function VirtualizedBookingsList({
                       <Button variant="outline" size="sm">
                         Edit
                       </Button>
-                      {(booking.calStatus === 'pending' || !booking.calStatus) && (
+                      {(booking.status === 'pending' || !booking.status) && (
                         <Button size="sm">
                           Confirm
                         </Button>
                       )}
-                      {booking.calStatus !== 'cancelled' && (
+                      {booking.status !== 'cancelled' && (
                         <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
                           Cancel
                         </Button>
@@ -286,7 +285,7 @@ export default function VirtualizedBookingsList({
       {/* Summary */}
       <div className="flex-shrink-0 mt-4 pt-4 border-t">
         <p className="text-sm text-gray-500">
-          Showing {filteredBookings.length} of {bookingsData?.length ?? 0} bookings
+          Showing {filteredBookings.length} of {bookingsData?.totalCount ?? 0} bookings
         </p>
       </div>
     </div>

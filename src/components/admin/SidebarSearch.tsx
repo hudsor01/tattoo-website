@@ -118,6 +118,12 @@ export function SidebarSearch() {
   const [selectedIndex, setSelectedIndex] = React.useState(0)
   const router = useRouter()
 
+  const handleSelect = useCallback((result: SearchResult) => {
+    router.push(result.path)
+    setIsOpen(false)
+    setQuery('')
+  }, [router])
+
   // Search functionality
   React.useEffect(() => {
     if (!query.trim()) {
@@ -187,12 +193,6 @@ export function SidebarSearch() {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, results, selectedIndex, handleSelect])
-
-  const handleSelect = useCallback((result: SearchResult) => {
-    router.push(result.path)
-    setIsOpen(false)
-    setQuery('')
-  }, [router])
 
   const groupedResults = results.reduce((acc, result) => {
     acc[result.category] ??= []

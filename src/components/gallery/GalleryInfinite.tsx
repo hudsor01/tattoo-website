@@ -57,7 +57,7 @@ export default function GalleryInfinite({
     count: totalCount,
     error,
   } = useGalleryInfiniteQuery({
-    designType,
+    ...(designType && { designType }),
     limit: itemsPerPage,
   })
 
