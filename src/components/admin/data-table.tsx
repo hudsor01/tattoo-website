@@ -167,7 +167,7 @@ export function DataTable<T extends RecordObject>({
         }),
         enableSorting: col.enableSorting,
         enableHiding: col.enableHiding,
-        meta: col.meta ?? undefined,
+        ...(col.meta && { meta: col.meta }),
       }))
     )
 

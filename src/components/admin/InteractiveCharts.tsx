@@ -219,7 +219,7 @@ export function ServiceBreakdownChart() {
       name: service.name,
       value: Math.round((service.value / total) * 100),
       sessions: service.value,
-      color: service.color ?? CHART_COLORS[index % CHART_COLORS.length]
+      color: service.color || CHART_COLORS[index % CHART_COLORS.length]
     }))
   }, [serviceStats])
 
