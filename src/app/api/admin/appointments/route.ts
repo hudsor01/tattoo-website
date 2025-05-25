@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
     const customerId = searchParams.get('customerId');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = parseInt(searchParams.get('page') ?? '1');
+    const limit = parseInt(searchParams.get('limit') ?? '50');
     const skip = (page - 1) * limit;
 
     const where: Prisma.AppointmentWhereInput = {};
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         id: appointment.id,
         title: appointment.title,
         customerId: appointment.customerId,
-        clientName: appointment.Customer ? `${appointment.Customer.firstName || ''} ${appointment.Customer.lastName || ''}`.trim() : null,
+        clientName: appointment.Customer ? `${appointment.Customer.firstName ?? ''} ${appointment.Customer.lastName ?? ''}`.trim() : null,
         clientEmail: appointment.Customer?.email ?? null,
         clientPhone: appointment.Customer?.phone ?? null,
         startDate: appointment.startDate,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error fetching appointments:', errorMessage);
+    void console.error('Error fetching appointments:', errorMessage);
     return NextResponse.json({ error: 'Failed to fetch appointments' }, { status: 500 });
   }
 }
@@ -169,17 +169,17 @@ export async function POST(request: NextRequest) {
       designNotes?: string | null;
       artistId: string;
     } = {
-      id: data.id || randomUUID(),
+      id: data.id ?? randomUUID(),
       title: String(data.title),
       customerId: String(data.customerId),
       startDate: new Date(data.startTime),
       endDate: new Date(data.endTime),
-      status: String(data.status || 'scheduled'),
+      status: String(data.status ?? 'scheduled'),
       deposit: data.depositAmount ? Number(data.depositAmount) : null,
       totalPrice: data.price ? Number(data.price) : null,
       description: data.description ? String(data.description) : null,
-      artistId: data.artistId || "00000000-0000-0000-0000-000000000000",
-      designNotes: data.designNotes || null
+      artistId: data.artistId ?? "00000000-0000-0000-0000-000000000000",
+      designNotes: data.designNotes ?? null
     };
 
     const appointment = await prisma.appointment.create({
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
       description: appointment.description,
       createdAt: appointment.createdAt,
       updatedAt: appointment.updatedAt,
-      clientName: customerData ? `${customerData.firstName || ''} ${customerData.lastName || ''}`.trim() : null,
+      clientName: customerData ? `${customerData.firstName ?? ''} ${customerData.lastName ?? ''}`.trim() : null,
       clientEmail: customerData?.email ?? null,
       clientPhone: customerData?.phone ?? null,
       artist: null
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(formattedAppointment, { status: 201 });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error creating appointment:', errorMessage);
+    void console.error('Error creating appointment:', errorMessage);
     return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });
   }
 }
@@ -273,7 +273,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error updating appointments:', errorMessage);
+    void console.error('Error updating appointments:', errorMessage);
     return NextResponse.json({ error: 'Failed to update appointments' }, { status: 500 });
   }
 }
@@ -317,7 +317,7 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error deleting appointments:', errorMessage);
+    void console.error('Error deleting appointments:', errorMessage);
     return NextResponse.json({ error: 'Failed to delete appointments' }, { status: 500 });
   }
 }

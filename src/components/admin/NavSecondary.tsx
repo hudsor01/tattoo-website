@@ -3,7 +3,6 @@
 import * as React from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import type { LucideIcon } from "lucide-react"
 
 import {
   SidebarGroup,
@@ -20,7 +19,7 @@ export function NavSecondary({
   items: {
     title: string
     url: string
-    icon: React.ComponentType<any>
+    icon: React.ComponentType<{ className?: string }>
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const pathname = usePathname()

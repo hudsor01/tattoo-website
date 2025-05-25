@@ -8,7 +8,7 @@
  */
 import 'server-only';
 import { router } from './server';
-import { bookingRouter } from './routers/booking-router';
+
 import { galleryRouter } from './routers/gallery-router';
 import { adminRouter } from './routers/admin-router';
 import { subscriptionRouter } from './routers/subscription-router';
@@ -25,7 +25,6 @@ import { settingsRouter } from './routers/settings-router';
  * entry point. Each sub-router handles a specific feature area.
  */
 export const appRouter = router({
-  booking: bookingRouter,
   gallery: galleryRouter,
   admin: adminRouter,
   subscription: subscriptionRouter,

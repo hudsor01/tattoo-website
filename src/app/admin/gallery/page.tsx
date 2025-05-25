@@ -7,15 +7,16 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
-import { Dropzone, DropzoneContent, DropzoneEmptyState, useDropzoneContext } from '@/components/blocks/dropzone'
 import { trpc } from '@/lib/trpc/client'
 import { uploadFile } from '@/lib/supabase/upload'
 import { format } from 'date-fns'
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from '@/components/blocks/dropzone'
 import type { TattooDesign } from '@prisma/client'
 
 const designTypeOptions = [
@@ -50,18 +51,20 @@ export default function GalleryPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [designToDelete, setDesignToDelete] = useState<TattooDesign | null>(null)
 
   // Form state
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    images: [] as string[],
+    image: '',
     designType: '',
     size: '',
     isApproved: false
   })
   
-  const [isUploading, setIsUploading] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
 
   // tRPC queries
   const { data: designsData, isLoading, refetch } = trpc.gallery.getPublicDesigns.useQuery({
@@ -75,46 +78,37 @@ export default function GalleryPage() {
   // Mutations
   const createDesignMutation = trpc.gallery.create.useMutation({
     onSuccess: () => {
-      toast.success('Design created successfully')
+      void toast.success('Design created successfully')
       setCreateDialogOpen(false)
       resetForm()
-      refetch()
+      void refetch()
     },
     onError: (error) => {
-      console.error('Create design error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create design'
-      toast.error('Error creating design', {
-        description: errorMessage
-      })
+      void console.warn('Create design error:', error)
+      void toast.error('Failed to create design')
     }
   })
 
   const updateDesignMutation = trpc.gallery.update.useMutation({
     onSuccess: () => {
-      toast.success('Design updated successfully')
+      void toast.success('Design updated successfully')
       setEditDialogOpen(false)
-      refetch()
+      void refetch()
     },
     onError: (error) => {
-      console.error('Update design error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update design'
-      toast.error('Error updating design', {
-        description: errorMessage
-      })
+      void console.warn('Update design error:', error)
+      void toast.error('Failed to update design')
     }
   })
 
   const deleteDesignMutation = trpc.gallery.delete.useMutation({
     onSuccess: () => {
-      toast.success('Design deleted successfully')
-      refetch()
+      void toast.success('Design deleted successfully')
+      void refetch()
     },
     onError: (error) => {
-      console.error('Delete design error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete design'
-      toast.error('Error deleting design', {
-        description: errorMessage
-      })
+      void console.warn('Delete design error:', error)
+      void toast.error('Failed to delete design')
     }
   })
 
@@ -122,95 +116,145 @@ export default function GalleryPage() {
     setFormData({
       name: '',
       description: '',
-      images: [],
+      image: '',
       designType: '',
       size: '',
       isApproved: false
     })
+    setUploadedFiles([])
   }
 
-  const handleView = (design: any) => {
+  const handleView = (design: TattooDesign): void => {
     setSelectedDesign(design)
     setViewDialogOpen(true)
   }
 
-  const handleEdit = (design: any) => {
+  const handleEdit = (design: TattooDesign): void => {
     setSelectedDesign(design)
     setFormData({
-      name: design.name || '',
-      description: design.description || '',
-      images: design.fileUrl ? [design.fileUrl] : [],
-      designType: design.designType || '',
-      size: design.size || '',
-      isApproved: design.isApproved || false
+      name: design.name ?? '',
+      description: design.description ?? '',
+      image: design.fileUrl ?? '',
+      designType: design.designType ?? '',
+      size: design.size ?? '',
+      isApproved: design.isApproved ?? false
     })
     setEditDialogOpen(true)
   }
 
-  const handleDelete = (design: any) => {
-    if (design.id && design.name && window.confirm(`Are you sure you want to delete "${design.name}"?`)) {
-      deleteDesignMutation.mutate({ id: design.id })
+  const handleDelete = (design: TattooDesign): void => {
+    setDesignToDelete(design)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = (): void => {
+    if (designToDelete?.id) {
+      void deleteDesignMutation.mutate({ id: designToDelete.id })
+      setDeleteDialogOpen(false)
+      setDesignToDelete(null)
     }
   }
 
-  const handleApproval = (design: any, isApproved: boolean) => {
+  const handleApproval = (design: TattooDesign, isApproved: boolean): void => {
     if (design.id) {
-      updateDesignMutation.mutate({
+      void updateDesignMutation.mutate({
         id: design.id,
         isApproved
       })
     }
   }
 
-  const handleCreate = () => {
-    if (!formData.name || formData.images.length === 0) {
-      toast.error('Name and image are required')
+  const handleCreate = async () => {
+    if (!formData.name) {
+      void toast.error('Name is required')
       return
     }
-    
-    createDesignMutation.mutate({
-      name: formData.name,
-      description: formData.description || undefined,
-      images: formData.images,
-      designType: formData.designType || undefined,
-      size: formData.size || undefined,
-      isApproved: formData.isApproved
-    })
-  }
 
-  const handleUpdate = () => {
-    if (!selectedDesign) return
-    updateDesignMutation.mutate({
-      id: selectedDesign.id,
-      name: formData.name || undefined,
-      description: formData.description || undefined,
-      images: formData.images.length > 0 ? formData.images : undefined,
-      designType: formData.designType || undefined,
-      size: formData.size || undefined,
-      isApproved: formData.isApproved
-    })
-  }
-
-  const handleFileUploads = async (files: File[]) => {
-    setIsUploading(true)
-    try {
-      const uploadPromises = files.map(file => uploadFile(file))
-      const results = await Promise.all(uploadPromises)
-      
-      const urls = results
-        .filter(result => result.url)
-        .map(result => result.url!)
-      
-      if (urls.length > 0) {
-        setFormData(prev => ({ ...prev, images: urls }))
-        toast.success(`Uploaded ${urls.length} image${urls.length > 1 ? 's' : ''}`)
-      }
-    } catch (error) {
-      console.error('Upload error:', error)
-      toast.error('Upload failed')
-    } finally {
-      setIsUploading(false)
+    if (uploadedFiles.length === 0 && !formData.image) {
+      void toast.error('Image is required')
+      return
     }
+
+    let imageUrl = formData.image
+
+    // Upload file if there's a new one
+    if (uploadedFiles.length > 0 && uploadedFiles[0]) {
+      const uploadToast = toast.loading('Uploading image...')
+      try {
+        const result = await uploadFile(uploadedFiles[0])
+        if (result.error) {
+          void toast.error('Upload failed', { id: uploadToast })
+          return
+        }
+        if (!result.url) {
+          void toast.error('Upload failed - no URL returned', { id: uploadToast })
+          return
+        }
+        imageUrl = result.url
+        void toast.success('Image uploaded successfully', { id: uploadToast })
+      } catch {
+        void toast.error('Upload failed', { id: uploadToast })
+        return
+      }
+    }
+
+    // Final validation - ensure we have a valid image URL
+    if (!imageUrl || imageUrl.trim().length === 0) {
+      void toast.error('Image is required - upload failed or no image provided')
+      return
+    }
+
+    // Create the design
+    void createDesignMutation.mutate({
+      name: formData.name,
+      description: formData.description ?? undefined,
+      image: imageUrl,
+      designType: formData.designType ?? undefined,
+      size: formData.size ?? undefined,
+      isApproved: formData.isApproved
+    })
+  }
+
+  const handleUpdate = async () => {
+    if (!selectedDesign) return
+
+    let imageUrl = formData.image
+
+    // Upload file if there's a new one
+    if (uploadedFiles.length > 0) {
+      const uploadToast = toast.loading('Uploading image...')
+      const fileToUpload = uploadedFiles[0]
+      if (!fileToUpload) {
+        void toast.error('No file selected', { id: uploadToast })
+        return
+      }
+      try {
+        const result = await uploadFile(fileToUpload)
+        if (result.error) {
+          void toast.error('Upload failed', { id: uploadToast })
+          return
+        }
+        if (!result.url) {
+          void toast.error('Upload failed - no URL returned', { id: uploadToast })
+          return
+        }
+        imageUrl = result.url
+        void toast.success('Image uploaded successfully', { id: uploadToast })
+      } catch {
+        void toast.error('Upload failed', { id: uploadToast })
+        return
+      }
+    }
+
+    void updateDesignMutation.mutate({
+      id: selectedDesign.id,
+      name: formData.name ?? undefined,
+      description: formData.description ?? undefined,
+      image: imageUrl ?? undefined,
+      designType: formData.designType ?? undefined,
+      size: formData.size ?? undefined,
+      isApproved: formData.isApproved
+    })
   }
 
   // Filter designs based on approval status
@@ -218,13 +262,13 @@ export default function GalleryPage() {
     if (filterApproval === 'approved') return design.isApproved
     if (filterApproval === 'pending') return !design.isApproved
     return true
-  }) || []
+  }) ?? []
 
   // Search filter
   const searchFilteredDesigns = filteredDesigns.filter(design =>
     design.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    design.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    design.designType?.toLowerCase().includes(searchTerm.toLowerCase())
+    (design.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (design.designType?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   )
 
   if (isLoading) {
@@ -233,8 +277,14 @@ export default function GalleryPage() {
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            {Array.from({ length: 3 }, (_, i) => `loading-card-${i}`).map((key) => (
+              <div key={key} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }, (_, i) => `loading-design-${i}`).map((key) => (
+              <div key={key} className="h-48 bg-gray-200 rounded"></div>
             ))}
           </div>
         </div>
@@ -263,7 +313,7 @@ export default function GalleryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalDesigns || 0}</div>
+            <div className="text-2xl font-bold">{stats?.totalDesigns ?? 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -274,7 +324,7 @@ export default function GalleryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats?.approvedDesigns || 0}</div>
+            <div className="text-2xl font-bold text-green-600">{stats?.approvedDesigns ?? 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -285,7 +335,7 @@ export default function GalleryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats?.pendingDesigns || 0}</div>
+            <div className="text-2xl font-bold text-yellow-600">{stats?.pendingDesigns ?? 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -335,9 +385,9 @@ export default function GalleryPage() {
         {searchFilteredDesigns.map((design) => (
           <Card key={design.id} className="overflow-hidden">
             <div className="aspect-square bg-gray-100 relative">
-              {design.thumbnailUrl || design.fileUrl ? (
+              {design.thumbnailUrl ?? design.fileUrl ? (
                 <img
-                  src={design.thumbnailUrl || design.fileUrl || ''}
+                  src={design.thumbnailUrl ?? design.fileUrl ?? ''}
                   alt={design.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -435,10 +485,10 @@ export default function GalleryPage() {
           </DialogHeader>
           {selectedDesign && (
             <div className="space-y-6">
-              {(selectedDesign.fileUrl || selectedDesign.thumbnailUrl) && (
+              {(selectedDesign.fileUrl ?? selectedDesign.thumbnailUrl) && (
                 <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                   <img
-                    src={selectedDesign.fileUrl || selectedDesign.thumbnailUrl || ''}
+                    src={selectedDesign.fileUrl ?? selectedDesign.thumbnailUrl ?? ''}
                     alt={selectedDesign.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -458,11 +508,11 @@ export default function GalleryPage() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Type</Label>
-                  <p>{selectedDesign.designType || 'Not specified'}</p>
+                  <p>{selectedDesign.designType ?? 'Not specified'}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Size</Label>
-                  <p>{selectedDesign.size || 'Not specified'}</p>
+                  <p>{selectedDesign.size ?? 'Not specified'}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Created</Label>
@@ -485,7 +535,7 @@ export default function GalleryPage() {
       </Dialog>
 
       {/* Create/Edit Design Dialog */}
-      <Dialog open={createDialogOpen || editDialogOpen} onOpenChange={(open) => {
+      <Dialog open={createDialogOpen ?? editDialogOpen} onOpenChange={(open) => {
         if (!open) {
           setCreateDialogOpen(false)
           setEditDialogOpen(false)
@@ -520,8 +570,18 @@ export default function GalleryPage() {
               />
             </div>
             <div>
-              <Label>Upload Image</Label>
-              <DropzoneWrapper onFilesUploaded={handleFileUploads} disabled={isUploading} />
+              <Label>Upload Image *</Label>
+              <Dropzone
+                accept={{ 'image/*': [] }}
+                maxFiles={1}
+                maxSize={10 * 1024 * 1024} // 10MB
+                onDrop={(acceptedFiles) => {
+                  setUploadedFiles(acceptedFiles)
+                }}
+              >
+                <DropzoneEmptyState />
+                <DropzoneContent />
+              </Dropzone>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -572,35 +632,33 @@ export default function GalleryPage() {
                 Cancel
               </Button>
               <Button 
-                onClick={createDialogOpen ? handleCreate : handleUpdate}
-                disabled={createDesignMutation.isPending || updateDesignMutation.isPending || !formData.name || formData.images.length === 0 || isUploading}
+                onClick={() => void (createDialogOpen ? handleCreate() : handleUpdate())}
+                disabled={(createDesignMutation.isPending || updateDesignMutation.isPending) || !formData.name}
               >
-                {(createDesignMutation.isPending || updateDesignMutation.isPending || isUploading) ? 'Saving...' : (createDialogOpen ? 'Create' : 'Update')}
+                {(createDesignMutation.isPending || updateDesignMutation.isPending) ? 'Saving...' : (createDialogOpen ? 'Create' : 'Update')}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  )
-}
 
-// Wrapper component to handle the dropzone context
-function DropzoneWrapper({ onFilesUploaded, disabled }: { onFilesUploaded: (files: File[]) => void, disabled: boolean }) {
-  return (
-    <Dropzone
-      maxFiles={1}
-      maxSize={10 * 1024 * 1024}
-      accept={{ 'image/*': [] }}
-      disabled={disabled}
-      onDrop={(acceptedFiles) => {
-        if (acceptedFiles.length > 0) {
-          onFilesUploaded(acceptedFiles)
-        }
-      }}
-    >
-      <DropzoneEmptyState />
-      <DropzoneContent />
-    </Dropzone>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Design</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &ldquo;{designToDelete?.name}&rdquo;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }

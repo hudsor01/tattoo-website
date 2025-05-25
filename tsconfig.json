@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    // Target and module settings
+    // Target and module settings optimized for Next.js 15
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext", "es2023"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "preserve",
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -23,7 +23,6 @@
     
     // Module settings
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
     "allowJs": true,
     "moduleDetection": "force",
     
@@ -32,24 +31,24 @@
     "incremental": true,
     "tsBuildInfoFile": "./.tsbuildinfo",
     
-    // Type checking - progressively enabling strict checks
-    "strict": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": false,
-    "strictPropertyInitialization": false,
-    "noImplicitThis": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
-    "noUncheckedIndexedAccess": false,
-    "noImplicitOverride": false,
+    // Type checking - strict production settings
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": false,
-    "exactOptionalPropertyTypes": false,
+    "exactOptionalPropertyTypes": true,
     
-    // Additional checks - relaxed
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    // Additional checks - production ready
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     
@@ -59,19 +58,10 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true,
-    
-    // Source maps for production debugging
-    "sourceMap": true,
-    "inlineSources": false,
-    "removeComments": true,
     
     // Decorators
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
-    
-    // Import helpers for smaller bundles
-    "importHelpers": true,
     
     // Plugins
     "plugins": [
@@ -82,41 +72,32 @@
   },
   "include": [
     "next-env.d.ts",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/types/**/*.d.ts"
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    ".next",
-    "**/.git",
+    "node_modules/**/*",
+    "dist/**/*",
+    "build/**/*",
+    ".next/**/*",
+    "**/.git/**/*",
+    ".prisma/**/*",
+    "prisma/client/**/*",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
     "**/*.spec.tsx",
     "tests/**/*",
-    "test-results/**/*",
-    "playwright-report/**/*",
-    ".prisma",
-    "**/prisma/client/**/*"
+    "coverage/**/*",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "supabase/migrations/**/*",
+    "output/**/*",
+    "public/**/*",
+    "docs/**/*"
   ],
-  "typeRoots": ["./node_modules/@types", "./src/types"],
-  "watchOptions": {
-    "watchFile": "useFsEvents",
-    "watchDirectory": "useFsEvents",
-    "fallbackPolling": "dynamicPriority",
-    "synchronousWatchDirectory": true,
-    "excludeDirectories": [
-      "**/node_modules",
-      "dist",
-      ".next",
-      "tests",
-      "test-results",
-      "playwright-report",
-      ".prisma"
-    ]
+  "ts-node": {
+    "esm": true
   }
 }

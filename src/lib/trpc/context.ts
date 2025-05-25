@@ -11,7 +11,32 @@ import { NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
-import type { TRPCContext } from './types/context';
+import type { PrismaClient } from '@prisma/client';
+import type { CustomSessionClaims } from '@/types/clerk-types';
+
+/**
+ * Base tRPC context interface
+ */
+export interface TRPCContext {
+  req?: NextRequest;
+  resHeaders?: Headers;
+  headers?: Record<string, string>;
+  prisma: PrismaClient;
+  user: CustomSessionClaims | null; // Clerk session claims
+  userId: string | null;
+  userEmail: string | null;
+  url?: string;
+  db: PrismaClient; // Alias for prisma
+}
+
+/**
+ * Authenticated context - user is guaranteed to exist
+ */
+export interface AuthenticatedTRPCContext extends TRPCContext {
+  userId: string;
+  user: CustomSessionClaims;
+  userEmail: string;
+}
 
 /**
  * Creates context for TRPC API route handlers
@@ -31,11 +56,11 @@ export async function createTRPCContext({
     const requestHeaders = Object.fromEntries(req.headers.entries());
     
     // Log URL for debugging
-    const url = req.url || '';
-    const referer = req.headers.get('referer') || '';
+    const url = req.url ?? '';
+    const referer = req.headers.get('referer') ?? '';
     
     // Use our universal logger
-    logger.debug('Creating tRPC context', {
+    void logger.debug('Creating tRPC context', {
       url,
       referer,
       userId: userId,
@@ -49,14 +74,14 @@ export async function createTRPCContext({
       resHeaders,
       headers: requestHeaders,
       prisma,
-      user: sessionClaims, // Clerk session claims
-      userId: userId || null, // Direct access to user ID
-      userEmail: sessionClaims?.email || null, // Direct access to user email
+      user: sessionClaims as CustomSessionClaims | null, // Clerk session claims
+      userId: userId ?? null, // Direct access to user ID
+      userEmail: (sessionClaims as CustomSessionClaims)?.email ?? null, // Direct access to user email
       url,
       db: prisma // Add db alias for compatibility
     };
   } catch (error) {
-    logger.error('Error creating TRPC context:', error);
+    void logger.error('Error creating TRPC context:', error);
     
     // Return a basic context even if there's an error
     return {
@@ -87,7 +112,7 @@ export async function createContextForRSC() {
     // Get Clerk auth state for RSC
     const { userId, sessionClaims } = await auth();
     
-    logger.debug('Creating RSC tRPC context', {
+    void logger.debug('Creating RSC tRPC context', {
       userId: userId,
       userEmail: sessionClaims?.email,
       authError: userId ? null : 'Auth session missing!',
@@ -95,13 +120,13 @@ export async function createContextForRSC() {
     
     return {
       prisma,
-      user: sessionClaims, // Clerk session claims
-      userId: userId || null, // Direct access to user ID
-      userEmail: sessionClaims?.email || null, // Direct access to user email
+      user: sessionClaims as CustomSessionClaims | null, // Clerk session claims
+      userId: userId ?? null, // Direct access to user ID
+      userEmail: (sessionClaims as CustomSessionClaims)?.email ?? null, // Direct access to user email
       db: prisma, // Add db alias for consistency
     };
   } catch (error) {
-    logger.error('Error creating RSC context:', error);
+    void logger.error('Error creating RSC context:', error);
     
     return {
       prisma,

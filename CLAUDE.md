@@ -10,14 +10,14 @@ Tattoo website built with Next.js 15, featuring a client portal, admin dashboard
 
 - **Framework**: Next.js 15.3.2 (App Router)
 - **Language**: TypeScript 5.8.3
-- **UI Components**: Material UI v7, shadcn/ui, Tailwind CSS v4
-- **Authentication**: Supabase Auth
+- **UI Components**: Radix UI components, shadcn/ui, Tailwind CSS v4
+- **Authentication**: Clerk
 - **Database**: PostgreSQL (Supabase) with Prisma ORM
 - **API Layer**: tRPC v11
 - **State Management**: Zustand v5
 - **Data Fetching**: TanStack Query v5 with tRPC integration
 - **Email**: Resend
-- **Payments**: Stripe
+- **Payments**: Stripe (via Cal.com)
 - **Validation**: Zod
 - **Booking Integration**: Cal.com
 
@@ -43,13 +43,22 @@ npx prisma migrate dev --name=     # Create a new migration
 npx prisma migrate reset           # Reset database
 npx prisma generate                # Generate Prisma client
 npm run prisma:generate            # Generate Prisma client (alias)
-npx prisma studio                  # Open Prisma Studio GUI
+npm run prisma:studio              # Open Prisma Studio GUI
+npm run prisma:migrate             # Deploy migrations
+npm run prisma:reset               # Reset database (force)
+npm run prisma:seed                # Seed database with test data
 npx prisma db push                 # Push schema changes without migration (dev only)
-npm run prisma:update              # Run custom schema update script
 
 # Clean development start
 rm -rf .next                       # Clear Next.js cache
 npm run dev                        # Start fresh
+
+# Quality & Build Commands
+npm run build:production           # Production build with comprehensive checks
+npm run build:analyze              # Build with bundle analysis
+npm run quality-check              # Run all quality checks (lint + type-check + format:check)
+npm run format:check               # Check code formatting without fixing
+npm run type-check:watch           # TypeScript type checking in watch mode
 
 # Verify environment setup
 npx prisma generate                # Ensure Prisma client is up-to-date
@@ -58,19 +67,35 @@ npm run type-check && npm run lint # Verify code quality before commit
 
 ## Environment Variables
 
-Required environment variables (see `.env.example`):
+Required environment variables (see `.env.example` and README.md):
+
+### Core Application
+- `NEXT_PUBLIC_APP_URL` - Base URL (http://localhost:3000 in dev)
+
+### Database (Supabase)
+- `DATABASE_URL` - Supabase PostgreSQL connection string
+- `DIRECT_URL` - Direct database connection for migrations
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server-side only)
-- `DATABASE_URL` - Supabase PostgreSQL connection string:
-  - `postgresql://postgres.qrcweallqlcgwiwzhqpb:[PASSWORD]@aws-0-us-east-2.pooler.supabase.com:5432/postgres`
-  - Password is available in the .env file
-- `RESEND_API_KEY` - Resend API key for emails
-- `STRIPE_SECRET_KEY` - Stripe secret key
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- `NEXT_PUBLIC_APP_URL` - Base URL (http://localhost:3000 in dev)
-- `CAL_API_KEY` - Cal.com API key for booking integration
+
+### Authentication (Clerk)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk publishable key
+- `CLERK_SECRET_KEY` - Clerk secret key
+- `NEXT_PUBLIC_CLERK_SIGN_IN_URL` - Sign in URL (/sign-in)
+- `NEXT_PUBLIC_CLERK_SIGN_UP_URL` - Sign up URL (/sign-up)
+- `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` - Post-auth redirect (/admin)
+- `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` - Post-signup redirect (/admin)
+
+### Cal.com Integration
+- `NEXT_PUBLIC_CAL_USERNAME` - Cal.com username
+- `CAL_API_KEY` - Cal.com API key
 - `CAL_WEBHOOK_SECRET` - Cal.com webhook secret
+
+### Email & Analytics
+- `RESEND_API_KEY` - Resend API key for emails
+- `ARTIST_EMAIL` - Artist's email address
+- `NEXT_PUBLIC_VERCEL_ANALYTICS_ID` - Analytics ID (optional)
 
 ## Architecture Overview
 
@@ -103,12 +128,12 @@ The API layer uses tRPC for type-safe communication between client and server:
 
 ### Authentication Architecture
 
-The project uses a unified authentication system:
+The project uses Clerk for authentication with custom middleware:
 
-1. **Main Auth System**: `/src/lib/auth-system.ts`
-2. **Middleware Protection**: `/src/middleware.ts` 
-3. **Server Auth**: `/src/lib/supabase/server-auth.ts`  
-4. **Role-based Access**: public, protected, admin
+1. **Clerk Integration**: Full authentication via `@clerk/nextjs`
+2. **Middleware Protection**: `/src/middleware.ts` - Route protection
+3. **Role-based Access**: public, protected, admin roles
+4. **User Management**: Clerk user mapping to internal User model
 
 ### State Management
 
@@ -127,23 +152,35 @@ The application integrates with Cal.com for appointment scheduling:
 
 ## Data Models
 
-The application uses the following main data models:
+The application uses the following main data models (see `/prisma/schema.prisma`):
 
-1. **Booking**: High-level booking record linked to a customer and appointment.
+### Core Booking System
+1. **Booking**: Initial booking requests from website with Cal.com integration fields
+2. **Appointment**: Scheduled appointments linked to bookings with detailed information
+3. **Customer**: Customer database with contact details, notes, and relationship tracking
+4. **Payment**: Payment tracking linked to bookings with Stripe/Cal.com integration
 
-2. **Appointment**: Detailed appointment information including customer details, tattoo specifications, and scheduling information.
+### User Management
+5. **User**: System users (admins/artists) with Clerk integration
+6. **Artist**: Artist profiles with specialties and availability
 
-3. **Customer**: Stores customer information including contact details, preferences, and history.
+### Content & Communication
+7. **TattooDesign**: Gallery items with approval system and file storage
+8. **Contact**: Contact form submissions and customer communications
+9. **Interaction**: Communication history (emails, calls, notes)
+10. **Transaction**: Financial transaction records
 
-4. **GalleryItem**: Represents a tattoo design in the gallery with images and metadata.
+### System & Automation
+11. **EmailAutomation**: Automated email workflows and triggers
+12. **EmailLog**: Email delivery tracking and status
+13. **AutomationRun**: Automation execution tracking
+14. **NotificationQueue**: System notifications queue
+15. **Settings**: Application configuration storage
 
-5. **User**: Represents system users (admin, artist) with authentication details.
-
-6. **BlogPost**: Blog content with metadata for the website.
-
-7. **Payment**: Tracks payment information linked to bookings and appointments.
-
-8. **PricingTier**: Defines different service pricing options and tiers.
+### Additional
+16. **Lead**: Lead capture and conversion tracking
+17. **Testimonial**: Customer testimonials and reviews
+18. **Tag**: Customer tagging system
 
 ## Common Development Tasks
 
@@ -170,7 +207,7 @@ When creating new API endpoints:
 1. Add router in `/src/lib/trpc/routers/` (e.g., `new-feature-router.ts`)
 2. Import and add to app router in `/src/lib/trpc/app-router.ts`
 3. Create hooks in `/src/hooks/` (e.g., `use-new-feature.ts`)
-4. Use Zod schemas from `/src/lib/validations/`
+4. Use Zod schemas from `/src/lib/validation-schemas.ts`
 5. Types should be imported from `/src/types/`
 
 ### Adding Cal.com Integration Features
@@ -201,7 +238,7 @@ Follow these steps when adding new UI components:
 - **tRPC Routers**: `/src/lib/trpc/routers/` - Type-safe API
 - **Database**: `/src/lib/db/` - Database utilities and queries
 - **Types**: `/src/types/` - All TypeScript types (never in components)
-- **Validations**: `/src/lib/validations/` - Zod schemas
+- **Validations**: `/src/lib/validation-schemas.ts` - Consolidated Zod schemas
 - **Emails**: `/src/emails/` - React Email templates
 
 ### Type Organization Rules
@@ -306,7 +343,6 @@ The most recent changes to the codebase include:
 
 - `/src/middleware.ts` - Route protection and auth checks
 - `/src/lib/trpc/app-router.ts` - Main tRPC router configuration
-- `/src/lib/auth-system.ts` - Unified authentication system
 - `/src/app/api/trpc/[trpc]/route.ts` - tRPC API endpoint
 - `/src/lib/supabase/server.ts` - Server-side Supabase client
 - `/prisma/schema.prisma` - Database schema definition
@@ -380,8 +416,8 @@ The most recent changes to the codebase include:
    - Ensure proper authentication checks
  
 5. **Authentication**:
-   - Use the unified auth system in `src/lib/auth-system.ts`
-   - Implement proper role-based access control
+   - Use Clerk for all authentication needs
+   - Implement proper role-based access control via middleware
    - Validate auth state in components and API endpoints
    - Keep sensitive auth logic server-side
 

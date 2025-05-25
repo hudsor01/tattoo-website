@@ -21,8 +21,8 @@ import { logger } from '@/lib/logger';
  */
 export async function POST(req: NextRequest) {
   // Debug logging
-  const url = req.url || '';
-  const cookieHeader = req.headers.get('cookie') || '';
+  const url = req.url ?? '';
+  const cookieHeader = req.headers.get('cookie') ?? '';
 
   logger.debug('tRPC API route called', {
     url,
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
           path,
           message: error.message,
           code: error.code,
-          cause: error.cause || null,
+          cause: error.cause ?? null,
         });
       },
     });

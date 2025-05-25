@@ -36,7 +36,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
     const searchResults = allFAQs.filter(faq => {
       const questionMatch = faq.item.question.toLowerCase().includes(term.toLowerCase());
       const answerMatch = faq.item.answer.toLowerCase().includes(term.toLowerCase());
-      return questionMatch || answerMatch;
+      return questionMatch ?? answerMatch;
     });
 
     setResults(searchResults);
@@ -49,9 +49,9 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
     const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
 
-    return parts.map((part, index) =>
-      part.toLowerCase() === searchTerm.toLowerCase() ? (
-        <span key={index} className="bg-tattoo-blue/30 text-white font-medium px-0.5 rounded">
+    return parts.map((part) =>
+      void part.toLowerCase() === searchTerm.toLowerCase() ? (
+        <span key={`highlight-${part}-${searchTerm}-${parts.indexOf(part)}`} className="bg-tattoo-blue/30 text-white font-medium px-0.5 rounded">
           {part}
         </span>
       ) : (
@@ -64,17 +64,17 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
   const scrollToFAQ = (id: string, question: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      void element.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       // Find the specific accordion item and expand it
       // Immediately expand accordion item
       const accordionItems = element.querySelectorAll('[data-state="closed"]');
       for (let i = 0; i < accordionItems.length; i++) {
         const trigger = accordionItems[i] as HTMLElement;
-        const triggerText = trigger.textContent || '';
+        const triggerText = trigger.textContent ?? '';
 
         if (triggerText.includes(question)) {
-          trigger.click();
+          void trigger.click();
           break;
         }
       }
@@ -115,9 +115,9 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
                   results found for "{searchTerm}"
                 </p>
                 <div className="bg-tattoo-black/70 backdrop-blur-md rounded-xl border border-tattoo-white/10 overflow-hidden shadow-lg">
-                  {results.map((result, index) => (
+                  {results.map((result) => (
                     <motion.div
-                      key={index}
+                      key={`${result.id}-${result.item.question}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
@@ -168,9 +168,9 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
                   browse the categories below.
                 </p>
                 <div className="flex flex-wrap items-center gap-2 justify-center">
-                  {categories.map((category: FAQCategory, index: number) => (
+                  {categories.map((category: FAQCategory) => (
                     <a
-                      key={index}
+                      key={category.id}
                       href={`#${category.id}`}
                       className="px-3 py-1 text-sm bg-tattoo-blue/10 hover:bg-tattoo-blue/20 text-tattoo-blue rounded-full transition flex items-center gap-1"
                     >

@@ -59,7 +59,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
     return NextResponse.json(formattedAppointment);
   } catch (error) {
-    console.error(`Error fetching appointment ${params.id}:`, error);
+    void console.error(`Error fetching appointment ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to fetch appointment' }, { status: 500 });
   }
 }
@@ -136,7 +136,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(formattedAppointment);
   } catch (error) {
-    console.error(`Error updating appointment ${params.id}:`, error);
+    void console.error(`Error updating appointment ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to update appointment' }, { status: 500 });
   }
 }
@@ -177,7 +177,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
       message: 'Appointment deleted successfully',
     });
   } catch (error) {
-    console.error(`Error deleting appointment ${params.id}:`, error);
+    void console.error(`Error deleting appointment ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to delete appointment' }, { status: 500 });
   }
 }

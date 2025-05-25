@@ -76,7 +76,7 @@ export function StatusBadge({
       className={cn(statusBadgeVariants({ status, size }), className)}
       {...props}
     >
-      {text || children}
+      {text ?? children}
     </div>
   );
 }
@@ -114,7 +114,7 @@ export function getStatusVariant(status: string): VariantProps<typeof statusBadg
     'info': 'info',
   };
   
-  return statusMap[status.toLowerCase()] || 'pending';
+  return statusMap[status.toLowerCase()] ?? 'pending';
 }
 
 // Convenience component for appointment statuses

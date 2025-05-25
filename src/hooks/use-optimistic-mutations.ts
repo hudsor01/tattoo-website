@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { toast } from '@/components/ui/toast'
+import type { Customer, CustomerCreateInput } from '@/types/customer-types'
 
 export interface OptimisticAction<TData, TInput> {
   mutate: (input: TInput) => Promise<TData>
@@ -51,7 +52,7 @@ export function useOptimisticMutation<TData extends { id: string }, TInput>(
         }))
 
         // Show immediate feedback
-        toast.success('Creating...', 'Your request is being processed')
+        void toast.success('Creating...', 'Your request is being processed')
       } else {
         setState(prev => ({ ...prev, isLoading: true, error: null }))
       }
@@ -76,7 +77,7 @@ export function useOptimisticMutation<TData extends { id: string }, TInput>(
 
         // Success callback
         action.onSuccess?.(result, input)
-        toast.success('Success!', 'Operation completed successfully')
+        void toast.success('Success!', 'Operation completed successfully')
 
         return result
       } catch (error) {
@@ -93,7 +94,7 @@ export function useOptimisticMutation<TData extends { id: string }, TInput>(
 
         // Error callback
         action.onError?.(err, input)
-        toast.error('Error', err.message)
+        void toast.error('Error', err.message)
 
         throw err
       } finally {
@@ -146,63 +147,52 @@ export function useOptimisticMutation<TData extends { id: string }, TInput>(
 }
 
 // Specific hook for customer operations
-export interface CustomerInput {
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
-  address?: string
-  city?: string
-  state?: string
-  postalCode?: string
-  notes?: string
-}
-
-export interface Customer {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
-  address?: string
-  city?: string
-  state?: string
-  postalCode?: string
-  notes?: string
-  createdAt: string
-  updatedAt: string
-}
-
 export function useOptimisticCustomers(
   initialCustomers: Customer[] = [],
-  createCustomerFn: (input: CustomerInput) => Promise<Customer>
+  createCustomerFn: (input: CustomerCreateInput) => Promise<Customer>
 ) {
-  return useOptimisticMutation<Customer, CustomerInput>(initialCustomers, {
+  return useOptimisticMutation<Customer, CustomerCreateInput>(initialCustomers, {
     mutate: createCustomerFn,
     optimisticUpdate: (input) => ({
       id: `temp-${Date.now()}`,
-      ...input,
-      phone: input.phone || '',
-      address: input.address || '',
-      city: input.city || '',
-      state: input.state || '',
-      postalCode: input.postalCode || '',
-      notes: input.notes || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      email: input.email,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      phone: input.phone ?? '',
+      address: input.address ?? '',
+      city: input.city ?? '',
+      state: input.state ?? '',
+      zipCode: input.zipCode ?? '',
+      dateOfBirth: input.dateOfBirth,
+      pronouns: input.pronouns,
+      emergencyContactName: input.emergencyContactName,
+      emergencyContactPhone: input.emergencyContactPhone,
+      source: input.source,
+      notes: input.notes ?? '',
+      notificationPreference: input.notificationPreference ?? 'email',
+      allowsMarketing: input.allowsMarketing ?? true,
+      agreeToTerms: input.agreeToTerms,
+      userId: undefined,
+      status: 'active' as const,
+      tags: [],
+      lifetimeValue: 0,
+      numberOfAppointments: 0,
+      lastAppointmentDate: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }),
     onSuccess: (data) => {
-      console.log('Customer created successfully:', data)
+      void console.warn('Customer created successfully:', data)
     },
     onError: (error) => {
-      console.error('Failed to create customer:', error)
+      void console.error('Failed to create customer:', error)
     },
   })
 }
 
 // Hook for updating optimistic updates with real data
-export function useOptimisticSync<TData extends { id: string }>(
-  optimisticHook: ReturnType<typeof useOptimisticMutation<TData, any>>,
+export function useOptimisticSync<TData extends { id: string }, TInput>(
+  optimisticHook: ReturnType<typeof useOptimisticMutation<TData, TInput>>,
   realData: TData[]
 ) {
   const previousDataRef = useRef<TData[]>([])
@@ -211,11 +201,11 @@ export function useOptimisticSync<TData extends { id: string }>(
   if (realData !== previousDataRef.current) {
     // Merge real data with optimistic items that aren't yet persisted
     const optimisticItems = optimisticHook.data.filter(item => 
-      optimisticHook.isOptimistic(item.id)
+      void optimisticHook.isOptimistic(item.id)
     )
     
     const mergedData = [...optimisticItems, ...realData]
-    optimisticHook.updateData(mergedData)
+    void optimisticHook.updateData(mergedData)
     
     previousDataRef.current = realData
   }
@@ -241,8 +231,8 @@ export function useOptimisticQuery<TData extends { id: string }, TInput>(
 
   return {
     data: optimistic.data,
-    isLoading: query.isLoading || optimistic.isLoading,
-    error: query.error || optimistic.error,
+    isLoading: query.isLoading ?? optimistic.isLoading,
+    error: query.error ?? optimistic.error,
     mutate: optimistic.mutate,
     refetch: query.refetch,
     isOptimistic: optimistic.isOptimistic,

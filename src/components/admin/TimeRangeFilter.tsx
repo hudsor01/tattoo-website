@@ -139,7 +139,7 @@ export function TimeRangeFilter({
         preset.range.from.getTime() === value.from.getTime() &&
         preset.range.to.getTime() === value.to.getTime()
       )
-      setSelectedPreset(matchingPreset?.value || null)
+      setSelectedPreset(matchingPreset?.value ?? null)
     }
   }, [value, presets])
 
@@ -150,11 +150,15 @@ export function TimeRangeFilter({
     setIsOpen(false)
   }
 
-  const handleCustomRangeSelect = (range: DateRange | undefined) => {
+  const handleCustomRangeSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (range?.from && range?.to) {
-      setCustomRange(range)
+      const validRange: DateRange = {
+        from: range.from,
+        to: range.to
+      }
+      setCustomRange(validRange)
       setSelectedPreset(null)
-      onChange(range)
+      onChange(validRange)
       setIsOpen(false)
     }
   }
@@ -182,7 +186,7 @@ export function TimeRangeFilter({
       preset.range.to.getTime() === value.to.getTime()
     )
     
-    return matchingPreset?.label || formatDateRange(value)
+    return matchingPreset?.label ?? formatDateRange(value)
   }
 
   return (
@@ -309,15 +313,15 @@ export function QuickTimeRange({
 export function useTimeRange(initialRange?: string) {
   const presets = getPresetRanges()
   const [selectedRange, setSelectedRange] = React.useState<string>(
-    initialRange || '30d'
+    initialRange ?? '30d'
   )
   
   const currentRange = React.useMemo(() => {
     const preset = presets.find(p => p.value === selectedRange)
-    return preset?.range || presets[3].range // Default to 30 days
+    return preset?.range ?? presets[3].range // Default to 30 days
   }, [selectedRange, presets])
 
-  const setRange = React.useCallback((value: string, range?: DateRange) => {
+  const setRange = React.useCallback((value: string) => {
     setSelectedRange(value)
   }, [])
 

@@ -44,14 +44,14 @@ export function Navbar() {
     };
 
     // Add scroll event listener
-    window.addEventListener('scroll', handleScroll);
+    void window.addEventListener('scroll', handleScroll);
     
     // Set initial state
     handleScroll();
     
     // Clean up
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      void window.removeEventListener('scroll', handleScroll);
     };
   }, []); // Remove scrolled dependency to prevent infinite loop
 

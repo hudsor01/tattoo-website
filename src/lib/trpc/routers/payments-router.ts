@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, adminProcedure } from '../procedures';
 import { prisma } from '@/lib/db/prisma';
+import { Prisma } from '@prisma/client';
 import { PaymentStatus } from '@/types/enum-types';
 
 /**
@@ -61,31 +62,32 @@ export const paymentsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const where: any = {};
+        const where: Prisma.PaymentWhereInput = {};
         
         if (input.status) {
-          where.status = input.status;
+        where.status = input.status;
         }
         
         if (input.customerId) {
-          // Find customer email for filtering
-          const customer = await prisma.customer.findUnique({
-            where: { id: input.customerId },
-            select: { email: true },
-          });
-          if (customer) {
-            where.customerEmail = customer.email;
-          }
+        // Find customer email for filtering
+        const customer = await prisma.customer.findUnique({
+        where: { id: input.customerId },
+        select: { email: true },
+        });
+        if (customer?.email) {
+        where.customerEmail = customer.email;
+        }
         }
         
         if (input.startDate || input.endDate) {
-          where.createdAt = {};
-          if (input.startDate) {
-            where.createdAt.gte = input.startDate;
-          }
-          if (input.endDate) {
-            where.createdAt.lte = input.endDate;
-          }
+        const dateFilter: Prisma.DateTimeFilter = {};
+        if (input.startDate) {
+        dateFilter.gte = input.startDate;
+        }
+        if (input.endDate) {
+        dateFilter.lte = input.endDate;
+        }
+        where.createdAt = dateFilter;
         }
         
         const payments = await prisma.payment.findMany({
@@ -108,7 +110,7 @@ export const paymentsRouter = router({
         let nextCursor: number | undefined;
         if (payments.length > input.limit) {
           const nextItem = payments.pop();
-          nextCursor = nextItem!.id;
+          nextCursor = nextItem?.id;
         }
         
         return {
@@ -134,7 +136,7 @@ export const paymentsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const where: any = {};
+        const where: Prisma.PaymentWhereInput = {};
         
         if (input.startDate || input.endDate) {
           where.createdAt = {};
@@ -177,13 +179,13 @@ export const paymentsRouter = router({
         ]);
         
         return {
-          totalRevenue: totalRevenue._sum.amount || 0,
+          totalRevenue: totalRevenue._sum.amount ?? 0,
           totalPayments,
-          averagePayment: averagePayment._avg.amount || 0,
+          averagePayment: averagePayment._avg.amount ?? 0,
           paymentsByStatus: paymentsByStatus.map(item => ({
             status: item.status,
             count: item._count.id,
-            totalAmount: item._sum.amount || 0,
+            totalAmount: item._sum.amount ?? 0,
           })),
         };
       } catch (error) {

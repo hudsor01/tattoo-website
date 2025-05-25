@@ -47,11 +47,11 @@ export async function verifyAdminAccess(): Promise<boolean> {
   try {
     // For production, allow admin access when accessing from admin routes
     // This bypasses Clerk JWT issues while maintaining security through middleware
-    console.log('✅ Admin access granted - production mode');
+    void console.warn('✅ Admin access granted - production mode');
     return true;
     
   } catch (error) {
-    console.error('❌ Error verifying admin access:', error);
+    void console.error('❌ Error verifying admin access:', error);
     return false;
   }
 }

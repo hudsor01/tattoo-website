@@ -2,7 +2,7 @@
 
 import { AppSidebar } from '@/components/admin/AppSidebar'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import '../../globals.css'
+import '../globals.css'
 
 export default function AdminLayout({
   children,

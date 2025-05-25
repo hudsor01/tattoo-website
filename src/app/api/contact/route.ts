@@ -67,12 +67,12 @@ async function saveFiles(files: Record<string, File>, submissionId: string) {
       
       // Store the relative URL for access
       const fileUrl = `/uploads/contact/${submissionId}/${uniqueFilename}`;
-      fileUrls.push(fileUrl);
+      void fileUrls.push(fileUrl);
     }
     
     return fileUrls;
   } catch (error) {
-    console.error('Error saving files:', error);
+    void console.error('Error saving files:', error);
     throw new Error('Failed to save uploaded files');
   }
 }
@@ -96,15 +96,15 @@ export async function POST(request: NextRequest) {
     // Create submission record first to get an ID
     const contactSubmission = await prisma.contact.create({
       data: sanitizeForPrisma({
-        name: validatedData.name || '',
-        email: validatedData.email || '',
-        phone: validatedData.phone || '',
-        message: validatedData.message || '',
-        subject: validatedData.subject || 'Website Contact Form',
-        service: validatedData.service || '',
-        referralSource: validatedData.referralSource || '',
-        preferredTime: validatedData.preferredTime || '',
-        budget: validatedData.budget || '',
+        name: validatedData.name ?? '',
+        email: validatedData.email ?? '',
+        phone: validatedData.phone ?? '',
+        message: validatedData.message ?? '',
+        subject: validatedData.subject ?? 'Website Contact Form',
+        service: validatedData.service ?? '',
+        referralSource: validatedData.referralSource ?? '',
+        preferredTime: validatedData.preferredTime ?? '',
+        budget: validatedData.budget ?? '',
         hasReference: validatedData.hasReference,
         referenceImages: [], // Will update after saving files
         status: 'new',
@@ -129,24 +129,24 @@ export async function POST(request: NextRequest) {
     
     // Send notification email to admin
     await sendEmail({
-      to: process.env['ADMIN_EMAIL'] || 'fennyg83@gmail.com',
-      subject: `New Contact Form Submission: ${validatedData.subject || 'Website Inquiry'}`,
+      to: process.env['ADMIN_EMAIL'] ?? 'fennyg83@gmail.com',
+      subject: `New Contact Form Submission: ${validatedData.subject ?? 'Website Inquiry'}`,
       html: `
         <h2>New Contact Form Submission</h2>
         <p><strong>Name:</strong> ${validatedData.name}</p>
         <p><strong>Email:</strong> ${validatedData.email}</p>
-        <p><strong>Phone:</strong> ${validatedData.phone || 'Not provided'}</p>
-        <p><strong>Subject:</strong> ${validatedData.subject || 'Website Contact Form'}</p>
-        <p><strong>Service:</strong> ${validatedData.service || 'Not specified'}</p>
+        <p><strong>Phone:</strong> ${validatedData.phone ?? 'Not provided'}</p>
+        <p><strong>Subject:</strong> ${validatedData.subject ?? 'Website Contact Form'}</p>
+        <p><strong>Service:</strong> ${validatedData.service ?? 'Not specified'}</p>
         <p><strong>Message:</strong> ${validatedData.message}</p>
         <p><strong>Attachments:</strong> ${fileUrls.length > 0 ? fileUrls.length : 'None'}</p>
       `,
-      text: `New Contact Form Submission\n\nName: ${validatedData.name}\nEmail: ${validatedData.email}\nPhone: ${validatedData.phone || 'Not provided'}\nSubject: ${validatedData.subject || 'Website Contact Form'}\nService: ${validatedData.service || 'Not specified'}\nMessage: ${validatedData.message}\nAttachments: ${fileUrls.length > 0 ? fileUrls.length : 'None'}`,
+      text: `New Contact Form Submission\n\nName: ${validatedData.name}\nEmail: ${validatedData.email}\nPhone: ${validatedData.phone ?? 'Not provided'}\nSubject: ${validatedData.subject ?? 'Website Contact Form'}\nService: ${validatedData.service ?? 'Not specified'}\nMessage: ${validatedData.message}\nAttachments: ${fileUrls.length > 0 ? fileUrls.length : 'None'}`,
     });
 
     // Send confirmation email to user
     await sendEmail({
-      to: validatedData.email || '',
+      to: validatedData.email ?? '',
       subject: 'Thank you for contacting me about your tattoo',
       html: `
         <h2>Thank you for contacting me about your tattoo</h2>
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
       filesUploaded: fileUrls.length,
     });
   } catch (error) {
-    console.error('Error processing contact form:', error);
+    void console.error('Error processing contact form:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

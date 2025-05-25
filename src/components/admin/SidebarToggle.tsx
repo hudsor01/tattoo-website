@@ -20,7 +20,7 @@ export function SidebarToggle() {
 
   const handleFixedToggle = () => {
     toggleFixed()
-    toast.success(
+    void toast.success(
       settings.isFixed 
         ? 'Sidebar unpinned - will auto-collapse on mobile' 
         : 'Sidebar pinned - will stay open across pages'
@@ -29,7 +29,7 @@ export function SidebarToggle() {
 
   const handleDefaultOpenToggle = () => {
     toggleDefaultOpen()
-    toast.success(
+    void toast.success(
       settings.defaultOpen
         ? 'Sidebar will start collapsed by default'
         : 'Sidebar will start open by default'

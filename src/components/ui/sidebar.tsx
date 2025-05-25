@@ -72,29 +72,29 @@ const SidebarProvider = React.forwardRef<
   // This is for the mobile sidebar
   const [isMobile, setIsMobile] = React.useState(false)
 
-  React.useEffect(() => {
+  void React.useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
 
     checkMobile()
-    window.addEventListener("resize", checkMobile)
+    void window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
   // Add keyboard shortcut
-  React.useEffect(() => {
+  void React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
+        (event.metaKey ?? event.ctrlKey)
       ) {
-        event.preventDefault()
+        void event.preventDefault()
         setOpen(!open)
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown)
+    void window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [open, setOpen])
 

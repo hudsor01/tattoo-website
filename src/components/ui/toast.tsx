@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as ToastPrimitives from '@radix-ui/react-toast';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { X, Check, AlertTriangle, Info, AlertCircle, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast as baseToast } from 'sonner';
 
 import { cn } from '@/utils';
@@ -76,7 +76,7 @@ const ToastIcon = ({
     destructive: <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />,
     warning: <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />,
     info: <Info className="h-5 w-5 text-blue-500 dark:text-blue-400" />,
-  };
+  } as const;
 
   return <div className="mr-3">{icons[variant]}</div>;
 };
@@ -141,7 +141,7 @@ type ToastActionElement = React.ReactElement<typeof ToastAction>;
 // Animated toast wrapper with motion
 const AnimatedToast = React.forwardRef<
   React.ComponentRef<typeof Toast>,
-  React.ComponentPropsWithoutRef<typeof Toast> & { variant?: VariantProps<typeof toastVariants>['variant'] }
+  React.ComponentPropsWithoutRef<typeof Toast> & VariantProps<typeof toastVariants>
 >(({ variant, children, ...props }, ref) => {
   return (
     <motion.div
@@ -156,7 +156,7 @@ const AnimatedToast = React.forwardRef<
     >
       <Toast ref={ref} variant={variant} {...props}>
         <div className="flex items-start gap-3 flex-1">
-          <ToastIcon variant={variant} />
+          <ToastIcon variant={variant || undefined} />
           <div className="flex-1">{children}</div>
         </div>
       </Toast>
@@ -169,7 +169,7 @@ AnimatedToast.displayName = 'AnimatedToast';
 interface ProgressToastProps {
   title: string
   progress: number
-  description?: string
+  description: string | undefined
 }
 
 const ProgressToast = ({ title, progress, description }: ProgressToastProps) => {
@@ -211,61 +211,61 @@ const ProgressToast = ({ title, progress, description }: ProgressToastProps) => 
 // Enhanced toast functions with animations and better UX
 export const toast = {
   success: (title: string, description?: string, action?: { label: string; onClick: () => void }) => {
-    baseToast.custom((t) => (
+    void baseToast.custom((t) => (
       <AnimatedToast variant="success">
         <ToastTitle>{title}</ToastTitle>
         {description && <ToastDescription>{description}</ToastDescription>}
         {action && (
-          <ToastAction onClick={action.onClick}>
+          <ToastAction onClick={action.onClick} altText={action.label}>
             {action.label}
           </ToastAction>
         )}
-        <ToastClose onClick={() => baseToast.dismiss(t)} />
+        <ToastClose onClick={() => baseToast.dismiss(t as string | number)} />
       </AnimatedToast>
     ))
   },
 
   error: (title: string, description?: string, action?: { label: string; onClick: () => void }) => {
-    baseToast.custom((t) => (
+    void baseToast.custom((t) => (
       <AnimatedToast variant="error">
         <ToastTitle>{title}</ToastTitle>
         {description && <ToastDescription>{description}</ToastDescription>}
         {action && (
-          <ToastAction onClick={action.onClick}>
+          <ToastAction onClick={action.onClick} altText={action.label}>
             {action.label}
           </ToastAction>
         )}
-        <ToastClose onClick={() => baseToast.dismiss(t)} />
+        <ToastClose onClick={() => baseToast.dismiss(t as string | number)} />
       </AnimatedToast>
     ))
   },
 
   warning: (title: string, description?: string, action?: { label: string; onClick: () => void }) => {
-    baseToast.custom((t) => (
+    void baseToast.custom((t) => (
       <AnimatedToast variant="warning">
         <ToastTitle>{title}</ToastTitle>
         {description && <ToastDescription>{description}</ToastDescription>}
         {action && (
-          <ToastAction onClick={action.onClick}>
+          <ToastAction onClick={action.onClick} altText={action.label}>
             {action.label}
           </ToastAction>
         )}
-        <ToastClose onClick={() => baseToast.dismiss(t)} />
+        <ToastClose onClick={() => baseToast.dismiss(t as string | number)} />
       </AnimatedToast>
     ))
   },
 
   info: (title: string, description?: string, action?: { label: string; onClick: () => void }) => {
-    baseToast.custom((t) => (
+    void baseToast.custom((t) => (
       <AnimatedToast variant="info">
         <ToastTitle>{title}</ToastTitle>
         {description && <ToastDescription>{description}</ToastDescription>}
         {action && (
-          <ToastAction onClick={action.onClick}>
+          <ToastAction onClick={action.onClick} altText={action.label}>
             {action.label}
           </ToastAction>
         )}
-        <ToastClose onClick={() => baseToast.dismiss(t)} />
+        <ToastClose onClick={() => baseToast.dismiss(t as string | number)} />
       </AnimatedToast>
     ))
   },
@@ -275,34 +275,19 @@ export const toast = {
     options: {
       loading: string
       success: string | ((data: T) => string)
-      error: string | ((error: any) => string)
+      error: string | ((error: unknown) => string)
     }
   ) {
     const { loading, success, error } = options
     return baseToast.promise(promise, {
-      loading: (t) => (
-        <AnimatedToast variant="info">
-          <ToastTitle>{loading}</ToastTitle>
-          <ToastClose onClick={() => baseToast.dismiss(t)} />
-        </AnimatedToast>
-      ),
-      success: (data, t) => (
-        <AnimatedToast variant="success">
-          <ToastTitle>{typeof success === 'function' ? success(data) : success}</ToastTitle>
-          <ToastClose onClick={() => baseToast.dismiss(t)} />
-        </AnimatedToast>
-      ),
-      error: (err, t) => (
-        <AnimatedToast variant="error">
-          <ToastTitle>{typeof error === 'function' ? error(err) : error}</ToastTitle>
-          <ToastClose onClick={() => baseToast.dismiss(t)} />
-        </AnimatedToast>
-      ),
+      loading: loading,
+      success: success,
+      error: error,
     })
   },
 
   progress: (title: string, progress: number, description?: string) => {
-    baseToast.custom((t) => (
+    void baseToast.custom((t) => (
       <motion.div
         initial={{ opacity: 0, y: 50, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -310,7 +295,7 @@ export const toast = {
         className="relative flex flex-col gap-3 p-4 rounded-lg border bg-background border-border shadow-lg backdrop-blur-sm max-w-md w-full"
       >
         <ProgressToast title={title} progress={progress} description={description} />
-        <ToastClose onClick={() => baseToast.dismiss(t)} />
+        <ToastClose onClick={() => baseToast.dismiss(t as string | number)} />
       </motion.div>
     ))
   },

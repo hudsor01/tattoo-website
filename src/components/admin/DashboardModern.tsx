@@ -189,9 +189,9 @@ export default function DashboardModern() {
         if (customersResponse.ok) {
           const customersData: { clients?: Customer[] } = await customersResponse.json()
           customers = customersData.clients ?? []
-          console.warn('✅ Real customer data loaded:', customers.length, 'customers')
+          void console.warn('✅ Real customer data loaded:', customers.length, 'customers')
         } else {
-          console.error('❌ Failed to fetch customers:', customersResponse.status)
+          void console.error('❌ Failed to fetch customers:', customersResponse.status)
         }
 
         // Fetch real booking data from our API
@@ -201,9 +201,9 @@ export default function DashboardModern() {
         if (bookingsResponse.ok) {
           const bookingsData: { bookings?: Booking[] } = await bookingsResponse.json()
           calBookings = bookingsData.bookings ?? []
-          console.warn('✅ Real booking data loaded:', calBookings.length, 'bookings')
+          void console.warn('✅ Real booking data loaded:', calBookings.length, 'bookings')
         } else {
-          console.error('❌ Failed to fetch bookings:', bookingsResponse.status)
+          void console.error('❌ Failed to fetch bookings:', bookingsResponse.status)
         }
 
         // Calculate customer metrics
@@ -212,17 +212,17 @@ export default function DashboardModern() {
         const lastMonth: Date = new Date(now.getFullYear(), now.getMonth() - 1, 1)
         const endLastMonth: Date = new Date(now.getFullYear(), now.getMonth(), 0)
 
-        const customersThisMonth: number = customers.filter((c: Customer) => new Date(c.createdAt) >= thisMonth).length || 0
+        const customersThisMonth: number = customers.filter((c: Customer) => new Date(c.createdAt) >= thisMonth).length ?? 0
         const customersLastMonth: number = customers.filter((c: Customer) => 
           new Date(c.createdAt) >= lastMonth && new Date(c.createdAt) <= endLastMonth
-        ).length || 0
+        ).length ?? 0
 
         const customerGrowth: number = customersLastMonth > 0 
           ? Math.round(((customersThisMonth - customersLastMonth) / customersLastMonth) * 100)
           : customersThisMonth > 0 ? 100 : 0
 
         // Calculate booking metrics
-        const completedBookings: number = calBookings.filter((b: Booking) => b.status === 'completed').length || 0
+        const completedBookings: number = calBookings.filter((b: Booking) => b.status === 'completed').length ?? 0
         const upcomingBookings: number = calBookings.filter((b: Booking) => 
           b.status === 'scheduled' && new Date(b.start_time) > now
         ).length ?? 0
@@ -237,7 +237,7 @@ export default function DashboardModern() {
         const revenueGrowth: number = completedBookings > 0 ? 8 : 0 // Conservative growth estimate
 
         const dashboardStats: DashboardStats = {
-          totalCustomers: customers.length || 0,
+          totalCustomers: customers.length ?? 0,
           newCustomersThisMonth: customersThisMonth,
           customerGrowth,
           totalBookings,
@@ -253,8 +253,8 @@ export default function DashboardModern() {
         const activity: RecentActivity[] = []
         
         // Add recent customer activity
-        customers.slice(0, 2).forEach((customer: Customer) => {
-          activity.push({
+        void customers.slice(0, 2).forEach((customer: Customer) => {
+          void activity.push({
             id: `customer-${customer.id}`,
             message: `New customer registered`,
             timestamp: customer.createdAt,
@@ -263,9 +263,9 @@ export default function DashboardModern() {
         })
 
         // Add recent booking activity
-        calBookings.slice(0, 2).forEach((booking: Booking) => {
+        void calBookings.slice(0, 2).forEach((booking: Booking) => {
           const date: string = new Date(booking.start_time).toLocaleDateString()
-          activity.push({
+          void activity.push({
             id: `booking-${booking.id}`,
             message: `${booking.status === 'completed' ? 'Completed' : 'Scheduled'} appointment for ${date}`,
             timestamp: booking.created_at ?? booking.start_time,
@@ -275,15 +275,15 @@ export default function DashboardModern() {
 
         // Only show real activity from actual data
         // Sort activity by timestamp
-        activity.sort((a: RecentActivity, b: RecentActivity) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        void activity.sort((a: RecentActivity, b: RecentActivity) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
         setStats(dashboardStats)
         setRecentActivity(activity.slice(0, 5))
         setDataLoaded(true)
         
       } catch (error) {
-        console.error('❌ Error fetching dashboard data:', error)
-        toast.error('Failed to load dashboard data')
+        void console.error('❌ Error fetching dashboard data:', error)
+        void toast.error('Failed to load dashboard data')
       }
     }
 

@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 // Create a new Prisma client instance or use the existing one
-export const prisma = globalForPrisma.prisma || new PrismaClient();
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
 // In development, save the client to avoid multiple instances
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
@@ -30,7 +30,7 @@ export async function executeStoredProcedure<T = unknown>(
     }
     return result as T;
   } catch (error) {
-    console.error(`Error executing stored procedure ${procedureName}:`, error);
+    void console.error(`Error executing stored procedure ${procedureName}:`, error);
     throw error;
   }
 }

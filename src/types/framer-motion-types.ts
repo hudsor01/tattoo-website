@@ -1,6 +1,4 @@
-import type { HTMLMotionProps } from 'framer-motion';
-
-import type { Target, TargetAndTransition } from 'framer-motion';
+import type { HTMLMotionProps, Target, TargetAndTransition } from 'framer-motion';
 
 export interface MotionCustomProps extends Omit<HTMLMotionProps<'div'>, 'whileHover'> {
   whileHover?: CustomMotionVariant;

@@ -11,22 +11,22 @@ export function formatDateRange(period: string): { startDate: Date, endDate: Dat
   switch (period) {
     case 'today': {
       const startDate = new Date(now);
-      startDate.setHours(0, 0, 0, 0);
+      void startDate.setHours(0, 0, 0, 0);
       
       const endDate = new Date(startDate);
-      endDate.setHours(23, 59, 59, 999);
+      void endDate.setHours(23, 59, 59, 999);
       
       return { startDate, endDate };
     }
     
     case 'week': {
       const startDate = new Date(now);
-      startDate.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
-      startDate.setHours(0, 0, 0, 0);
+      void startDate.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
+      void startDate.setHours(0, 0, 0, 0);
       
       const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6); // End of week (Saturday)
-      endDate.setHours(23, 59, 59, 999);
+      void endDate.setDate(startDate.getDate() + 6); // End of week (Saturday)
+      void endDate.setHours(23, 59, 59, 999);
       
       return { startDate, endDate };
     }
@@ -140,8 +140,8 @@ export function getRelativeTimeString(date: Date): string {
 export function isToday(date: Date): boolean {
   const today = new Date();
   return date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear();
+    void date.getMonth() === today.getMonth() &&
+    void date.getFullYear() === today.getFullYear();
 }
 
 /**

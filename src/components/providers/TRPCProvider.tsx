@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { TRPCProvider } from '@/lib/trpc/client';
+import { TRPCProvider } from '@/lib/trpc/client-provider';
 
 interface TrpcProviderProps {
   children: React.ReactNode;
@@ -24,7 +24,7 @@ export function TrpcClientProvider({
   headers,
 }: TrpcProviderProps) {
   return (
-    <TRPCProvider cookies={cookies || {}} headers={headers || {}}>
+    <TRPCProvider cookies={cookies ?? {}} headers={headers ?? {}}>
       {children}
     </TRPCProvider>
   );

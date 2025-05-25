@@ -26,7 +26,7 @@ export function showToast(options: EnhancedToastOptions) {
   return toast({
     title: options.title,
     description: options.description,
-    variant: options.variant || 'default',
+    variant: options.variant ?? 'default',
     ...(options.duration !== undefined && { duration: options.duration })
   });
 }
@@ -47,7 +47,7 @@ export function showSuccessToast(message: string, title?: string) {
  */
 export function showErrorToast(message: string, title?: string) {
   return showToast({
-    title: title || 'Error',
+    title: title ?? 'Error',
     description: message,
     variant: 'error',
   });
@@ -58,7 +58,7 @@ export function showErrorToast(message: string, title?: string) {
  */
 export function showWarningToast(message: string, title?: string) {
   return showToast({
-    title: title || 'Warning',
+    title: title ?? 'Warning',
     description: message,
     variant: 'warning',
   });
@@ -69,7 +69,7 @@ export function showWarningToast(message: string, title?: string) {
  */
 export function showInfoToast(message: string, title?: string) {
   return showToast({
-    title: title || 'Info',
+    title: title ?? 'Info',
     description: message,
     variant: 'info',
   });

@@ -46,6 +46,126 @@ const PaymentsFilterSchema = z.object({
   period: z.enum(['all', 'today', 'week', 'month', 'year']).optional().default('all'),
 });
 
+// Helper functions
+
+/**
+ * Helper function to build type-safe date filters for appointment queries
+ * Prevents Prisma exactOptionalPropertyTypes errors by only including properties when values exist
+ */
+function buildDateFilter(
+  entityType: 'appointment' | 'booking' | 'customer',
+  startDate?: Date,
+  endDate?: Date
+): Record<string, { gte?: Date; lte?: Date }> {
+  const filter: Record<string, { gte?: Date; lte?: Date }> = {};
+  
+  if (entityType === 'appointment') {
+    if (startDate && endDate) {
+      filter['startDate'] = { gte: startDate };
+      filter['endDate'] = { lte: endDate };
+    } else if (startDate) {
+      filter['startDate'] = { gte: startDate };
+    } else if (endDate) {
+      filter['endDate'] = { lte: endDate };
+    }
+  }
+  
+  return filter;
+}
+
+/**
+ * Calculate percentage change between current and previous values
+ */
+function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) {
+    return current > 0 ? 100 : 0;
+  }
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+/**
+ * Calculate completion rate as a percentage string
+ */
+function calculateCompletionRate(completed: number, total: number): string {
+  if (total === 0) {
+    return '0%';
+  }
+  const rate = Math.round((completed / total) * 100);
+  return `${rate}%`;
+}
+
+/**
+ * Get user-friendly label for a time period
+ */
+function getPeriodLabel(period: string): string {
+  switch (period) {
+    case 'today':
+      return 'Today';
+    case 'week':
+      return 'This Week';
+    case 'month':
+      return 'This Month';
+    case 'year':
+      return 'This Year';
+    default:
+      return 'Custom Period';
+  }
+}
+
+/**
+ * Format appointment start time for display
+ */
+function formatAppointmentTime(date: Date): string {
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
+/**
+ * Get the date range for the previous period
+ */
+function getPreviousRange(
+  startDate: Date,
+  endDate: Date
+): { startDate: Date; endDate: Date } {
+  const diffMs = endDate.getTime() - startDate.getTime();
+  
+  return {
+    startDate: new Date(startDate.getTime() - diffMs),
+    endDate: new Date(startDate.getTime() - 1) // End just before the current period starts
+  };
+}
+
+/**
+ * Build type-safe createdAt filter for customer queries
+ */
+function buildCreatedAtFilter(
+  startDate?: Date,
+  endDate?: Date
+): Prisma.CustomerWhereInput {
+  const where: Prisma.CustomerWhereInput = {};
+  
+  if (startDate || endDate) {
+    const createdAt: Prisma.DateTimeFilter = {};
+    
+    if (startDate) {
+      createdAt.gte = startDate;
+    }
+    
+    if (endDate) {
+      createdAt.lte = endDate;
+    }
+    
+    where.createdAt = createdAt;
+  }
+  
+  return where;
+}
+
 // Define the dashboard router
 export const dashboardRouter = router({
   /**
@@ -53,7 +173,7 @@ export const dashboardRouter = router({
    */
   getStats: publicProcedure.input(StatsFilterSchema.optional()).query(async ({ input }) => {
     // Default to current month if no period specified
-    const period = input?.period || 'month';
+    const period = input?.period ?? 'month';
     const compareToPrevious = input?.compareToPrevious ?? true;
 
     try {
@@ -62,7 +182,7 @@ export const dashboardRouter = router({
       let previousStartDate, previousEndDate;
 
       if (compareToPrevious) {
-        const previousRange = getPreviousRange(period, startDate, endDate);
+        const previousRange = getPreviousRange(startDate, endDate);
         previousStartDate = previousRange.startDate;
         previousEndDate = previousRange.endDate;
       }
@@ -317,13 +437,13 @@ export const dashboardRouter = router({
         endTime: appointment.endDate.toISOString(),
         status: appointment.status,
         customerId: appointment.customerId,
-        clientName: `${appointment.Customer.firstName || ''} ${appointment.Customer.lastName || ''}`.trim(),
-        clientEmail: appointment.Customer.email || '',
-        clientPhone: appointment.Customer.phone || '',
+        clientName: `${appointment.Customer.firstName ?? ''} ${appointment.Customer.lastName ?? ''}`.trim(),
+        clientEmail: appointment.Customer.email ?? '',
+        clientPhone: appointment.Customer.phone ?? '',
         depositPaid: appointment.deposit ? true : false,
-        depositAmount: appointment.deposit || 0,
-        price: appointment.totalPrice || 0,
-        description: appointment.description || '',
+        depositAmount: appointment.deposit ?? 0,
+        price: appointment.totalPrice ?? 0,
+        description: appointment.description ?? '',
       }));
 
       // Return with pagination info
@@ -422,13 +542,13 @@ export const dashboardRouter = router({
           status: payment.status,
           paymentMethod: payment.paymentMethod,
           date: payment.createdAt.toISOString(),
-          customerId: customer?.id || '',
+          customerId: customer?.id ?? '',
           clientName: customer 
-            ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
-            : payment.customerName || 'Unknown',
-          clientEmail: customer?.email || payment.customerEmail || '',
-          appointmentId: appointment?.id || '',
-          appointmentTitle: appointment?.title || null,
+            ? `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim()
+            : payment.customerName ?? 'Unknown',
+          clientEmail: customer?.email ?? payment.customerEmail ?? '',
+          appointmentId: appointment?.id ?? '',
+          appointmentTitle: appointment?.title ?? null,
           bookingId: payment.bookingId
         };
       });
@@ -539,7 +659,7 @@ export const dashboardRouter = router({
           description: booking.description,
           estimatedPrice: null, // Not available in Booking model
           preferredDate: booking.preferredDate?.toISOString(),
-          status: booking.calStatus || (booking.depositPaid ? 'confirmed' : 'pending'),
+          status: booking.calStatus ?? (booking.depositPaid ? 'confirmed' : 'pending'),
           depositPaid: booking.depositPaid,
           createdAt: booking.createdAt,
           updatedAt: booking.updatedAt,
@@ -627,7 +747,7 @@ export const dashboardRouter = router({
       
       // Format data for pie chart
       const pieData = bookingsByType.map((item, index) => ({
-        name: item.tattooType || 'Unknown',
+        name: item.tattooType ?? 'Unknown',
         value: item._count.id,
         color: colors[index % colors.length]
       }));
@@ -645,12 +765,11 @@ export const dashboardRouter = router({
   
   /**
    * Get recent contacts for the dashboard
-   */
-  getRecentContacts: publicProcedure.input(
-    z.object({
-      limit: z.number().min(1).max(50).optional().default(10)
-    })
-  ).query(async ({ input }) => {
+   getRecentContacts: publicProcedure.input(
+z.object({
+limit: z.number().min(1).max(50).optional().default(10)
+})
+).query(async ({ input }) => { {
     const { limit } = input;
     
     try {
@@ -673,10 +792,10 @@ export const dashboardRouter = router({
       
       return contacts.map(contact => ({
         id: contact.id.toString(),
-        firstName: contact.Customer?.firstName || contact.name.split(' ')[0] || '',
-        lastName: contact.Customer?.lastName || (contact.name.split(' ').length > 1 ? contact.name.split(' ').slice(1).join(' ') : ''),
-        email: contact.Customer?.email || contact.email,
-        phone: contact.Customer?.phone || '',
+        firstName: contact.Customer?.firstName ?? contact.name.split(' ')[0] ?? '',
+        lastName: contact.Customer?.lastName ?? (contact.name.split(' ').length > 1 ? contact.name.split(' ').slice(1).join(' ') : ''),
+        email: contact.Customer?.email ?? contact.email,
+        phone: contact.Customer?.phone ?? '',
         message: contact.message,
         createdAt: contact.createdAt.toISOString()
       }));
@@ -740,7 +859,7 @@ export const dashboardRouter = router({
       const bookingActivities = recentBookings.map(booking => ({
         id: `booking-${booking.id}`,
         type: 'booking',
-        message: `New booking: ${booking.name || `${booking.Customer?.firstName || ''} ${booking.Customer?.lastName || ''}`.trim()} booked a ${booking.tattooType} session`,
+        message: `New booking: ${booking.name ?? `${booking.Customer?.firstName ?? ''} ${booking.Customer?.lastName ?? ''}`.trim()} booked a ${booking.tattooType} session`,
         timestamp: booking.createdAt.toISOString()
       }));
       
@@ -769,7 +888,7 @@ export const dashboardRouter = router({
     .input(
       z.object({
         limit: z.number().min(1).max(50).optional().default(5),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { limit } = input;
@@ -846,8 +965,8 @@ export const dashboardRouter = router({
           ...recentPayments.map((payment) => {
             // Extract name from payment record directly since Booking.Customer relationship changed
             const names = payment.customerName ? payment.customerName.split(' ') : ['', ''];
-            const firstName = names[0] || '';
-            const lastName = names.slice(1).join(' ') || '';
+            const firstName = names[0] ?? '';
+            const lastName = names.slice(1).join(' ') ?? '';
             
             return {
               id: `payment-${payment.id}`,
@@ -891,6 +1010,7 @@ export const dashboardRouter = router({
         });
       }
     }),
+
   confirmAppointment: publicProcedure.input(z.string()).mutation(async ({ input: appointmentId }) => {
     try {
       // Get the appointment first to validate it exists
@@ -928,98 +1048,3 @@ export const dashboardRouter = router({
     }
   }),
 });
-
-// Helper functions
-
-/**
- * Helper function to build type-safe date filters for appointment queries
- * Prevents Prisma exactOptionalPropertyTypes errors by only including properties when values exist
- */
-function buildDateFilter(
-  entityType: 'appointment' | 'booking' | 'customer',
-  startDate?: Date,
-  endDate?: Date
-): Record<string, unknown> {
-  const filter: Record<string, unknown> = {};
-  
-  if (entityType === 'appointment') {
-    if (startDate && endDate) {
-      filter['startDate'] = { gte: startDate };
-      filter['endDate'] = { lte: endDate };
-    } else if (startDate) {
-      filter['startDate'] = { gte: startDate };
-    } else if (endDate) {
-      filter['endDate'] = { lte: endDate };
-    }
-  }
-  
-  return filter;
-}
-
-/**
- * Helper function to build a createdAt filter that follows exactOptionalPropertyTypes constraint
- */
-function buildCreatedAtFilter(startDate?: Date, endDate?: Date): Prisma.CustomerWhereInput {
-  if (startDate && endDate) {
-    return {
-      createdAt: {
-        gte: startDate,
-        lte: endDate
-      }
-    };
-  }
-  
-  return {};
-}
-
-function calculatePercentageChange(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
-  return Math.round(((current - previous) / previous) * 100);
-}
-
-function calculateCompletionRate(completed: number, total: number): string {
-  if (total === 0) return '0%';
-  return `${Math.round((completed / total) * 100)}%`;
-}
-
-function getPeriodLabel(period: string): string {
-  switch (period) {
-    case 'today':
-      return 'Today';
-    case 'week':
-      return 'This Week';
-    case 'month':
-      return 'This Month';
-    case 'year':
-      return 'This Year';
-    default:
-      return 'Current Period';
-  }
-}
-
-function formatAppointmentTime(date: Date): string {
-  return date.toLocaleString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-// Helper function to get the previous period's date range
-function getPreviousRange(
-  _period: string,
-  startDate: Date,
-  endDate: Date,
-): { startDate: Date; endDate: Date } {
-  const durationMs = endDate.getTime() - startDate.getTime();
-
-  const previousStartDate = new Date(startDate);
-  previousStartDate.setTime(previousStartDate.getTime() - durationMs);
-
-  const previousEndDate = new Date(previousStartDate);
-  previousEndDate.setTime(previousEndDate.getTime() + durationMs);
-
-  return { startDate: previousStartDate, endDate: previousEndDate };
-}

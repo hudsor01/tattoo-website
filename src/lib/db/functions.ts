@@ -13,7 +13,7 @@ export async function cancelAppointment(appointmentId: string) {
       message: 'Appointment cancelled successfully'
     };
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
+    void console.error('Error cancelling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to cancel appointment',
@@ -40,7 +40,7 @@ export async function checkAppointmentAvailability(
     ]);
     return result;
   } catch (error) {
-    console.error('Error checking appointment availability:', error);
+    void console.error('Error checking appointment availability:', error);
     return {
       isAvailable: false,
       conflicts: null,
@@ -61,9 +61,9 @@ export async function calculateAppointmentDurationWithFallback(
       'calculate_appointment_duration',
       [size, complexity]
     );
-    return result.duration || '2 hours';
+    return result.duration ?? '2 hours';
   } catch (error) {
-    console.error('Error calculating appointment duration:', error);
+    void console.error('Error calculating appointment duration:', error);
     return '2 hours'; // Default fallback
   }
 }
@@ -86,16 +86,16 @@ export async function createAppointment(params: {
       params.start_time,
       params.end_time,
       params.service_id,
-      params.artist_id || null,
-      params.notes || null,
-      params.status || 'scheduled'
+      params.artist_id ?? null,
+      params.notes ?? null,
+      params.status ?? 'scheduled'
     ]);
     return {
       success: true,
       data: result
     };
   } catch (error) {
-    console.error('Error creating appointment:', error);
+    void console.error('Error creating appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error creating appointment'

@@ -147,7 +147,7 @@ export default function ContactClient() {
                 </h3>
                 <div className="rounded-lg overflow-hidden border border-white/10 flex-grow min-h-[400px]">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d429075.9665754567!2d-97.20349820211339!3d32.81140281693915!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x864c19f77b45974b%3A0xb9ec9ba4f647678f!2sDallas-Fort%20Worth%20Metroplex%2C%20TX!5e0!3m2!1sen!2sus!4v1714578896054!5m2!1sen!2sus"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d429075.96657545672d-97.203498202113393d32.811402816939152m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.13m3!1m2!1s0x864c19f77b45974b%3A0xb9ec9ba4f647678f!2sDallas-Fort%20Worth%20Metroplex%2C%20TX!5e0!3m2!1sen!2sus!4v1714578896054!5m2!1sen!2sus"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -308,9 +308,9 @@ export default function ContactClient() {
                   initial="hidden"
                   animate="visible"
                 >
-                  {faqItems.map((faq, index) => (
+                  {faqItems.map((faq) => (
                     <motion.div
-                      key={index}
+                      key={faq.question}
                       className="bg-black/30 border border-white/10 rounded-lg p-6 hover:border-red-500/30 transition-colors"
                       variants={fadeInUp}
                       whileHover={{ y: -2 }}

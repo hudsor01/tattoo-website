@@ -26,12 +26,12 @@ export async function calculatePricing(
       size,
       placement,
       complexity,
-      artistId || null,
-      customHourlyRate || null,
+      artistId ?? null,
+      customHourlyRate ?? null,
     ]);
     return result;
   } catch (error) {
-    console.error('Error calculating pricing:', error);
+    void console.error('Error calculating pricing:', error);
     throw error;
   }
 }
@@ -50,7 +50,7 @@ export async function calculateAppointmentDuration(
     );
     return result.duration;
   } catch (error) {
-    console.error('Error calculating appointment duration:', error);
+    void console.error('Error calculating appointment duration:', error);
     throw error;
   }
 }
@@ -60,10 +60,10 @@ export async function calculateAppointmentDuration(
  */
 export async function getArtistRates(artistId?: string): Promise<ArtistRate> {
   try {
-    const result = await executeStoredProcedure<ArtistRate>('get_artist_rates', [artistId || null]);
+    const result = await executeStoredProcedure<ArtistRate>('get_artist_rates', [artistId ?? null]);
     return result;
   } catch (error) {
-    console.error('Error getting artist rates:', error);
+    void console.error('Error getting artist rates:', error);
     throw error;
   }
 }
@@ -113,7 +113,7 @@ export async function getStandardPricingData(): Promise<StandardPricingData> {
       baseHourlyRate: 150,   // Standard hourly rate
     };
   } catch (error) {
-    console.error('Error getting standard pricing data:', error);
+    void console.error('Error getting standard pricing data:', error);
     throw error;
   }
 }

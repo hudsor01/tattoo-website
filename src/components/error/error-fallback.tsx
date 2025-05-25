@@ -200,7 +200,7 @@ export function ErrorFallback({
           
           {showDetails && (
             <pre className="mt-4 p-4 bg-muted text-muted-foreground overflow-auto rounded-md text-xs">
-              {error.stack || error.message}
+              {error.stack ?? error.message}
             </pre>
           )}
         </div>

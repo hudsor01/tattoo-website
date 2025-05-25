@@ -31,24 +31,19 @@ export async function sendEmail({
   text?: string;
 }) {
   try {
-    const emailOptions: any = {
+    const emailOptions = {
       to,
-      from,
+      from: from || process.env.ARTIST_EMAIL || 'noreply@tattooartist.com',
       subject,
+      ...(html && { html }),
+      ...(text && { text }),
     };
-    
-    if (html) {
-      emailOptions.html = html;
-    }
-    if (text) {
-      emailOptions.text = text;
-    }
     
     const result = await resend.emails.send(emailOptions);
 
     return { success: true, data: result };
   } catch (error) {
-    console.error('Error sending email:', error);
+    void console.error('Error sending email:', error);
     return { success: false, error };
   }
 }
