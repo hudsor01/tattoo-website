@@ -20,6 +20,9 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
   // Function to handle feedback - now saves to database
   const handleFeedback = async (index: number, isHelpful: boolean) => {
     try {
+      const item = items[index]
+      if (!item) return
+      
       // Send feedback to API
       const response = await fetch('/api/faq/feedback', {
         method: 'POST',
@@ -28,7 +31,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
         },
         body: JSON.stringify({
           questionIndex: index,
-          question: items[index].question,
+          question: item.question,
           isHelpful,
           timestamp: new Date().toISOString(),
         }),
@@ -50,6 +53,8 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
   // Find related questions using semantic similarity and categories
   const getRelatedQuestions = (currentIndex: number) => {
     const currentItem = items[currentIndex];
+    if (!currentItem) return []
+    
     const currentQuestion = currentItem.question.toLowerCase();
     
     // Score other questions based on keyword overlap and semantic similarity

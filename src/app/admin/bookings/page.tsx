@@ -23,7 +23,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import type { CalBookingPayload } from '@/types/cal-types';
 
 interface UnifiedBooking {
   id: string;
@@ -70,7 +69,7 @@ export default function BookingsPage() {
 
   // Convert Cal.com bookings to unified format
   const unifiedCalBookings: UnifiedBooking[] = useMemo(() => {
-    return calBookings.map((booking: CalBookingPayload) => ({
+    return calBookings.map((booking) => ({
       id: booking.uid,
       source: 'cal.com' as const,
       clientName: booking.attendees?.[0]?.name ?? 'No name',
@@ -83,7 +82,7 @@ export default function BookingsPage() {
       createdAt: booking.startTime, // Use start time as created date for sorting
       location: booking.location ?? undefined,
       payment: booking.payment && Array.isArray(booking.payment) && booking.payment.length > 0 
-        ? { amount: undefined, currency: undefined } 
+        ? null 
         : null,
       customInputs: Array.isArray(booking.customInputs) 
         ? booking.customInputs.filter((input: { label: string; value: string }) => input.label && input.value).map((input: { label: string; value: string }) => ({

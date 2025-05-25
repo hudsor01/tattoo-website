@@ -1,7 +1,7 @@
 'use client'
 
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { api, trpc } from '@/lib/trpc/client'
+import { trpc } from '@/lib/trpc/client'
 import type { TRPCClientError } from '@trpc/client'
 
 interface UseTRPCInfiniteQueryProps<T> {
@@ -23,7 +23,7 @@ interface UseTRPCInfiniteQueryResult<T> {
   isLoading: boolean
   isFetching: boolean
   isError: boolean
-  error: TRPCClientError<any> | null
+  error: unknown | null
   hasMore: boolean
   fetchNextPage: () => void
   refetch: () => Promise<unknown>
@@ -70,7 +70,7 @@ export function useTRPCInfiniteQuery<T>({
     isLoading,
     isFetching,
     isError,
-    error: error as TRPCClientError<any> | null,
+    error: error as unknown | null,
     hasMore: hasNextPage ?? false,
     fetchNextPage: () => void fetchNextPage(),
     refetch: async () => { await refetch(); },
@@ -88,9 +88,9 @@ export function useGalleryInfiniteQuery({
   enabled?: boolean
 } = {}) {
   return useTRPCInfiniteQuery({
-    queryKey: ['gallery', 'getPublicDesigns', designType || 'all', limit.toString()],
+    queryKey: ['gallery', 'getPublicDesigns', designType ?? 'all', limit.toString()],
     queryFn: async ({ pageParam }) => {
-      const response = await trpc.gallery.getPublicDesigns.fetch({
+      const response = await trpc.gallery.getPublicDesigns.query({
         limit,
         cursor: pageParam as number | undefined,
         designType: designType ?? undefined,
@@ -121,7 +121,7 @@ export function useBookingsInfiniteQuery({
     queryFn: async ({ pageParam }) => {
       // Note: This assumes the dashboard router supports cursor-based pagination
       // You may need to update the dashboard router to support this
-      const response = await trpc.dashboard.getRecentBookings.fetch({
+      const response = await trpc.dashboard.getRecentBookings.query({
         limit,
         cursor: pageParam as number | undefined,
         status: status === 'all' ? undefined : (status ?? undefined),
