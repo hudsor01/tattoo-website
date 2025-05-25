@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 
 import { Button } from '@/components/ui/button'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import type { DateRange as ReactDayPickerDateRange } from 'react-day-picker'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 // import { Separator } from '@/components/ui/separator' // unused
@@ -160,6 +161,8 @@ export function TimeRangeFilter({
       setSelectedPreset(null)
       onChange(validRange)
       setIsOpen(false)
+    } else {
+      setCustomRange(undefined)
     }
   }
 
@@ -253,7 +256,7 @@ export function TimeRangeFilter({
               initialFocus
               mode="range"
               defaultMonth={value?.from}
-              selected={customRange}
+              selected={customRange as ReactDayPickerDateRange | undefined}
               onSelect={handleCustomRangeSelect}
               numberOfMonths={2}
               disabled={(date) => date > new Date()}
@@ -318,7 +321,7 @@ export function useTimeRange(initialRange?: string) {
   
   const currentRange = React.useMemo(() => {
     const preset = presets.find(p => p.value === selectedRange)
-    return preset?.range ?? presets[3].range // Default to 30 days
+    return preset?.range ?? presets[3]?.range ?? presets[0].range // Default to 30 days or first preset
   }, [selectedRange, presets])
 
   const setRange = React.useCallback((value: string) => {

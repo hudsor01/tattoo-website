@@ -367,8 +367,10 @@ export function GalleryGrid({
           slide: { padding: 0 },
         }}
         render={{
-          buttonPrev: lightboxSlides.length <= 1 ? () => null : undefined,
-          buttonNext: lightboxSlides.length <= 1 ? () => null : undefined,
+          ...(lightboxSlides.length <= 1 && {
+            buttonPrev: () => null,
+            buttonNext: () => null,
+          })
         }}
       />
     </div>
