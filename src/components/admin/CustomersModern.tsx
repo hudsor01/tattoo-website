@@ -222,7 +222,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
         </Card>
       )}
 
-      {filteredCustomers.map((customer: CustomerData) => (
+      {filteredCustomers.map((customer) => (
         <Card key={customer.id} className="hover:shadow-md transition-shadow">
           <CardContent className="p-4 md:p-6">
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
