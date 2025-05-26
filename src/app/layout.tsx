@@ -9,9 +9,9 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env['NEXT_PUBLIC_BASE_URL'] ?? 'https://ink37tattoos.com'),
-  title: 'Ink 37 | Professional Tattoo Artist in Crowley, TX | Custom Tattoos DFW',
+  title: 'Ink 37 | Professional Tattoo Artist in Dallas/Fort Worth, TX | Custom Tattoos DFW',
   description:
-    'Professional tattoo artist in Crowley, TX serving Fort Worth, Arlington, Burleson & DFW area. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
+    'Professional tattoo artist in Dallas/Fort Worth area serving Crowley, Arlington, Burleson & DFW metroplex. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://ink37tattoos.com',
-    title: 'Ink 37 | Professional Tattoo Artist in Crowley, TX | Custom Tattoos DFW',
+    title: 'Ink 37 | Professional Tattoo Artist in Dallas/Fort Worth, TX | Custom Tattoos DFW',
     description:
-      'Professional tattoo artist in Crowley, TX serving Fort Worth, Arlington, Burleson & DFW area. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
+      'Professional tattoo artist in Dallas/Fort Worth area serving Crowley, Arlington, Burleson & DFW metroplex. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
     siteName: 'Ink 37',
     images: [
       {
@@ -73,9 +73,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@ink37tattoo',
     creator: '@ink37tattoo',
-    title: 'Ink 37 | Professional Tattoo Artist in Crowley, TX | Custom Tattoos DFW',
+    title: 'Ink 37 | Professional Tattoo Artist in Dallas/Fort Worth, TX | Custom Tattoos DFW',
     description:
-      'Professional tattoo artist in Crowley, TX serving Fort Worth, Arlington, Burleson & DFW area. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
+      'Professional tattoo artist in Dallas/Fort Worth area serving Crowley, Arlington, Burleson & DFW metroplex. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
     images: {
       url: 'https://ink37tattoos.com/images/japanese.jpg',
       alt: 'Professional custom tattoo artwork by Ink 37 - Japanese style tattoo design',
@@ -141,7 +141,7 @@ const businessSchema = {
   ],
   priceRange: '$$',
   description:
-    'Professional tattoo artist in Crowley, TX specializing in custom tattoo designs, cover-ups, fine line work, and traditional tattoos. Serving the DFW metroplex including Fort Worth, Arlington, Burleson, Mansfield, Forest Hill, and Grand Prairie.',
+    'Professional tattoo artist in Dallas/Fort Worth area specializing in custom tattoo designs, cover-ups, fine line work, and traditional tattoos. Serving the DFW metroplex including Crowley, Arlington, Burleson, Mansfield, Forest Hill, and Grand Prairie.',
   openingHoursSpecification: {
     '@type': 'OpeningHoursSpecification',
     dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
