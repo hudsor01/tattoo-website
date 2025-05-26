@@ -65,18 +65,24 @@ export async function POST(req: NextRequest) {
       headers: newHeaders,
     });
   } catch (error: unknown) {
-    // Log the top-level error
+    // Log the top-level error with full details for debugging
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     logger.error('tRPC handler error', {
       url,
       error: errorMessage,
+      stack: errorStack,
     });
 
-    // Return a 500 response
+    // Return a safe 500 response without exposing internal details
     return new Response(
       JSON.stringify({
         message: 'Internal server error',
-        error: errorMessage,
+        // Only expose error details in development
+        ...(process.env.NODE_ENV === 'development' && {
+          error: errorMessage,
+        }),
       }),
       {
         status: 500,
