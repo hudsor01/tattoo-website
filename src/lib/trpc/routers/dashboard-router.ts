@@ -19,32 +19,15 @@ import { TRPCError } from '@trpc/server';
 import { formatDateRange } from '@/lib/utils/date-format';
 import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
 import { Prisma } from '@prisma/client';
-
-// Schema for statistics filtering
-const StatsFilterSchema = z.object({
-  period: z.enum(['today', 'week', 'month', 'year']).optional().default('month'),
-  compareToPrevious: z.boolean().optional().default(true),
-});
-
-// Schema for appointments filtering
-const AppointmentsFilterSchema = z.object({
-  status: z
-    .enum(['all', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no_show'])
-    .optional()
-    .default('all'),
-  limit: z.number().min(1).max(50).optional().default(5),
-  page: z.number().min(1).optional().default(1),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-});
-
-// Schema for payments filtering
-const PaymentsFilterSchema = z.object({
-  status: z.enum(['all', 'verified', 'pending', 'failed']).optional().default('all'),
-  limit: z.number().min(1).max(50).optional().default(5),
-  page: z.number().min(1).optional().default(1),
-  period: z.enum(['all', 'today', 'week', 'month', 'year']).optional().default('all'),
-});
+import {
+  StatsFilterSchema,
+  AppointmentsFilterSchema,
+  PaymentsFilterSchema,
+  RecentBookingsSchema,
+  RecentContactsSchema,
+  RecentActivitySchema,
+  NotificationsSchema
+} from '@/types/dashboard-types';
 
 // Helper functions
 
@@ -577,13 +560,7 @@ export const dashboardRouter = router({
   /**
    * Get recent bookings for the dashboard
    */
-  getRecentBookings: publicProcedure.input(
-    z.object({
-      limit: z.number().min(1).max(100).optional().default(10),
-      cursor: z.number().optional(),
-      status: z.string().optional(),
-    })
-  ).query(async ({ input }) => {
+  getRecentBookings: publicProcedure.input(RecentBookingsSchema).query(async ({ input }) => {
     const { limit, cursor, status } = input;
     
     try {
@@ -765,11 +742,8 @@ export const dashboardRouter = router({
   
   /**
    * Get recent contacts for the dashboard
-   getRecentContacts: publicProcedure.input(
-z.object({
-limit: z.number().min(1).max(50).optional().default(10)
-})
-).query(async ({ input }) => { {
+   */
+  getRecentContacts: publicProcedure.input(RecentContactsSchema).query(async ({ input }) => {
     const { limit } = input;
     
     try {
@@ -812,11 +786,7 @@ limit: z.number().min(1).max(50).optional().default(10)
   /**
    * Get recent activity for the activity feed
    */
-  getRecentActivity: publicProcedure.input(
-    z.object({
-      limit: z.number().min(1).max(50).optional().default(5)
-    })
-  ).query(async ({ input }) => {
+  getRecentActivity: publicProcedure.input(RecentActivitySchema).query(async ({ input }) => {
     const { limit } = input;
     
     try {
@@ -884,13 +854,7 @@ limit: z.number().min(1).max(50).optional().default(10)
     }
   }),
 
-  getNotifications: publicProcedure
-    .input(
-      z.object({
-        limit: z.number().min(1).max(50).optional().default(5),
-      })
-    )
-    .query(async ({ input }) => {
+  getNotifications: publicProcedure.input(NotificationsSchema).query(async ({ input }) => {
       const { limit } = input;
 
       try {
