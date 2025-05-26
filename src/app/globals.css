@@ -1,182 +1,57 @@
+/* Critical CSS optimizations applied */
 @import 'tailwindcss';
 
 @custom-variant dark (&:is(.dark *));
 
 @layer base, components, utilities;
 
-/* Main theme configuration */
+/* Main theme configuration - Optimized */
 @theme {
-  /* Spacing scale */
-  --spacing: 0.25rem; /* Base spacing unit (4px) */
+  /* Core spacing and colors only */
+  --spacing: 0.25rem;
   
-  /* Color palette */
+  /* Essential color palette */
   --color-background: #ffffff;
   --color-foreground: #0a0a0a;
-  --color-card: #ffffff;
-  --color-card-foreground: #0a0a0a;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #0a0a0a;
   --color-primary: #e53935;
   --color-primary-foreground: #fafafa;
   --color-secondary: #f1f5f9;
   --color-secondary-foreground: #0f172a;
   --color-muted: #f1f5f9;
   --color-muted-foreground: #64748b;
-  --color-accent: #f1f5f9;
-  --color-accent-foreground: #0f172a;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
   --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
   --color-ring: #e53935;
-  --color-chart-1: #e53935;
-  --color-chart-2: #2563eb;
-  --color-chart-3: #10b981;
-  --color-chart-4: #f59e0b;
-  --color-chart-5: #8b5cf6;
-
-  /* Tattoo studio brand colors */
+  
+  /* Tattoo brand colors */
   --color-tattoo-red: #e53935;
   --color-tattoo-red-dark: #c62828;
   --color-tattoo-black: #0a0a0a;
   --color-tattoo-white: #fafafa;
-  --color-tattoo-blue: #2563eb;
-  --color-tattoo-blue-dark: #1d4ed8;
-  --color-tattoo-green: #10b981;
-
-  /* Sidebar colors */
-  --color-sidebar: #f8fafc;
-  --color-sidebar-foreground: #334155;
-  --color-sidebar-primary: #0f172a;
-  --color-sidebar-primary-foreground: #f8fafc;
-  --color-sidebar-accent: #f1f5f9;
-  --color-sidebar-accent-foreground: #0f172a;
-  --color-sidebar-border: #e2e8f0;
-  --color-sidebar-ring: #e53935;
-
-  /* Border radius */
+  
+  /* Essential radius and animations */
   --radius: 0.5rem;
-
-  /* Custom easing functions */
   --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
-
-  /* Animation variables */
-  --animate-fade-in: fade-in 0.6s ease forwards;
-  --animate-slide-up: slide-up 0.6s ease forwards;
-  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
-  
-  /* Navbar height variables */
-  --navbar-height-sm: 4rem;
-  --navbar-height-md: 4.5rem;
-  --navbar-height-lg: 5rem;
   
   /* Font family theme variables */
   --font-inter-var: var(--font-inter);
   --font-montserrat-var: var(--font-montserrat);
   --font-pacifico-var: var(--font-pacifico);
   --font-satisfy-var: var(--font-satisfy);
-  
-  /* Component-specific theme variables */
-  --component-border-radius: var(--radius);
-  --component-transition-snappy: 0.2s var(--ease-snappy);
-  --component-spacing-base: calc(var(--spacing) * 4);
-  --component-spacing-lg: calc(var(--spacing) * 5);
-  
-  /* Glow effect properties */
-  --glow-opacity: 0.3;
-  --glow-color: var(--color-tattoo-red);
-  
-  /* Masonry layout properties */
-  --masonry-row-span: 30;
-  
-  /* Typography Scale - Consistent text sizing */
-  --font-size-xs: 0.75rem;      /* 12px */
-  --font-size-sm: 0.875rem;     /* 14px */
-  --font-size-base: 1rem;       /* 16px */
-  --font-size-lg: 1.125rem;     /* 18px */
-  --font-size-xl: 1.25rem;      /* 20px */
-  --font-size-2xl: 1.5rem;      /* 24px */
-  --font-size-3xl: 1.875rem;    /* 30px */
-  --font-size-4xl: 2.25rem;     /* 36px */
-  --font-size-5xl: 3rem;        /* 48px */
-  --font-size-6xl: 3.75rem;     /* 60px */
-  --font-size-7xl: 4.5rem;      /* 72px */
-  --font-size-8xl: 6rem;        /* 96px */
-  --font-size-9xl: 8rem;        /* 128px */
-  
-  /* Line Height Scale */
-  --line-height-none: 1;
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.375;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
-  --line-height-loose: 2;
-  
-  /* Letter Spacing Scale */
-  --letter-spacing-tighter: -0.05em;
-  --letter-spacing-tight: -0.025em;
-  --letter-spacing-normal: 0em;
-  --letter-spacing-wide: 0.025em;
-  --letter-spacing-wider: 0.05em;
-  --letter-spacing-widest: 0.1em;
-  
-  /* Font Weight Scale */
-  --font-weight-thin: 100;
-  --font-weight-extralight: 200;
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-  --font-weight-black: 900;
-  
-  /* Legacy font size variables for backward compatibility */
-  --text-heading-1: var(--font-size-5xl);
-  --text-heading-2: var(--font-size-4xl);
-  --text-heading-3: var(--font-size-3xl);
-  --text-heading-4: var(--font-size-2xl);
-  --text-title-size: var(--font-size-xl);
-  --text-body-size: var(--font-size-base);
-  --text-small-size: var(--font-size-sm);
-  --text-xs-size: var(--font-size-xs);
 }
 
-/* Dark theme overrides */
+/* Dark theme overrides - Essential only */
 .dark {
   --color-background: #0a0a0a;
   --color-foreground: #fafafa;
-  --color-card: #0a0a0a;
-  --color-card-foreground: #fafafa;
-  --color-popover: #0a0a0a;
-  --color-popover-foreground: #fafafa;
   --color-primary: #e53935;
-  --color-primary-foreground: #fafafa;
   --color-secondary: #1e293b;
-  --color-secondary-foreground: #f8fafc;
   --color-muted: #1e293b;
   --color-muted-foreground: #94a3b8;
-  --color-accent: #1e293b;
-  --color-accent-foreground: #f8fafc;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
   --color-border: #1e293b;
-  --color-input: #1e293b;
-  --color-ring: #e53935;
-
-  /* Dark sidebar colors */
-  --color-sidebar: #020817;
-  --color-sidebar-foreground: #cbd5e1;
-  --color-sidebar-primary: #3b82f6;
-  --color-sidebar-primary-foreground: #f8fafc;
-  --color-sidebar-accent: #1e293b;
-  --color-sidebar-accent-foreground: #cbd5e1;
-  --color-sidebar-border: #1e293b;
-  --color-sidebar-ring: #3b82f6;
 }
 
-/* Base styles */
+/* Base styles - Critical only */
 @layer base {
   * {
     @apply border-border;
@@ -193,7 +68,7 @@
   }
 }
 
-/* Animation keyframes */
+/* Essential animations only */
 @keyframes fade-in {
   0% { opacity: 0; }
   100% { opacity: 1; }
@@ -210,80 +85,18 @@
   }
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes gradient-animation {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Component styles */
+/* Critical component styles only */
 @layer components {
   .animate-fade-in {
-    animation: var(--animate-fade-in);
+    animation: fade-in 0.6s ease forwards;
   }
   
   .animate-slide-up {
-    animation: var(--animate-slide-up);
-  }
-  
-  .animate-pulse-glow {
-    animation: var(--animate-pulse-glow);
-  }
-  
-  /* Navbar styles */
-  .nav-spacer {
-    height: var(--navbar-height-md);
-    width: 100%;
-  }
-
-  .content-with-navbar {
-    padding-top: var(--navbar-height-md);
-  }
-  
-  /* Glow effects */
-  .glow-effect {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .glow-effect::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: radial-gradient(
-      circle at center,
-      --alpha(var(--glow-color) / var(--glow-opacity)),
-      transparent 70%
-    );
-    transform: scale(1.5);
-    opacity: 0;
-    transition: opacity 0.5s var(--ease-fluid);
-  }
-
-  .glow-effect:hover::before {
-    opacity: 1;
+    animation: slide-up 0.6s ease forwards;
   }
 }
 
-/* Utility classes */
+/* Essential utilities only */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -293,297 +106,50 @@
     @apply bg-gradient-to-r from-tattoo-red to-orange-500 bg-clip-text text-transparent;
   }
   
-  .glass-effect {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  /* Critical typography utilities */
+  .artist-name {
+    font-family: var(--font-montserrat-var);
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .paragraph-large {
+    font-family: var(--font-inter-var);
+    font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 400;
+    letter-spacing: 0.01em;
   }
   
-  .tattoo-glow {
-    box-shadow: 0 0 20px --alpha(var(--color-tattoo-red) / 30%);
+  /* Essential font utilities */
+  .font-inter {
+    font-family: var(--font-inter-var);
   }
 
-  
-  /* Responsive text utilities */
-  .text-responsive-xl {
-    font-size: 1.5rem;
-    line-height: 1.2;
+  .font-montserrat {
+    font-family: var(--font-montserrat-var);
   }
-  
-  .text-responsive-2xl {
-    font-size: 2rem;
-    line-height: 1.1;
+
+  .font-pacifico {
+    font-family: var(--font-pacifico-var);
   }
-  
-  .text-responsive-3xl {
-    font-size: 2.5rem;
-    line-height: 1;
+
+  .font-satisfy {
+    font-family: var(--font-satisfy-var);
   }
 }
 
-/* Custom utility classes consolidated from other files */
-
-/* Tab utilities */
-@utility tab-2 {
-  tab-size: 2;
-}
-
-@utility tab-4 {
-  tab-size: 4;
-}
-
-@utility tab-8 {
-  tab-size: 8;
-}
-
-/* Truncation utilities */
-@utility truncate-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
-}
-
-@utility truncate-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-@utility truncate-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-}
-
-/* Font family utilities */
-@utility font-inter {
-  font-family: var(--font-inter-var);
-}
-
-@utility font-montserrat {
-  font-family: var(--font-montserrat-var);
-}
-
-@utility font-pacifico {
-  font-family: var(--font-pacifico-var);
-}
-
-@utility font-satisfy {
-  font-family: var(--font-satisfy-var);
-}
-
-/* Custom typography utilities */
-@utility artist-name {
-  font-family: var(--font-montserrat-var);
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  line-height: 0.9;
-  letter-spacing: -0.02em;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-@utility paragraph-large {
-  font-family: var(--font-inter-var);
-  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 400;
-  letter-spacing: 0.01em;
-}
-
-/* Text styling utilities */
-@utility text-heading-1 {
-  font-family: var(--font-montserrat-var);
-  font-size: var(--text-heading-1);
-  line-height: 1;
-  letter-spacing: -0.025em;
-  font-weight: 700;
-}
-
-@utility text-heading-2 {
-  font-family: var(--font-montserrat-var);
-  font-size: var(--text-heading-2);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-  font-weight: 700;
-}
-
-@utility text-heading-3 {
-  font-family: var(--font-montserrat-var);
-  font-size: var(--text-heading-3);
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-  font-weight: 600;
-}
-
-@utility text-brand {
-  font-family: var(--font-satisfy-var);
-  color: var(--color-tattoo-red);
-}
-
-/* Hover effects */
-@utility hover-scale {
-  transition: transform 0.3s var(--ease-fluid);
-  
-  @variant hover {
-    transform: scale(1.05);
-  }
-}
-
-@utility hover-lift {
-  transition:
-    transform 0.3s var(--ease-fluid),
-    box-shadow 0.3s var(--ease-fluid);
-    
-  @variant hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px -5px --alpha(rgb(0 0 0) / 10%);
-  }
-}
-
-/* Animation utilities */
-@utility animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-animation 3s ease infinite;
-}
-
-@utility image-hover-zoom {
-  overflow: hidden;
-  
-  & img {
-    transition: transform 0.5s ease-out;
-  }
-  
-  @variant hover {
-    & img {
-      transform: scale(1.1);
-    }
-  }
-}
-
-/* Custom button variants */
-@utility btn-outline {
-  background-color: transparent;
-  border: 1px solid currentColor;
-  color: var(--color-primary);
-  
-  @variant hover {
-    background-color: --alpha(var(--color-primary) / 5%);
-  }
-}
-
-/* Custom input styles */
-@utility custom-input {
-  border-radius: var(--component-border-radius);
-  transition: border-color var(--component-transition-snappy);
-  
-  @variant focus {
-    outline: none;
-    border-color: var(--color-ring);
-    box-shadow: 0 0 0 2px --alpha(var(--color-ring) / 20%);
-  }
-}
-
-/* Avatar component utilities */
-@utility avatar {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 50%;
-  background-color: var(--color-muted);
-}
-
-@utility avatar-sm {
-  width: calc(var(--spacing) * 8);
-  height: calc(var(--spacing) * 8);
-}
-
-@utility avatar-md {
-  width: calc(var(--spacing) * 12);
-  height: calc(var(--spacing) * 12);
-}
-
-@utility avatar-lg {
-  width: calc(var(--spacing) * 16);
-  height: calc(var(--spacing) * 16);
-}
-
-/* Badge component utilities */
-@utility badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-@utility badge-primary {
-  background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
-}
-
-@utility badge-secondary {
-  background-color: var(--color-secondary);
-  color: var(--color-secondary-foreground);
-}
-
-/* Container query components */
-@utility responsive-grid {
-  container-type: inline-size;
-  container-name: grid;
-}
-
-/* Masonry layout */
-@utility masonry-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  grid-auto-rows: 10px;
-  grid-gap: 1rem;
-}
-
-@utility masonry-item {
-  grid-row-end: span var(--masonry-row-span);
-}
-
-/* Focus ring utilities */
-@utility focus-ring {
-  outline: none;
-  
-  @variant focus-visible {
-    outline: none;
-    box-shadow:
-      0 0 0 2px var(--color-background),
-      0 0 0 4px var(--color-ring);
-  }
-}
-
-/* Responsive adjustments using media queries */
+/* Responsive adjustments */
 @media (max-width: 640px) {
-  .nav-spacer {
-    height: var(--navbar-height-sm);
+  .artist-name {
+    font-size: clamp(2rem, 12vw, 3rem);
   }
   
-  .content-with-navbar {
-    padding-top: var(--navbar-height-sm);
-  }
-}
-
-@media (min-width: 1024px) {
-  .nav-spacer {
-    height: var(--navbar-height-lg);
-  }
-  
-  .content-with-navbar {
-    padding-top: var(--navbar-height-lg);
+  .paragraph-large {
+    font-size: clamp(1rem, 4vw, 1.25rem);
   }
 }

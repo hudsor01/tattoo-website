@@ -1,0 +1,14 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#000000"/>
+  
+  <!-- Border -->
+  <rect x="8" y="8" width="496" height="496" fill="none" stroke="#e53935" stroke-width="4"/>
+  
+  <!-- Main text "I37" -->
+  <text x="256" y="280" font-family="Arial, sans-serif" font-size="140" font-weight="bold" 
+        text-anchor="middle" fill="#e53935">I37</text>
+        
+  <!-- Subtle decoration -->
+  <circle cx="256" cy="400" r="20" fill="#e53935" opacity="0.3"/>
+</svg>

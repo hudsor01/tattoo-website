@@ -81,7 +81,7 @@ export default function FeaturedCarousel({
                 <div className="absolute inset-[2px] rounded-[calc(0.75rem-2px)] overflow-hidden z-10">
                   <Image
                     src={image.src}
-                    alt={image.alt}
+                    alt={image.alt || `Professional tattoo design by Ink 37 - Custom tattoo art in Crowley, TX`}
                     fill
                     priority={index < 3}
                     quality={90}
