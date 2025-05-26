@@ -31,12 +31,13 @@ export async function generateStaticParams() {
   })) : [];}
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Generate metadata for SEO with build-time safety
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-const design = await getBuildSafeTattooDesign(params.id, {
+const { id } = await params;
+const design = await getBuildSafeTattooDesign(id, {
 select: {
 name: true,
 description: true,
@@ -67,7 +68,7 @@ name?: string;
 
 if (!design) {
 // Return fallback metadata if design not found or database unavailable
-return getFallbackGalleryMetadata(params.id);
+return getFallbackGalleryMetadata(id);
 }
 
 const artistName = design.Artist?.User?.name ?? 'Ink 37 Artist';
@@ -111,12 +112,13 @@ const description = design.description ?? `View this ${design.designType ?? 'tat
 
 // Server component that fetches real data
 export default async function DesignDetailPage({ params }: PageProps) {
+  const { id } = await params;
   let design;
   
   try {
     // Fetch the design with all related data
     design = await prisma.tattooDesign.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         Artist: {
           include: {
@@ -209,7 +211,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<DesignDetailSkeleton />}>
           <DesignDetail 
-            id={params.id} 
+            id={id} 
           />
         </Suspense>
         

@@ -371,7 +371,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   type="tel"
                   value={newCustomer.phone}
                   onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="(555) 123-4567"
+                  placeholder="Optional"
                 />
               </div>
               <div className="md:col-span-2">

@@ -8,7 +8,7 @@ export const revalidate = 86400; // 24 hours
 export const metadata: Metadata = {
   title: 'FAQ | Ink 37 Tattoos',
   description: 'Frequently asked questions about getting a tattoo at Ink 37. Learn about our process, policies, pricing, and aftercare.',
-  keywords: ['tattoo FAQ', 'tattoo questions', 'Fernando Govea', 'Dallas tattoo', 'Fort Worth tattoo'],
+  keywords: ['tattoo FAQ', 'tattoo questions', 'Ink 37 Tattoos', 'Dallas tattoo', 'Fort Worth tattoo'],
 };
 
 // Dynamically import the client component

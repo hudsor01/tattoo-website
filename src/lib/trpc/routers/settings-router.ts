@@ -72,7 +72,7 @@ export const settingsRouter = router({
             siteName: "Fernando's Tattoo Studio",
             siteDescription: 'Professional tattoo artistry and custom designs',
             contactEmail: 'contact@fernandostattoo.com',
-            contactPhone: '+1 (555) 123-4567',
+            contactPhone: '',
             address: '123 Tattoo Street, Art City, AC 12345',
             businessHours: 'Monday - Saturday: 10:00 AM - 8:00 PM',
             timezone: 'America/New_York'
