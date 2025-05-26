@@ -220,10 +220,13 @@ export function GalleryGrid({ limit }: GalleryGridProps) {
                           `${photo.category ?? 'Custom'} tattoo design by Fernando Govea - Professional tattoo artist Dallas Fort Worth`
                         }
                         fill
-                        priority={index < 12}
-                        quality={95}
+                        priority={index < 6}
+                        quality={85}
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-110"
+                        loading={index < 6 ? 'eager' : 'lazy'}
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+hxM6T3oDSaBkJw+YWuPkmv"
                         onError={(e) => {
                           void console.error(`Failed to load image: ${photo.src}`);
                           e.currentTarget.src = '/images/traditional.jpg';
@@ -280,8 +283,11 @@ export function GalleryGrid({ limit }: GalleryGridProps) {
                           `${photo.category ?? 'Custom'} tattoo design by Fernando Govea - Professional tattoo artist Dallas Fort Worth`
                         }
                         fill
-                        priority={index < 6}
-                        quality={95}
+                        priority={index < 3}
+                        quality={85}
+                        loading={index < 3 ? 'eager' : 'lazy'}
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+hxM6T3oDSaBkJw+YWuPkmv"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-110"
                         onError={(e) => {
