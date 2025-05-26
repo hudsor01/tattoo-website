@@ -6,18 +6,7 @@ import { galleryPhotos } from './gallery-photos';
 import Image from 'next/image';
 import { Play, ImageIcon, Film } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import Lightbox from 'yet-another-react-lightbox';
-import Video from 'yet-another-react-lightbox/plugins/video';
-import Captions from 'yet-another-react-lightbox/plugins/captions';
-import Counter from 'yet-another-react-lightbox/plugins/counter';
-import Fullscreen from 'yet-another-react-lightbox/plugins/fullscreen';
-import Slideshow from 'yet-another-react-lightbox/plugins/slideshow';
-import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
-import Zoom from 'yet-another-react-lightbox/plugins/zoom';
-import 'yet-another-react-lightbox/styles.css';
-import 'yet-another-react-lightbox/plugins/captions.css';
-import 'yet-another-react-lightbox/plugins/counter.css';
-import 'yet-another-react-lightbox/plugins/thumbnails.css';
+import { DynamicLightbox } from './DynamicLightbox';
 
 // Media item interfaces
 interface BaseGalleryItem {
@@ -321,60 +310,50 @@ export function GalleryGrid({
         </div>
       </div>
 
-      {/* Yet Another React Lightbox */}
-      <Lightbox
-        open={isLightboxOpen}
-        close={closeLightbox}
-        index={lightboxIndex}
-        slides={lightboxSlides}
-        plugins={[Video, Captions, Counter, Fullscreen, Slideshow, Thumbnails, Zoom]}
-        captions={{
-          showToggle: true,
-          descriptionTextAlign: 'center',
-        }}
-        counter={{
-          container: { style: { top: 'unset', bottom: 0 } },
-        }}
-        thumbnails={{
-          position: 'bottom',
-          width: 120,
-          height: 80,
-          border: 1,
-          borderRadius: 4,
-          padding: 4,
-          gap: 16,
-        }}
-        zoom={{
-          maxZoomPixelRatio: 3,
-          zoomInMultiplier: 2,
-          doubleTapDelay: 300,
-          doubleClickDelay: 300,
-          doubleClickMaxStops: 2,
-          keyboardMoveDistance: 50,
-          wheelZoomDistanceFactor: 100,
-          pinchZoomDistanceFactor: 100,
-        }}
-        slideshow={{
-          autoplay: false,
-          delay: 3000,
-        }}
-        video={{
-          controls: true,
-          playsInline: true,
-        }}
-        styles={{
-          container: { backgroundColor: 'rgba(0, 0, 0, 0.95)' },
-          slide: { padding: 0 },
-        }}
-        render={{
-          ...(lightboxSlides.length <= 1 && {
-            buttonPrev: () => null,
-            buttonNext: () => null,
-          })
-        }}
+      {/* Dynamic Lightbox - only loads when needed */}
+      <DynamicLightbox
+      open={isLightboxOpen}
+      close={closeLightbox}
+      index={lightboxIndex}
+      slides={lightboxSlides}
+      render={{
+      ...(lightboxSlides.length <= 1 && {
+      buttonPrev: () => null,
+      buttonNext: () => null,
+      })
+      }}
+      animation={{ fade: 250, swipe: 250, easing: { fade: 'ease', swipe: 'ease', navigation: 'ease' } }}
+      controller={{
+        closeOnPullDown: true,
+        closeOnPullUp: false,
+        closeOnBackdropClick: true,
+        focus: true,
+        touchAction: 'pan-y' as const,
+        aria: true,
+        preventDefaultWheelX: true,
+        preventDefaultWheelY: false,
+        disableSwipeNavigation: false,
+        ref: { current: null }
+      }}
+      toolbar={{ buttons: ['close'] }}
+      carousel={{ 
+      finite: lightboxSlides.length <= 1,
+      preload: 2,
+      padding: 0,
+      spacing: 0,
+      imageFit: 'contain',
+      imageProps: {}
+      }}
+      labels={{}}
+      plugins={[]}
+      portal={{}}
+      noScroll={{ disabled: false }}
+      on={{}}
+      styles={{}}
+      className=""
       />
-    </div>
-  );
-}
-
-export default GalleryGrid;
+      </div>
+      );
+      }
+      
+      export default GalleryGrid;;

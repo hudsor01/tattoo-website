@@ -90,11 +90,16 @@ export default function HomeClient() {
     };
   }, []);
   
-  // Preload images for better performance
+  // Optimized image preloading - only preload first 2 images
   void React.useEffect(() => {
-    void tattooImages.forEach((src) => {
-      const img = new window.Image();
-      img.src = src;
+    // Preload only the first image (currently shown) and next image
+    const preloadImages = tattooImages.slice(0, 2);
+    preloadImages.forEach((src) => {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = src;
+      document.head.appendChild(link);
     });
   }, []);
   

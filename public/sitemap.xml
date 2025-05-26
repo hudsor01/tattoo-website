@@ -5,67 +5,182 @@
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <!-- Homepage -->
   <url>
-    <loc>https://fernandogovea.com/</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://ink37tattoos.com/</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   
   <!-- Main Pages -->
   <url>
-    <loc>https://fernandogovea.com/about</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://ink37tattoos.com/about</loc>
+    <lastmod>2025-01-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://fernandogovea.com/services</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  
-  <url>
-    <loc>https://fernandogovea.com/gallery</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://ink37tattoos.com/services</loc>
+    <lastmod>2025-01-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://fernandogovea.com/booking</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://ink37tattoos.com/gallery</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/booking</loc>
+    <lastmod>2025-01-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://fernandogovea.com/contact</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://ink37tattoos.com/contact</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/faq</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Gallery Styles -->
+  <url>
+    <loc>https://ink37tattoos.com/gallery/traditional</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/gallery/fine-line</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/gallery/black-grey</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/gallery/color</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/gallery/japanese</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Service Pages -->
+  <url>
+    <loc>https://ink37tattoos.com/services/custom-tattoos</loc>
+    <lastmod>2025-01-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://fernandogovea.com/faq</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://ink37tattoos.com/services/cover-up-tattoos</loc>
+    <lastmod>2025-01-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   
-  <!-- Client Portal (Public Pages) -->
   <url>
-    <loc>https://fernandogovea.com/client-portal/login</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <loc>https://ink37tattoos.com/services/fine-line-tattoos</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://fernandogovea.com/client-portal/sign-up</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>yearly</changefreq>
+    <loc>https://ink37tattoos.com/services/traditional-tattoos</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/services/consultation</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Location Pages - Cities near Crowley, Texas -->
+  <url>
+    <loc>https://ink37tattoos.com/tattoo-artist-crowley</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/tattoo-artist-fort-worth</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/tattoo-artist-burleson</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/tattoo-artist-arlington</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/tattoo-artist-mansfield</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/tattoo-artist-forest-hill</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://ink37tattoos.com/tattoo-artist-grand-prairie</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Client Portal -->
+  <url>
+    <loc>https://ink37tattoos.com/client-portal</loc>
+    <lastmod>2025-01-25</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
 </urlset>

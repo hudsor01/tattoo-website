@@ -121,8 +121,18 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         suppressHydrationWarning
       >
         <head>
-          {/* Add an emotion insertion point to control CSS order */}
+          {/* Critical performance and SEO meta tags */}
           <meta name="emotion-insertion-point" content="" />
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+          <meta name="theme-color" content="#e53935" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="format-detection" content="telephone=no" />
+          <link rel="canonical" href="https://ink37tattoos.com" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link rel="dns-prefetch" href="https://qrcweallqlcgwiwzhqpb.supabase.co" />
+          <link rel="dns-prefetch" href="https://js.clerk.com" />
         </head>
         <body className="font-inter bg-black text-white antialiased">
           {/* Structured data for business */}

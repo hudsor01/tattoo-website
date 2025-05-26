@@ -1,4 +1,13 @@
 /** @type {import('next').NextConfig} */
+
+// Bundle analyzer setup
+import bundleAnalyzer from '@next/bundle-analyzer';
+import crypto from 'crypto';
+
+const withBundleAnalyzer = bundleAnalyzer({
+enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -33,7 +42,7 @@ const nextConfig = {
       'framer-motion',
       'recharts',
       'date-fns',
-      '@tanstack/react-table',
+
       '@tanstack/react-query',
       'react-hook-form',
       'yet-another-react-lightbox',
@@ -103,9 +112,25 @@ const nextConfig = {
     BUILD_TIME: new Date().toISOString(),
   },
   webpack: (config, { dev, isServer }) => {
-    if (config.cache && config.cache.type === 'filesystem') {
-      config.cache.compression = 'gzip';
-    }
+  if (config.cache && config.cache.type === 'filesystem') {
+  config.cache.compression = 'gzip';
+  }
+  
+  // Fix ES module parsing for React Table and other libraries
+  config.module.rules.push({
+  test: /\.m?js$/,
+  include: /node_modules\/@tanstack/,
+  type: 'javascript/auto',
+  resolve: {
+  fullySpecified: false,
+  },
+  });
+  
+  // Ensure proper ES module handling
+  config.experiments = {
+  ...config.experiments,
+  topLevelAwait: true,
+  };
 
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
@@ -126,7 +151,7 @@ const nextConfig = {
                 /node_modules[/\\]/.test(module.identifier());
             },
             name(module) {
-              const hash = require('crypto').createHash('sha1');
+              const hash = crypto.createHash('sha1');
               hash.update(module.identifier());
               return hash.digest('hex').substring(0, 8);
             },
@@ -159,12 +184,12 @@ const nextConfig = {
           },
           shared: {
             name(module, chunks) {
-              return 'shared-' + 
-                require('crypto')
-                  .createHash('sha1')
-                  .update(chunks.reduce((acc, chunk) => acc + chunk.name, ''))
-                  .digest('hex')
-                  .substring(0, 8);
+            return 'shared-' + 
+            crypto
+            .createHash('sha1')
+            .update(chunks.reduce((acc, chunk) => acc + chunk.name, ''))
+            .digest('hex')
+            .substring(0, 8);
             },
             priority: 10,
             minChunks: 2,
@@ -190,4 +215,4 @@ const nextConfig = {
   },
 }
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);
