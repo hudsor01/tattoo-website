@@ -13,8 +13,13 @@ export const metadata: Metadata = {
   description:
     'Professional tattoo artist in Crowley, TX serving Fort Worth, Arlington, Burleson & DFW area. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+    ],
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
   },
   keywords: [
     'tattoo artist Crowley TX',
