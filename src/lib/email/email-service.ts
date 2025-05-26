@@ -8,8 +8,14 @@
 
 import { Resend } from 'resend';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialize Resend only when needed
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable is required');
+  }
+  return new Resend(apiKey);
+}
 
 // Default email configuration
 export const DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com';
@@ -38,6 +44,7 @@ export async function sendEmail({
       ...(html ? { html } : { text: text ?? 'No content provided' }),
     };
     
+    const resend = getResendClient();
     const result = await resend.emails.send(emailOptions);
 
     return { success: true, data: result };
