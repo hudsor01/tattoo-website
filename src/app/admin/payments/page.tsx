@@ -39,7 +39,7 @@ export default function PaymentsPage() {
   const [endDate] = useState(() => new Date())
   const [startDate] = useState(() => {
     const date = new Date()
-    void date.setDate(date.getDate() - 30)
+    date.setDate(date.getDate() - 30)
     return date
   })
 
@@ -106,7 +106,7 @@ export default function PaymentsPage() {
     return method.charAt(0).toUpperCase() + method.slice(1)
   }
 
-  if (paymentsLoading ?? statsLoading) {
+  if (paymentsLoading || statsLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">

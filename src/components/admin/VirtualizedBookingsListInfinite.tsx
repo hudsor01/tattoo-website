@@ -67,12 +67,12 @@ export default function VirtualizedBookingsListInfinite({
 
   // Use the new infinite query hook
   const { 
-    data: bookings,
+    data, // Raw data from the hook
     isLoading,
     isFetching,
-    hasMore,
+    hasNextPage, // Use hasNextPage instead of hasMore
     fetchNextPage,
-    count: totalCount
+    // totalCount might be available on the first page or needs to be calculated
   } = useBookingsInfiniteQuery({
     ...(statusFilter && statusFilter !== 'all' && { status: statusFilter }),
     limit: 20, // Load 20 items per page
@@ -80,14 +80,15 @@ export default function VirtualizedBookingsListInfinite({
 
   // Process and filter bookings
   const filteredBookings = useMemo(() => {
-    if (!bookings) return []
+    if (!data?.pages) return []
     
-    let filtered = bookings as BookingData[]
+    // Flatten the pages to get a single array of bookings
+    let allBookings = data.pages.flatMap(page => page.bookings) as BookingData[]
 
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      filtered = filtered.filter(booking => 
+      allBookings = allBookings.filter(booking => 
         booking.Customer?.firstName?.toLowerCase().includes(searchLower) ??
         booking.Customer?.lastName?.toLowerCase().includes(searchLower) ??
         booking.Customer?.email?.toLowerCase().includes(searchLower) ??
@@ -98,7 +99,7 @@ export default function VirtualizedBookingsListInfinite({
     }
 
     // Sort bookings
-    const sorted = [...filtered].sort((a, b) => {
+    const sorted = [...allBookings].sort((a, b) => {
       switch (sortBy) {
         case 'date-asc':
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -120,7 +121,7 @@ export default function VirtualizedBookingsListInfinite({
     })
 
     return sorted
-  }, [bookings, searchTerm, sortBy])
+  }, [data?.pages, searchTerm, sortBy])
 
   const toggleExpanded = (bookingId: number) => {
     const newExpanded = new Set(expandedBookings)
@@ -143,7 +144,7 @@ export default function VirtualizedBookingsListInfinite({
   const loadMoreRef = React.useRef<HTMLDivElement>(null)
   
   React.useEffect(() => {
-    if (!hasMore || isFetching) return undefined
+    if (!hasNextPage || isFetching) return undefined // Use hasNextPage
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -159,7 +160,7 @@ export default function VirtualizedBookingsListInfinite({
     }
 
     return () => observer.disconnect()
-  }, [hasMore, isFetching, fetchNextPage])
+  }, [hasNextPage, isFetching, fetchNextPage])
 
   if (isLoading) {
     return (
@@ -359,7 +360,7 @@ export default function VirtualizedBookingsListInfinite({
             ))}
 
             {/* Load More Trigger */}
-            {hasMore && (
+            {hasNextPage && ( // Use hasNextPage
               <div ref={loadMoreRef} className="flex justify-center py-4">
                 {isFetching ? (
                   <div className="flex items-center gap-2">
@@ -369,7 +370,7 @@ export default function VirtualizedBookingsListInfinite({
                 ) : (
                   <Button 
                     variant="outline" 
-                    onClick={fetchNextPage}
+                    onClick={() => { void fetchNextPage(); }}
                     className="text-blue-600"
                   >
                     Load More Bookings
@@ -379,7 +380,7 @@ export default function VirtualizedBookingsListInfinite({
             )}
 
             {/* End Message */}
-            {!hasMore && filteredBookings.length > 0 && (
+            {!hasNextPage && filteredBookings.length > 0 && ( // Use hasNextPage
               <div className="text-center py-4">
                 <p className="text-sm text-gray-500">You've reached the end of the list</p>
               </div>
@@ -391,8 +392,8 @@ export default function VirtualizedBookingsListInfinite({
       {/* Summary */}
       <div className="flex-shrink-0 mt-4 pt-4 border-t">
         <p className="text-sm text-gray-500">
-          Showing {filteredBookings.length} of {totalCount} bookings
-          {hasMore && ` (${totalCount - filteredBookings.length} more available)`}
+          Showing {filteredBookings.length} of {data?.pages[0]?.totalCount ?? 0} bookings 
+          {hasNextPage && ` (${(data?.pages[0]?.totalCount ?? 0) - filteredBookings.length} more available)`} 
         </p>
       </div>
     </div>

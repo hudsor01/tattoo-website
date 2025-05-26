@@ -39,7 +39,7 @@ interface DropzoneContextType {
   maxFileSize: number;
   maxFiles: number;
   isSuccess: boolean;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   isDragActive: boolean;
   isDragReject: boolean;
 }

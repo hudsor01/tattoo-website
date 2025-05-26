@@ -255,7 +255,7 @@ export function TimeRangeFilter({
             <CalendarComponent
               initialFocus
               mode="range"
-              defaultMonth={value?.from}
+              {...(value?.from && { defaultMonth: value.from })}
               selected={customRange as ReactDayPickerDateRange | undefined}
               onSelect={handleCustomRangeSelect}
               numberOfMonths={2}

@@ -195,9 +195,8 @@ export function SidebarSearch() {
   }, [isOpen, results, selectedIndex, handleSelect])
 
   const groupedResults = results.reduce((acc, result) => {
-    if (!acc[result.category]) {
-      acc[result.category] = []
-    }
+    if (!result?.category) return acc
+    acc[result.category] ??= []
     acc[result.category].push(result)
     return acc
   }, {} as Record<string, SearchResult[]>)
