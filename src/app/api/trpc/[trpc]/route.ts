@@ -79,10 +79,7 @@ export async function POST(req: NextRequest) {
     return new Response(
       JSON.stringify({
         message: 'Internal server error',
-        // Only expose error details in development
-        ...(process.env.NODE_ENV === 'development' && {
-          error: errorMessage,
-        }),
+        // Never expose error details to prevent information leakage
       }),
       {
         status: 500,
