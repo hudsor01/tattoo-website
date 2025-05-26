@@ -45,9 +45,22 @@ prisma/client/
 
 # MCP config files
 mcp.*
+mcp.json
+
+# Additional development files
+docs/
+supabase/.temp/
+.tsbuildinfo
+*.tsbuildinfo
+
+# Environment files
 .env*
 .flaskenv*
 !.env.project
 !.env.vault
-.vercel
-mcp.json
+!.env.example
+
+# Vercel
+.vercel/
+
+# Note: vercel.json is kept for deployment configuration
