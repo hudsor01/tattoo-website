@@ -94,21 +94,35 @@ export function useGalleryInfinite(): UseGalleryInfiniteResult {
     await refetchDesigns();
   };
 
+  const handleFetchNextPage = () => {
+    void fetchNextPage();
+  };
+
+  const handleFilterByArtist = (newArtistId?: string) => {
+    setArtistId(newArtistId ?? null);
+    setCategory(null);
+    setSearchQuery('');
+  };
+
+  const handleSearchDesigns = (query: string) => {
+    setSearchQuery(query);
+    setCategory(null);
+    setArtistId(null);
+  };
+
   return {
-    filteredDesigns,
+    designs: filteredDesigns,
     isLoading,
     isError,
     isFetching,
-    error: error as unknown,
-    fetchNextPage,
+    error: error as Error | null,
+    hasMore: computedHasMore,
+    fetchNextPage: handleFetchNextPage,
     refetch,
-    category,
-    artistId,
-    searchQuery,
-    sortOrder,
-    computedHasMore,
-    totalCount,
     filterByCategory,
+    filterByArtist: handleFilterByArtist,
     sortDesigns,
+    searchDesigns: handleSearchDesigns,
+    totalCount,
   };
 }

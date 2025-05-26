@@ -48,26 +48,33 @@ export default function GalleryInfinite({
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false)
 
   // Use the infinite query hook
-  const {
-    data: designs,
-    isLoading,
-    isFetching,
-    hasMore,
-    fetchNextPage,
-    count: totalCount,
-    error,
-  } = useGalleryInfiniteQuery({
+  const queryResult = useGalleryInfiniteQuery({
     ...(designType && { designType }),
     limit: itemsPerPage,
   })
 
+  const {
+    data: queryData,
+    isLoading,
+    isFetching,
+    hasNextPage,
+    fetchNextPage,
+    error,
+  } = queryResult
+
+  // Flatten the paginated data
+  const designs = React.useMemo(() => {
+    return queryData?.pages.flatMap((page) => page.designs) ?? []
+  }, [queryData])
+  
+  const totalCount = queryData?.pages[0]?.totalCount ?? 0
+  const hasMore = hasNextPage ?? false
+
   // Filter designs by search term (client-side filtering)
   const filteredDesigns = React.useMemo(() => {
-    // Type assertion for designs
-    const typedDesigns = (designs as GalleryDesignDto[]) || []
-    if (!typedDesigns) return []
+    if (!designs) return []
     
-    let filtered = typedDesigns
+    let filtered = designs
     
     // Search filter
     if (searchTerm) {
@@ -262,7 +269,7 @@ export default function GalleryInfinite({
                         <div className="relative aspect-square">
                           <Image
                             src={design.thumbnailUrl ?? design.fileUrl ?? '/images/placeholder-tattoo.jpg'}
-                            alt={design.name}
+                            alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Fernando Govea, Dallas Fort Worth tattoo artist`}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -307,7 +314,7 @@ export default function GalleryInfinite({
                       <div className="relative aspect-square">
                         <Image
                           src={design.thumbnailUrl ?? design.fileUrl ?? '/images/placeholder-tattoo.jpg'}
-                          alt={design.name}
+                          alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Fernando Govea, Dallas Fort Worth tattoo artist`}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/email/email';
 import { z } from 'zod';
 import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
+import { rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 // Increase the size limit for file uploads
@@ -81,6 +82,13 @@ async function saveFiles(files: Record<string, File>, submissionId: string) {
  * Handle contact form submissions with file uploads
  */
 export async function POST(request: NextRequest) {
+  // Apply rate limiting: 5 requests per minute for contact form
+  const rateLimitResult = rateLimit(request, 5, 60000);
+  const rateLimitErrorResponse = rateLimitResponse(rateLimitResult);
+  if (rateLimitErrorResponse) {
+    return rateLimitErrorResponse;
+  }
+
   try {
     // Parse multipart form data
     const { formFields, files } = await parseFormData(request);
