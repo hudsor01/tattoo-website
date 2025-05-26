@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import AboutClient from '@/components/AboutClient';
 
+// Force static generation
+export const dynamic = 'force-static';
+export const revalidate = 86400; // 24 hours
+
 export const metadata: Metadata = {
   title: 'About Us | Ink 37 Tattoos',
   description:

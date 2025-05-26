@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { shareContent } from "@/lib/api"
 import { Facebook, Twitter, Instagram, Mail, Copy, Check, Loader2, Linkedin } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import Image from "next/image"
 import type { SharePlatform, ShareDialogProps, ShareMetadata, ShareButton } from "@/types/component-types"
 
 export function ShareDialog({ open, onOpenChange, contentType, contentId, title }: ShareDialogProps) {
@@ -103,9 +104,11 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
           <div className="border rounded-md p-3 bg-muted/30">
             <div className="flex items-start gap-3">
               <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0 overflow-hidden">
-                <img
+                <Image
                   src={shareMetadata.image ?? "/placeholder.svg"}
                   alt={shareMetadata.title}
+                  width={64}
+                  height={64}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     // Fallback to placeholder if image fails to load
