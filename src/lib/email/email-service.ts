@@ -35,8 +35,7 @@ export async function sendEmail({
       to,
       from: from ?? process.env.ARTIST_EMAIL ?? 'noreply@tattooartist.com',
       subject,
-      ...(html && { html }),
-      ...(text && { text }),
+      ...(html ? { html } : { text: text ?? 'No content provided' }),
     };
     
     const result = await resend.emails.send(emailOptions);

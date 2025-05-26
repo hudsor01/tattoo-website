@@ -29,10 +29,10 @@ import {
   Instagram,
   Facebook,
   Github,
-  type Icon as LucideIcon
-} from "lucide-react"
-
-export type Icon = LucideIcon
+  type Icon
+  } from "lucide-react"
+  
+  export type { Icon }
 
 export const Icons = {
   logo: Command,

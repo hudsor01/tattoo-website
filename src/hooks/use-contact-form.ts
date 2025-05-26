@@ -4,25 +4,27 @@
  * This file provides hooks for contact form submission and admin dashboard display.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 /**
  * Hook for submitting contact form data
  */
 export const useContactForm = () => {
   // TODO: Contact submission - implement in appropriate router
-  const submitContactMutation = { 
-    mutate: async (_contactData: {
+  const submitContactMutation = useMemo(() => ({ 
+    mutate: async (contactData: {
       name: string;
       email: string;
       phone?: string;
       message: string;
-    }) => {}, 
+    }) => {
+      void contactData; // Use the parameter to avoid unused warning
+    }, 
     isPending: false,
     isSuccess: false,
     isError: false,
     error: null
-  };
+  }), []);
   
   const submitContactForm = useCallback(
     (contactData: {
@@ -38,7 +40,7 @@ export const useContactForm = () => {
         throw error;
       }
     },
-    [],
+    [submitContactMutation],
   );
 
   return {

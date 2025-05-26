@@ -61,11 +61,10 @@ export default function GalleryInfinite({
     limit: itemsPerPage,
   })
 
-  // Type assertion for designs
-  const typedDesigns = (designs as GalleryDesignDto[]) || []
-
   // Filter designs by search term (client-side filtering)
   const filteredDesigns = React.useMemo(() => {
+    // Type assertion for designs
+    const typedDesigns = (designs as GalleryDesignDto[]) || []
     if (!typedDesigns) return []
     
     let filtered = typedDesigns
@@ -96,7 +95,7 @@ export default function GalleryInfinite({
     })
     
     return sorted
-  }, [typedDesigns, searchTerm, sortBy])
+  }, [designs, searchTerm, sortBy])
 
   // Prepare slides for lightbox
   const lightboxSlides = React.useMemo(() => {

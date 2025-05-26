@@ -23,7 +23,7 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export default function ContactForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { submitContactForm, isSubmitting, isSuccess, isError, error } = useContactForm();
+  const { submitContactForm, isSubmitting, isSuccess, isError } = useContactForm();
 
   const {
     register,
@@ -47,7 +47,7 @@ export default function ContactForm() {
       setIsSubmitted(true);
       reset();
     } catch (err) {
-      void console.error('Failed to submit contact form:', err);
+      console.error('Failed to submit contact form:', err);
     }
   };
 
@@ -159,7 +159,7 @@ export default function ContactForm() {
       {isError && (
         <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
           <p className="text-red-400 text-sm">
-            {error?.message ?? 'Failed to send message. Please try again or contact me directly.'}
+            {'Failed to send message. Please try again or contact me directly.'}
           </p>
         </div>
       )}

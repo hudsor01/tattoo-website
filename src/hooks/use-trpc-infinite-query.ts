@@ -1,7 +1,7 @@
 'use client'
 
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpc/client'
+import { trpc } from '@/lib/trpc/client-provider'
 
 interface UseTRPCInfiniteQueryProps<T> {
   queryKey: string[]
@@ -86,23 +86,16 @@ export function useGalleryInfiniteQuery({
   limit?: number
   enabled?: boolean
 } = {}) {
-  return useTRPCInfiniteQuery({
-    queryKey: ['gallery', 'getPublicDesigns', designType ?? 'all', limit.toString()],
-    queryFn: async ({ pageParam }) => {
-      const response = await trpc.gallery.getPublicDesigns.query({
-        limit,
-        cursor: pageParam as number | undefined,
-        designType: designType ?? undefined,
-      })
-      
-      return {
-        data: response.designs,
-        nextCursor: response.nextCursor,
-        totalCount: response.totalCount,
-      }
+  return trpc.gallery.getPublicDesigns.useInfiniteQuery(
+    {
+      limit,
+      designType,
     },
-    enabled,
-  })
+    {
+      enabled,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  )
 }
 
 // Specific hook for bookings
@@ -115,23 +108,14 @@ export function useBookingsInfiniteQuery({
   limit?: number
   enabled?: boolean
 } = {}) {
-  return useTRPCInfiniteQuery({
-    queryKey: ['dashboard', 'getRecentBookings', status || 'all', limit.toString()],
-    queryFn: async ({ pageParam }) => {
-      // Note: This assumes the dashboard router supports cursor-based pagination
-      // You may need to update the dashboard router to support this
-      const response = await trpc.dashboard.getRecentBookings.query({
-        limit,
-        cursor: pageParam as number | undefined,
-        status: status === 'all' ? undefined : (status ?? undefined),
-      })
-      
-      return {
-        data: response.bookings ?? [],
-        nextCursor: response.nextCursor,
-        totalCount: response.totalCount ?? response.bookings?.length ?? 0,
-      }
+  return trpc.dashboard.getRecentBookings.useInfiniteQuery(
+    {
+      limit,
+      status,
     },
-    enabled,
-  })
+    {
+      enabled,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  )
 }

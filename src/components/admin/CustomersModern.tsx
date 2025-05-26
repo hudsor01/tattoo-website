@@ -11,14 +11,32 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { api } from '@/lib/trpc/client'
-import type { Customer } from '@/types/customer-types'
-
 interface CustomersModernProps {
   className?: string
 }
 
-// Type for Customer data
-type CustomerData = Customer
+// Type for Customer data from Prisma (matches actual database schema)
+type CustomerData = {
+  id: string
+  firstName: string
+  lastName: string
+  email: string | null
+  phone: string | null
+  avatarUrl: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  postalCode: string | null
+  zipCode?: string | null  // For form compatibility
+  country: string | null
+  birthDate: Date | null
+  notes: string | null
+  allergies: string | null
+  source: string | null
+  tags: string[]
+  createdAt: Date
+  updatedAt: Date
+}
 
 export default function CustomersModern({ className }: CustomersModernProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -441,8 +459,8 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                 <div>
                   <Label className="text-sm font-medium">Address</Label>
                   <p className="text-sm text-gray-600">
-                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.zipCode]
-                      .filter(Boolean).join(', ') ?? 'Not provided'}
+                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.postalCode]
+                    .filter(Boolean).join(', ') ?? 'Not provided'}
                   </p>
                 </div>
               </div>
