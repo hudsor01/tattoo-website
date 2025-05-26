@@ -520,7 +520,7 @@ export default function GalleryPageContent() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Artist</Label>
-                  <p>Fernando Govea</p>
+                  <p>Ink 37 Tattoos</p>
                 </div>
               </div>
               {selectedDesign.description && (

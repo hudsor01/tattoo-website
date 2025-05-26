@@ -195,7 +195,7 @@ export function generateCustomerContactConfirmation(data: ContactFormData) {
       <div class="content">
         <h2>Hello ${data.name},</h2>
 
-        <p>Thank you for reaching out to Ink 37 Tattoo Studio. I've received your message and will get back to you as soon as possible, usually within 24-48 hours.</p>
+        <p>Thank you for reaching out to Ink 37 Tattoos. I've received your message and will get back to you as soon as possible, usually within 24-48 hours.</p>
 
         <p>For your reference, here's a copy of your message:</p>
 
@@ -208,7 +208,7 @@ export function generateCustomerContactConfirmation(data: ContactFormData) {
 
         <p>Looking forward to connecting with you!</p>
 
-        <p>Best regards,<br>Fernando Govea<br>Ink 37 Tattoo Studio</p>
+        <p>Best regards,<br>Ink 37 Tattoos Team</p>
 
         <div class="social-links">
           <a href="https://instagram.com/fennyg83">Instagram</a> |
@@ -216,7 +216,7 @@ export function generateCustomerContactConfirmation(data: ContactFormData) {
         </div>
       </div>
       <div class="footer">
-        <p>Ink 37 Tattoo Studio | Dallas/Fort Worth, TX | (555) 123-4567</p>
+        <p>Ink 37 Tattoos | Dallas/Fort Worth, TX</p>
         <p>This email was sent to ${data.email}. If you did not submit this contact form, please disregard this message.</p>
       </div>
     </body>
@@ -227,7 +227,7 @@ export function generateCustomerContactConfirmation(data: ContactFormData) {
   const text = `
 Hello ${data.name},
 
-Thank you for reaching out to Ink 37 Tattoo Studio. I've received your message and will get back to you as soon as possible, usually within 24-48 hours.
+Thank you for reaching out to Ink 37 Tattoos. I've received your message and will get back to you as soon as possible, usually within 24-48 hours.
 
 For your reference, here's a copy of your message:
 
@@ -240,13 +240,13 @@ If you have any further questions or information to add, feel free to reply to t
 Looking forward to connecting with you!
 
 Best regards,
-Fernando Govea
-Ink 37 Tattoo Studio
+Ink 37 Tattoos
+Ink 37 Tattoos
 
 Follow us on Instagram: https://instagram.com/fennyg83
 Like us on Facebook: https://facebook.com/ink37
 
-Ink 37 Tattoo Studio | Dallas/Fort Worth, TX | (555) 123-4567
+Ink 37 Tattoos | Dallas/Fort Worth, TX
 
 This email was sent to ${data.email}. If you did not submit this contact form, please disregard this message.
   `.trim();

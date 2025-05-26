@@ -30,7 +30,7 @@ const businessInfo: BusinessInfo = {
     postalCode: "75201",
     addressCountry: "US"
   },
-  phone: "+1-555-123-4567", // Update with actual phone
+  phone: "", // No phone number provided
   email: "contact@ink37tattoos.com",
   url: "https://ink37tattoos.com",
   image: "https://ink37tattoos.com/images/studio-front.jpg",
