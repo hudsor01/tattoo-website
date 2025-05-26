@@ -69,44 +69,58 @@ export function GoogleTagManager() {
   );
 }
 
-// Page view tracking hook
+// Page view tracking hook with safe error handling
 export function usePageTracking() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    try {
+      const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-    if (
-      GA_MEASUREMENT_ID &&
-      typeof window !== 'undefined' &&
-      (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag
-    ) {
-      const url = pathname + searchParams.toString();
-      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
-        'config',
-        GA_MEASUREMENT_ID,
-        {
-          page_path: url,
-          page_title: document.title,
-          page_location: window.location.href,
-        }
-      );
+      if (
+        GA_MEASUREMENT_ID &&
+        typeof window !== 'undefined' &&
+        (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag
+      ) {
+        const url = pathname + searchParams.toString();
+        (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
+          'config',
+          GA_MEASUREMENT_ID,
+          {
+            page_path: url,
+            page_title: document.title,
+            page_location: window.location.href,
+          }
+        );
+      }
+    } catch {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Analytics] Failed to track page view for:', pathname);
+      }
     }
   }, [pathname, searchParams]);
 }
 
-// Track custom events
+// Track custom events with safe error handling
 export function trackEvent(eventName: string, parameters?: Record<string, unknown>) {
-  if (
-    typeof window !== 'undefined' &&
-    (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag
-  ) {
-    (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', eventName, {
-      event_category: 'engagement',
-      event_label: eventName,
-      ...parameters,
-    });
+  try {
+    const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    if (
+      measurementId &&
+      typeof window !== 'undefined' &&
+      (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag
+    ) {
+      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', eventName, {
+        event_category: 'engagement',
+        event_label: eventName,
+        ...parameters,
+      });
+    }
+  } catch {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Analytics] Failed to track event:', eventName);
+    }
   }
 }
 

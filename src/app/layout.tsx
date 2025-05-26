@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { cookies } from 'next/headers';
+import Script from 'next/script';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
@@ -206,6 +207,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <meta name="format-detection" content="telephone=no" />
+          <meta name="google-site-verification" content="qv1_HzbLkbp9qF_TxoQryposrxfe8HsgyrM_erp-pCs" />
           <link rel="canonical" href="https://ink37tattoos.com" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -214,8 +216,27 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           {/* Preload critical hero images */}
           <link rel="preload" href="/images/traditional.jpg" as="image" type="image/jpeg" />
           <link rel="preload" href="/images/japanese.jpg" as="image" type="image/jpeg" />
+          
         </head>
         <body className="font-inter bg-black text-white antialiased">
+          {/* Google Analytics */}
+          {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+            <>
+              <Script
+                src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+                strategy="afterInteractive"
+              />
+              <Script id="google-analytics" strategy="afterInteractive">
+                {`
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
+                `}
+              </Script>
+            </>
+          )}
+          
           {/* Structured data for business */}
           <script
             type="application/ld+json"
