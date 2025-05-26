@@ -1,5 +1,4 @@
 paths:
   - src
 queries:
-  - security-extended
-  - quality
+  - security-and-quality
