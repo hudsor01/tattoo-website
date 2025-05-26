@@ -130,7 +130,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
           {design?.fileUrl ? (
             <Image
               src={design.fileUrl}
-              alt={design.name}
+              alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Ink 37, Crowley TX`}
               className="object-cover"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -139,7 +139,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
           ) : design?.thumbnailUrl ? (
             <Image
               src={design.thumbnailUrl}
-              alt={design.name}
+              alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Ink 37, Crowley TX`}
               className="object-cover"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -216,7 +216,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
               >
                 <Avatar className="h-10 w-10">
                   {design.Artist.User.image ? (
-                    <AvatarImage src={design.Artist.User.image} alt={design.Artist.User.name ?? 'Artist'} />
+                    <AvatarImage src={design.Artist.User.image} alt={`${design.Artist.User.name ?? 'Professional tattoo artist'} - Ink 37 tattoo studio`} />
                   ) : (
                     <AvatarFallback>
                       {design.Artist.User.name ? design.Artist.User.name.charAt(0).toUpperCase() : 'A'}
@@ -264,7 +264,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
                     {relatedDesign.thumbnailUrl ? (
                       <Image
                         src={relatedDesign.thumbnailUrl}
-                        alt={relatedDesign.name}
+                        alt={`${relatedDesign.designType ?? 'Custom'} tattoo design: ${relatedDesign.name} - Professional tattoo art by Ink 37`}
                         className="object-cover"
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"

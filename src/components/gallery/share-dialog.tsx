@@ -106,7 +106,7 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
               <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0 overflow-hidden">
                 <Image
                   src={shareMetadata.image ?? "/placeholder.svg"}
-                  alt={shareMetadata.title}
+                  alt={shareMetadata.title ? `${shareMetadata.title} - Professional tattoo design by Ink 37` : 'Professional tattoo design by Ink 37 - Custom tattoo art in Crowley, TX'}
                   width={64}
                   height={64}
                   className="w-full h-full object-cover"

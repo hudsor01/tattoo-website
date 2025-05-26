@@ -37,7 +37,7 @@ export function GalleryPreviewCard({ mediaItem, category }: GalleryPreviewCardPr
       <div className="relative aspect-[3/4]">
         <Image
           src={mediaItem.src}
-          alt={mediaItem.alt ?? `${category} tattoo`}
+          alt={mediaItem.alt ?? `Professional ${category} tattoo design by Ink 37 - Custom tattoo art in Crowley, TX`}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           priority
