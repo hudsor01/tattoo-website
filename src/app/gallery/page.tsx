@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import GalleryClient from '@/components/gallery/GalleryClient';
 
+// Force static generation with revalidation every 2 hours (new tattoos)
+export const dynamic = 'force-static';
+export const revalidate = 7200;
+
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',
   description: 'Explore our tattoo gallery showcasing Fernando Govea\'s custom designs, Japanese style, traditional, and realism tattoos. Get inspired for your next ink.',
