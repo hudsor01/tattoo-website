@@ -14,13 +14,21 @@ import { toast } from '@/components/ui/use-toast'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { trpc } from '@/lib/trpc/client'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  GeneralSettingsForm,
+  BookingSettingsForm,
+  EmailSettingsForm,
+  SecuritySettingsForm,
+  NotificationSettingsForm,
+  SettingsMutationError
+} from '@/types/settings-types'
 
 export default function SettingsPage() {
   // Get settings data from tRPC
   const { data: settings, isLoading, refetch } = trpc.settings.getSettings.useQuery()
 
   // Local state for form data
-  const [generalSettings, setGeneralSettings] = useState({
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettingsForm>({
     siteName: '',
     siteDescription: '',
     contactEmail: '',
@@ -30,7 +38,7 @@ export default function SettingsPage() {
     timezone: ''
   })
 
-  const [bookingSettings, setBookingSettings] = useState({
+  const [bookingSettings, setBookingSettings] = useState<BookingSettingsForm>({
     bookingEnabled: true,
     requireDeposit: true,
     depositAmount: 100,
@@ -42,8 +50,8 @@ export default function SettingsPage() {
     reminderHoursBefore: 24
   })
 
-  const [emailSettings, setEmailSettings] = useState({
-    emailProvider: 'resend' as 'resend' | 'sendgrid' | 'smtp',
+  const [emailSettings, setEmailSettings] = useState<EmailSettingsForm>({
+    emailProvider: 'resend',
     fromName: '',
     fromEmail: '',
     replyToEmail: '',
@@ -53,7 +61,7 @@ export default function SettingsPage() {
     sendCancellationNotices: true
   })
 
-  const [securitySettings, setSecuritySettings] = useState({
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettingsForm>({
     requireTwoFactor: false,
     sessionTimeout: 24,
     maxLoginAttempts: 5,
@@ -63,7 +71,7 @@ export default function SettingsPage() {
     logSecurityEvents: true
   })
 
-  const [notificationSettings, setNotificationSettings] = useState({
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsForm>({
     newBookingAlerts: true,
     paymentAlerts: true,
     cancellationAlerts: true,
@@ -100,7 +108,7 @@ export default function SettingsPage() {
       toast({ title: 'General settings saved successfully' })
       void refetch()
     },
-    onError: (error: { message: string }) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error saving general settings', description: error.message, variant: 'destructive' })
     }
   })
@@ -110,7 +118,7 @@ export default function SettingsPage() {
       toast({ title: 'Booking settings saved successfully' })
       void refetch()
     },
-    onError: (error) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error saving booking settings', description: error.message, variant: 'destructive' })
     }
   })
@@ -120,7 +128,7 @@ export default function SettingsPage() {
       toast({ title: 'Email settings saved successfully' })
       void refetch()
     },
-    onError: (error) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error saving email settings', description: error.message, variant: 'destructive' })
     }
   })
@@ -130,7 +138,7 @@ export default function SettingsPage() {
       toast({ title: 'Security settings saved successfully' })
       void refetch()
     },
-    onError: (error) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error saving security settings', description: error.message, variant: 'destructive' })
     }
   })
@@ -140,7 +148,7 @@ export default function SettingsPage() {
       toast({ title: 'Notification settings saved successfully' })
       void refetch()
     },
-    onError: (error) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error saving notification settings', description: error.message, variant: 'destructive' })
     }
   })
@@ -149,7 +157,7 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast({ title: 'Test email sent successfully' })
     },
-    onError: (error) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error sending test email', description: error.message, variant: 'destructive' })
     }
   })
@@ -158,7 +166,7 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast({ title: 'Database backup initiated' })
     },
-    onError: (error) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error creating backup', description: error.message, variant: 'destructive' })
     }
   })
@@ -167,7 +175,7 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast({ title: 'Cache cleared successfully' })
     },
-    onError: (error) => {
+    onError: (error: SettingsMutationError) => {
       toast({ title: 'Error clearing cache', description: error.message, variant: 'destructive' })
     }
   })
