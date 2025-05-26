@@ -13,9 +13,9 @@ import { NextRequest, NextResponse } from 'next/server';
 // ========================================
 
 export const patterns = {
-  phone: /^[0-9+\-() ]+$/,
+  phone: /^[0-9+() -]+$/,
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  url: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_.~#?&//=]*)$/,
+  url: /^https?:\/\/(www\.)?[a-zA-Z0-9@:%._~#=-]{1,256}\.[a-zA-Z0-9()]{1,6}\b([a-zA-Z0-9()@:%_.~#?&/=-]*)$/,
 };
 
 /**
@@ -40,7 +40,7 @@ export const createField = {
       .string()
       .min(minLength, { message: `Name must be at least ${minLength} characters` })
       .max(maxLength, { message: `Name cannot exceed ${maxLength} characters` })
-      .refine((val) => /^[a-zA-Z\s-.']+$/.test(val), {
+      .refine((val) => /^[a-zA-Z\s'.-]+$/.test(val), {
         message: 'Name can only contain letters, spaces, and basic punctuation',
       });
 

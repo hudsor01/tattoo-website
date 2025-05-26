@@ -88,8 +88,11 @@ export default function FeaturedCarousel({
                       `Professional tattoo design by Ink 37 - Custom tattoo art in Crowley, TX`
                     }
                     fill
-                    priority={index < 3}
-                    quality={90}
+                    priority={index < 2}
+                    quality={85}
+                    loading={index < 2 ? 'eager' : 'lazy'}
+                    placeholder="blur"
+                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+hxM6T3oDSaBkJw+YWuPkmv"
                     sizes="(max-width: 768px) 90vw, 50vw"
                     className="object-cover transition-transform duration-300 hover:scale-105"
                   />

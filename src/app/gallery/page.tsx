@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
-import GalleryClient from '@/components/gallery/GalleryClient';
+import dynamicImport from 'next/dynamic';
+
+const GalleryClient = dynamicImport(() => import('@/components/gallery/GalleryClient'), {
+  loading: () => (
+    <div className="flex h-96 items-center justify-center">
+      <div className="text-lg">Loading gallery...</div>
+    </div>
+  ),
+});
 
 // Force static generation with revalidation every 2 hours (new tattoos)
 export const dynamic = 'force-static';

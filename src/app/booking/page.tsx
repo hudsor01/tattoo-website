@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
-import BookingClient from './booking-client';
+import dynamic from 'next/dynamic';
+
+const BookingClient = dynamic(() => import('./booking-client'), {
+  loading: () => (
+    <div className="flex h-96 items-center justify-center">
+      <div className="text-lg">Loading booking form...</div>
+    </div>
+  ),
+});
 
 export const metadata: Metadata = {
   title: 'Book a Consultation | Ink 37 Tattoos',

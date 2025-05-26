@@ -4,18 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run lint && npm run type-check && prisma generate && next build",
-    "build:production": "npm run lint && npm run type-check && npm run format:check && prisma generate && next build",
+    "build": "npm run lint && npm run type-check && next build",
     "build:analyze": "ANALYZE=true npm run build",
-    "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "type-check": "tsc --noEmit",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "postinstall": "prisma generate"
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.20.0",

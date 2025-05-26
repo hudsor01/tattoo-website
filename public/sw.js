@@ -130,8 +130,13 @@ async function syncAppointments() {
   }
 }
 
-// Message handler for skip waiting
+// Message handler for skip waiting with origin verification
 self.addEventListener('message', (event) => {
+  // Verify origin for security
+  if (event.origin !== self.location.origin) {
+    return; // Reject messages from unknown origins
+  }
+  
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }

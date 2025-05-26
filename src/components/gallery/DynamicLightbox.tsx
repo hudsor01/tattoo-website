@@ -18,7 +18,7 @@ const Lightbox = dynamic(() => import('yet-another-react-lightbox'), {
   ssr: false,
 });
 
-// Static imports for plugins to avoid dynamic loading complexity
+// Static imports for plugins - dynamic imports cause type issues with yet-another-react-lightbox
 import Video from 'yet-another-react-lightbox/plugins/video';
 import Captions from 'yet-another-react-lightbox/plugins/captions';
 import Counter from 'yet-another-react-lightbox/plugins/counter';
