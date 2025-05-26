@@ -86,22 +86,31 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Improve caching strategy
+    if (config.cache && config.cache.type === 'filesystem') {
+      // Optimize cache serialization
+      config.cache.compression = 'gzip';
+    }
+
     if (!dev && !isServer) {
       // Production client-side optimizations
       config.optimization.splitChunks = {
         chunks: 'all',
+        maxSize: 200000, // Split large chunks
         cacheGroups: {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             priority: 10,
             enforce: true,
+            maxSize: 150000,
           },
           trpc: {
             test: /[\\/]node_modules[\\/]@trpc[\\/]/,
             name: 'trpc',
             priority: 20,
             enforce: true,
+            maxSize: 100000,
           },
         },
       };
