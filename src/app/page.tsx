@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import HomeClient from '@/components/home/HomeClient';
+import { createSafeJsonLdProps } from '@/lib/utils/security';
 
 // Force static generation with revalidation every 4 hours
 export const dynamic = 'force-static';
@@ -114,7 +115,7 @@ export default function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={createSafeJsonLdProps(jsonLd)}
       />
       <HomeClient />
     </>

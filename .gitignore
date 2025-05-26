@@ -1,14 +1,17 @@
 # Dependencies
 node_modules/
 
-# Local env files
+# Local env files - All environment files
+.env*
 .env
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
-!.env.example
-.vscode
+.flaskenv*
 
 # Next.js build output
 .next/
@@ -45,9 +48,36 @@ prisma/client/
 
 # MCP config files
 mcp.*
-.env*
-.flaskenv*
-!.env.project
-!.env.vault
-.vercel
 mcp.json
+
+# Additional sensitive files
+config/secrets.*
+config/keys.*
+config/database.*
+secrets/
+keys/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+
+# API keys and secrets (catch any files with these patterns)
+*secret*
+*key*
+*token*
+*password*
+*credential*
+!**/src/**
+!**/components/**
+!**/pages/**
+!**/public/**
+!package*.json
+!tsconfig*.json
+!eslint*
+!prettier*
+!tailwind*
+!postcss*
+!next*

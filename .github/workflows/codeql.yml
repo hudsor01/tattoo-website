@@ -24,6 +24,9 @@ jobs:
         include:
         - language: javascript-typescript
           build-mode: none
+    
+    env:
+      CODEQL_ACTION_FEATURE_MULTI_LANGUAGE: true
 
     steps:
     - name: Checkout repository
