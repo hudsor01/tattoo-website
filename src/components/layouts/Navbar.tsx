@@ -34,7 +34,7 @@ export function Navbar() {
 
   // Determine which navigation to use based on path
   const isClientPortal = pathname.startsWith('/customer');
-  const isAdminDashboard = pathname.startsWith('/admin-dashboard');
+  const isAdminDashboard = pathname.startsWith('/admin');
 
   // Handle scroll events
   useEffect(() => {

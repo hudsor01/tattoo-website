@@ -113,6 +113,52 @@ export default function sitemap(): MetadataRoute.Sitemap {
   //   priority: 0.6,
   // }));
 
+  // Admin portal pages (lower priority, but included for completeness)
+  const adminPages = [
+    {
+      url: `${baseUrl}/admin`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/admin/appointments`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/admin/bookings`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/admin/customers`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/admin/gallery`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/admin/payments`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/admin/settings`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.3,
+    },
+  ];
+
   // Client portal (lower priority)
   const clientPages = [
     {
@@ -129,6 +175,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...servicePages,
     ...locationPages, // Cities near Crowley, Texas
     // ...blogPages,      // Re-enable when blog exists
+    ...adminPages,
     ...clientPages,
   ];
 }
