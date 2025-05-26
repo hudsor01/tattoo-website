@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Icon Generator for Ink 37</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .generator {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 2px solid #444;
+            margin: 10px;
+            background: white;
+        }
+        button {
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #c62828;
+        }
+        .icon-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .download-section {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 PWA Icon Generator for Ink 37</h1>
+    
+    <div class="generator">
+        <h2>Icon Generator</h2>
+        <p>This will create all required PWA icons based on the "Ink 37" text logo with tattoo styling.</p>
+        
+        <button onclick="generateAllIcons()">🚀 Generate All PWA Icons</button>
+        <button onclick="downloadAll()">📥 Download All Icons</button>
+        
+        <div class="icon-preview" id="iconPreview"></div>
+        
+        <div class="download-section">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Click "Generate All PWA Icons" to create icons</li>
+                <li>Click "Download All Icons" to save them</li>
+                <li>Move all downloaded PNG files to <code>/public/icons/</code> folder</li>
+                <li>Your PWA will now work without console errors!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const shortcutIcons = [
+            { name: 'booking-icon', size: 96, symbol: '📅', color: '#4CAF50' },
+            { name: 'gallery-icon', size: 96, symbol: '🎨', color: '#FF9800' },
+            { name: 'portal-icon', size: 96, symbol: '👤', color: '#2196F3' },
+            { name: 'badge-72x72', size: 72, symbol: '✨', color: '#e53935' }
+        ];
+        
+        let generatedIcons = [];
+
+        function createIcon(size, text = 'I37', bgColor = '#000000', textColor = '#e53935') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Border (for larger icons)
+            if (size >= 128) {
+                ctx.strokeStyle = textColor;
+                ctx.lineWidth = Math.max(2, size / 64);
+                ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, size - ctx.lineWidth, size - ctx.lineWidth);
+            }
+            
+            // Text
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Dynamic font size based on icon size
+            const fontSize = Math.floor(size * 0.3);
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            
+            ctx.fillText(text, size/2, size/2);
+            
+            return canvas;
+        }
+
+        function createSymbolIcon(size, symbol, bgColor) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Symbol
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const fontSize = Math.floor(size * 0.5);
+            ctx.font = `${fontSize}px Arial`;
+            ctx.fillText(symbol, size/2, size/2);
+            
+            return canvas;
+        }
+
+        function generateAllIcons() {
+            const preview = document.getElementById('iconPreview');
+            preview.innerHTML = '';
+            generatedIcons = [];
+            
+            // Generate main PWA icons
+            iconSizes.forEach(size => {
+                const canvas = createIcon(size);
+                const container = document.createElement('div');
+                container.innerHTML = `
+                    <div style="text-align: center; margin: 10px;">
+                        <div style="font-size: 12px; margin-bottom: 5px;">icon-${size}x${size}.png</div>
+                        ${canvas.outerHTML}
+                    </div>
+                `;
+                preview.appendChild(container);
+                
+                generatedIcons.push({
+                    name: `icon-${size}x${size}.png`,
+                    canvas: canvas
+                });
+            });
+            
+            // Generate shortcut icons
+            shortcutIcons.forEach(icon => {
+                const canvas = createSymbolIcon(icon.size, icon.symbol, icon.color);
+                const container = document.createElement('div');
+                container.innerHTML = `
+                    <div style="text-align: center; margin: 10px;">
+                        <div style="font-size: 12px; margin-bottom: 5px;">${icon.name}.png</div>
+                        ${canvas.outerHTML}
+                    </div>
+                `;
+                preview.appendChild(container);
+                
+                generatedIcons.push({
+                    name: `${icon.name}.png`,
+                    canvas: canvas
+                });
+            });
+            
+            console.log(`✅ Generated ${generatedIcons.length} PWA icons`);
+        }
+
+        function downloadAll() {
+            if (generatedIcons.length === 0) {
+                alert('Please generate icons first!');
+                return;
+            }
+            
+            generatedIcons.forEach(icon => {
+                icon.canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = icon.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            });
+            
+            alert(`📥 Downloading ${generatedIcons.length} PWA icons! Check your Downloads folder.`);
+        }
+
+        // Auto-generate on page load
+        window.onload = () => {
+            generateAllIcons();
+        };
+    </script>
+</body>
+</html>

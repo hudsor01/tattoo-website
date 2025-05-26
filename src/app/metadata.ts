@@ -1,9 +1,3 @@
-/**
- * IMPORTANT: This file provides metadata for the homepage
- * Since the homepage is a client component (with 'use client'),
- * we need to store metadata in a separate server file
- */
-
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

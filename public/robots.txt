@@ -1,9 +1,19 @@
 # Ink37 Tattoo Studio - robots.txt
 # https://ink37tattoos.com
+# Professional tattoo artist in Crowley, TX serving DFW area
 
 # Allow all crawlers by default
 User-agent: *
 Allow: /
+Crawl-delay: 1
+
+# Explicitly allow important pages for SEO
+Allow: /gallery/
+Allow: /services/
+Allow: /about/
+Allow: /contact/
+Allow: /booking/
+Allow: /faq/
 
 # Block admin and protected areas
 Disallow: /admin/
@@ -19,11 +29,29 @@ Disallow: /test/
 Disallow: /tests/
 Disallow: /.env
 Disallow: /.git/
+Disallow: /node_modules/
+Disallow: /.vercel/
+Disallow: /output/
+
+# Block unnecessary file types for SEO crawlers
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.map$
 
 # Specific bot rules for better SEO
 User-agent: Googlebot
 Crawl-delay: 0
 Allow: /
+Allow: /gallery/
+Allow: /services/
+Allow: /about/
+Allow: /contact/
+Allow: /booking/
+
+User-agent: Googlebot-Image
+Allow: /images/
+Allow: /videos/
 
 User-agent: Bingbot
 Crawl-delay: 1
@@ -36,7 +64,13 @@ Allow: /
 User-agent: DuckDuckBot
 Allow: /
 
-# Block aggressive crawlers that don't respect robots.txt
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+# Block aggressive crawlers and scrapers
 User-agent: SemrushBot
 Disallow: /
 
@@ -49,5 +83,19 @@ Disallow: /
 User-agent: DotBot
 Disallow: /
 
-# Sitemap location
+User-agent: SeznamBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: YandexBot
+Crawl-delay: 2
+Allow: /
+
+# Sitemap locations
 Sitemap: https://ink37tattoos.com/sitemap.xml
+Sitemap: https://ink37tattoos.com/sitemap-0.xml
+
+# Host directive for search engines
+Host: https://ink37tattoos.com
