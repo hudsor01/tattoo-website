@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 
@@ -32,7 +32,9 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [openItems, setOpenItems] = React.useState<Set<string>>(new Set());
+  const [isNavigating, setIsNavigating] = React.useState(false);
 
   // Initialize open items based on current path
   void React.useEffect(() => {
@@ -46,7 +48,34 @@ export function NavMain({
       }
     });
     setOpenItems(newOpenItems);
+    setIsNavigating(false); // Reset navigation state when pathname changes
   }, [pathname, items]);
+
+  // Prefetch all admin routes on mount
+  void React.useEffect(() => {
+    const allUrls = items.reduce<string[]>((acc, item) => {
+      acc.push(item.url);
+      if (item.items) {
+        acc.push(...item.items.map((subItem) => subItem.url));
+      }
+      return acc;
+    }, []);
+
+    // Prefetch routes after a short delay to not block initial render
+    const timeoutId = setTimeout(() => {
+      allUrls.forEach((url) => {
+        router.prefetch(url);
+      });
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [router, items]);
+
+  const handleNavigation = (url: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(url);
+  };
 
   const toggleItem = (itemTitle: string) => {
     setOpenItems((prev) => {
@@ -93,9 +122,16 @@ export function NavMain({
                         <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </div>
                     ) : (
-                      <Link href={item.url} className="flex items-center gap-3 w-full">
+                      <Link 
+                        href={item.url} 
+                        className="flex items-center gap-3 w-full"
+                        onClick={(e) => handleNavigation(item.url, e)}
+                      >
                         {item.icon && <item.icon className="h-5 w-5 shrink-0" />}
                         <span className="truncate text-base">{item.title}</span>
+                        {isNavigating && pathname !== item.url && (
+                          <div className="ml-auto h-4 w-4 animate-spin rounded-full border-2 border-tattoo-red border-t-transparent" />
+                        )}
                       </Link>
                     )}
                   </SidebarMenuButton>
@@ -110,7 +146,10 @@ export function NavMain({
                             className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200"
                             isActive={pathname === subItem.url}
                           >
-                            <Link href={subItem.url}>
+                            <Link 
+                              href={subItem.url}
+                              onClick={(e) => handleNavigation(subItem.url, e)}
+                            >
                               <span>{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>
