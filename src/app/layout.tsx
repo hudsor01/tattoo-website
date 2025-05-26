@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
+import { createSafeJsonLdProps } from '@/lib/utils/security';
 import './globals.css';
 
 
@@ -214,7 +215,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           {/* Structured data for business */}
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+            dangerouslySetInnerHTML={createSafeJsonLdProps(businessSchema)}
           />
           {/* Providers system */}
           <Providers cookies={cookieEntries}>

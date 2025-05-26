@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getBuildSafeTattooDesigns, getBuildSafeTattooDesign, getFallbackGalleryMetadata } from '@/lib/db/build-safe-prisma';
 import { DesignDetail } from '@/components/gallery/DesignDetail';
 import { DesignDetailSkeleton } from '@/components/gallery/DesignDetailSkeleton';
+import { createSafeJsonLdProps } from '@/lib/utils/security';
 import type { Metadata } from 'next';
 
 // Enable static generation with revalidation every 6 hours
@@ -281,26 +282,24 @@ export default async function DesignDetailPage({ params }: PageProps) {
         {/* Schema.org structured data for SEO */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "CreativeWork",
-              "name": design.name,
-              "description": design.description,
-              "image": design.thumbnailUrl,
-              "creator": {
-                "@type": "Person",
-                "name": design.Artist?.User?.name,
-              },
-              "dateCreated": design.createdAt,
-              "genre": design.designType,
-              "isPartOf": {
-                "@type": "WebSite",
-                "name": "Ink 37 Tattoo Gallery",
-                "url": "https://ink37.com"
-              }
-            })
-          }}
+          dangerouslySetInnerHTML={createSafeJsonLdProps({
+            "@context": "https://schema.org",
+            "@type": "CreativeWork",
+            "name": design.name,
+            "description": design.description,
+            "image": design.thumbnailUrl,
+            "creator": {
+              "@type": "Person",
+              "name": design.Artist?.User?.name,
+            },
+            "dateCreated": design.createdAt,
+            "genre": design.designType,
+            "isPartOf": {
+              "@type": "WebSite",
+              "name": "Ink 37 Tattoo Gallery",
+              "url": "https://ink37.com"
+            }
+          })}
         />
       </div>
     </div>
