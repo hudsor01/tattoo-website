@@ -1,20 +1,46 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Production optimizations
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  
-  // Performance optimizations
   experimental: {
     optimisticClientCache: true,
     serverActions: {
       bodySizeLimit: '2mb',
     },
-    optimizePackageImports: ['lucide-react'],
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-aspect-ratio',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-collapsible',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-label',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-progress',
+      '@radix-ui/react-radio-group',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slider',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toggle',
+      '@radix-ui/react-tooltip',
+      'framer-motion',
+      'recharts',
+      'date-fns',
+      '@tanstack/react-table',
+      '@tanstack/react-query',
+      'react-hook-form',
+      'yet-another-react-lightbox',
+      'react-day-picker',
+      'embla-carousel-react'
+    ],
   },
-
-  // Security headers
   async headers() {
     return [
       {
@@ -44,17 +70,12 @@ const nextConfig = {
       },
     ];
   },
-
-  // Build configuration - enable checks for production
   eslint: {
-    ignoreDuringBuilds: false, // Enable ESLint during builds
+    ignoreDuringBuilds: false,
   },
-  
   typescript: {
-    ignoreBuildErrors: false, // Enable TypeScript checking during builds
+    ignoreBuildErrors: false,
   },
-  
-  // Image optimization
   images: {
     remotePatterns: [
       {
@@ -78,51 +99,86 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-
-  // Environment-specific optimizations
   env: {
     BUILD_TIME: new Date().toISOString(),
   },
-
-  // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
-    // Improve caching strategy
     if (config.cache && config.cache.type === 'filesystem') {
-      // Optimize cache serialization
       config.cache.compression = 'gzip';
     }
 
     if (!dev && !isServer) {
-      // Production client-side optimizations
       config.optimization.splitChunks = {
         chunks: 'all',
-        maxSize: 200000, // Split large chunks
         cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: 10,
+          default: false,
+          vendors: false,
+          framework: {
+            name: 'framework',
+            chunks: 'all',
+            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+            priority: 40,
             enforce: true,
-            maxSize: 150000,
+          },
+          lib: {
+            test(module) {
+              return module.size() > 160000 &&
+                /node_modules[/\\]/.test(module.identifier());
+            },
+            name(module) {
+              const hash = require('crypto').createHash('sha1');
+              hash.update(module.identifier());
+              return hash.digest('hex').substring(0, 8);
+            },
+            priority: 30,
+            minChunks: 1,
+            reuseExistingChunk: true,
+          },
+          radix: {
+            name: 'radix',
+            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+            priority: 35,
+            reuseExistingChunk: true,
           },
           trpc: {
-            test: /[\\/]node_modules[\\/]@trpc[\\/]/,
             name: 'trpc',
+            test: /[\\/]node_modules[\\/]@trpc[\\/]/,
+            priority: 34,
+            reuseExistingChunk: true,
+          },
+          tanstack: {
+            name: 'tanstack',
+            test: /[\\/]node_modules[\\/]@tanstack[\\/]/,
+            priority: 33,
+            reuseExistingChunk: true,
+          },
+          commons: {
+            name: 'commons',
+            minChunks: 2,
             priority: 20,
-            enforce: true,
-            maxSize: 100000,
+          },
+          shared: {
+            name(module, chunks) {
+              return 'shared-' + 
+                require('crypto')
+                  .createHash('sha1')
+                  .update(chunks.reduce((acc, chunk) => acc + chunk.name, ''))
+                  .digest('hex')
+                  .substring(0, 8);
+            },
+            priority: 10,
+            minChunks: 2,
+            reuseExistingChunk: true,
           },
         },
+        maxAsyncRequests: 30,
+        maxInitialRequests: 30,
       };
     }
     
     return config;
   },
-
-  // Output configuration for deployment
   output: 'standalone',
-  
-  // Redirects for SEO
   async redirects() {
     return [
       {
