@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { toast } from '@/components/ui/toast'
+import { toast } from '@/hooks/use-toast'
 import type { Customer, CustomerCreateInput } from '@/types/customer-types'
 
 export interface OptimisticAction<TData, TInput> {
@@ -52,7 +52,7 @@ export function useOptimisticMutation<TData extends { id: string }, TInput>(
         }))
 
         // Show immediate feedback
-        void toast.success('Creating...', 'Your request is being processed')
+        void toast({ description: 'Creating... Your request is being processed', variant: 'success' })
       } else {
         setState(prev => ({ ...prev, isLoading: true, error: null }))
       }
@@ -77,7 +77,7 @@ export function useOptimisticMutation<TData extends { id: string }, TInput>(
 
         // Success callback
         action.onSuccess?.(result, input)
-        void toast.success('Success!', 'Operation completed successfully')
+        void toast({ description: 'Operation completed successfully', variant: 'success' })
 
         return result
       } catch (error) {
@@ -94,7 +94,7 @@ export function useOptimisticMutation<TData extends { id: string }, TInput>(
 
         // Error callback
         action.onError?.(err, input)
-        void toast.error('Error', err.message)
+        void toast({ description: err.message, variant: 'error' })
 
         throw err
       } finally {

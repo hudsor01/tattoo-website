@@ -24,9 +24,9 @@ export interface EnhancedToastOptions {
  */
 export function showToast(options: EnhancedToastOptions) {
   return toast({
-    title: options.title,
+    ...(options.title && { title: options.title }),
     description: options.description,
-    variant: options.variant ?? 'default',
+    variant: options.variant === 'error' ? 'destructive' : (options.variant ?? 'default'),
     ...(options.duration !== undefined && { duration: options.duration })
   });
 }
