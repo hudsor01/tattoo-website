@@ -75,13 +75,23 @@ export default function SettingsPage() {
 
   // Update local state when settings data loads
   useEffect(() => {
-    if (settings) {
-      setGeneralSettings(settings.general || {})
-      setBookingSettings(settings.booking || {})
-      setEmailSettings(settings.email || {})
-      setSecuritySettings(settings.security || {})
-      setNotificationSettings(settings.notifications || {})
-    }
+  if (settings) {
+  if (settings.general && typeof settings.general === 'object' && settings.general !== null) {
+  setGeneralSettings(prev => ({ ...prev, ...settings.general as Record<string, unknown> }))
+  }
+  if (settings.booking && typeof settings.booking === 'object' && settings.booking !== null) {
+  setBookingSettings(prev => ({ ...prev, ...settings.booking as Record<string, unknown> }))
+  }
+  if (settings.email && typeof settings.email === 'object' && settings.email !== null) {
+  setEmailSettings(prev => ({ ...prev, ...settings.email as Record<string, unknown> }))
+  }
+  if (settings.security && typeof settings.security === 'object' && settings.security !== null) {
+  setSecuritySettings(prev => ({ ...prev, ...settings.security as Record<string, unknown> }))
+  }
+  if (settings.notifications && typeof settings.notifications === 'object' && settings.notifications !== null) {
+  setNotificationSettings(prev => ({ ...prev, ...settings.notifications as Record<string, unknown> }))
+  }
+  }
   }, [settings])
 
   // Mutations  

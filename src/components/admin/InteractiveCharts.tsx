@@ -211,16 +211,20 @@ export function ServiceBreakdownChart() {
 
   // Process data for pie chart
   const serviceData: ServiceData[] = React.useMemo(() => {
-    if (!serviceStats || !Array.isArray(serviceStats)) return []
-
-    const total = serviceStats.reduce((sum: number, service: ServiceStat) => sum + service.value, 0)
-
-    return serviceStats.map((service: ServiceStat, index: number) => ({
-      name: service.name,
-      value: total > 0 ? Math.round((service.value / total) * 100) : 0,
-      sessions: service.value,
-      color: service.color || CHART_COLORS[index % CHART_COLORS.length]
-    }))
+  if (!serviceStats || !Array.isArray(serviceStats)) return []
+  
+    const validServiceStats = serviceStats as ServiceStat[]
+    const total = validServiceStats.reduce((sum, service) => sum + service.value, 0)
+    
+    return validServiceStats.map((service, index): ServiceData => {
+      const color = service.color ?? CHART_COLORS[index % CHART_COLORS.length] ?? '#ef4444';
+      return {
+        name: service.name,
+        value: total > 0 ? Math.round((service.value / total) * 100) : 0,
+        sessions: service.value,
+        color: color
+      };
+    })
   }, [serviceStats])
 
   if (error) {

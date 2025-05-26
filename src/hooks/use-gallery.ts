@@ -100,7 +100,7 @@ export function useGallery(): UseGalleryResult {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(design => 
-        design.name.toLowerCase().includes(query) ?? design.description?.toLowerCase().includes(query) ?? design.designType?.toLowerCase().includes(query)
+        design.name.toLowerCase().includes(query) || (design.description?.toLowerCase().includes(query) ?? false) || (design.designType?.toLowerCase().includes(query) ?? false)
       );
     }
     

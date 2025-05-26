@@ -23,8 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import type { CalBookingPayload } from '@/types/cal-types';
-
+// import type { CalBookingPayload } from '@/types/booking-types' // Commented out unused import
 interface UnifiedBooking {
   id: string;
   source: 'website' | 'cal.com';
@@ -70,7 +69,7 @@ export default function BookingsPage() {
 
   // Convert Cal.com bookings to unified format
   const unifiedCalBookings: UnifiedBooking[] = useMemo(() => {
-    return calBookings.map((booking: CalBookingPayload) => ({
+    return calBookings.map((booking) => ({
       id: booking.uid,
       source: 'cal.com' as const,
       clientName: booking.attendees?.[0]?.name ?? 'No name',
@@ -83,7 +82,7 @@ export default function BookingsPage() {
       createdAt: booking.startTime, // Use start time as created date for sorting
       location: booking.location ?? undefined,
       payment: booking.payment && Array.isArray(booking.payment) && booking.payment.length > 0 
-        ? { amount: booking.eventType?.price || 0, currency: booking.eventType?.currency || 'USD' } 
+        ? { amount: (booking.eventType as { price?: number; currency?: string })?.price ?? 0, currency: (booking.eventType as { price?: number; currency?: string })?.currency ?? 'USD' } 
         : null,
       customInputs: Array.isArray(booking.customInputs) 
         ? booking.customInputs.filter((input) => input.label && input.value).map((input) => ({
@@ -125,7 +124,7 @@ export default function BookingsPage() {
   const groupedBookings = useMemo(() => {
     return filteredBookings.reduce((groups, booking) => {
       const date = new Date(booking.startTime).toDateString();
-      groups[date] ??= [];
+      groups[date] = groups[date] ?? [];
       groups[date].push(booking);
       return groups;
     }, {} as Record<string, UnifiedBooking[]>);
@@ -335,7 +334,7 @@ export default function BookingsPage() {
             </p>
           </Card>
         ) : (
-          void Object.entries(groupedBookings).map(([date, dayBookings]) => (
+          Object.entries(groupedBookings).map(([date, dayBookings]) => (
             <div key={date} className="space-y-4">
               <h2 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
                 {new Date(date).toLocaleDateString('en-US', {
@@ -482,7 +481,7 @@ export default function BookingsPage() {
                           <Button 
                             size="sm" 
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={() => void handleAccept(booking)}
+                            onClick={() => { void handleAccept(booking); }}
                           >
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Accept
@@ -490,7 +489,7 @@ export default function BookingsPage() {
                           <Button 
                             size="sm" 
                             variant="destructive"
-                            onClick={() => void handleReject(booking)}
+                            onClick={() => { void handleReject(booking); }}
                           >
                             <XCircle className="h-3 w-3 mr-1" />
                             Reject

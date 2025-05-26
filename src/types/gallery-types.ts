@@ -1,6 +1,34 @@
 export type GalleryItemType = string | null | null;
 export type DesignImageFormat = 'jpg' | 'png' | 'webp' | 'svg';
 
+export interface GalleryDesign {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  customerId: string | null;
+  artistId: string;
+  size: string | null;
+  fileUrl: string | null;
+  thumbnailUrl: string | null;
+  designType: string | null;
+  isApproved: boolean;
+  approvedAt: Date | null;
+  Artist?: {
+    id: string;
+    User?: {
+      name: string | null;
+      image: string | null;
+    } | null;
+  } | null;
+  Customer?: {
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+  } | null;
+}
+
 export interface GalleryDesignDto {
   id: string;
   name: string;
@@ -74,4 +102,20 @@ export interface ApiError {
   message: string
   code?: string
   status?: number
+}
+
+export interface UseGalleryInfiniteResult {
+  designs: GalleryDesign[];
+  isLoading: boolean;
+  isError: boolean;
+  isFetching: boolean;
+  error: Error | null;
+  hasMore: boolean;
+  fetchNextPage: () => void;
+  refetch: () => Promise<void>;
+  filterByCategory: (category?: string) => void;
+  filterByArtist: (artistId?: string) => void;
+  sortDesigns: (sortBy: 'latest' | 'oldest' | 'popular') => void;
+  searchDesigns: (query: string) => void;
+  totalCount: number;
 }
