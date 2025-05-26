@@ -7,86 +7,106 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db/prisma';
+import { getBuildSafeTattooDesigns, getBuildSafeTattooDesign, getFallbackGalleryMetadata } from '@/lib/db/build-safe-prisma';
 import { DesignDetail } from '@/components/gallery/DesignDetail';
 import { DesignDetailSkeleton } from '@/components/gallery/DesignDetailSkeleton';
 import type { Metadata } from 'next';
+
+// Enable static generation with revalidation every 6 hours
+export const revalidate = 21600;
+
+// Generate static paths for all approved designs with build-time safety
+export async function generateStaticParams() {
+  const designs = await getBuildSafeTattooDesigns({
+    where: { isApproved: true },
+    select: { id: true },
+    take: 100,
+    orderBy: { createdAt: 'desc' },
+    fallback: [] // Empty array allows dynamic generation at runtime
+  });
+  
+  console.warn(`Generated ${Array.isArray(designs) ? designs.length : 0} static params for gallery`);
+  return Array.isArray(designs) ? designs.map((design: unknown) => ({
+  id: (design as { id: string }).id
+  })) : [];}
 
 interface PageProps {
   params: { id: string };
 }
 
-// Generate metadata for SEO
+// Generate metadata for SEO with build-time safety
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  try {
-    const design = await prisma.tattooDesign.findUnique({
-      where: { id: params.id },
-      select: {
-        name: true,
-        description: true,
-        thumbnailUrl: true,
-        designType: true,
-        Artist: {
-          include: {
-            User: {
-              select: {
-                name: true,
-              }
-            }
-          }
-        }
-      }
-    });
+const design = await getBuildSafeTattooDesign(params.id, {
+select: {
+name: true,
+description: true,
+thumbnailUrl: true,
+designType: true,
+Artist: {
+include: {
+User: {
+select: {
+name: true,
+}
+}
+}
+}
+},
+fallback: null
+}) as {
+name: string;
+description?: string;
+thumbnailUrl?: string;
+designType?: string;
+Artist?: {
+User?: {
+name?: string;
+};
+};
+} | null;
 
-    if (!design) {
-      return {
-        title: 'Design Not Found | Ink 37 Tattoo Gallery',
-        description: 'The requested tattoo design could not be found.',
-      };
-    }
+if (!design) {
+// Return fallback metadata if design not found or database unavailable
+return getFallbackGalleryMetadata(params.id);
+}
 
-    const artistName = design.Artist?.User?.name ?? 'Unknown Artist';
-    const title = `${design.name} by ${artistName} | Ink 37 Tattoo Gallery`;
-    const description = design.description ?? `View this ${design.designType ?? 'tattoo'} design by ${artistName}. Professional tattoo art and custom designs.`;
+const artistName = design.Artist?.User?.name ?? 'Ink 37 Artist';
+const title = `${design.name} by ${artistName} | Ink 37 Tattoo Gallery`;
+const description = design.description ?? `View this ${design.designType ?? 'tattoo'} design by ${artistName}. Professional tattoo art and custom designs.`;
 
-    return {
+  return {
+    title,
+    description,
+    openGraph: {
       title,
       description,
-      openGraph: {
-        title,
-        description,
-        images: design.thumbnailUrl ? [
-          {
-            url: design.thumbnailUrl,
-            width: 800,
-            height: 600,
-            alt: design.name,
-          }
-        ] : [],
-        type: 'article',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title,
-        description,
-        images: design.thumbnailUrl ? [design.thumbnailUrl] : [],
-      },
-      keywords: [
-        'tattoo',
-        'tattoo design',
-        design.designType,
-        'custom tattoo',
-        'tattoo art',
-        'ink 37',
-        artistName,
-      ].filter(Boolean) as string[],
-    };
-  } catch (error) {
-    void console.error('Error generating metadata for design:', error);
-    return {
-      title: 'Tattoo Design | Ink 37',
-      description: 'View tattoo design details at Ink 37 professional tattoo studio.',
-    };
-  }
+      images: design.thumbnailUrl ? [
+        {
+          url: design.thumbnailUrl,
+          width: 800,
+          height: 600,
+          alt: design.name,
+        }
+      ] : [],
+      type: 'article',
+      siteName: 'Ink 37 Tattoo Gallery',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: design.thumbnailUrl ? [design.thumbnailUrl] : [],
+    },
+    keywords: [
+      'tattoo',
+      'tattoo design',
+      design.designType,
+      'custom tattoo',
+      'tattoo art',
+      'ink 37',
+      artistName,
+    ].filter(Boolean) as string[],
+  };
 }
 
 // Server component that fetches real data

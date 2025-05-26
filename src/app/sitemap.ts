@@ -83,13 +83,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  // Location pages for local SEO (adjust city names as needed)
+  // Location pages for local SEO - Cities near Crowley, Texas
   const locationPages = [
-    'austin',
-    'round-rock',
-    'cedar-park',
-    'pflugerville',
-    'georgetown',
+    'fort-worth',
+    'burleson', 
+    'arlington',
+    'mansfield',
+    'forest-hill',
+    'grand-prairie',
+    'crowley',
   ].map(city => ({
     url: `${baseUrl}/tattoo-artist-${city}`,
     lastModified: new Date(),
@@ -97,19 +99,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  // Blog/Article pages (if you add a blog section)
-  const blogPages = [
-    'tattoo-aftercare-guide',
-    'first-tattoo-tips',
-    'tattoo-pain-chart',
-    'how-to-choose-tattoo-design',
-    'tattoo-style-guide',
-  ].map(article => ({
-    url: `${baseUrl}/blog/${article}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }));
+  // Blog/Article pages - COMMENTED OUT until blog section exists
+  // const blogPages = [
+  //   'tattoo-aftercare-guide',
+  //   'first-tattoo-tips',
+  //   'tattoo-pain-chart',
+  //   'how-to-choose-tattoo-design',
+  //   'tattoo-style-guide',
+  // ].map(article => ({
+  //   url: `${baseUrl}/blog/${article}`,
+  //   lastModified: new Date(),
+  //   changeFrequency: 'monthly' as const,
+  //   priority: 0.6,
+  // }));
 
   // Client portal (lower priority)
   const clientPages = [
@@ -125,8 +127,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...mainPages,
     ...galleryStyles,
     ...servicePages,
-    ...locationPages,
-    ...blogPages,
+    ...locationPages,  // Cities near Crowley, Texas
+    // ...blogPages,      // Re-enable when blog exists
     ...clientPages,
   ];
 }

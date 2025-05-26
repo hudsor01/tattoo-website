@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import ServicesClient from '@/components/services/ServicesClient';
 
+// Force static generation
+export const dynamic = 'force-static';
+export const revalidate = 86400; // 24 hours
+
 export const metadata: Metadata = {
   title: 'Services | Ink 37 Tattoos',
   description: 'Explore our range of tattoo services including custom designs, cover-ups, portrait work, and Japanese style tattoos. Book your consultation today.',
