@@ -9,7 +9,7 @@ import { services } from '@/data/services-data';
 
 /**
  * ServicesClient Component
- * 
+ *
  * Client-side component for the Services page that manages animations and layout.
  * This allows the page.tsx file to be a server component for SEO.
  */

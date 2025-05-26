@@ -216,7 +216,6 @@ export interface JobStatusResponse {
 // Note: Using ApiError from api-errors.ts instead of former ApiRequestError
 export type { ApiError } from '@/lib/api-errors';
 
-
 // Domain-specific API Types
 
 /**
@@ -431,7 +430,7 @@ export const ApiResponseSchema = z.object({
       z.object({
         path: z.string(),
         message: z.string(),
-      }),
+      })
     )
     .optional(),
   meta: z
@@ -611,7 +610,7 @@ export type TRPCMiddlewareConfig = {
 export interface TRPCMiddleware<TContext = unknown> {
   name: string;
   process: (opts: {
-    ctx: TContext; 
+    ctx: TContext;
     type: 'query' | 'mutation' | 'subscription';
     path: string;
     input: unknown;
@@ -656,7 +655,6 @@ export type CreateContextReturn = Context;
  * ========================================================================
  */
 
-
 /**
  * Options for creating tRPC query hooks
  */
@@ -665,37 +663,37 @@ export interface TRPCQueryOptions<TInput = unknown> {
    * Whether the query should execute
    */
   enabled?: boolean;
-  
+
   /**
    * Time until the data becomes stale (in milliseconds)
    */
   staleTime?: number;
-  
+
   /**
    * Refetch interval (in milliseconds)
    */
   refetchInterval?: number | false;
-  
+
   /**
    * Whether to refetch when window focuses
    */
   refetchOnWindowFocus?: boolean;
-  
+
   /**
    * Success callback
    */
   onSuccess?: (data: unknown) => void;
-  
+
   /**
    * Error callback
    */
   onError?: (error: TRPCError) => void;
-  
+
   /**
    * Transform function to modify the response data
    */
   select?: (data: unknown) => unknown;
-  
+
   /**
    * Input parameters for the query
    */
@@ -715,7 +713,7 @@ export const createTRPCQueryKeys = (namespace: string) => ({
   lists: () => [namespace, 'list'] as const,
   list: (params?: Record<string, unknown>) => [namespace, 'list', params] as const,
   detail: (id: string | number) => [namespace, 'detail', id.toString()] as const,
-  mutation: (type: string) => [namespace, 'mutation', type] as const
+  mutation: (type: string) => [namespace, 'mutation', type] as const,
 });
 
 /**

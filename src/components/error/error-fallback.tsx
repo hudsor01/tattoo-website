@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/ui/icons';
@@ -46,9 +46,9 @@ export interface ErrorFallbackProps {
 export function getErrorMessage(error: unknown): string {
   // Handle tRPC client errors
   if (
-    typeof error === 'object' && 
-    error !== null && 
-    'message' in error && 
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
     typeof error.message === 'string'
   ) {
     if ('shape' in error && typeof error.shape === 'object' && error.shape !== null) {
@@ -56,23 +56,23 @@ export function getErrorMessage(error: unknown): string {
       return error.message;
     }
     return error.message;
-  } 
-  
+  }
+
   // Handle standard Error objects
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   // Fallback for unknown error types
   return 'An unexpected error occurred';
 }
 
 /**
  * A reusable error fallback UI component
- * 
+ *
  * This component provides a consistent UI for displaying errors
  * with options for different variants and customization.
- * 
+ *
  * @example
  * ```tsx
  * <ErrorFallback
@@ -100,7 +100,7 @@ export function ErrorFallback({
 }: ErrorFallbackProps) {
   const [showDetails, setShowDetails] = useState(initialShowDetails);
   const errorMessage = getErrorMessage(error);
-  
+
   const handleReset = () => {
     if (resetErrorBoundary) {
       resetErrorBoundary();
@@ -108,15 +108,17 @@ export function ErrorFallback({
       window.location.reload();
     }
   };
-  
+
   const handleGoBack = () => {
     window.history.back();
   };
-  
+
   // Simple inline error display
   if (variant === 'simple') {
     return (
-      <div className={`p-4 border border-red-200 rounded-md bg-red-50 dark:bg-red-900/20 ${className}`}>
+      <div
+        className={`p-4 border border-red-200 rounded-md bg-red-50 dark:bg-red-900/20 ${className}`}
+      >
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle className="h-4 w-4 text-red-500" />
           <p className="font-medium text-red-700 dark:text-red-400">{title}</p>
@@ -138,7 +140,7 @@ export function ErrorFallback({
       </div>
     );
   }
-  
+
   // Alert variant (more compact than card)
   if (variant === 'alert') {
     return (
@@ -149,21 +151,13 @@ export function ErrorFallback({
           <p className="mb-2">{errorMessage}</p>
           <div className="flex gap-2 mt-2">
             {resetErrorBoundary && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleReset}
-              >
+              <Button variant="outline" size="sm" onClick={handleReset}>
                 <Icons.refresh className="h-3 w-3 mr-1" />
                 {retryLabel}
               </Button>
             )}
             {showBackButton && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleGoBack}
-              >
+              <Button variant="ghost" size="sm" onClick={handleGoBack}>
                 Go back
               </Button>
             )}
@@ -172,7 +166,7 @@ export function ErrorFallback({
       </Alert>
     );
   }
-  
+
   // Default card variant
   return (
     <Card className={`w-full ${fullPage ? 'max-w-md mx-auto mt-8' : ''} ${className}`}>
@@ -184,20 +178,14 @@ export function ErrorFallback({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground mb-4">
-          {errorMessage}
-        </p>
-        
+        <p className="text-muted-foreground mb-4">{errorMessage}</p>
+
         {/* Expandable error details */}
         <div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setShowDetails(!showDetails)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setShowDetails(!showDetails)}>
             {showDetails ? 'Hide' : 'Show'} technical details
           </Button>
-          
+
           {showDetails && (
             <pre className="mt-4 p-4 bg-muted text-muted-foreground overflow-auto rounded-md text-xs">
               {error.stack ?? error.message}
@@ -211,10 +199,7 @@ export function ErrorFallback({
             Go Back
           </Button>
         )}
-        <Button 
-          onClick={handleReset}
-          className={showBackButton ? '' : 'ml-auto'}
-        >
+        <Button onClick={handleReset} className={showBackButton ? '' : 'ml-auto'}>
           <Icons.refresh className="h-4 w-4 mr-2" />
           {retryLabel}
         </Button>

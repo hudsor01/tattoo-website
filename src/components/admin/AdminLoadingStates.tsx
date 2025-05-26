@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export function AdminBookingsLoading() {
   return (
@@ -8,7 +8,7 @@ export function AdminBookingsLoading() {
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-10 w-28" />
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
           <Card key={`card-${i}`}>
@@ -34,7 +34,10 @@ export function AdminBookingsLoading() {
         <CardContent>
           <div className="space-y-4">
             {Array.from({ length: 5 }, (_, i) => (
-              <div key={`booking-item-${i}`} className="flex items-center space-x-4 p-4 border rounded-lg">
+              <div
+                key={`booking-item-${i}`}
+                className="flex items-center space-x-4 p-4 border rounded-lg"
+              >
                 <Skeleton className="h-10 w-10 rounded-full" />
                 <div className="space-y-2 flex-1">
                   <Skeleton className="h-4 w-48" />
@@ -48,7 +51,7 @@ export function AdminBookingsLoading() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export function AdminCustomersLoading() {
@@ -68,7 +71,10 @@ export function AdminCustomersLoading() {
         <CardContent className="p-0">
           <div className="space-y-1">
             {Array.from({ length: 8 }, (_, i) => (
-              <div key={`customer-item-${i}`} className="flex items-center space-x-4 p-4 border-b last:border-b-0">
+              <div
+                key={`customer-item-${i}`}
+                className="flex items-center space-x-4 p-4 border-b last:border-b-0"
+              >
                 <Skeleton className="h-10 w-10 rounded-full" />
                 <div className="space-y-2 flex-1">
                   <Skeleton className="h-4 w-40" />
@@ -82,7 +88,7 @@ export function AdminCustomersLoading() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export function AdminGalleryLoading() {
@@ -117,7 +123,7 @@ export function AdminGalleryLoading() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export function AdminPaymentsLoading() {
@@ -156,7 +162,10 @@ export function AdminPaymentsLoading() {
         <CardContent>
           <div className="space-y-4">
             {Array.from({ length: 6 }, (_, i) => (
-              <div key={`payment-item-${i}`} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={`payment-item-${i}`}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex items-center space-x-4">
                   <Skeleton className="h-8 w-8 rounded" />
                   <div className="space-y-2">
@@ -175,14 +184,14 @@ export function AdminPaymentsLoading() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 export function AdminSettingsLoading() {
   return (
     <div className="space-y-6">
       <Skeleton className="h-8 w-32" />
-      
+
       <div className="flex space-x-1 border-b">
         {Array.from({ length: 5 }, (_, i) => (
           <Skeleton key={`tab-${i}`} className="h-10 w-24" />
@@ -214,5 +223,5 @@ export function AdminSettingsLoading() {
         <Skeleton className="h-10 w-28" />
       </div>
     </div>
-  )
+  );
 }

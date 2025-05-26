@@ -18,61 +18,61 @@ const tattooImages = [
 export default function HomeClient() {
   // For image carousel
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  
+
   // Auto-advance carousel with very slow transition (10 seconds)
   const [isPaused, setIsPaused] = React.useState(false);
-  
+
   void React.useEffect(() => {
     if (isPaused) return undefined;
-    
+
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => 
+      setCurrentImageIndex((prevIndex) =>
         prevIndex === tattooImages.length - 1 ? 0 : prevIndex + 1
       );
     }, 10000); // 10 seconds between image transitions
-    
+
     return () => clearInterval(interval);
   }, [isPaused]);
-  
+
   // Handle pause on hover
   const handleMouseEnter = () => {
     setIsPaused(true);
   };
-  
+
   const handleMouseLeave = () => {
     setIsPaused(false);
   };
-  
+
   // Touch swipe handling for mobile
   const [touchStart, setTouchStart] = React.useState<number | null>(0);
   const [touchEnd, setTouchEnd] = React.useState<number | null>(0);
-  
+
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.targetTouches && e.targetTouches.length > 0) {
       setTouchStart(e.targetTouches[0]?.clientX ?? 0);
     }
   };
-  
+
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.targetTouches && e.targetTouches.length > 0) {
       setTouchEnd(e.targetTouches[0]?.clientX ?? 0);
     }
   };
-  
+
   const handleTouchEnd = () => {
     if (touchStart !== null && touchEnd !== null) {
       if (touchStart - touchEnd > 50) {
         // Swipe left
-        setCurrentImageIndex(prev => prev === tattooImages.length - 1 ? 0 : prev + 1);
+        setCurrentImageIndex((prev) => (prev === tattooImages.length - 1 ? 0 : prev + 1));
       }
-      
+
       if (touchStart - touchEnd < -50) {
         // Swipe right
-        setCurrentImageIndex(prev => prev === 0 ? tattooImages.length - 1 : prev - 1);
+        setCurrentImageIndex((prev) => (prev === 0 ? tattooImages.length - 1 : prev - 1));
       }
     }
   };
-  
+
   // Disable scrolling on the page
   void React.useEffect(() => {
     // Disable scrolling on this page
@@ -80,7 +80,7 @@ export default function HomeClient() {
     document.body.style.overflow = 'hidden';
     document.documentElement.style.height = '100%';
     document.body.style.height = '100%';
-    
+
     return () => {
       // Clean up when component unmounts
       document.documentElement.style.overflow = '';
@@ -89,7 +89,7 @@ export default function HomeClient() {
       document.body.style.height = '';
     };
   }, []);
-  
+
   // Optimized image preloading - only preload first 2 images
   void React.useEffect(() => {
     // Preload only the first image (currently shown) and next image
@@ -102,12 +102,12 @@ export default function HomeClient() {
       document.head.appendChild(link);
     });
   }, []);
-  
+
   return (
     <>
       {/* Loading overlay removed since isLoading state is not being used */}
       {/* If you need a loading indicator in the future, implement it with proper state management */}
-      
+
       {/* Persistent minimal navigation */}
       <nav className="fixed top-8 right-8 z-40 flex gap-6">
         <motion.div whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}>
@@ -135,7 +135,7 @@ export default function HomeClient() {
           </Link>
         </motion.div>
       </nav>
-    
+
       <div className="fixed inset-0 overflow-hidden bg-black">
         {/* Main container with improved spacing */}
         <div className="h-full w-full flex flex-col md:flex-row px-6 lg:px-12">
@@ -143,12 +143,11 @@ export default function HomeClient() {
           <div className="md:w-[45%] flex items-center justify-start py-16 md:py-8 pl-4 md:pl-8">
             <div className="w-full md:max-w-2xl">
               <h1 className="artist-name text-white mb-6">
-                TATTOOS BY<br />
-                <span className="gradient-text">
-                  FERNANDO GOVEA
-                </span>
+                TATTOOS BY
+                <br />
+                <span className="gradient-text">FERNANDO GOVEA</span>
               </h1>
-              
+
               <p className="paragraph-large mb-10">
                 Crafting exceptional custom tattoos in Dallas/Fort Worth
               </p>
@@ -157,9 +156,9 @@ export default function HomeClient() {
               <div className="flex flex-col sm:flex-row gap-6">
                 <Link href="/gallery" passHref>
                   <motion.a
-                    whileHover={{ 
+                    whileHover={{
                       y: -4,
-                      boxShadow: "0 8px 30px rgba(239, 68, 68, 0.5)",
+                      boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
                     }}
                     whileTap={{ scale: 0.98 }}
                     className="px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
@@ -168,12 +167,12 @@ export default function HomeClient() {
                     <span>See My Work</span>
                   </motion.a>
                 </Link>
-                
+
                 <Link href="/booking" passHref>
                   <motion.a
-                    whileHover={{ 
+                    whileHover={{
                       y: -4,
-                      boxShadow: "0 8px 30px rgba(239, 68, 68, 0.5)",
+                      boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
                     }}
                     whileTap={{ scale: 0.98 }}
                     className="px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
@@ -191,11 +190,11 @@ export default function HomeClient() {
             <div className="h-full w-full flex items-center justify-center">
               {/* Image carousel with wider proportions matching original images */}
               <div className="h-[60vh] w-full max-w-[500px] aspect-[9/16] relative">
-                <div 
+                <div
                   className="w-full h-full relative overflow-hidden rounded-xl"
-                  style={{ 
-                    filter: "drop-shadow(0 20px 40px rgba(0, 0, 0, 0.25))",
-                    maxWidth: "100%"
+                  style={{
+                    filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.25))',
+                    maxWidth: '100%',
                   }}
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
@@ -210,47 +209,51 @@ export default function HomeClient() {
                   }}
                 >
                   <AnimatePresence mode="wait">
-                    {tattooImages.map((src, index) => (
-                      index === currentImageIndex && (
-                        <motion.div
-                          key={src}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 2.5, ease: "easeInOut" }}
-                          className="absolute inset-0"
-                        >
-                          {/* Efficient border gradient to reduce repaints */}
-                          <div className="absolute inset-0" style={{
-                            background: "linear-gradient(to right, #ef4444, #f97316)",
-                            borderRadius: "0.75rem",
-                            padding: "2px"
-                          }}>
-                            <div className="absolute inset-[2px] rounded-[calc(0.75rem-2px)] overflow-hidden z-10">
-                              <Image
-                                src={src}
-                                alt={`Tattoo artwork by Fernando Govea ${index + 1}`}
-                                fill
-                                sizes="(max-width: 768px) 90vw, 50vw"
-                                priority={index === 0}
-                                quality={90}
-                                className="object-cover"
-                                draggable="false"
-                                style={{ 
-                                  objectFit: 'cover',
-                                  willChange: 'transform' 
-                                }}
-                              />
-                              
-                              {/* Optimized overlay with opacity reduction */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent z-10"></div>
+                    {tattooImages.map(
+                      (src, index) =>
+                        index === currentImageIndex && (
+                          <motion.div
+                            key={src}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 2.5, ease: 'easeInOut' }}
+                            className="absolute inset-0"
+                          >
+                            {/* Efficient border gradient to reduce repaints */}
+                            <div
+                              className="absolute inset-0"
+                              style={{
+                                background: 'linear-gradient(to right, #ef4444, #f97316)',
+                                borderRadius: '0.75rem',
+                                padding: '2px',
+                              }}
+                            >
+                              <div className="absolute inset-[2px] rounded-[calc(0.75rem-2px)] overflow-hidden z-10">
+                                <Image
+                                  src={src}
+                                  alt={`Tattoo artwork by Fernando Govea ${index + 1}`}
+                                  fill
+                                  sizes="(max-width: 768px) 90vw, 50vw"
+                                  priority={index === 0}
+                                  quality={90}
+                                  className="object-cover"
+                                  draggable="false"
+                                  style={{
+                                    objectFit: 'cover',
+                                    willChange: 'transform',
+                                  }}
+                                />
+
+                                {/* Optimized overlay with opacity reduction */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent z-10"></div>
+                              </div>
                             </div>
-                          </div>
-                        </motion.div>
-                      )
-                    ))}
+                          </motion.div>
+                        )
+                    )}
                   </AnimatePresence>
-                  
+
                   {/* Carousel Controls */}
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
                     {tattooImages.map((imagePath, index) => (
@@ -258,27 +261,35 @@ export default function HomeClient() {
                         key={imagePath}
                         onClick={() => setCurrentImageIndex(index)}
                         className={`w-2 h-2 rounded-full transition-all ${
-                          index === currentImageIndex 
-                            ? 'bg-white w-4' 
+                          index === currentImageIndex
+                            ? 'bg-white w-4'
                             : 'bg-white/50 hover:bg-white/80'
                         }`}
                         aria-label={`Go to slide ${index + 1}`}
                       />
                     ))}
                   </div>
-                  
+
                   {/* Arrow Controls */}
-                  <button 
+                  <button
                     className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white flex items-center justify-center z-20 transition-all"
-                    onClick={() => setCurrentImageIndex(prev => prev === 0 ? tattooImages.length - 1 : prev - 1)}
+                    onClick={() =>
+                      setCurrentImageIndex((prev) =>
+                        prev === 0 ? tattooImages.length - 1 : prev - 1
+                      )
+                    }
                     aria-label="Previous image"
                   >
                     &#10094;
                   </button>
-                  
-                  <button 
+
+                  <button
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white flex items-center justify-center z-20 transition-all"
-                    onClick={() => setCurrentImageIndex(prev => prev === tattooImages.length - 1 ? 0 : prev + 1)}
+                    onClick={() =>
+                      setCurrentImageIndex((prev) =>
+                        prev === tattooImages.length - 1 ? 0 : prev + 1
+                      )
+                    }
                     aria-label="Next image"
                   >
                     &#10095;

@@ -1,6 +1,6 @@
 /**
  * Dashboard Types
- * 
+ *
  * Centralized type definitions for dashboard-related functionality.
  * This file consolidates all schemas and types used in the dashboard router.
  */
@@ -105,7 +105,13 @@ export type StatsPeriod = 'today' | 'week' | 'month' | 'year' | 'all';
 /**
  * Appointment Status type for filtering
  */
-export type AppointmentStatus = 'all' | 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
+export type AppointmentStatus =
+  | 'all'
+  | 'scheduled'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
 
 /**
  * Payment Status type for filtering

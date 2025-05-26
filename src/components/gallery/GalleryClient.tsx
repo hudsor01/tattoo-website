@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import GalleryInfinite from "@/components/gallery/GalleryInfinite";
-import Footer from "@/components/layouts/Footer";
-import { motion } from "framer-motion";
+import GalleryInfinite from '@/components/gallery/GalleryInfinite';
+import Footer from '@/components/layouts/Footer';
+import { motion } from 'framer-motion';
 
 /**
  * Gallery Client Component
- * 
+ *
  * Client-side component for the Gallery page that manages animations and layout.
  * This allows the page.tsx file to be a server component for SEO.
  * Now using infinite scroll for better performance.
@@ -27,11 +27,7 @@ export default function GalleryClient() {
             Explore Ink 37 Tattoos' custom tattoo artwork and get inspired for your next piece.
           </p>
         </div>
-        <GalleryInfinite 
-          showFilters={true}
-          gridCols={3}
-          itemsPerPage={24}
-        />
+        <GalleryInfinite showFilters={true} gridCols={3} itemsPerPage={24} />
       </motion.div>
       <Footer />
     </div>

@@ -22,7 +22,7 @@ export interface CustomMotionVariant {
 
 export type CustomTargetAndTransition = TargetAndTransition & {
   [key: `--${string}`]: Target;
-}
+};
 
 export interface MotionTarget extends Target {
   transition?: {

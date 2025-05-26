@@ -1,204 +1,204 @@
-"use client"
+'use client';
 
-import { useRef, useState, useEffect } from "react"
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
-import { trackVideoView } from "@/lib/api"
-import { motion } from "framer-motion"
+import { useRef, useState, useEffect } from 'react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { trackVideoView } from '@/lib/api';
+import { motion } from 'framer-motion';
 
 interface VideoPlayerProps {
-  videoId: number
-  videoUrl: string
-  title: string
-  onClose: () => void
+  videoId: number;
+  videoUrl: string;
+  title: string;
+  onClose: () => void;
 }
 
 export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const [showVolume, setShowVolume] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [showControls, setShowControls] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [viewTracked, setViewTracked] = useState(false)
-  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [showVolume, setShowVolume] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showControls, setShowControls] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [viewTracked, setViewTracked] = useState(false);
+  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Initialize video
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return undefined
+    const video = videoRef.current;
+    if (!video) return undefined;
 
     const handleLoadedMetadata = () => {
-      setDuration(video.duration)
-      setIsLoading(false)
-    }
+      setDuration(video.duration);
+      setIsLoading(false);
+    };
 
     const handleTimeUpdate = () => {
-      setCurrentTime(video.currentTime)
+      setCurrentTime(video.currentTime);
 
       // Track view when 5 seconds have been watched
       if (!viewTracked && video.currentTime > 5) {
-        trackVideoView(videoId).catch(console.error)
-        setViewTracked(true)
+        trackVideoView(videoId).catch(console.error);
+        setViewTracked(true);
       }
-    }
+    };
 
     const handleError = () => {
-      setError("Failed to load video. Please try again later.")
-      setIsLoading(false)
-    }
+      setError('Failed to load video. Please try again later.');
+      setIsLoading(false);
+    };
 
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-    }
+      setIsFullscreen(!!document.fullscreenElement);
+    };
 
-    void video.addEventListener("loadedmetadata", handleLoadedMetadata)
-    void video.addEventListener("timeupdate", handleTimeUpdate)
-    void video.addEventListener("error", handleError)
-    void document.addEventListener("fullscreenchange", handleFullscreenChange)
+    void video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    void video.addEventListener('timeupdate', handleTimeUpdate);
+    void video.addEventListener('error', handleError);
+    void document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     // Auto-play once loaded
-    void video.load()
+    void video.load();
     video
       .play()
       .then(() => {
-        setIsPlaying(true)
+        setIsPlaying(true);
       })
       .catch((err) => {
-        void console.warn("Auto-play prevented:", err)
-      })
+        void console.warn('Auto-play prevented:', err);
+      });
 
     return () => {
-      void video.removeEventListener("loadedmetadata", handleLoadedMetadata)
-      void video.removeEventListener("timeupdate", handleTimeUpdate)
-      void video.removeEventListener("error", handleError)
-      void document.removeEventListener("fullscreenchange", handleFullscreenChange)
-    }
-  }, [videoId, viewTracked])
+      void video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      void video.removeEventListener('timeupdate', handleTimeUpdate);
+      void video.removeEventListener('error', handleError);
+      void document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [videoId, viewTracked]);
 
   // Handle mouse movement to show/hide controls
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return undefined
+    const container = containerRef.current;
+    if (!container) return undefined;
 
     const handleMouseMove = () => {
-      setShowControls(true)
+      setShowControls(true);
 
       // Reset the timeout
       if (controlsTimeout) {
-        clearTimeout(controlsTimeout)
+        clearTimeout(controlsTimeout);
       }
 
       // Hide controls after 1 second of inactivity
       const timeout = setTimeout(() => {
         if (isPlaying) {
-          setShowControls(false)
+          setShowControls(false);
         }
-      }, 1000)
+      }, 1000);
 
-      setControlsTimeout(timeout)
-    }
+      setControlsTimeout(timeout);
+    };
 
     const handleMouseLeave = () => {
       if (isPlaying) {
-        setShowControls(false)
+        setShowControls(false);
       }
-    }
+    };
 
-    void container.addEventListener("mousemove", handleMouseMove)
-    void container.addEventListener("mouseleave", handleMouseLeave)
+    void container.addEventListener('mousemove', handleMouseMove);
+    void container.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
-      void container.removeEventListener("mousemove", handleMouseMove)
-      void container.removeEventListener("mouseleave", handleMouseLeave)
+      void container.removeEventListener('mousemove', handleMouseMove);
+      void container.removeEventListener('mouseleave', handleMouseLeave);
       if (controlsTimeout) {
-        clearTimeout(controlsTimeout)
+        clearTimeout(controlsTimeout);
       }
-    }
-  }, [isPlaying, controlsTimeout])
+    };
+  }, [isPlaying, controlsTimeout]);
 
   // Handle play/pause
   const togglePlay = () => {
-    const video = videoRef.current
-    if (!video) return
+    const video = videoRef.current;
+    if (!video) return;
 
     if (isPlaying) {
-      void video.pause()
+      void video.pause();
     } else {
       video.play().catch((err) => {
-        void console.error("Failed to play video:", err)
-        setError("Failed to play video. Please try again.")
-      })
+        void console.error('Failed to play video:', err);
+        setError('Failed to play video. Please try again.');
+      });
     }
-    setIsPlaying(!isPlaying)
-  }
+    setIsPlaying(!isPlaying);
+  };
 
   // Handle volume change
   const handleVolumeChange = (value: number[]) => {
-    const newVolume = value[0] ?? 0
-    setVolume(newVolume)
+    const newVolume = value[0] ?? 0;
+    setVolume(newVolume);
 
     if (videoRef.current) {
-      videoRef.current.volume = newVolume
-      setIsMuted(newVolume === 0)
+      videoRef.current.volume = newVolume;
+      setIsMuted(newVolume === 0);
     }
-  }
+  };
 
   // Handle seeking
   const handleSeek = (value: number[]) => {
-    const newTime = value[0] ?? 0
-    setCurrentTime(newTime)
+    const newTime = value[0] ?? 0;
+    setCurrentTime(newTime);
 
     if (videoRef.current) {
-      videoRef.current.currentTime = newTime
+      videoRef.current.currentTime = newTime;
     }
-  }
+  };
 
   // Toggle mute
   const toggleMute = () => {
     if (videoRef.current) {
-      const newMutedState = !isMuted
-      videoRef.current.muted = newMutedState
-      setIsMuted(newMutedState)
+      const newMutedState = !isMuted;
+      videoRef.current.muted = newMutedState;
+      setIsMuted(newMutedState);
 
       // If unmuting, ensure volume is not 0
       if (!newMutedState && volume === 0) {
-        setVolume(0.5)
-        videoRef.current.volume = 0.5
+        setVolume(0.5);
+        videoRef.current.volume = 0.5;
       }
     }
-  }
+  };
 
   // Toggle fullscreen
   const toggleFullscreen = () => {
-    const container = containerRef.current
-    if (!container) return
+    const container = containerRef.current;
+    if (!container) return;
 
     if (!isFullscreen) {
       if (container.requestFullscreen) {
-        void container.requestFullscreen()
+        void container.requestFullscreen();
       }
     } else {
       if (document.exitFullscreen) {
-        void document.exitFullscreen()
+        void document.exitFullscreen();
       }
     }
-  }
+  };
 
   // Format time (seconds to MM:SS)
   const formatTime = (time: number) => {
-    if (isNaN(time)) return "0:00"
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
-  }
+    if (isNaN(time)) return '0:00';
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   // Calculate progress percentage (currently unused)
   // const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0
@@ -241,8 +241,8 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
           size="icon"
           variant="ghost"
           onClick={(e) => {
-            void e.stopPropagation()
-            onClose()
+            void e.stopPropagation();
+            onClose();
           }}
           className="text-white h-8 w-8"
         >
@@ -261,7 +261,11 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
           onClick={togglePlay}
         >
           <div className="rounded-full bg-black/30 p-8 backdrop-blur-sm">
-            {isPlaying ? <Pause className="h-12 w-12 text-white" /> : <Play className="h-12 w-12 text-white" />}
+            {isPlaying ? (
+              <Pause className="h-12 w-12 text-white" />
+            ) : (
+              <Play className="h-12 w-12 text-white" />
+            )}
           </div>
         </motion.div>
       )}
@@ -269,7 +273,10 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
       {/* Bottom controls */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: showControls || !isPlaying ? 1 : 0, y: showControls || !isPlaying ? 0 : 20 }}
+        animate={{
+          opacity: showControls || !isPlaying ? 1 : 0,
+          y: showControls || !isPlaying ? 0 : 20,
+        }}
         transition={{ duration: 0.2 }}
         className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent z-20"
         onClick={(e) => e.stopPropagation()} // Prevent click from bubbling to container
@@ -295,7 +302,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
               variant="ghost"
               onClick={togglePlay}
               className="text-white p-2 h-8 w-8"
-              aria-label={isPlaying ? "Pause" : "Play"}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
@@ -305,21 +312,25 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
                 size="sm"
                 variant="ghost"
                 onClick={(e) => {
-                  void e.stopPropagation()
-                  toggleMute()
+                  void e.stopPropagation();
+                  toggleMute();
                 }}
                 onMouseEnter={() => setShowVolume(true)}
                 className="text-white p-2 h-8 w-8"
-                aria-label={isMuted ? "Unmute" : "Mute"}
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
               >
-                {isMuted ?? volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                {(isMuted ?? volume === 0) ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
               </Button>
 
               {/* Volume slider - appears on hover */}
               {showVolume && (
                 <motion.div
                   initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "80px" }}
+                  animate={{ opacity: 1, width: '80px' }}
                   exit={{ opacity: 0, width: 0 }}
                   transition={{ duration: 0.2 }}
                   className="absolute left-full ml-2 bg-black/60 rounded-full p-2 flex items-center"
@@ -348,16 +359,16 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
             size="sm"
             variant="ghost"
             onClick={(e) => {
-              void e.stopPropagation()
-              toggleFullscreen()
+              void e.stopPropagation();
+              toggleFullscreen();
             }}
             className="text-white p-2 h-8 w-8"
-            aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
+            aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           </Button>
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

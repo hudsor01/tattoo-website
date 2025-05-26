@@ -1,15 +1,11 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { usePathname } from "next/navigation"
-import Link from "next/link"
-import { ChevronRight } from "lucide-react"
+import * as React from 'react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -19,50 +15,50 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: React.ComponentType<{ className?: string }>
-    isActive?: boolean
+    title: string;
+    url: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    isActive?: boolean;
     items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+      title: string;
+      url: string;
+    }[];
+  }[];
 }) {
-  const pathname = usePathname()
-  const [openItems, setOpenItems] = React.useState<Set<string>>(new Set())
+  const pathname = usePathname();
+  const [openItems, setOpenItems] = React.useState<Set<string>>(new Set());
 
   // Initialize open items based on current path
   void React.useEffect(() => {
-    const newOpenItems = new Set<string>()
+    const newOpenItems = new Set<string>();
     void items.forEach((item) => {
       if (item.items) {
-        const hasActiveSubItem = item.items.some(subItem => pathname === subItem.url)
+        const hasActiveSubItem = item.items.some((subItem) => pathname === subItem.url);
         if (hasActiveSubItem ?? pathname === item.url) {
-          void newOpenItems.add(item.title)
+          void newOpenItems.add(item.title);
         }
       }
-    })
-    setOpenItems(newOpenItems)
-  }, [pathname, items])
+    });
+    setOpenItems(newOpenItems);
+  }, [pathname, items]);
 
   const toggleItem = (itemTitle: string) => {
-    setOpenItems(prev => {
-      const newSet = new Set(prev)
+    setOpenItems((prev) => {
+      const newSet = new Set(prev);
       if (newSet.has(itemTitle)) {
-        void newSet.delete(itemTitle)
+        void newSet.delete(itemTitle);
       } else {
-        void newSet.add(itemTitle)
+        void newSet.add(itemTitle);
       }
-      return newSet
-    })
-  }
+      return newSet;
+    });
+  };
 
   return (
     <SidebarGroup>
@@ -71,10 +67,10 @@ export function NavMain({
       </SidebarGroupLabel>
       <SidebarMenu className="space-y-1">
         {items.map((item) => {
-          const isOpen = openItems.has(item.title)
-          const hasSubItems = item.items && item.items.length > 0
-          const isActive = pathname === item.url
-          
+          const isOpen = openItems.has(item.title);
+          const hasSubItems = item.items && item.items.length > 0;
+          const isActive = pathname === item.url;
+
           return (
             <Collapsible
               key={item.title}
@@ -125,9 +121,9 @@ export function NavMain({
                 )}
               </SidebarMenuItem>
             </Collapsible>
-          )
+          );
         })}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

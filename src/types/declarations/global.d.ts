@@ -5,7 +5,7 @@ declare global {
   namespace globalThis {
     let _supressRequestInterceptors: boolean | null;
   }
-  
+
   interface Window {
     Cal?: (action: string, options?: unknown) => void;
   }

@@ -1,40 +1,40 @@
-'use client'
+'use client';
 
-import { Pin, PinOff, Settings } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
+import { Pin, PinOff, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useSidebarSettings } from '@/hooks/use-sidebar-settings'
-import { toast } from 'sonner'
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useSidebarSettings } from '@/hooks/use-sidebar-settings';
+import { toast } from 'sonner';
 
 export function SidebarToggle() {
-  const { settings, toggleFixed, toggleDefaultOpen } = useSidebarSettings()
+  const { settings, toggleFixed, toggleDefaultOpen } = useSidebarSettings();
 
   const handleFixedToggle = () => {
-    toggleFixed()
+    toggleFixed();
     void toast.success(
-      settings.isFixed 
-        ? 'Sidebar unpinned - will auto-collapse on mobile' 
+      settings.isFixed
+        ? 'Sidebar unpinned - will auto-collapse on mobile'
         : 'Sidebar pinned - will stay open across pages'
-    )
-  }
+    );
+  };
 
   const handleDefaultOpenToggle = () => {
-    toggleDefaultOpen()
+    toggleDefaultOpen();
     void toast.success(
       settings.defaultOpen
         ? 'Sidebar will start collapsed by default'
         : 'Sidebar will start open by default'
-    )
-  }
+    );
+  };
 
   return (
     <TooltipProvider>
@@ -42,11 +42,7 @@ export function SidebarToggle() {
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 hover:bg-accent"
-              >
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-accent">
                 {settings.isFixed ? (
                   <Pin className="h-4 w-4 text-primary" />
                 ) : (
@@ -59,13 +55,13 @@ export function SidebarToggle() {
             <p>Sidebar Settings</p>
           </TooltipContent>
         </Tooltip>
-        
+
         <DropdownMenuContent align="end" className="w-64">
           <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
             Sidebar Preferences
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          
+
           <DropdownMenuCheckboxItem
             checked={settings.isFixed}
             onCheckedChange={handleFixedToggle}
@@ -83,7 +79,7 @@ export function SidebarToggle() {
               </div>
             </div>
           </DropdownMenuCheckboxItem>
-          
+
           <DropdownMenuCheckboxItem
             checked={settings.defaultOpen}
             onCheckedChange={handleDefaultOpenToggle}
@@ -96,14 +92,14 @@ export function SidebarToggle() {
               </div>
             </div>
           </DropdownMenuCheckboxItem>
-          
+
           <DropdownMenuSeparator />
-          
+
           <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
             Settings are saved locally per device
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </TooltipProvider>
-  )
+  );
 }

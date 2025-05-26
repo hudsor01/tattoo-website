@@ -15,12 +15,12 @@ export function toast(options: ToastOptions | string) {
   if (typeof options === 'string') {
     return sonnerToast(options);
   }
-  
+
   const { title, description, variant = 'default', duration } = options;
-  
+
   const message = title && description ? `${title}: ${description}` : (description ?? title ?? '');
   const toastOptions = duration !== undefined ? { duration } : {};
-  
+
   switch (variant) {
     case 'destructive':
     case 'error':

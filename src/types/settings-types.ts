@@ -1,6 +1,6 @@
 /**
  * Settings Types
- * 
+ *
  * Type definitions for application settings functionality.
  * This file centralizes all settings-related types and schemas.
  */

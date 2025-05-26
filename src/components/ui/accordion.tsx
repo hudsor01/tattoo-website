@@ -12,10 +12,10 @@ const AccordionItem = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
-  <AccordionPrimitive.Item 
-    ref={ref} 
-    className={cn('border-b border-tattoo-white/10 last:border-b-0', className)} 
-    {...props} 
+  <AccordionPrimitive.Item
+    ref={ref}
+    className={cn('border-b border-tattoo-white/10 last:border-b-0', className)}
+    {...props}
   />
 ));
 AccordionItem.displayName = 'AccordionItem';
@@ -34,7 +34,9 @@ const AccordionTrigger = React.forwardRef<
       )}
       {...props}
     >
-      <span className="group-hover:translate-x-1 transition-transform duration-200">{children}</span>
+      <span className="group-hover:translate-x-1 transition-transform duration-200">
+        {children}
+      </span>
       <div className="h-7 w-7 rounded-full bg-tattoo-blue/10 flex items-center justify-center group-hover:bg-tattoo-blue/20 transition-colors duration-200">
         <ChevronDown className="h-4 w-4 text-tattoo-blue transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
       </div>
@@ -49,14 +51,14 @@ const AccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className={cn("overflow-hidden text-tattoo-white/70", className)}
+    className={cn('overflow-hidden text-tattoo-white/70', className)}
     {...props}
   >
     <motion.div
       initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
+      animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
       className={cn('py-4 px-1', className)}
     >
       {children}

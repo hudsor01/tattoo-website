@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { useCallback } from 'react'
-import { Search, X, Command, Users, Calendar, CreditCard, Settings, Image } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import * as React from 'react';
+import { useCallback } from 'react';
+import { Search, X, Command, Users, Calendar, CreditCard, Settings, Image } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface SearchResult {
-  id: string
-  title: string
-  description: string
-  path: string
-  category: 'navigation' | 'action' | 'setting' | 'customer' | 'booking'
-  icon: typeof Search
-  keywords?: string[]
+  id: string;
+  title: string;
+  description: string;
+  path: string;
+  category: 'navigation' | 'action' | 'setting' | 'customer' | 'booking';
+  icon: typeof Search;
+  keywords?: string[];
 }
 
 const searchData: SearchResult[] = [
@@ -93,7 +93,7 @@ const searchData: SearchResult[] = [
     icon: Settings,
     keywords: ['configuration', 'install', 'initialize'],
   },
-]
+];
 
 const categoryLabels = {
   navigation: 'Pages',
@@ -101,7 +101,7 @@ const categoryLabels = {
   setting: 'Settings',
   customer: 'Customers',
   booking: 'Bookings',
-}
+};
 
 const categoryColors = {
   navigation: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
@@ -109,52 +109,55 @@ const categoryColors = {
   setting: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
   customer: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
   booking: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
-}
+};
 
 export function SidebarSearch() {
-  const [isOpen, setIsOpen] = React.useState(false)
-  const [query, setQuery] = React.useState('')
-  const [results, setResults] = React.useState<SearchResult[]>([])
-  const [selectedIndex, setSelectedIndex] = React.useState(0)
-  const router = useRouter()
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [query, setQuery] = React.useState('');
+  const [results, setResults] = React.useState<SearchResult[]>([]);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const router = useRouter();
 
-  const handleSelect = useCallback((result: SearchResult) => {
-    router.push(result.path)
-    setIsOpen(false)
-    setQuery('')
-  }, [router])
+  const handleSelect = useCallback(
+    (result: SearchResult) => {
+      router.push(result.path);
+      setIsOpen(false);
+      setQuery('');
+    },
+    [router]
+  );
 
   // Search functionality
   React.useEffect(() => {
     if (!query.trim()) {
-      setResults([])
-      setSelectedIndex(0)
-      return
+      setResults([]);
+      setSelectedIndex(0);
+      return;
     }
 
-    const searchQuery = query.toLowerCase().trim()
+    const searchQuery = query.toLowerCase().trim();
     const filtered = searchData.filter((item) => {
-      const titleMatch = item.title.toLowerCase().includes(searchQuery)
-      const descriptionMatch = item.description.toLowerCase().includes(searchQuery)
-      const keywordMatch = item.keywords?.some(keyword => keyword.includes(searchQuery))
-      
-      return titleMatch || descriptionMatch || keywordMatch
-    })
+      const titleMatch = item.title.toLowerCase().includes(searchQuery);
+      const descriptionMatch = item.description.toLowerCase().includes(searchQuery);
+      const keywordMatch = item.keywords?.some((keyword) => keyword.includes(searchQuery));
+
+      return titleMatch || descriptionMatch || keywordMatch;
+    });
 
     // Sort by relevance (title matches first, then description, then keywords)
     filtered.sort((a, b) => {
-      const aTitle = a.title.toLowerCase().includes(searchQuery)
-      const bTitle = b.title.toLowerCase().includes(searchQuery)
-      
-      if (aTitle && !bTitle) return -1
-      if (!aTitle && bTitle) return 1
-      
-      return a.title.localeCompare(b.title)
-    })
+      const aTitle = a.title.toLowerCase().includes(searchQuery);
+      const bTitle = b.title.toLowerCase().includes(searchQuery);
 
-    setResults(filtered)
-    setSelectedIndex(0)
-  }, [query])
+      if (aTitle && !bTitle) return -1;
+      if (!aTitle && bTitle) return 1;
+
+      return a.title.localeCompare(b.title);
+    });
+
+    setResults(filtered);
+    setSelectedIndex(0);
+  }, [query]);
 
   // Keyboard navigation
   React.useEffect(() => {
@@ -162,45 +165,48 @@ export function SidebarSearch() {
       if (!isOpen) {
         // Open search with Cmd/Ctrl + K
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-          e.preventDefault()
-          setIsOpen(true)
+          e.preventDefault();
+          setIsOpen(true);
         }
-        return
+        return;
       }
 
       switch (e.key) {
         case 'Escape':
-          setIsOpen(false)
-          setQuery('')
-          break
+          setIsOpen(false);
+          setQuery('');
+          break;
         case 'ArrowDown':
-          e.preventDefault()
-          setSelectedIndex(prev => (prev + 1) % results.length)
-          break
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev + 1) % results.length);
+          break;
         case 'ArrowUp':
-          e.preventDefault()
-          setSelectedIndex(prev => prev === 0 ? results.length - 1 : prev - 1)
-          break
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev === 0 ? results.length - 1 : prev - 1));
+          break;
         case 'Enter':
-          e.preventDefault()
+          e.preventDefault();
           if (results[selectedIndex]) {
-            handleSelect(results[selectedIndex])
+            handleSelect(results[selectedIndex]);
           }
-          break
+          break;
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, results, selectedIndex, handleSelect])
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, results, selectedIndex, handleSelect]);
 
-  const groupedResults = results.reduce((acc, result) => {
-    if (!result?.category) return acc
-    const category = result.category
-    acc[category] ??= []
-    acc[category].push(result)
-    return acc
-  }, {} as Record<string, SearchResult[]>)
+  const groupedResults = results.reduce(
+    (acc, result) => {
+      if (!result?.category) return acc;
+      const category = result.category;
+      acc[category] ??= [];
+      acc[category].push(result);
+      return acc;
+    },
+    {} as Record<string, SearchResult[]>
+  );
 
   return (
     <>
@@ -275,9 +281,9 @@ export function SidebarSearch() {
                           </h3>
                           <div className="space-y-1">
                             {items.map((result) => {
-                              const globalIndex = results.findIndex(r => r.id === result.id)
-                              const isSelected = globalIndex === selectedIndex
-                              const Icon = result.icon
+                              const globalIndex = results.findIndex((r) => r.id === result.id);
+                              const isSelected = globalIndex === selectedIndex;
+                              const Icon = result.icon;
 
                               return (
                                 <motion.button
@@ -305,7 +311,7 @@ export function SidebarSearch() {
                                     {categoryLabels[result.category]}
                                   </Badge>
                                 </motion.button>
-                              )
+                              );
                             })}
                           </div>
                         </div>
@@ -313,12 +319,10 @@ export function SidebarSearch() {
                     </div>
                   ) : (
                     <div className="p-4">
-                      <div className="text-sm text-muted-foreground mb-2">
-                        Quick actions:
-                      </div>
+                      <div className="text-sm text-muted-foreground mb-2">Quick actions:</div>
                       <div className="grid grid-cols-2 gap-2">
                         {searchData.slice(0, 6).map((item) => {
-                          const Icon = item.icon
+                          const Icon = item.icon;
                           return (
                             <button
                               key={item.id}
@@ -328,7 +332,7 @@ export function SidebarSearch() {
                               <Icon className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm">{item.title}</span>
                             </button>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -340,8 +344,12 @@ export function SidebarSearch() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1">
-                        <kbd className="h-5 w-5 bg-muted rounded flex items-center justify-center font-mono">↑</kbd>
-                        <kbd className="h-5 w-5 bg-muted rounded flex items-center justify-center font-mono">↓</kbd>
+                        <kbd className="h-5 w-5 bg-muted rounded flex items-center justify-center font-mono">
+                          ↑
+                        </kbd>
+                        <kbd className="h-5 w-5 bg-muted rounded flex items-center justify-center font-mono">
+                          ↓
+                        </kbd>
                         to navigate
                       </span>
                       <span className="flex items-center gap-1">
@@ -361,5 +369,5 @@ export function SidebarSearch() {
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

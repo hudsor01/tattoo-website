@@ -1,9 +1,9 @@
 /**
  * TRPC Context Creation with Clerk Authentication
- * 
+ *
  * This file handles the creation of context for TRPC procedures.
  * The context includes access to the database via Prisma and user auth via Clerk.
- * 
+ *
  * THIS IS A SERVER-SIDE ONLY FILE
  */
 import 'server-only';
@@ -51,14 +51,14 @@ export async function createTRPCContext({
   try {
     // Get Clerk auth state
     const { userId, sessionClaims } = await auth();
-    
+
     // Get request headers
     const requestHeaders = Object.fromEntries(req.headers.entries());
-    
+
     // Log URL for debugging
     const url = req.url ?? '';
     const referer = req.headers.get('referer') ?? '';
-    
+
     // Use our universal logger
     void logger.debug('Creating tRPC context', {
       url,
@@ -78,11 +78,11 @@ export async function createTRPCContext({
       userId: userId ?? null, // Direct access to user ID
       userEmail: (sessionClaims as CustomSessionClaims)?.email ?? null, // Direct access to user email
       url,
-      db: prisma // Add db alias for compatibility
+      db: prisma, // Add db alias for compatibility
     };
   } catch (error) {
     void logger.error('Error creating TRPC context:', error);
-    
+
     // Return a basic context even if there's an error
     return {
       req,
@@ -93,7 +93,7 @@ export async function createTRPCContext({
       userId: null,
       userEmail: null,
       url: '',
-      db: prisma // Add db alias for compatibility
+      db: prisma, // Add db alias for compatibility
     };
   }
 }
@@ -111,13 +111,13 @@ export async function createContextForRSC() {
   try {
     // Get Clerk auth state for RSC
     const { userId, sessionClaims } = await auth();
-    
+
     void logger.debug('Creating RSC tRPC context', {
       userId: userId,
       userEmail: sessionClaims?.email,
       authError: userId ? null : 'Auth session missing!',
     });
-    
+
     return {
       prisma,
       user: sessionClaims as CustomSessionClaims | null, // Clerk session claims
@@ -127,7 +127,7 @@ export async function createContextForRSC() {
     };
   } catch (error) {
     void logger.error('Error creating RSC context:', error);
-    
+
     return {
       prisma,
       user: null,

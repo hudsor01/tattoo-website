@@ -1,6 +1,6 @@
 /**
  * Safe Zod Utilities
- * 
+ *
  * This file provides safe alternatives to Zod functionality that
  * may cause issues during build or in the Edge runtime.
  */
@@ -13,7 +13,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 /**
  * Creates a safe array validator that works in both development
  * and production environments without causing build issues.
- * 
+ *
  * @param schema The schema for array elements
  * @returns A Zod schema that safely validates arrays
  */
@@ -25,7 +25,7 @@ export function safeArray<T extends z.ZodTypeAny>(schema: T): z.ZodTypeAny {
       z.unknown()
     );
   }
-  
+
   // In development, use the full Zod validation
   return z.array(schema);
 }

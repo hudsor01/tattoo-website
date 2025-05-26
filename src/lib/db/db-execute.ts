@@ -37,7 +37,7 @@ export interface ExecuteStoredProcedureOptions {
 export async function executeStoredProcedure<T = unknown>(
   functionName: string,
   params: unknown[] = [],
-  options: ExecuteStoredProcedureOptions = {},
+  options: ExecuteStoredProcedureOptions = {}
 ): Promise<T> {
   const { logParams = false, timeoutMs } = options;
 
@@ -57,8 +57,8 @@ export async function executeStoredProcedure<T = unknown>(
           new Promise<never>((_, reject) =>
             setTimeout(
               () => reject(new Error(`Query timeout exceeded (${timeoutMs}ms)`)),
-              timeoutMs,
-            ),
+              timeoutMs
+            )
           ),
         ])
       : prisma.$queryRaw<T[]>`${query}`);
@@ -85,7 +85,7 @@ export async function executeStoredProcedure<T = unknown>(
 export async function executeDbFunction<T = unknown>(
   functionName: string,
   params: unknown[] = [],
-  options: ExecuteStoredProcedureOptions = {},
+  options: ExecuteStoredProcedureOptions = {}
 ): Promise<{ data: T | null; error: { message: string; originalError: unknown } | null }> {
   try {
     const data = await executeStoredProcedure<T>(functionName, params, options);

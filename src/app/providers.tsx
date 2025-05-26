@@ -14,7 +14,7 @@ interface ProvidersProps {
 
 /**
  * Application providers (excluding Clerk which is in root layout)
- * 
+ *
  * Includes:
  * - tRPC for API calls
  * - Theme management
@@ -23,17 +23,12 @@ interface ProvidersProps {
 export default function Providers({ children, cookies, headers }: ProvidersProps) {
   return (
     <TrpcClientProvider cookies={cookies ?? {}} headers={headers ?? {}}>
-      <ThemeProvider 
-        attribute="class" 
-        defaultTheme="dark" 
-        enableSystem 
-        disableTransitionOnChange
-      >
-        <Toaster 
-          position="bottom-right" 
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <Toaster
+          position="bottom-right"
           closeButton
           richColors
-          theme="system" 
+          theme="system"
           className="z-[9999]"
         />
         <AnalyticsProvider />

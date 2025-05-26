@@ -11,49 +11,37 @@ const ChartSkeleton = ({ height = 350 }: { height?: number }) => (
 );
 
 // Dynamic imports for Recharts components
-export const DynamicLineChart = dynamic(
-  () => import('recharts').then(mod => mod.LineChart),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false
-  }
-);
+export const DynamicLineChart = dynamic(() => import('recharts').then((mod) => mod.LineChart), {
+  loading: () => <ChartSkeleton />,
+  ssr: false,
+});
 
-export const DynamicBarChart = dynamic(
-  () => import('recharts').then(mod => mod.BarChart),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false
-  }
-);
+export const DynamicBarChart = dynamic(() => import('recharts').then((mod) => mod.BarChart), {
+  loading: () => <ChartSkeleton />,
+  ssr: false,
+});
 
-export const DynamicAreaChart = dynamic(
-  () => import('recharts').then(mod => mod.AreaChart),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false
-  }
-);
+export const DynamicAreaChart = dynamic(() => import('recharts').then((mod) => mod.AreaChart), {
+  loading: () => <ChartSkeleton />,
+  ssr: false,
+});
 
-export const DynamicPieChart = dynamic(
-  () => import('recharts').then(mod => mod.PieChart),
-  {
-    loading: () => <ChartSkeleton height={400} />,
-    ssr: false
-  }
-);
+export const DynamicPieChart = dynamic(() => import('recharts').then((mod) => mod.PieChart), {
+  loading: () => <ChartSkeleton height={400} />,
+  ssr: false,
+});
 
 // Export common chart components
-export { 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+export {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   Legend,
   Line,
   Bar,
   Area,
   Pie,
   Cell,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from 'recharts';

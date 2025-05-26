@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { Analytics } from '@vercel/analytics/react'
-import Script from 'next/script'
-import { useEffect } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { Analytics } from '@vercel/analytics/react';
+import Script from 'next/script';
+import { useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 // Google Analytics tracking
 export function GoogleAnalytics() {
-  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   if (!GA_MEASUREMENT_ID) {
-    return null
+    return null;
   }
 
   return (
@@ -31,15 +31,15 @@ export function GoogleAnalytics() {
         `}
       </Script>
     </>
-  )
+  );
 }
 
 // Google Tag Manager
 export function GoogleTagManager() {
-  const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
+  const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
   if (!GTM_ID) {
-    return null
+    return null;
   }
 
   return (
@@ -66,36 +66,47 @@ export function GoogleTagManager() {
         />
       </noscript>
     </>
-  )
+  );
 }
 
 // Page view tracking hook
 export function usePageTracking() {
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
-    
-    if (GA_MEASUREMENT_ID && typeof window !== 'undefined' && (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag) {
-      const url = pathname + searchParams.toString()
-      ;(window as unknown as { gtag: (...args: unknown[]) => void }).gtag('config', GA_MEASUREMENT_ID, {
-        page_path: url,
-        page_title: document.title,
-        page_location: window.location.href,
-      })
+    const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+    if (
+      GA_MEASUREMENT_ID &&
+      typeof window !== 'undefined' &&
+      (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag
+    ) {
+      const url = pathname + searchParams.toString();
+      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
+        'config',
+        GA_MEASUREMENT_ID,
+        {
+          page_path: url,
+          page_title: document.title,
+          page_location: window.location.href,
+        }
+      );
     }
-  }, [pathname, searchParams])
+  }, [pathname, searchParams]);
 }
 
 // Track custom events
 export function trackEvent(eventName: string, parameters?: Record<string, unknown>) {
-  if (typeof window !== 'undefined' && (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag) {
-    ;(window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', eventName, {
+  if (
+    typeof window !== 'undefined' &&
+    (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag
+  ) {
+    (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', eventName, {
       event_category: 'engagement',
       event_label: eventName,
       ...parameters,
-    })
+    });
   }
 }
 
@@ -107,7 +118,7 @@ export const trackBusinessEvent = {
       event_category: 'lead_generation',
       contact_method: method,
       value: 1,
-    })
+    });
   },
 
   // Gallery interaction
@@ -116,7 +127,7 @@ export const trackBusinessEvent = {
       event_category: 'content_engagement',
       image_id: imageId,
       image_category: category,
-    })
+    });
   },
 
   // Booking interaction
@@ -124,7 +135,7 @@ export const trackBusinessEvent = {
     trackEvent('booking_started', {
       event_category: 'conversion',
       value: 1,
-    })
+    });
   },
 
   // Service page view
@@ -132,7 +143,7 @@ export const trackBusinessEvent = {
     trackEvent('service_page_view', {
       event_category: 'service_interest',
       service_name: serviceName,
-    })
+    });
   },
 
   // External link clicks
@@ -141,9 +152,9 @@ export const trackBusinessEvent = {
       event_category: 'external_engagement',
       link_url: url,
       link_text: linkText,
-    })
+    });
   },
-}
+};
 
 export function AnalyticsProvider() {
   return (
@@ -152,5 +163,5 @@ export function AnalyticsProvider() {
       <GoogleAnalytics />
       <GoogleTagManager />
     </>
-  )
+  );
 }

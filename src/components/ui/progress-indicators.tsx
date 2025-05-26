@@ -1,32 +1,32 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { Progress } from '@/components/ui/progress'
-import { Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { motion } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 interface LinearProgressProps {
-  value: number
-  max?: number
-  className?: string
-  showLabel?: boolean
-  color?: 'primary' | 'success' | 'warning' | 'error'
+  value: number;
+  max?: number;
+  className?: string;
+  showLabel?: boolean;
+  color?: 'primary' | 'success' | 'warning' | 'error';
 }
 
-export function LinearProgress({ 
-  value, 
-  max = 100, 
-  className, 
+export function LinearProgress({
+  value,
+  max = 100,
+  className,
   showLabel = false,
-  color = 'primary' 
+  color = 'primary',
 }: LinearProgressProps) {
-  const percentage = Math.min((value / max) * 100, 100)
-  
+  const percentage = Math.min((value / max) * 100, 100);
+
   const colorClasses = {
     primary: 'bg-primary',
     success: 'bg-green-500',
     warning: 'bg-yellow-500',
     error: 'bg-red-500',
-  }
+  };
 
   return (
     <div className={className}>
@@ -43,22 +43,20 @@ export function LinearProgress({
         />
       </div>
       {showLabel && (
-        <div className="mt-1 text-sm text-muted-foreground">
-          {Math.round(percentage)}%
-        </div>
+        <div className="mt-1 text-sm text-muted-foreground">{Math.round(percentage)}%</div>
       )}
     </div>
-  )
+  );
 }
 
 interface CircularProgressProps {
-  value: number
-  max?: number
-  size?: number
-  strokeWidth?: number
-  className?: string
-  showLabel?: boolean
-  color?: 'primary' | 'success' | 'warning' | 'error'
+  value: number;
+  max?: number;
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
+  showLabel?: boolean;
+  color?: 'primary' | 'success' | 'warning' | 'error';
 }
 
 export function CircularProgress({
@@ -70,18 +68,18 @@ export function CircularProgress({
   showLabel = false,
   color = 'primary',
 }: CircularProgressProps) {
-  const percentage = Math.min((value / max) * 100, 100)
-  const radius = (size - strokeWidth) / 2
-  const circumference = radius * 2 * Math.PI
-  const strokeDasharray = circumference
-  const strokeDashoffset = circumference - (percentage / 100) * circumference
+  const percentage = Math.min((value / max) * 100, 100);
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const colorClasses = {
     primary: 'stroke-primary',
     success: 'stroke-green-500',
     warning: 'stroke-yellow-500',
     error: 'stroke-red-500',
-  }
+  };
 
   return (
     <div className={`relative inline-flex items-center justify-center ${className}`}>
@@ -122,30 +120,28 @@ export function CircularProgress({
       </svg>
       {showLabel && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-medium">
-            {Math.round(percentage)}%
-          </span>
+          <span className="text-xs font-medium">{Math.round(percentage)}%</span>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface StepIndicatorProps {
   steps: Array<{
-    label: string
-    description?: string
-    status: 'complete' | 'current' | 'pending' | 'error'
-  }>
-  className?: string
+    label: string;
+    description?: string;
+    status: 'complete' | 'current' | 'pending' | 'error';
+  }>;
+  className?: string;
 }
 
 export function StepIndicator({ steps, className }: StepIndicatorProps) {
   return (
     <div className={`space-y-4 ${className}`}>
       {steps.map((step, index) => {
-        const isLast = index === steps.length - 1
-        
+        const isLast = index === steps.length - 1;
+
         const statusConfig = {
           complete: {
             icon: CheckCircle,
@@ -171,10 +167,10 @@ export function StepIndicator({ steps, className }: StepIndicatorProps) {
             bgColor: 'bg-red-500',
             textColor: 'text-foreground',
           },
-        }
-        
-        const config = statusConfig[step.status]
-        const Icon = config.icon
+        };
+
+        const config = statusConfig[step.status];
+        const Icon = config.icon;
 
         return (
           <div key={step.label} className="flex items-start">
@@ -198,9 +194,11 @@ export function StepIndicator({ steps, className }: StepIndicatorProps) {
                 )}
               </motion.div>
               {!isLast && (
-                <div className={`w-px h-8 mt-2 ${
-                  step.status === 'complete' ? 'bg-green-500' : 'bg-muted'
-                }`} />
+                <div
+                  className={`w-px h-8 mt-2 ${
+                    step.status === 'complete' ? 'bg-green-500' : 'bg-muted'
+                  }`}
+                />
               )}
             </div>
             <div className="flex-1 pb-8">
@@ -224,15 +222,15 @@ export function StepIndicator({ steps, className }: StepIndicatorProps) {
               )}
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 interface LoadingDotsProps {
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 export function LoadingDots({ size = 'md', className }: LoadingDotsProps) {
@@ -240,7 +238,7 @@ export function LoadingDots({ size = 'md', className }: LoadingDotsProps) {
     sm: 'w-1 h-1',
     md: 'w-2 h-2',
     lg: 'w-3 h-3',
-  }
+  };
 
   return (
     <div className={`flex space-x-1 ${className}`}>
@@ -261,13 +259,13 @@ export function LoadingDots({ size = 'md', className }: LoadingDotsProps) {
         />
       ))}
     </div>
-  )
+  );
 }
 
 interface PulseDotProps {
-  color?: 'primary' | 'success' | 'warning' | 'error'
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
+  color?: 'primary' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 export function PulseDot({ color = 'primary', size = 'md', className }: PulseDotProps) {
@@ -276,13 +274,13 @@ export function PulseDot({ color = 'primary', size = 'md', className }: PulseDot
     success: 'bg-green-500',
     warning: 'bg-yellow-500',
     error: 'bg-red-500',
-  }
+  };
 
   const sizeClasses = {
     sm: 'w-2 h-2',
     md: 'w-3 h-3',
     lg: 'w-4 h-4',
-  }
+  };
 
   return (
     <div className={`relative ${className}`}>
@@ -311,5 +309,5 @@ export function PulseDot({ color = 'primary', size = 'md', className }: PulseDot
         }}
       />
     </div>
-  )
+  );
 }

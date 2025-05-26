@@ -1,13 +1,17 @@
 /**
  * Gallery Design Detail Page
- * 
+ *
  * Real implementation that fetches tattoo design data directly from the database
  * using Prisma and displays detailed information about a specific design.
  */
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db/prisma';
-import { getBuildSafeTattooDesigns, getBuildSafeTattooDesign, getFallbackGalleryMetadata } from '@/lib/db/build-safe-prisma';
+import {
+  getBuildSafeTattooDesigns,
+  getBuildSafeTattooDesign,
+  getFallbackGalleryMetadata,
+} from '@/lib/db/build-safe-prisma';
 import { DesignDetail } from '@/components/gallery/DesignDetail';
 import { DesignDetailSkeleton } from '@/components/gallery/DesignDetailSkeleton';
 import type { Metadata } from 'next';
@@ -22,13 +26,18 @@ export async function generateStaticParams() {
     select: { id: true },
     take: 100,
     orderBy: { createdAt: 'desc' },
-    fallback: [] // Empty array allows dynamic generation at runtime
+    fallback: [], // Empty array allows dynamic generation at runtime
   });
-  
-  console.warn(`Generated ${Array.isArray(designs) ? designs.length : 0} static params for gallery`);
-  return Array.isArray(designs) ? designs.map((design: unknown) => ({
-  id: (design as { id: string }).id
-  })) : [];}
+
+  console.warn(
+    `Generated ${Array.isArray(designs) ? designs.length : 0} static params for gallery`
+  );
+  return Array.isArray(designs)
+    ? designs.map((design: unknown) => ({
+        id: (design as { id: string }).id,
+      }))
+    : [];
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -36,44 +45,46 @@ interface PageProps {
 
 // Generate metadata for SEO with build-time safety
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-const { id } = await params;
-const design = await getBuildSafeTattooDesign(id, {
-select: {
-name: true,
-description: true,
-thumbnailUrl: true,
-designType: true,
-Artist: {
-include: {
-User: {
-select: {
-name: true,
-}
-}
-}
-}
-},
-fallback: null
-}) as {
-name: string;
-description?: string;
-thumbnailUrl?: string;
-designType?: string;
-Artist?: {
-User?: {
-name?: string;
-};
-};
-} | null;
+  const { id } = await params;
+  const design = (await getBuildSafeTattooDesign(id, {
+    select: {
+      name: true,
+      description: true,
+      thumbnailUrl: true,
+      designType: true,
+      Artist: {
+        include: {
+          User: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    fallback: null,
+  })) as {
+    name: string;
+    description?: string;
+    thumbnailUrl?: string;
+    designType?: string;
+    Artist?: {
+      User?: {
+        name?: string;
+      };
+    };
+  } | null;
 
-if (!design) {
-// Return fallback metadata if design not found or database unavailable
-return getFallbackGalleryMetadata(id);
-}
+  if (!design) {
+    // Return fallback metadata if design not found or database unavailable
+    return getFallbackGalleryMetadata(id);
+  }
 
-const artistName = design.Artist?.User?.name ?? 'Ink 37 Artist';
-const title = `${design.name} by ${artistName} | Ink 37 Tattoo Gallery`;
-const description = design.description ?? `View this ${design.designType ?? 'tattoo'} design by ${artistName}. Professional tattoo art and custom designs.`;
+  const artistName = design.Artist?.User?.name ?? 'Ink 37 Artist';
+  const title = `${design.name} by ${artistName} | Ink 37 Tattoo Gallery`;
+  const description =
+    design.description ??
+    `View this ${design.designType ?? 'tattoo'} design by ${artistName}. Professional tattoo art and custom designs.`;
 
   return {
     title,
@@ -81,14 +92,16 @@ const description = design.description ?? `View this ${design.designType ?? 'tat
     openGraph: {
       title,
       description,
-      images: design.thumbnailUrl ? [
-        {
-          url: design.thumbnailUrl,
-          width: 800,
-          height: 600,
-          alt: design.name,
-        }
-      ] : [],
+      images: design.thumbnailUrl
+        ? [
+            {
+              url: design.thumbnailUrl,
+              width: 800,
+              height: 600,
+              alt: design.name,
+            },
+          ]
+        : [],
       type: 'article',
       siteName: 'Ink 37 Tattoo Gallery',
     },
@@ -114,7 +127,7 @@ const description = design.description ?? `View this ${design.designType ?? 'tat
 export default async function DesignDetailPage({ params }: PageProps) {
   const { id } = await params;
   let design;
-  
+
   try {
     // Fetch the design with all related data
     design = await prisma.tattooDesign.findUnique({
@@ -128,9 +141,9 @@ export default async function DesignDetailPage({ params }: PageProps) {
                 name: true,
                 image: true,
                 email: true,
-              }
-            }
-          }
+              },
+            },
+          },
         },
         Customer: {
           select: {
@@ -138,9 +151,9 @@ export default async function DesignDetailPage({ params }: PageProps) {
             firstName: true,
             lastName: true,
             email: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     // If design doesn't exist, return 404
@@ -154,10 +167,13 @@ export default async function DesignDetailPage({ params }: PageProps) {
       // Check user authentication and authorization
       const { createClient } = await import('@/lib/supabase/server');
       const supabase = await createClient();
-      
+
       try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
+
         if (authError || !user) {
           // Not authenticated - can't view unapproved design
           notFound();
@@ -182,7 +198,6 @@ export default async function DesignDetailPage({ params }: PageProps) {
         notFound();
       }
     }
-
   } catch (error) {
     void console.error('Error fetching design:', error);
     notFound();
@@ -203,18 +218,16 @@ export default async function DesignDetailPage({ params }: PageProps) {
       thumbnailUrl: true,
       designType: true,
       createdAt: true,
-    }
+    },
   });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<DesignDetailSkeleton />}>
-          <DesignDetail 
-            id={id} 
-          />
+          <DesignDetail id={id} />
         </Suspense>
-        
+
         {/* Related Designs Section */}
         {relatedDesigns.length > 0 && (
           <div className="mt-16">
@@ -238,8 +251,18 @@ export default async function DesignDetailPage({ params }: PageProps) {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <svg
+                          className="w-12 h-12 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
                         </svg>
                       </div>
                     )}
@@ -249,9 +272,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
                       {related.name}
                     </h3>
                     {related.designType && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {related.designType}
-                      </p>
+                      <p className="text-sm text-gray-500 mt-1">{related.designType}</p>
                     )}
                     <p className="text-xs text-gray-400 mt-2">
                       {new Date(related.createdAt).toLocaleDateString()}
@@ -283,23 +304,23 @@ export default async function DesignDetailPage({ params }: PageProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "CreativeWork",
-              "name": design.name,
-              "description": design.description,
-              "image": design.thumbnailUrl,
-              "creator": {
-                "@type": "Person",
-                "name": design.Artist?.User?.name,
+              '@context': 'https://schema.org',
+              '@type': 'CreativeWork',
+              name: design.name,
+              description: design.description,
+              image: design.thumbnailUrl,
+              creator: {
+                '@type': 'Person',
+                name: design.Artist?.User?.name,
               },
-              "dateCreated": design.createdAt,
-              "genre": design.designType,
-              "isPartOf": {
-                "@type": "WebSite",
-                "name": "Ink 37 Tattoo Gallery",
-                "url": "https://ink37.com"
-              }
-            })
+              dateCreated: design.createdAt,
+              genre: design.designType,
+              isPartOf: {
+                '@type': 'WebSite',
+                name: 'Ink 37 Tattoo Gallery',
+                url: 'https://ink37.com',
+              },
+            }),
           }}
         />
       </div>

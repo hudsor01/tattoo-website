@@ -1,6 +1,6 @@
 /**
  * Cal.com Integration Types
- * 
+ *
  * Specific types for Cal.com API responses and data structures.
  */
 
@@ -102,7 +102,7 @@ export interface CalBookingListResponse {
 }
 
 /**
- * Cal.com Event Types List Response  
+ * Cal.com Event Types List Response
  */
 export interface CalEventTypesResponse {
   event_types: CalEventType[];
@@ -178,7 +178,13 @@ export interface CalBookingPayload {
  * Cal.com Webhook Payload
  */
 export interface CalWebhookPayload {
-  triggerEvent: 'BOOKING_CREATED' | 'BOOKING_RESCHEDULED' | 'BOOKING_CANCELLED' | 'BOOKING_CONFIRMED' | 'BOOKING_REJECTED' | 'MEETING_ENDED';
+  triggerEvent:
+    | 'BOOKING_CREATED'
+    | 'BOOKING_RESCHEDULED'
+    | 'BOOKING_CANCELLED'
+    | 'BOOKING_CONFIRMED'
+    | 'BOOKING_REJECTED'
+    | 'MEETING_ENDED';
   createdAt: string;
   payload: CalBookingPayload;
 }

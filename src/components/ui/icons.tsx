@@ -29,10 +29,10 @@ import {
   Instagram,
   Facebook,
   Github,
-  type Icon
-  } from "lucide-react"
-  
-  export type { Icon }
+  type Icon,
+} from 'lucide-react';
+
+export type { Icon };
 
 export const Icons = {
   logo: Command,
@@ -104,4 +104,4 @@ export const Icons = {
   file: File,
   fileText: FileText,
   image: Image,
-}
+};

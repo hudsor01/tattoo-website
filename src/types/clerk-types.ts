@@ -1,6 +1,6 @@
 /**
  * Clerk Authentication Types
- * 
+ *
  * This file provides type definitions for Clerk authentication.
  * It extends Clerk's built-in types with custom properties for our application.
  */
@@ -17,17 +17,17 @@ export const Permission = {
   MANAGE_PAYMENTS: 'manage_payments',
   MANAGE_GALLERY: 'manage_gallery',
   MANAGE_SETTINGS: 'manage_settings',
-  
+
   // Artist permissions
   VIEW_BOOKINGS: 'view_bookings',
   UPDATE_GALLERY: 'update_gallery',
-  
+
   // User permissions
   CREATE_BOOKING: 'create_booking',
   VIEW_OWN_BOOKINGS: 'view_own_bookings',
 } as const;
 
-export type PermissionType = typeof Permission[keyof typeof Permission];
+export type PermissionType = (typeof Permission)[keyof typeof Permission];
 
 /**
  * Extended user metadata for our application
@@ -105,11 +105,11 @@ export interface CustomSessionClaims {
  */
 export const UserRole = {
   ADMIN: 'admin',
-  ARTIST: 'artist', 
+  ARTIST: 'artist',
   USER: 'user',
 } as const;
 
-export type UserRoleType = typeof UserRole[keyof typeof UserRole];
+export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
 /**
  * Default permissions by role
@@ -132,10 +132,7 @@ export const DEFAULT_PERMISSIONS: Record<UserRoleType, PermissionType[]> = {
     Permission.CREATE_BOOKING,
     Permission.VIEW_OWN_BOOKINGS,
   ],
-  user: [
-    Permission.CREATE_BOOKING,
-    Permission.VIEW_OWN_BOOKINGS,
-  ],
+  user: [Permission.CREATE_BOOKING, Permission.VIEW_OWN_BOOKINGS],
 };
 
 /**
@@ -143,22 +140,19 @@ export const DEFAULT_PERMISSIONS: Record<UserRoleType, PermissionType[]> = {
  */
 export function isAdmin(user: ExtendedUser | null): boolean {
   if (!user) return false;
-  
+
   return user.publicMetadata?.role === 'admin';
 }
 
 /**
  * Type guard to check if user has specific permission
  */
-export function hasPermission(
-  user: ExtendedUser | null, 
-  permission: PermissionType
-): boolean {
+export function hasPermission(user: ExtendedUser | null, permission: PermissionType): boolean {
   if (!user) return false;
-  
+
   const userRole = user.publicMetadata?.role ?? 'user';
   const permissions = user.publicMetadata?.permissions ?? DEFAULT_PERMISSIONS[userRole];
-  
+
   return permissions.includes(permission);
 }
 
@@ -167,7 +161,7 @@ export function hasPermission(
  */
 export function getUserPermissions(user: ExtendedUser | null): PermissionType[] {
   if (!user) return [];
-  
+
   const userRole = user.publicMetadata?.role ?? 'user';
   return user.publicMetadata?.permissions ?? DEFAULT_PERMISSIONS[userRole];
 }

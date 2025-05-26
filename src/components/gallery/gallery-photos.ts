@@ -20,7 +20,7 @@ const getImagePath = (path: string): string => {
 
 // DEPRECATED: Gallery data is now stored in the database via TattooDesign model
 // This static array has been migrated to the database. The gallery now pulls from:
-// - Database table: TattooDesign 
+// - Database table: TattooDesign
 // - API endpoint: /api/trpc/gallery.getPublicDesigns
 // - Component: GalleryInfinite with useGalleryInfiniteQuery hook
 //

@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { MoreHorizontal } from "lucide-react"
+import * as React from 'react';
+import { MoreHorizontal } from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -18,18 +18,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function NavDocuments({
   items,
 }: {
   items: {
-    name: string
-    url: string
-    icon: React.ComponentType<{ className?: string }>
-  }[]
+    name: string;
+    url: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[];
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -39,7 +39,7 @@ export function NavDocuments({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               asChild
               className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200"
             >
@@ -57,8 +57,8 @@ export function NavDocuments({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="w-48 rounded-lg"
-                side={isMobile ? "bottom" : "right"}
-                align={isMobile ? "end" : "start"}
+                side={isMobile ? 'bottom' : 'right'}
+                align={isMobile ? 'end' : 'start'}
               >
                 <DropdownMenuItem className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                   <span>View Report</span>
@@ -76,5 +76,5 @@ export function NavDocuments({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

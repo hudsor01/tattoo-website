@@ -23,15 +23,15 @@ export function CalEmbed({ eventTypeSlug, prefillData, className = '' }: CalEmbe
   useEffect(() => {
     // Get Cal.com username from environment
     const username = process.env['NEXT_PUBLIC_CAL_USERNAME'];
-    
+
     if (!username) {
       setError('Cal.com integration is not properly configured');
       setIsLoading(false);
       return;
     }
-    
+
     setCalUsername(username);
-    
+
     try {
       // Create booking link using the URL slug
       const link = `https://cal.com/${username}/${eventTypeSlug}`;
@@ -40,7 +40,7 @@ export function CalEmbed({ eventTypeSlug, prefillData, className = '' }: CalEmbe
       setError('Error creating Cal.com booking link');
       void console.error(err);
     }
-    
+
     setIsLoading(false);
   }, [eventTypeSlug, prefillData]);
 
@@ -91,25 +91,23 @@ export function CalEmbed({ eventTypeSlug, prefillData, className = '' }: CalEmbe
 /**
  * Preconfigured component for tattoo consultation booking
  */
-export function TattooConsultationBooking({ prefillData }: { prefillData?: Record<string, string> }) {
-  return (
-    <CalEmbed 
-      eventTypeSlug="consultation"
-      prefillData={prefillData ?? {}}
-      className="mt-6"
-    />
-  );
+export function TattooConsultationBooking({
+  prefillData,
+}: {
+  prefillData?: Record<string, string>;
+}) {
+  return <CalEmbed eventTypeSlug="consultation" prefillData={prefillData ?? {}} className="mt-6" />;
 }
 
 /**
  * Preconfigured component for tattoo appointment booking
  */
-export function TattooAppointmentBooking({ prefillData }: { prefillData?: Record<string, string> }) {
+export function TattooAppointmentBooking({
+  prefillData,
+}: {
+  prefillData?: Record<string, string>;
+}) {
   return (
-    <CalEmbed 
-      eventTypeSlug="tattoo-session"
-      prefillData={prefillData ?? {}}
-      className="mt-6"
-    />
+    <CalEmbed eventTypeSlug="tattoo-session" prefillData={prefillData ?? {}} className="mt-6" />
   );
 }

@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env['NEXT_PUBLIC_SITE_URL'] ?? 'https://ink37tattoos.com';
-  
+
   // Main pages with higher priority
   const mainPages = [
     {
@@ -61,7 +61,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'cover-ups',
     'small-tattoos',
     'sleeves',
-  ].map(style => ({
+  ].map((style) => ({
     url: `${baseUrl}/gallery/${style}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
@@ -76,7 +76,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'fine-line-tattoos',
     'traditional-tattoos',
     'consultation',
-  ].map(service => ({
+  ].map((service) => ({
     url: `${baseUrl}/services/${service}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
@@ -86,13 +86,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Location pages for local SEO - Cities near Crowley, Texas
   const locationPages = [
     'fort-worth',
-    'burleson', 
+    'burleson',
     'arlington',
     'mansfield',
     'forest-hill',
     'grand-prairie',
     'crowley',
-  ].map(city => ({
+  ].map((city) => ({
     url: `${baseUrl}/tattoo-artist-${city}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
@@ -127,7 +127,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...mainPages,
     ...galleryStyles,
     ...servicePages,
-    ...locationPages,  // Cities near Crowley, Texas
+    ...locationPages, // Cities near Crowley, Texas
     // ...blogPages,      // Re-enable when blog exists
     ...clientPages,
   ];

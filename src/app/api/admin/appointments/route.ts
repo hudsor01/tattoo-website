@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAccess } from '@/lib/utils/server';
 import { Prisma } from '@prisma/client';
-import type { AppointmentStatus, AppointmentWithCustomer, FormattedAppointment } from '@/types/booking-types';
+import type {
+  AppointmentStatus,
+  AppointmentWithCustomer,
+  FormattedAppointment,
+} from '@/types/booking-types';
 import { prisma } from '@/lib/db/prisma';
 import { randomUUID } from 'node:crypto';
 
@@ -83,22 +87,24 @@ export async function GET(request: NextRequest) {
       prisma.appointment.count({ where }),
     ]);
 
-    const formattedAppointments: FormattedAppointment[] = (appointments as AppointmentWithCustomer[]).map(
-      (appointment) => ({
-        id: appointment.id,
-        title: appointment.title,
-        customerId: appointment.customerId,
-        clientName: appointment.Customer ? `${appointment.Customer.firstName ?? ''} ${appointment.Customer.lastName ?? ''}`.trim() : null,
-        clientEmail: appointment.Customer?.email ?? null,
-        clientPhone: appointment.Customer?.phone ?? null,
-        startDate: appointment.startDate,
-        endDate: appointment.endDate,
-        status: appointment.status,
-        description: appointment.description,
-        createdAt: appointment.createdAt,
-        updatedAt: appointment.updatedAt,
-      }),
-    );
+    const formattedAppointments: FormattedAppointment[] = (
+      appointments as AppointmentWithCustomer[]
+    ).map((appointment) => ({
+      id: appointment.id,
+      title: appointment.title,
+      customerId: appointment.customerId,
+      clientName: appointment.Customer
+        ? `${appointment.Customer.firstName ?? ''} ${appointment.Customer.lastName ?? ''}`.trim()
+        : null,
+      clientEmail: appointment.Customer?.email ?? null,
+      clientPhone: appointment.Customer?.phone ?? null,
+      startDate: appointment.startDate,
+      endDate: appointment.endDate,
+      status: appointment.status,
+      description: appointment.description,
+      createdAt: appointment.createdAt,
+      updatedAt: appointment.updatedAt,
+    }));
 
     return NextResponse.json({
       appointments: formattedAppointments,
@@ -142,7 +148,7 @@ export async function POST(request: NextRequest) {
     if (!data.title || !data.customerId || !data.startTime || !data.endTime) {
       return NextResponse.json(
         { error: 'Title, client, start time, and end time are required' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -178,8 +184,8 @@ export async function POST(request: NextRequest) {
       deposit: data.depositAmount ? Number(data.depositAmount) : null,
       totalPrice: data.price ? Number(data.price) : null,
       description: data.description ? String(data.description) : null,
-      artistId: data.artistId ?? "00000000-0000-0000-0000-000000000000",
-      designNotes: data.designNotes ?? null
+      artistId: data.artistId ?? '00000000-0000-0000-0000-000000000000',
+      designNotes: data.designNotes ?? null,
     };
 
     const appointment = await prisma.appointment.create({
@@ -206,7 +212,7 @@ export async function POST(request: NextRequest) {
     });
 
     const customerData = (appointment as AppointmentWithCustomer).Customer;
-    
+
     const formattedAppointment: FormattedAppointment = {
       id: appointment.id,
       title: appointment.title,
@@ -217,10 +223,12 @@ export async function POST(request: NextRequest) {
       description: appointment.description,
       createdAt: appointment.createdAt,
       updatedAt: appointment.updatedAt,
-      clientName: customerData ? `${customerData.firstName ?? ''} ${customerData.lastName ?? ''}`.trim() : null,
+      clientName: customerData
+        ? `${customerData.firstName ?? ''} ${customerData.lastName ?? ''}`.trim()
+        : null,
       clientEmail: customerData?.email ?? null,
       clientPhone: customerData?.phone ?? null,
-      artist: null
+      artist: null,
     };
 
     return NextResponse.json(formattedAppointment, { status: 201 });

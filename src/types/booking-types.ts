@@ -15,18 +15,18 @@ import { paginationSchema, dateRangeSchema } from './validation-types';
  * Booking form schema for client-side validation
  */
 export const BookingFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  tattooType: z.string().min(1, "Tattoo type is required"),
-  size: z.string().min(1, "Size is required"),
-  placement: z.string().min(1, "Placement is required"),
-  description: z.string().min(10, "Please provide a brief description of your tattoo idea"),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  tattooType: z.string().min(1, 'Tattoo type is required'),
+  size: z.string().min(1, 'Size is required'),
+  placement: z.string().min(1, 'Placement is required'),
+  description: z.string().min(10, 'Please provide a brief description of your tattoo idea'),
   preferredDate: z.date({
-    required_error: "Please select a date",
+    required_error: 'Please select a date',
   }),
-  preferredTime: z.string().min(1, "Preferred time is required"),
-  paymentMethod: z.string().min(1, "Payment method is required"),
+  preferredTime: z.string().min(1, 'Preferred time is required'),
+  paymentMethod: z.string().min(1, 'Payment method is required'),
   artistId: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -57,7 +57,15 @@ export interface Booking extends BaseEntity {
   depositAmount?: number;
   depositPaid?: boolean;
   paymentStatus?: PaymentStatus | string;
-  status: 'new' | 'reviewed' | 'scheduled' | 'rejected' | 'cancelled' | 'confirmed' | 'pending' | string;
+  status:
+    | 'new'
+    | 'reviewed'
+    | 'scheduled'
+    | 'rejected'
+    | 'cancelled'
+    | 'confirmed'
+    | 'pending'
+    | string;
   assignedArtist?: ID;
   source?: BookingSource | string;
   consultationDate?: DateString;
@@ -318,7 +326,7 @@ export interface AppointmentUpdateRequest {
 export const AppointmentCreateSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  startDate: z.string().refine(val => !isNaN(Date.parse(val)), {
+  startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Invalid start date format',
   }),
   endDate: z.string().optional(),
@@ -400,7 +408,8 @@ export interface AvailabilityConfig {
   slotDuration: number; // Duration of each slot in minutes
   bufferTime: number; // Buffer time between appointments
   workingHours: {
-    [key: string]: { // day of week or 'default'
+    [key: string]: {
+      // day of week or 'default'
       start: string;
       end: string;
       breaks?: Array<{
@@ -420,7 +429,7 @@ export interface AvailabilityConfig {
 /**
  * Cal.com event types available on their platform
  */
-export type CalEventType = 
+export type CalEventType =
   | 'tattoo-consultation'
   | 'deposit-payment'
   | 'follow-up'
@@ -430,17 +439,12 @@ export type CalEventType =
 /**
  * Cal.com booking status
  */
-export type CalBookingStatus = 
-  | 'pending'
-  | 'accepted'
-  | 'rejected'
-  | 'cancelled'
-  | 'rescheduled';
+export type CalBookingStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'rescheduled';
 
 /**
  * Cal.com webhook event types
  */
-export type CalWebhookEvent = 
+export type CalWebhookEvent =
   | 'booking.created'
   | 'booking.updated'
   | 'booking.cancelled'
@@ -554,11 +558,11 @@ export const bookingBaseSchema = z.object({
   size: z.string().min(1, 'Size is required'),
   placement: z.string().min(1, 'Placement is required'),
   description: z.string().min(1, 'Description is required'),
-  preferredDate: z.string().refine(val => !isNaN(Date.parse(val)), {
+  preferredDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Invalid date format',
   }),
   preferredTime: z.string().min(1, 'Preferred time is required'),
-  agreeToTerms: z.boolean().refine(val => val === true, {
+  agreeToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms',
   }),
   referenceImages: z.array(z.string()).optional(),
@@ -637,7 +641,7 @@ export const bookingResponseSchema = z.object({
         paymentMethod: z.string(),
         status: z.string(),
         createdAt: z.date(),
-      }),
+      })
     )
     .optional(),
 });
@@ -673,7 +677,14 @@ export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 
 // Add missing enums that were referenced
 export type TattooSize = 'small' | 'medium' | 'large' | 'extra_large';
-export type TattooStyle = 'traditional' | 'realism' | 'tribal' | 'japanese' | 'blackwork' | 'watercolor' | 'other';
+export type TattooStyle =
+  | 'traditional'
+  | 'realism'
+  | 'tribal'
+  | 'japanese'
+  | 'blackwork'
+  | 'watercolor'
+  | 'other';
 
 /**
  * Additional booking schemas from older form types
@@ -693,9 +704,12 @@ export const BookingBaseSchema = z.object({
   preferredDate: z.string(),
   preferredTime: z.string(),
   referenceImages: z.array(z.string()).optional(),
-  status: z.enum(['new', 'reviewed', 'scheduled', 'confirmed', 'completed', 'cancelled']).optional().default('new'),
+  status: z
+    .enum(['new', 'reviewed', 'scheduled', 'confirmed', 'completed', 'cancelled'])
+    .optional()
+    .default('new'),
   paymentStatus: PaymentStatusSchema.optional().default('pending'),
-  agreeToTerms: z.boolean().refine(val => val === true, 'You must agree to the terms'),
+  agreeToTerms: z.boolean().refine((val) => val === true, 'You must agree to the terms'),
 });
 
 /**
@@ -715,7 +729,9 @@ export const BookingCreateSchema = BookingBaseSchema.extend({
  */
 export const BookingUpdateSchema = BookingBaseSchema.partial().extend({
   id: z.string(),
-  status: z.enum(['new', 'reviewed', 'scheduled', 'confirmed', 'completed', 'cancelled']).optional(),
+  status: z
+    .enum(['new', 'reviewed', 'scheduled', 'confirmed', 'completed', 'cancelled'])
+    .optional(),
   paymentStatus: PaymentStatusSchema.optional(),
   depositPaid: z.boolean().optional(),
   finalPrice: z.number().optional(),
@@ -808,20 +824,26 @@ export const CalWebhookSchema = z.object({
     title: z.string(),
     description: z.string().optional(),
     additionalNotes: z.string().optional(),
-    customInputs: z.array(z.object({
-      label: z.string(),
-      value: z.union([z.string(), z.number(), z.boolean()]),
-      type: z.string(),
-    })).optional(),
+    customInputs: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.union([z.string(), z.number(), z.boolean()]),
+          type: z.string(),
+        })
+      )
+      .optional(),
     startTime: z.string(),
     endTime: z.string(),
-    attendees: z.array(z.object({
-      email: z.string().email(),
-      name: z.string(),
-      timeZone: z.string(),
-      locale: z.string().optional(),
-      metadata: z.record(z.unknown()).optional(),
-    })),
+    attendees: z.array(
+      z.object({
+        email: z.string().email(),
+        name: z.string(),
+        timeZone: z.string(),
+        locale: z.string().optional(),
+        metadata: z.record(z.unknown()).optional(),
+      })
+    ),
     organizer: z.object({
       email: z.string().email(),
       name: z.string(),
@@ -831,13 +853,15 @@ export const CalWebhookSchema = z.object({
     status: z.string(),
     location: z.string().optional(),
     meetingUrl: z.string().optional(),
-    payment: z.object({
-      amount: z.number(),
-      currency: z.string(),
-      status: z.string(),
-      paymentMethod: z.string().optional(),
-      externalId: z.string().optional(),
-    }).optional(),
+    payment: z
+      .object({
+        amount: z.number(),
+        currency: z.string(),
+        status: z.string(),
+        paymentMethod: z.string().optional(),
+        externalId: z.string().optional(),
+      })
+      .optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),
     cancellationReason: z.string().optional(),
     previousBookingId: z.string().optional(),

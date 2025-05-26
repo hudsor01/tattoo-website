@@ -1,23 +1,44 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Plus, Search, Edit, Trash2, Eye, Check, X, Image } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { toast } from 'sonner'
-import { trpc } from '@/lib/trpc/client'
-import { uploadFile } from '@/lib/supabase/upload'
-import { format } from 'date-fns'
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from '@/components/blocks/dropzone'
-import type { TattooDesign } from '@prisma/client'
+import { useState } from 'react';
+import { Plus, Search, Edit, Trash2, Eye, Check, X, Image } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc/client';
+import { uploadFile } from '@/lib/supabase/upload';
+import { format } from 'date-fns';
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from '@/components/blocks/dropzone';
+import type { TattooDesign } from '@prisma/client';
 
 const designTypeOptions = [
   'Traditional',
@@ -29,8 +50,8 @@ const designTypeOptions = [
   'Portrait',
   'Biomechanical',
   'Abstract',
-  'Custom'
-]
+  'Custom',
+];
 
 const sizeOptions = [
   'Small (< 2 inches)',
@@ -40,19 +61,19 @@ const sizeOptions = [
   'Full Sleeve',
   'Half Sleeve',
   'Back Piece',
-  'Full Body'
-]
+  'Full Body',
+];
 
 export default function GalleryPageContent() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState<string>('all')
-  const [filterApproval, setFilterApproval] = useState<string>('all')
-  const [selectedDesign, setSelectedDesign] = useState<TattooDesign | null>(null)
-  const [viewDialogOpen, setViewDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [designToDelete, setDesignToDelete] = useState<TattooDesign | null>(null)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterApproval, setFilterApproval] = useState<string>('all');
+  const [selectedDesign, setSelectedDesign] = useState<TattooDesign | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [designToDelete, setDesignToDelete] = useState<TattooDesign | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -61,56 +82,60 @@ export default function GalleryPageContent() {
     image: '',
     designType: '',
     size: '',
-    isApproved: false
-  })
-  
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+    isApproved: false,
+  });
+
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   // tRPC queries
-  const { data: designsData, isLoading, refetch } = trpc.gallery.getPublicDesigns.useQuery({
+  const {
+    data: designsData,
+    isLoading,
+    refetch,
+  } = trpc.gallery.getPublicDesigns.useQuery({
     limit: 50,
     designType: filterType === 'all' ? undefined : filterType,
-  })
+  });
 
-  const { data: stats } = trpc.gallery.getStats.useQuery()
-  const { data: designTypes } = trpc.gallery.getDesignTypes.useQuery()
+  const { data: stats } = trpc.gallery.getStats.useQuery();
+  const { data: designTypes } = trpc.gallery.getDesignTypes.useQuery();
 
   // Mutations
   const createDesignMutation = trpc.gallery.create.useMutation({
     onSuccess: () => {
-      void toast.success('Design created successfully')
-      setCreateDialogOpen(false)
-      resetForm()
-      void refetch()
+      void toast.success('Design created successfully');
+      setCreateDialogOpen(false);
+      resetForm();
+      void refetch();
     },
     onError: (error) => {
-      void console.warn('Create design error:', error)
-      void toast.error('Failed to create design')
-    }
-  })
+      void console.warn('Create design error:', error);
+      void toast.error('Failed to create design');
+    },
+  });
 
   const updateDesignMutation = trpc.gallery.update.useMutation({
     onSuccess: () => {
-      void toast.success('Design updated successfully')
-      setEditDialogOpen(false)
-      void refetch()
+      void toast.success('Design updated successfully');
+      setEditDialogOpen(false);
+      void refetch();
     },
     onError: (error) => {
-      void console.warn('Update design error:', error)
-      void toast.error('Failed to update design')
-    }
-  })
+      void console.warn('Update design error:', error);
+      void toast.error('Failed to update design');
+    },
+  });
 
   const deleteDesignMutation = trpc.gallery.delete.useMutation({
     onSuccess: () => {
-      void toast.success('Design deleted successfully')
-      void refetch()
+      void toast.success('Design deleted successfully');
+      void refetch();
     },
     onError: (error) => {
-      void console.warn('Delete design error:', error)
-      void toast.error('Failed to delete design')
-    }
-  })
+      void console.warn('Delete design error:', error);
+      void toast.error('Failed to delete design');
+    },
+  });
 
   const resetForm = () => {
     setFormData({
@@ -119,89 +144,89 @@ export default function GalleryPageContent() {
       image: '',
       designType: '',
       size: '',
-      isApproved: false
-    })
-    setUploadedFiles([])
-  }
+      isApproved: false,
+    });
+    setUploadedFiles([]);
+  };
 
   const handleView = (design: TattooDesign): void => {
-    setSelectedDesign(design)
-    setViewDialogOpen(true)
-  }
+    setSelectedDesign(design);
+    setViewDialogOpen(true);
+  };
 
   const handleEdit = (design: TattooDesign): void => {
-    setSelectedDesign(design)
+    setSelectedDesign(design);
     setFormData({
       name: design.name ?? '',
       description: design.description ?? '',
       image: design.fileUrl ?? '',
       designType: design.designType ?? '',
       size: design.size ?? '',
-      isApproved: design.isApproved ?? false
-    })
-    setEditDialogOpen(true)
-  }
+      isApproved: design.isApproved ?? false,
+    });
+    setEditDialogOpen(true);
+  };
 
   const handleDelete = (design: TattooDesign): void => {
-    setDesignToDelete(design)
-    setDeleteDialogOpen(true)
-  }
+    setDesignToDelete(design);
+    setDeleteDialogOpen(true);
+  };
 
   const confirmDelete = (): void => {
     if (designToDelete?.id) {
-      void deleteDesignMutation.mutate({ id: designToDelete.id })
-      setDeleteDialogOpen(false)
-      setDesignToDelete(null)
+      void deleteDesignMutation.mutate({ id: designToDelete.id });
+      setDeleteDialogOpen(false);
+      setDesignToDelete(null);
     }
-  }
+  };
 
   const handleApproval = (design: TattooDesign, isApproved: boolean): void => {
     if (design.id) {
       void updateDesignMutation.mutate({
         id: design.id,
-        isApproved
-      })
+        isApproved,
+      });
     }
-  }
+  };
 
   const handleCreate = async () => {
     if (!formData.name) {
-      void toast.error('Name is required')
-      return
+      void toast.error('Name is required');
+      return;
     }
 
     if (uploadedFiles.length === 0 && !formData.image) {
-      void toast.error('Image is required')
-      return
+      void toast.error('Image is required');
+      return;
     }
 
-    let imageUrl = formData.image
+    let imageUrl = formData.image;
 
     // Upload file if there's a new one
     if (uploadedFiles.length > 0 && uploadedFiles[0]) {
-      const uploadToast = toast.loading('Uploading image...')
+      const uploadToast = toast.loading('Uploading image...');
       try {
-        const result = await uploadFile(uploadedFiles[0])
+        const result = await uploadFile(uploadedFiles[0]);
         if (result.error) {
-          void toast.error('Upload failed', { id: uploadToast })
-          return
+          void toast.error('Upload failed', { id: uploadToast });
+          return;
         }
         if (!result.url) {
-          void toast.error('Upload failed - no URL returned', { id: uploadToast })
-          return
+          void toast.error('Upload failed - no URL returned', { id: uploadToast });
+          return;
         }
-        imageUrl = result.url
-        void toast.success('Image uploaded successfully', { id: uploadToast })
+        imageUrl = result.url;
+        void toast.success('Image uploaded successfully', { id: uploadToast });
       } catch {
-        void toast.error('Upload failed', { id: uploadToast })
-        return
+        void toast.error('Upload failed', { id: uploadToast });
+        return;
       }
     }
 
     // Final validation - ensure we have a valid image URL
     if (!imageUrl || imageUrl.trim().length === 0) {
-      void toast.error('Image is required - upload failed or no image provided')
-      return
+      void toast.error('Image is required - upload failed or no image provided');
+      return;
     }
 
     // Create the design
@@ -211,38 +236,38 @@ export default function GalleryPageContent() {
       image: imageUrl,
       designType: formData.designType ?? undefined,
       size: formData.size ?? undefined,
-      isApproved: formData.isApproved
-    })
-  }
+      isApproved: formData.isApproved,
+    });
+  };
 
   const handleUpdate = async () => {
-    if (!selectedDesign) return
+    if (!selectedDesign) return;
 
-    let imageUrl = formData.image
+    let imageUrl = formData.image;
 
     // Upload file if there's a new one
     if (uploadedFiles.length > 0) {
-      const uploadToast = toast.loading('Uploading image...')
-      const fileToUpload = uploadedFiles[0]
+      const uploadToast = toast.loading('Uploading image...');
+      const fileToUpload = uploadedFiles[0];
       if (!fileToUpload) {
-        void toast.error('No file selected', { id: uploadToast })
-        return
+        void toast.error('No file selected', { id: uploadToast });
+        return;
       }
       try {
-        const result = await uploadFile(fileToUpload)
+        const result = await uploadFile(fileToUpload);
         if (result.error) {
-          void toast.error('Upload failed', { id: uploadToast })
-          return
+          void toast.error('Upload failed', { id: uploadToast });
+          return;
         }
         if (!result.url) {
-          void toast.error('Upload failed - no URL returned', { id: uploadToast })
-          return
+          void toast.error('Upload failed - no URL returned', { id: uploadToast });
+          return;
         }
-        imageUrl = result.url
-        void toast.success('Image uploaded successfully', { id: uploadToast })
+        imageUrl = result.url;
+        void toast.success('Image uploaded successfully', { id: uploadToast });
       } catch {
-        void toast.error('Upload failed', { id: uploadToast })
-        return
+        void toast.error('Upload failed', { id: uploadToast });
+        return;
       }
     }
 
@@ -253,23 +278,25 @@ export default function GalleryPageContent() {
       image: imageUrl ?? undefined,
       designType: formData.designType ?? undefined,
       size: formData.size ?? undefined,
-      isApproved: formData.isApproved
-    })
-  }
+      isApproved: formData.isApproved,
+    });
+  };
 
   // Filter designs based on approval status
-  const filteredDesigns = designsData?.designs?.filter(design => {
-    if (filterApproval === 'approved') return design.isApproved
-    if (filterApproval === 'pending') return !design.isApproved
-    return true
-  }) ?? []
+  const filteredDesigns =
+    designsData?.designs?.filter((design) => {
+      if (filterApproval === 'approved') return design.isApproved;
+      if (filterApproval === 'pending') return !design.isApproved;
+      return true;
+    }) ?? [];
 
   // Search filter
-  const searchFilteredDesigns = filteredDesigns.filter(design =>
-    design.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (design.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-    (design.designType?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  )
+  const searchFilteredDesigns = filteredDesigns.filter(
+    (design) =>
+      design.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (design.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (design.designType?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  );
 
   if (isLoading) {
     return (
@@ -289,7 +316,7 @@ export default function GalleryPageContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -385,7 +412,7 @@ export default function GalleryPageContent() {
         {searchFilteredDesigns.map((design) => (
           <Card key={design.id} className="overflow-hidden">
             <div className="aspect-square bg-gray-100 relative">
-              {design.thumbnailUrl ?? design.fileUrl ? (
+              {(design.thumbnailUrl ?? design.fileUrl) ? (
                 <img
                   src={design.thumbnailUrl ?? design.fileUrl ?? ''}
                   alt={design.name}
@@ -406,9 +433,7 @@ export default function GalleryPageContent() {
             <CardContent className="p-4">
               <h3 className="font-semibold truncate">{design.name}</h3>
               {design.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {design.description}
-                </p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{design.description}</p>
               )}
               <div className="flex gap-2 mt-2">
                 {design.designType && (
@@ -430,9 +455,9 @@ export default function GalleryPageContent() {
                   <Button size="sm" variant="outline" onClick={() => handleEdit(design)}>
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => handleDelete(design)}
                     className="text-red-600 hover:text-red-700"
                   >
@@ -441,8 +466,8 @@ export default function GalleryPageContent() {
                 </div>
                 <div className="flex gap-1">
                   {!design.isApproved && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => handleApproval(design, true)}
                       className="text-green-600 hover:text-green-700"
                     >
@@ -450,8 +475,8 @@ export default function GalleryPageContent() {
                     </Button>
                   )}
                   {design.isApproved && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => handleApproval(design, false)}
                       className="text-yellow-600 hover:text-yellow-700"
@@ -516,7 +541,11 @@ export default function GalleryPageContent() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Created</Label>
-                  <p>{selectedDesign.createdAt ? format(new Date(selectedDesign.createdAt), 'PPP') : 'Unknown'}</p>
+                  <p>
+                    {selectedDesign.createdAt
+                      ? format(new Date(selectedDesign.createdAt), 'PPP')
+                      : 'Unknown'}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Artist</Label>
@@ -535,18 +564,23 @@ export default function GalleryPageContent() {
       </Dialog>
 
       {/* Create/Edit Design Dialog */}
-      <Dialog open={createDialogOpen ?? editDialogOpen} onOpenChange={(open) => {
-        if (!open) {
-          setCreateDialogOpen(false)
-          setEditDialogOpen(false)
-          resetForm()
-        }
-      }}>
+      <Dialog
+        open={createDialogOpen ?? editDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCreateDialogOpen(false);
+            setEditDialogOpen(false);
+            resetForm();
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{createDialogOpen ? 'Create Design' : 'Edit Design'}</DialogTitle>
             <DialogDescription>
-              {createDialogOpen ? 'Add a new tattoo design to the gallery.' : 'Update this tattoo design information.'}
+              {createDialogOpen
+                ? 'Add a new tattoo design to the gallery.'
+                : 'Update this tattoo design information.'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -576,7 +610,7 @@ export default function GalleryPageContent() {
                 maxFiles={1}
                 maxSize={10 * 1024 * 1024} // 10MB
                 onDrop={(acceptedFiles) => {
-                  setUploadedFiles(acceptedFiles)
+                  setUploadedFiles(acceptedFiles);
                 }}
               >
                 <DropzoneEmptyState />
@@ -586,7 +620,10 @@ export default function GalleryPageContent() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="designType">Design Type</Label>
-                <Select value={formData.designType} onValueChange={(value) => setFormData({ ...formData, designType: value })}>
+                <Select
+                  value={formData.designType}
+                  onValueChange={(value) => setFormData({ ...formData, designType: value })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
@@ -601,7 +638,10 @@ export default function GalleryPageContent() {
               </div>
               <div>
                 <Label htmlFor="size">Size</Label>
-                <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
+                <Select
+                  value={formData.size}
+                  onValueChange={(value) => setFormData({ ...formData, size: value })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
@@ -624,18 +664,28 @@ export default function GalleryPageContent() {
               <Label htmlFor="isApproved">Approved for public display</Label>
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => {
-                setCreateDialogOpen(false)
-                setEditDialogOpen(false)
-                resetForm()
-              }}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setCreateDialogOpen(false);
+                  setEditDialogOpen(false);
+                  resetForm();
+                }}
+              >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={() => void (createDialogOpen ? handleCreate() : handleUpdate())}
-                disabled={(createDesignMutation.isPending || updateDesignMutation.isPending) || !formData.name}
+                disabled={
+                  createDesignMutation.isPending || updateDesignMutation.isPending || !formData.name
+                }
               >
-                {(createDesignMutation.isPending || updateDesignMutation.isPending) ? 'Saving...' : (createDialogOpen ? 'Create' : 'Update')}
+                {createDesignMutation.isPending || updateDesignMutation.isPending
+                  ? 'Saving...'
+                  : createDialogOpen
+                    ? 'Create'
+                    : 'Update'}
               </Button>
             </div>
           </div>
@@ -648,17 +698,21 @@ export default function GalleryPageContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Design</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &ldquo;{designToDelete?.name}&rdquo;? This action cannot be undone.
+              Are you sure you want to delete &ldquo;{designToDelete?.name}&rdquo;? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

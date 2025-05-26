@@ -8,8 +8,8 @@ import type { VariantProps } from 'class-variance-authority';
 import type { buttonVariants } from '@/components/ui/button';
 
 // Export ButtonProps type
-export type ButtonProps = React.ComponentProps<"button"> & 
-  VariantProps<typeof buttonVariants> & { 
+export type ButtonProps = React.ComponentProps<'button'> &
+  VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     href?: string;
     children?: React.ReactNode;
@@ -72,8 +72,6 @@ export interface InfiniteLoaderProps {
 /**
  * Framer Motion Type Declarations
  */
-
-
 
 // Simple variant with just target properties
 export interface SimpleVariant {
@@ -288,7 +286,7 @@ export type FormLayout = 'vertical' | 'horizontal' | 'inline';
 // React Hook Form context types
 export type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = {
   name: TName;
 };
@@ -431,7 +429,7 @@ export interface ThemeColors {
   white: string;
   red: string;
   blue: string;
-  
+
   // Variations
   blackLight: string;
   blackDark: string;
@@ -439,7 +437,7 @@ export interface ThemeColors {
   redDark: string;
   blueLight: string;
   blueDark: string;
-  
+
   // UI state colors
   success: string;
   warning: string;
@@ -578,7 +576,7 @@ export const SelectFieldSchema = FormFieldBaseSchema.extend({
       value: z.union([z.string(), z.number()]),
       label: z.string(),
       disabled: z.boolean().optional(),
-    }),
+    })
   ),
   multiple: z.boolean().optional(),
   clearable: z.boolean().optional(),
@@ -609,7 +607,7 @@ export const FileUploadFieldSchema = FormFieldBaseSchema.extend({
 export const LeadMagnetFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  agreeToTerms: z.boolean().refine(val => val === true, {
+  agreeToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to receive marketing emails',
   }),
   leadType: z.string().optional(),
@@ -621,7 +619,7 @@ export const NewsletterSubscriptionSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   preferences: z.array(z.string()).optional(),
-  agreeToTerms: z.boolean().refine(val => val === true, {
+  agreeToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to receive marketing emails',
   }),
 });
@@ -635,7 +633,7 @@ export const FormSubmissionResultSchema = z.object({
       z.object({
         path: z.string(),
         message: z.string(),
-      }),
+      })
     )
     .optional(),
   data: z.unknown().optional(),
@@ -742,7 +740,6 @@ export interface Service {
   featured?: boolean; // Optional boolean property to indicate if a service is featured
 }
 
-
 /**
  * ========================================================================
  * ADMIN DASHBOARD COMPONENT TYPES
@@ -819,12 +816,18 @@ export interface CalCustomInput {
  * ========================================================================
  */
 
-export type SharePlatform = "facebook" | "twitter" | "instagram" | "pinterest" | "email" | "linkedin";
+export type SharePlatform =
+  | 'facebook'
+  | 'twitter'
+  | 'instagram'
+  | 'pinterest'
+  | 'email'
+  | 'linkedin';
 
 export interface ShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  contentType: "tattoo" | "video";
+  contentType: 'tattoo' | 'video';
   contentId: number;
   title: string;
 }
@@ -888,7 +891,6 @@ export interface ServicesHeaderProps {
   title?: string;
   description?: string;
 }
-
 
 /**
  * ========================================================================

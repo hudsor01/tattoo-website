@@ -57,11 +57,11 @@ export function useGallery(): UseGalleryResult {
     isLoading,
     isError,
     error,
-    refetch: refetchDesigns
+    refetch: refetchDesigns,
   } = api.gallery.getPublicDesigns.useQuery(
     {
       limit: 100,
-      designType: category ?? undefined
+      designType: category ?? undefined,
     },
     {
       retry: 1,
@@ -82,31 +82,31 @@ export function useGallery(): UseGalleryResult {
   }, [isError, error]);
 
   // Get raw designs from the response - cast to our type since we know the structure includes Artist relation
-  const designs = useMemo(
-    () => (galleryData?.designs ?? []) as GalleryDesign[],
-    [galleryData]
-  );
+  const designs = useMemo(() => (galleryData?.designs ?? []) as GalleryDesign[], [galleryData]);
 
   // Apply filters and sorting
   useEffect(() => {
     let result = [...designs];
-    
+
     // Filter by artist
     if (artistId) {
-      result = result.filter(design => design.Artist?.id === artistId);
+      result = result.filter((design) => design.Artist?.id === artistId);
     }
-    
+
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(design => 
-        design.name.toLowerCase().includes(query) || (design.description?.toLowerCase().includes(query) ?? false) || (design.designType?.toLowerCase().includes(query) ?? false)
+      result = result.filter(
+        (design) =>
+          design.name.toLowerCase().includes(query) ||
+          (design.description?.toLowerCase().includes(query) ?? false) ||
+          (design.designType?.toLowerCase().includes(query) ?? false)
       );
     }
-    
+
     // Apply sorting
     result = sortDesignsByOrder(result, sortOrder);
-    
+
     setFilteredDesigns(result);
   }, [designs, category, artistId, searchQuery, sortOrder]);
 
@@ -127,12 +127,12 @@ export function useGallery(): UseGalleryResult {
           // Prioritize approved designs
           if (a.isApproved && !b.isApproved) return -1;
           if (!a.isApproved && b.isApproved) return 1;
-          
+
           // Then sort by approval date (more recently approved = more popular)
           if (a.approvedAt && b.approvedAt) {
             return new Date(b.approvedAt).getTime() - new Date(a.approvedAt).getTime();
           }
-          
+
           // Fallback to creation date
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
@@ -194,7 +194,7 @@ export function useDesign(id: string): UseDesignResult {
     isLoading,
     isError,
     error,
-    refetch: refetchDesign
+    refetch: refetchDesign,
   } = api.gallery.getDesignById.useQuery(
     { id },
     {
@@ -226,6 +226,6 @@ export function useDesign(id: string): UseDesignResult {
     isLoading,
     isError,
     error: error instanceof Error ? error : null,
-    refetch
+    refetch,
   };
 }

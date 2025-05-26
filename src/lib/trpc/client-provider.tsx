@@ -47,7 +47,7 @@ export function TRPCProvider({
             retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
           },
         },
-      }),
+      })
   );
 
   const [trpcClient] = useState(() =>
@@ -59,24 +59,19 @@ export function TRPCProvider({
             return {
               ...headers,
               ...Object.fromEntries(
-                Object.entries(cookies ?? {}).map(([key, value]) => [
-                  `cookie-${key}`,
-                  value,
-                ]),
+                Object.entries(cookies ?? {}).map(([key, value]) => [`cookie-${key}`, value])
               ),
             };
           },
           transformer: superjson,
         }),
       ],
-    }),
+    })
   );
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </trpc.Provider>
   );
 }

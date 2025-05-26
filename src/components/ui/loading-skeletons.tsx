@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export function TableSkeleton() {
   return (
@@ -30,7 +30,7 @@ export function TableSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export function CardSkeleton() {
@@ -44,7 +44,7 @@ export function CardSkeleton() {
         <Skeleton className="h-8 w-24" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function DashboardSkeleton() {
@@ -55,14 +55,14 @@ export function DashboardSkeleton() {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-4 w-64" />
       </div>
-      
+
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => `dashboard-card-${i}`).map((key) => (
           <CardSkeleton key={key} />
         ))}
       </div>
-      
+
       {/* Chart */}
       <Card>
         <CardHeader>
@@ -72,11 +72,11 @@ export function DashboardSkeleton() {
           <Skeleton className="h-64 w-full" />
         </CardContent>
       </Card>
-      
+
       {/* Table */}
       <TableSkeleton />
     </div>
-  )
+  );
 }
 
 export function CustomerListSkeleton() {
@@ -96,7 +96,7 @@ export function CustomerListSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 export function GallerySkeleton() {
@@ -112,7 +112,7 @@ export function GallerySkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 export function FormSkeleton() {
@@ -135,7 +135,7 @@ export function FormSkeleton() {
         <Skeleton className="h-10 w-20" />
       </div>
     </div>
-  )
+  );
 }
 
 export function BookingDetailSkeleton() {
@@ -148,7 +148,7 @@ export function BookingDetailSkeleton() {
         </div>
         <Skeleton className="h-6 w-20 rounded-full" />
       </div>
-      
+
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -163,7 +163,7 @@ export function BookingDetailSkeleton() {
             ))}
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <Skeleton className="h-5 w-32" />
@@ -179,5 +179,5 @@ export function BookingDetailSkeleton() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

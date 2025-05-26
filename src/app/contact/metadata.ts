@@ -2,11 +2,14 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Contact | Ink 37 Tattoos',
-  description: 'Get in touch for tattoo inquiries, consultations, or general questions. Located in Dallas/Fort Worth, Texas.',
-  keywords: 'contact ink 37 tattoos, tattoo consultation dallas fort worth, tattoo inquiry, tattoo studio contact',
+  description:
+    'Get in touch for tattoo inquiries, consultations, or general questions. Located in Dallas/Fort Worth, Texas.',
+  keywords:
+    'contact ink 37 tattoos, tattoo consultation dallas fort worth, tattoo inquiry, tattoo studio contact',
   openGraph: {
     title: 'Contact Ink 37 Tattoos',
-    description: 'Contact us for tattoo inquiries and consultations. Located in Dallas/Fort Worth, TX.',
+    description:
+      'Contact us for tattoo inquiries and consultations. Located in Dallas/Fort Worth, TX.',
     url: '/contact',
     siteName: 'Ink 37 Tattoos',
     images: [

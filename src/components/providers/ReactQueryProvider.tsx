@@ -40,15 +40,13 @@ function createQueryClient() {
  * A provider component that wraps the app with react-query's QueryClientProvider
  * and tRPC integration
  */
-export function ReactQueryProvider({
-  children,
-}: ReactQueryProviderProps) {
+export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   // Create a new query client for each request in SSR
   // In client-side rendering, use a ref to maintain the same client
   const [queryClient] = React.useState(() => createQueryClient());
-  
+
   // Create the tRPC client
-  const [trpcClient] = React.useState(() => 
+  const [trpcClient] = React.useState(() =>
     trpc.createClient({
       links: [
         httpBatchLink({
@@ -56,7 +54,7 @@ export function ReactQueryProvider({
           transformer: superjson,
           // Optional: include credentials for same-origin requests
           headers: {
-            'credentials': 'include',
+            credentials: 'include',
           },
         }),
       ],
@@ -65,9 +63,7 @@ export function ReactQueryProvider({
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </trpc.Provider>
   );
 }

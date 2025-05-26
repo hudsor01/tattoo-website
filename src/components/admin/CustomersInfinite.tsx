@@ -1,49 +1,49 @@
-'use client'
+'use client';
 
-import React, { useState, useMemo } from 'react'
-import { Plus, Search, Edit, Eye, User, Mail, Phone, MapPin, FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
-import { trpc } from '@/lib/trpc/client'
-import { format } from 'date-fns'
+import React, { useState, useMemo } from 'react';
+import { Plus, Search, Edit, Eye, User, Mail, Phone, MapPin, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc/client';
+import { format } from 'date-fns';
 
 interface CustomersInfiniteProps {
-  className?: string
+  className?: string;
 }
 
 // Define customer data type for infinite query
 interface CustomerData {
-  id: string
-  firstName?: string | null
-  lastName?: string | null
-  email?: string | null
-  phone?: string | null
-  address?: string | null
-  city?: string | null
-  state?: string | null
-  zipCode?: string | null
-  notes?: string | null
-  tags?: string[] | null
-  createdAt: Date
-  updatedAt: Date
-  totalBookings?: number
-  totalSpent?: number
-  lastBookingDate?: Date | null
+  id: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
+  notes?: string | null;
+  tags?: string[] | null;
+  createdAt: Date;
+  updatedAt: Date;
+  totalBookings?: number;
+  totalSpent?: number;
+  lastBookingDate?: Date | null;
 }
 
 export default function CustomersInfinite({ className = '' }: CustomersInfiniteProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null)
-  const [viewDialogOpen, setViewDialogOpen] = useState(false)
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [newNote, setNewNote] = useState('')
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newNote, setNewNote] = useState('');
   const [newCustomer, setNewCustomer] = useState({
     firstName: '',
     lastName: '',
@@ -54,7 +54,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
     state: '',
     zipCode: '',
     notes: '',
-  })
+  });
 
   // Use tRPC infinite query for customers
   const {
@@ -65,31 +65,31 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
     page: 1,
     limit: 100, // Get more customers for infinite scroll
     search: searchTerm ?? undefined,
-  })
+  });
 
   // Flatten paginated data for rendering/filtering
   const customers: CustomerData[] = useMemo(() => {
-    if (!customersData?.customers) return []
-    return customersData.customers
-  }, [customersData])
+    if (!customersData?.customers) return [];
+    return customersData.customers;
+  }, [customersData]);
 
   // Mutations
   const addNoteMutation = trpc.admin.addCustomerNote.useMutation({
     onSuccess: () => {
-      toast.success('Note added successfully')
-      setNoteDialogOpen(false)
-      setNewNote('')
-      void refetch()
+      toast.success('Note added successfully');
+      setNoteDialogOpen(false);
+      setNewNote('');
+      void refetch();
     },
     onError: (error) => {
-      toast.error(error.message ?? 'Failed to add note')
-    }
-  })
+      toast.error(error.message ?? 'Failed to add note');
+    },
+  });
 
   const createCustomerMutation = trpc.admin.createCustomer.useMutation({
     onSuccess: () => {
-      toast.success('Customer created successfully')
-      setCreateDialogOpen(false)
+      toast.success('Customer created successfully');
+      setCreateDialogOpen(false);
       setNewCustomer({
         firstName: '',
         lastName: '',
@@ -100,64 +100,64 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
         state: '',
         zipCode: '',
         notes: '',
-      })
-      void refetch()
+      });
+      void refetch();
     },
     onError: (error) => {
-      toast.error(error.message ?? 'Failed to create customer')
-    }
-  })
+      toast.error(error.message ?? 'Failed to create customer');
+    },
+  });
 
   // Note: Infinite scrolling would be implemented here with intersection observer
 
   // Helper function to get customer display name
   const getCustomerName = (customer: CustomerData): string => {
-    return `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() ?? 'Unknown Customer'
-  }
+    return `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() ?? 'Unknown Customer';
+  };
 
   // Helper function to format currency
   const formatCurrency = (totalSpent: number | undefined): string => {
-    if (typeof totalSpent !== 'number' || isNaN(totalSpent)) return '$0.00'
+    if (typeof totalSpent !== 'number' || isNaN(totalSpent)) return '$0.00';
     return totalSpent.toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    })
-  }
+    });
+  };
 
   const handleViewOrEditCustomer = (customer: CustomerData) => {
-    setSelectedCustomer(customer)
-    setViewDialogOpen(true)
-  }
+    setSelectedCustomer(customer);
+    setViewDialogOpen(true);
+  };
 
   const handleAddNote = (customer: CustomerData) => {
-    setSelectedCustomer(customer)
-    setNoteDialogOpen(true)
-  }
+    setSelectedCustomer(customer);
+    setNoteDialogOpen(true);
+  };
 
   const handleCreateCustomer = (e?: React.FormEvent) => {
-    e?.preventDefault()
-    
+    e?.preventDefault();
+
     // Validate required fields
     if (!newCustomer.firstName?.trim()) {
-      toast.error('First name is required')
-      return
+      toast.error('First name is required');
+      return;
     }
     if (!newCustomer.lastName?.trim()) {
-      toast.error('Last name is required')
-      return
+      toast.error('Last name is required');
+      return;
     }
     if (!newCustomer.email?.trim()) {
-      toast.error('Email is required')
-      return
+      toast.error('Email is required');
+      return;
     }
 
     // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newCustomer.email)) {
-      toast.error('Please enter a valid email address')
-      return
+      toast.error('Please enter a valid email address');
+      return;
     }
 
     // Create the data object to send
@@ -171,10 +171,10 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
       state: newCustomer.state?.trim() ?? undefined,
       zipCode: newCustomer.zipCode?.trim() ?? undefined,
       notes: newCustomer.notes?.trim() ?? undefined,
-    }
+    };
 
-    createCustomerMutation.mutate(customerData)
-  }
+    createCustomerMutation.mutate(customerData);
+  };
 
   // Loading state
   if (isLoading) {
@@ -189,7 +189,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
           </Card>
         ))}
       </div>
-    )
+    );
   }
 
   return (
@@ -200,7 +200,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
           <h2 className="text-2xl font-bold">Customers</h2>
           <p className="text-gray-600">Manage customer information and history</p>
         </div>
-        
+
         <div className="flex gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -224,7 +224,9 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
           <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
           <p className="text-gray-500">
-            {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first customer'}
+            {searchTerm
+              ? 'Try adjusting your search terms'
+              : 'Get started by adding your first customer'}
           </p>
         </div>
       ) : (
@@ -240,9 +242,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold">
-                            {getCustomerName(customer)}
-                          </h3>
+                          <h3 className="text-lg font-semibold">{getCustomerName(customer)}</h3>
                           {customer.tags && customer.tags.length > 0 && (
                             <div className="flex gap-1">
                               {customer.tags.map((tag: string) => (
@@ -269,7 +269,9 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                           {(customer.city ?? customer.state) && (
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
-                              <span>{[customer.city, customer.state].filter(Boolean).join(', ')}</span>
+                              <span>
+                                {[customer.city, customer.state].filter(Boolean).join(', ')}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -277,12 +279,8 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right text-sm mr-4">
-                        <div className="font-medium">
-                          {customer.totalBookings ?? 0} bookings
-                        </div>
-                        <div className="text-gray-500">
-                          {formatCurrency(customer.totalSpent)}
-                        </div>
+                        <div className="font-medium">{customer.totalBookings ?? 0} bookings</div>
+                        <div className="text-gray-500">{formatCurrency(customer.totalSpent)}</div>
                         <div className="text-xs text-gray-400">
                           Joined {format(new Date(customer.createdAt), 'MMM yyyy')}
                         </div>
@@ -302,11 +300,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleAddNote(customer)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleAddNote(customer)}>
                           <FileText className="w-4 h-4" />
                         </Button>
                       </div>
@@ -339,24 +333,36 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Email</Label>
-                  <p className="text-sm text-gray-600">{selectedCustomer.email ?? 'Not provided'}</p>
+                  <p className="text-sm text-gray-600">
+                    {selectedCustomer.email ?? 'Not provided'}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Phone</Label>
-                  <p className="text-sm text-gray-600">{selectedCustomer.phone ?? 'Not provided'}</p>
+                  <p className="text-sm text-gray-600">
+                    {selectedCustomer.phone ?? 'Not provided'}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Address</Label>
                   <p className="text-sm text-gray-600">
-                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.zipCode]
-                      .filter(Boolean).join(', ') ?? 'Not provided'}
+                    {[
+                      selectedCustomer.address,
+                      selectedCustomer.city,
+                      selectedCustomer.state,
+                      selectedCustomer.zipCode,
+                    ]
+                      .filter(Boolean)
+                      .join(', ') ?? 'Not provided'}
                   </p>
                 </div>
               </div>
               {selectedCustomer.notes && (
                 <div>
                   <Label className="text-sm font-medium">Notes</Label>
-                  <p className="text-sm text-gray-600 whitespace-pre-line">{selectedCustomer.notes}</p>
+                  <p className="text-sm text-gray-600 whitespace-pre-line">
+                    {selectedCustomer.notes}
+                  </p>
                 </div>
               )}
             </div>
@@ -386,11 +392,13 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 <Button variant="outline" onClick={() => setNoteDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  onClick={() => addNoteMutation.mutate({ 
-                    customerId: selectedCustomer.id, 
-                    content: newNote 
-                  })}
+                <Button
+                  onClick={() =>
+                    addNoteMutation.mutate({
+                      customerId: selectedCustomer.id,
+                      content: newNote,
+                    })
+                  }
                   disabled={!newNote.trim() || addNoteMutation.isPending}
                 >
                   Add Note
@@ -414,7 +422,9 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 <Input
                   id="firstName"
                   value={newCustomer.firstName}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, firstName: e.target.value }))}
+                  onChange={(e) =>
+                    setNewCustomer((prev) => ({ ...prev, firstName: e.target.value }))
+                  }
                   placeholder="John"
                 />
               </div>
@@ -423,7 +433,9 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 <Input
                   id="lastName"
                   value={newCustomer.lastName}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, lastName: e.target.value }))}
+                  onChange={(e) =>
+                    setNewCustomer((prev) => ({ ...prev, lastName: e.target.value }))
+                  }
                   placeholder="Doe"
                 />
               </div>
@@ -433,7 +445,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                   id="email"
                   type="email"
                   value={newCustomer.email}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="john@example.com"
                 />
               </div>
@@ -443,7 +455,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                   id="phone"
                   type="tel"
                   value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, phone: e.target.value }))}
                   placeholder="Optional"
                 />
               </div>
@@ -452,7 +464,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 <Input
                   id="address"
                   value={newCustomer.address}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, address: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, address: e.target.value }))}
                   placeholder="123 Main St"
                 />
               </div>
@@ -461,7 +473,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 <Input
                   id="city"
                   value={newCustomer.city}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, city: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, city: e.target.value }))}
                   placeholder="New York"
                 />
               </div>
@@ -470,7 +482,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 <Input
                   id="state"
                   value={newCustomer.state}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, state: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, state: e.target.value }))}
                   placeholder="NY"
                 />
               </div>
@@ -479,7 +491,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
                 <Input
                   id="zipCode"
                   value={newCustomer.zipCode}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, zipCode: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, zipCode: e.target.value }))}
                   placeholder="10001"
                 />
               </div>
@@ -489,7 +501,7 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
               <Textarea
                 id="notes"
                 value={newCustomer.notes}
-                onChange={(e) => setNewCustomer(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={(e) => setNewCustomer((prev) => ({ ...prev, notes: e.target.value }))}
                 placeholder="Additional notes about this customer..."
                 rows={3}
               />
@@ -498,9 +510,14 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
               <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="submit"
-                disabled={!newCustomer.firstName.trim() || !newCustomer.lastName.trim() || !newCustomer.email.trim() || createCustomerMutation.isPending}
+                disabled={
+                  !newCustomer.firstName.trim() ||
+                  !newCustomer.lastName.trim() ||
+                  !newCustomer.email.trim() ||
+                  createCustomerMutation.isPending
+                }
               >
                 {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}
               </Button>
@@ -509,5 +526,5 @@ export default function CustomersInfinite({ className = '' }: CustomersInfiniteP
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

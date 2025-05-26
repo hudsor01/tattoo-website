@@ -11,26 +11,36 @@ export const appointmentsRouter = router({
    * Get all appointments with filtering
    */
   getAll: protectedProcedure
-    .input(z.object({
-      limit: z.number().min(1).max(100).default(50),
-      cursor: z.string().nullish(),
-      status: z.nativeEnum(AppointmentStatus).optional(),
-      customerId: z.string().optional(),
-      startDate: z.string().datetime().optional().transform(val => val ? new Date(val) : undefined),
-      endDate: z.string().datetime().optional().transform(val => val ? new Date(val) : undefined),
-    }))
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(50),
+        cursor: z.string().nullish(),
+        status: z.nativeEnum(AppointmentStatus).optional(),
+        customerId: z.string().optional(),
+        startDate: z
+          .string()
+          .datetime()
+          .optional()
+          .transform((val) => (val ? new Date(val) : undefined)),
+        endDate: z
+          .string()
+          .datetime()
+          .optional()
+          .transform((val) => (val ? new Date(val) : undefined)),
+      })
+    )
     .query(async ({ input }) => {
       try {
         const where: Prisma.AppointmentWhereInput = {};
-        
+
         if (input.status) {
           where.status = input.status;
         }
-        
+
         if (input.customerId) {
           where.customerId = input.customerId;
         }
-        
+
         if (input.startDate || input.endDate) {
           const dateFilter: Prisma.DateTimeFilter = {};
           if (input.startDate) {
@@ -41,7 +51,7 @@ export const appointmentsRouter = router({
           }
           where.startDate = dateFilter;
         }
-        
+
         const appointments = await prisma.appointment.findMany({
           where,
           orderBy: {
@@ -50,43 +60,47 @@ export const appointmentsRouter = router({
           take: input.limit + 1,
           ...(input.cursor && { cursor: { id: input.cursor } }),
         });
-        
+
         console.warn(`Found ${appointments.length} appointments`);
-        
+
         let nextCursor: string | undefined;
         if (appointments.length > input.limit) {
           const nextItem = appointments.pop();
           nextCursor = nextItem?.id;
         }
-        
+
         // Get customer info for each appointment
-        const customerIds = [...new Set(appointments.map(a => a.customerId))];
+        const customerIds = [...new Set(appointments.map((a) => a.customerId))];
         const customers = await prisma.customer.findMany({
           where: { id: { in: customerIds } },
           select: { id: true, firstName: true, lastName: true, email: true, phone: true },
         });
-        
-        const customerMap = new Map(customers.map(c => [c.id, c]));
+
+        const customerMap = new Map(customers.map((c) => [c.id, c]));
 
         // Transform the data to match our interface
-        const transformedAppointments = appointments.map(appointment => {
+        const transformedAppointments = appointments.map((appointment) => {
           const customer = customerMap.get(appointment.customerId);
-          
+
           // Calculate duration safely
           let duration = 120; // default 2 hours
           try {
             if (appointment.endDate && appointment.startDate) {
-              duration = Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60));
+              duration = Math.round(
+                (appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)
+              );
               if (duration <= 0) duration = 120;
             }
           } catch (error) {
             console.warn('Error calculating appointment duration:', error);
           }
-          
+
           return {
             id: appointment.id,
             customerId: appointment.customerId,
-            clientName: customer ? `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim() : 'Unknown Customer',
+            clientName: customer
+              ? `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim()
+              : 'Unknown Customer',
             clientEmail: customer?.email ?? '',
             clientPhone: customer?.phone ?? '',
             appointmentDate: appointment.startDate?.toISOString() ?? new Date().toISOString(),
@@ -103,7 +117,7 @@ export const appointmentsRouter = router({
             updatedAt: appointment.updatedAt?.toISOString() ?? new Date().toISOString(),
           };
         });
-        
+
         return {
           items: transformedAppointments,
           nextCursor,
@@ -121,32 +135,34 @@ export const appointmentsRouter = router({
    * Create a new appointment
    */
   create: adminProcedure
-    .input(z.object({
-      customerId: z.string(),
-      artistId: z.string().optional(),
-      title: z.string().optional(),
-      appointmentDate: z.date(),
-      duration: z.number().min(15).default(120),
-      status: z.nativeEnum(AppointmentStatus).default(AppointmentStatus.SCHEDULED),
-      depositAmount: z.number().min(0).default(0),
-      totalPrice: z.number().min(0).default(0),
-      description: z.string().optional(),
-      location: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        customerId: z.string(),
+        artistId: z.string().optional(),
+        title: z.string().optional(),
+        appointmentDate: z.date(),
+        duration: z.number().min(15).default(120),
+        status: z.nativeEnum(AppointmentStatus).default(AppointmentStatus.SCHEDULED),
+        depositAmount: z.number().min(0).default(0),
+        totalPrice: z.number().min(0).default(0),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      })
+    )
     .mutation(async ({ input }) => {
       try {
         // Verify customer exists
         const customer = await prisma.customer.findUnique({
           where: { id: input.customerId },
         });
-        
+
         if (!customer) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Customer not found',
           });
         }
-        
+
         // Get a default artist if none provided
         let artistId = input.artistId;
         if (!artistId) {
@@ -167,7 +183,7 @@ export const appointmentsRouter = router({
             artistId: artistId,
             title: input.title ?? 'Tattoo Appointment',
             startDate: input.appointmentDate,
-            endDate: new Date(input.appointmentDate.getTime() + (input.duration * 60 * 1000)),
+            endDate: new Date(input.appointmentDate.getTime() + input.duration * 60 * 1000),
             status: input.status,
             deposit: input.depositAmount,
             totalPrice: input.totalPrice,
@@ -175,7 +191,7 @@ export const appointmentsRouter = router({
             location: input.location ?? null,
           },
         });
-        
+
         return {
           id: appointment.id,
           customerId: appointment.customerId,
@@ -183,7 +199,10 @@ export const appointmentsRouter = router({
           clientEmail: customer.email ?? '',
           clientPhone: customer.phone ?? '',
           appointmentDate: appointment.startDate,
-          duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
+          duration:
+            Math.round(
+              (appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)
+            ) || 120,
           status: appointment.status,
           depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
           depositAmount: appointment.deposit ?? 0,
@@ -211,24 +230,26 @@ export const appointmentsRouter = router({
    * Update an appointment
    */
   update: adminProcedure
-    .input(z.object({
-      id: z.string(),
-      title: z.string().optional(),
-      appointmentDate: z.date().optional(),
-      duration: z.number().min(15).optional(),
-      status: z.nativeEnum(AppointmentStatus).optional(),
-      depositAmount: z.number().min(0).optional(),
-      totalPrice: z.number().min(0).optional(),
-      description: z.string().optional(),
-      location: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string().optional(),
+        appointmentDate: z.date().optional(),
+        duration: z.number().min(15).optional(),
+        status: z.nativeEnum(AppointmentStatus).optional(),
+        depositAmount: z.number().min(0).optional(),
+        totalPrice: z.number().min(0).optional(),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      })
+    )
     .mutation(async ({ input }) => {
       try {
         const { id, appointmentDate, duration, depositAmount, ...updateData } = input;
-        
+
         // Build update data object with correct field mapping, filtering out undefined values
         const data: Prisma.AppointmentUpdateInput = {};
-        
+
         // Only include defined values
         if (updateData.title !== undefined) data.title = updateData.title;
         if (updateData.status !== undefined) data.status = updateData.status;
@@ -236,15 +257,15 @@ export const appointmentsRouter = router({
         if (updateData.description !== undefined) data.description = updateData.description;
         if (updateData.location !== undefined) data.location = updateData.location;
         if (appointmentDate) {
-        data.startDate = appointmentDate;
-        if (duration) {
-        data.endDate = new Date(appointmentDate.getTime() + (duration * 60 * 1000));
-        }
+          data.startDate = appointmentDate;
+          if (duration) {
+            data.endDate = new Date(appointmentDate.getTime() + duration * 60 * 1000);
+          }
         }
         if (depositAmount !== undefined) {
-        data.deposit = depositAmount;
+          data.deposit = depositAmount;
         }
-        
+
         const appointment = await prisma.appointment.update({
           where: { id },
           data,
@@ -260,15 +281,19 @@ export const appointmentsRouter = router({
             },
           },
         });
-        
+
         return {
           id: appointment.id,
           customerId: appointment.customerId,
-          clientName: `${appointment.Customer?.firstName ?? ''} ${appointment.Customer?.lastName ?? ''}`.trim(),
+          clientName:
+            `${appointment.Customer?.firstName ?? ''} ${appointment.Customer?.lastName ?? ''}`.trim(),
           clientEmail: appointment.Customer?.email ?? '',
           clientPhone: appointment.Customer?.phone ?? '',
           appointmentDate: appointment.startDate,
-          duration: Math.round((appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)) || 120,
+          duration:
+            Math.round(
+              (appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)
+            ) || 120,
           status: appointment.status,
           depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
           depositAmount: appointment.deposit ?? 0,
@@ -296,15 +321,17 @@ export const appointmentsRouter = router({
    * Delete an appointment
    */
   delete: adminProcedure
-    .input(z.object({
-      id: z.string(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
     .mutation(async ({ input }) => {
       try {
         await prisma.appointment.delete({
           where: { id: input.id },
         });
-        
+
         return { success: true };
       } catch (error) {
         throw new TRPCError({

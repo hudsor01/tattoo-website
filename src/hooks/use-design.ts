@@ -14,7 +14,7 @@ export function useDesign(designId: string) {
     {
       enabled: !!designId,
       staleTime: 5 * 60 * 1000,
-    },
+    }
   );
 
   return {

@@ -1,72 +1,89 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { shareContent } from "@/lib/api"
-import { Facebook, Twitter, Instagram, Mail, Copy, Check, Loader2, Linkedin } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
-import Image from "next/image"
-import type { SharePlatform, ShareDialogProps, ShareMetadata, ShareButton } from "@/types/component-types"
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { shareContent } from '@/lib/api';
+import { Facebook, Twitter, Instagram, Mail, Copy, Check, Loader2, Linkedin } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import Image from 'next/image';
+import type {
+  SharePlatform,
+  ShareDialogProps,
+  ShareMetadata,
+  ShareButton,
+} from '@/types/component-types';
 
-export function ShareDialog({ open, onOpenChange, contentType, contentId, title }: ShareDialogProps) {
-  const [isLoading, setIsLoading] = useState<Record<string, boolean>>({})
-  const [shareUrl, setShareUrl] = useState("")
-  const [copied, setCopied] = useState(false)
+export function ShareDialog({
+  open,
+  onOpenChange,
+  contentType,
+  contentId,
+  title,
+}: ShareDialogProps) {
+  const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
+  const [shareUrl, setShareUrl] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const handleShare = async (platform: SharePlatform) => {
-    setIsLoading((prev) => ({ ...prev, [platform]: true }))
+    setIsLoading((prev) => ({ ...prev, [platform]: true }));
 
     try {
-      const result = await shareContent(contentType, contentId, platform)
-      setShareUrl(result.shareUrl)
+      const result = await shareContent(contentType, contentId, platform);
+      setShareUrl(result.shareUrl);
 
       // Open the share URL in a new window for social platforms
-      if (platform !== "email") {
-        void window.open(result.shareUrl, "_blank", "noopener,noreferrer")
+      if (platform !== 'email') {
+        void window.open(result.shareUrl, '_blank', 'noopener,noreferrer');
       } else {
         // For email, we'll just open the mailto link
-        window.location.href = result.shareUrl
+        window.location.href = result.shareUrl;
       }
 
       toast({
-        title: "Shared successfully",
+        title: 'Shared successfully',
         description: `Content shared on ${platform}`,
-      })
+      });
     } catch (error) {
-      void console.error("Share error:", error)
+      void console.error('Share error:', error);
       toast({
-        title: "Share failed",
-        description: "Could not share content. Please try again.",
-        variant: "error",
-      })
+        title: 'Share failed',
+        description: 'Could not share content. Please try again.',
+        variant: 'error',
+      });
     } finally {
-      setIsLoading((prev) => ({ ...prev, [platform]: false }))
+      setIsLoading((prev) => ({ ...prev, [platform]: false }));
     }
-  }
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
       toast({
-        title: "Copied to clipboard",
-        description: "Link copied to clipboard successfully",
-      })
+        title: 'Copied to clipboard',
+        description: 'Link copied to clipboard successfully',
+      });
     } catch (err) {
-      void console.error("Failed to copy:", err)
+      void console.error('Failed to copy:', err);
       toast({
-        title: "Copy failed",
-        description: "Could not copy to clipboard. Please try manually.",
-        variant: "error",
-      })
+        title: 'Copy failed',
+        description: 'Could not copy to clipboard. Please try manually.',
+        variant: 'error',
+      });
     }
-  }
+  };
 
   // Generate a preview URL for the content
-  const previewUrl = `https://ink37tattoos.com.com/${contentType}s/${contentId}`
+  const previewUrl = `https://ink37tattoos.com.com/${contentType}s/${contentId}`;
 
   // Generate metadata for sharing
   const shareMetadata: ShareMetadata = {
@@ -74,22 +91,22 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
     description: `Check out this amazing ${contentType} on Tattoo Gallery`,
     url: previewUrl,
     image:
-      contentType === "tattoo"
+      contentType === 'tattoo'
         ? `https://ink37tattoos.com/api/tattoos/${contentId}/image`
         : `https://ink37tattoos.com/api/videos/${contentId}/thumbnail`,
-  }
+  };
 
   const shareButtons: ShareButton[] = [
-    { name: "facebook", icon: Facebook, color: "bg-[#1877F2] hover:bg-[#0E65D9]" },
-    { name: "twitter", icon: Twitter, color: "bg-[#1DA1F2] hover:bg-[#0C90E1]" },
-    { name: "linkedin", icon: Linkedin, color: "bg-[#0A66C2] hover:bg-[#004182]" },
+    { name: 'facebook', icon: Facebook, color: 'bg-[#1877F2] hover:bg-[#0E65D9]' },
+    { name: 'twitter', icon: Twitter, color: 'bg-[#1DA1F2] hover:bg-[#0C90E1]' },
+    { name: 'linkedin', icon: Linkedin, color: 'bg-[#0A66C2] hover:bg-[#004182]' },
     {
-      name: "instagram", 
+      name: 'instagram',
       icon: Instagram,
-      color: "bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90",
+      color: 'bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90',
     },
-    { name: "email", icon: Mail, color: "bg-gray-600 hover:bg-gray-700" },
-  ]
+    { name: 'email', icon: Mail, color: 'bg-gray-600 hover:bg-gray-700' },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,20 +122,26 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
             <div className="flex items-start gap-3">
               <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0 overflow-hidden">
                 <Image
-                  src={shareMetadata.image ?? "/placeholder.svg"}
-                  alt={shareMetadata.title ? `${shareMetadata.title} - Professional tattoo design by Ink 37` : 'Professional tattoo design by Ink 37 - Custom tattoo art in Crowley, TX'}
+                  src={shareMetadata.image ?? '/placeholder.svg'}
+                  alt={
+                    shareMetadata.title
+                      ? `${shareMetadata.title} - Professional tattoo design by Ink 37`
+                      : 'Professional tattoo design by Ink 37 - Custom tattoo art in Crowley, TX'
+                  }
                   width={64}
                   height={64}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     // Fallback to placeholder if image fails to load
-                    ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                    (e.target as HTMLImageElement).src = '/placeholder.svg?height=64&width=64';
                   }}
                 />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-sm truncate">{shareMetadata.title}</h4>
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{shareMetadata.description}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                  {shareMetadata.description}
+                </p>
                 <p className="text-xs text-primary mt-1 truncate">{shareMetadata.url}</p>
               </div>
             </div>
@@ -159,5 +182,5 @@ export function ShareDialog({ open, onOpenChange, contentType, contentId, title 
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

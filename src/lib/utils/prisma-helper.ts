@@ -16,13 +16,13 @@ export function sanitizeForPrisma<T extends Record<string, unknown>>(data: T): T
   if (data === null || data === undefined) {
     return {} as T;
   }
-  
+
   const result = {} as T;
-  
+
   // Convert undefined values to null for Prisma
   void Object.entries(data).forEach(([key, value]) => {
     const typedKey = key as keyof T;
-    
+
     // If value is undefined, convert it to null
     if (value === undefined) {
       result[typedKey] = null as unknown as T[keyof T];
@@ -31,7 +31,7 @@ export function sanitizeForPrisma<T extends Record<string, unknown>>(data: T): T
       result[typedKey] = value as T[keyof T];
     }
   });
-  
+
   return result;
 }
 
@@ -47,22 +47,24 @@ export function emailWhereCondition(email: string | undefined | null) {
  * Handles the exactOptionalPropertyTypes issue by converting all optional
  * properties to use NullableFieldUpdateOperationsInput
  */
-export function createPrismaUpdate<T extends Record<string, unknown>>(data: T): Record<string, unknown> {
+export function createPrismaUpdate<T extends Record<string, unknown>>(
+  data: T
+): Record<string, unknown> {
   const updateData: Record<string, unknown> = {};
-  
+
   // Process each field in the data
   void Object.entries(data).forEach(([key, value]) => {
     // If undefined, skip this field entirely
     if (value === undefined) {
       return;
     }
-    
+
     // If value is already null, keep it as null
     if (value === null) {
       updateData[key] = null;
       return;
     }
-    
+
     // Handle different field types - strings, numbers, booleans should convert to
     // Prisma's Field update operations format when needed
     if (typeof value === 'string') {
@@ -76,6 +78,6 @@ export function createPrismaUpdate<T extends Record<string, unknown>>(data: T): 
       updateData[key] = value;
     }
   });
-  
+
   return updateData;
 }

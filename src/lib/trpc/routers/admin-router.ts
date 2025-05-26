@@ -15,42 +15,42 @@ import { prisma } from '@/lib/db/prisma';
 export const adminRouter = router({
   // Get dashboard overview stats
   getDashboardStats: adminProcedure.query(async () => {
-  // Get counts from different entities
-  const usersCount = await prisma.user.count();
-  const customersCount = await prisma.customer.count();
-  const bookingsCount = await prisma.booking.count();
-  const appointmentsCount = await prisma.appointment.count();
-  const artistsCount = await prisma.artist.count();
-  const testimonialsCount = await prisma.testimonial.count();
-  const designsCount = await prisma.tattooDesign.count();
+    // Get counts from different entities
+    const usersCount = await prisma.user.count();
+    const customersCount = await prisma.customer.count();
+    const bookingsCount = await prisma.booking.count();
+    const appointmentsCount = await prisma.appointment.count();
+    const artistsCount = await prisma.artist.count();
+    const testimonialsCount = await prisma.testimonial.count();
+    const designsCount = await prisma.tattooDesign.count();
 
     // Get recent bookings
     const recentBookings = await prisma.booking.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-    include: {
-    Customer: true,
-    Artist: {
-    include: {
-    User: true,
-    },
-    },
-    },
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        Customer: true,
+        Artist: {
+          include: {
+            User: true,
+          },
+        },
+      },
     });
-    
+
     // Get upcoming appointments
     const upcomingAppointments = await prisma.appointment.findMany({
-    where: {
-    startDate: {
-    gte: new Date(),
-    },
-    },
-    take: 5,
-    orderBy: { startDate: 'asc' },
-    include: {
-    Customer: true,
-    Artist: true,
-    },
+      where: {
+        startDate: {
+          gte: new Date(),
+        },
+      },
+      take: 5,
+      orderBy: { startDate: 'asc' },
+      include: {
+        Customer: true,
+        Artist: true,
+      },
     });
 
     // Return all stats
@@ -71,33 +71,33 @@ export const adminRouter = router({
 
   // Customer endpoints
   customers: router({
-  getAll: adminProcedure
-  .input(
-  z.object({
-  limit: z.number().min(1).max(1000).default(100),
-  cursor: z.string().nullish(),
-  search: z.string().optional(),
-  }),
-  )
+    getAll: adminProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(1000).default(100),
+          cursor: z.string().nullish(),
+          search: z.string().optional(),
+        })
+      )
       .query(async ({ input }) => {
-      const { limit, cursor, search } = input;
-      
-      // Build the where clause
-      let where: Prisma.CustomerWhereInput = {};
-      
-      // Add search filter if provided
-      if (search) {
-      where = {
-      OR: [
-      { firstName: { contains: search, mode: 'insensitive' } },
-      { lastName: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } },
-      { phone: { contains: search, mode: 'insensitive' } },
-      ],
-      };
-      }
-      
-      const customers = await prisma.customer.findMany({
+        const { limit, cursor, search } = input;
+
+        // Build the where clause
+        let where: Prisma.CustomerWhereInput = {};
+
+        // Add search filter if provided
+        if (search) {
+          where = {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search, mode: 'insensitive' } },
+            ],
+          };
+        }
+
+        const customers = await prisma.customer.findMany({
           where,
           take: limit + 1,
           ...(cursor ? { cursor: { id: cursor } } : {}),
@@ -128,37 +128,37 @@ export const adminRouter = router({
 
   // Get customer list with pagination
   getCustomers: adminProcedure
-  .input(
-  z.object({
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(20),
-  search: z.string().optional(),
-  }),
-  )
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(100).default(20),
+        search: z.string().optional(),
+      })
+    )
     .query(async ({ input }) => {
-    const { page, limit, search } = input;
-    const skip = (page - 1) * limit;
-    
-    // Build the where clause
-    let where: Prisma.CustomerWhereInput = {};
-    
-    // Add search filter if provided
-    if (search) {
-    where = {
-    OR: [
-    { firstName: { contains: search, mode: 'insensitive' } },
-    { lastName: { contains: search, mode: 'insensitive' } },
-    { email: { contains: search, mode: 'insensitive' } },
-    { phone: { contains: search, mode: 'insensitive' } },
-    ],
-    };
-    }
-    
-    // Get total count for pagination
-    const totalCount = await prisma.customer.count({ where });
-    
-    // Get customers
-    const customers = await prisma.customer.findMany({
+      const { page, limit, search } = input;
+      const skip = (page - 1) * limit;
+
+      // Build the where clause
+      let where: Prisma.CustomerWhereInput = {};
+
+      // Add search filter if provided
+      if (search) {
+        where = {
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { phone: { contains: search, mode: 'insensitive' } },
+          ],
+        };
+      }
+
+      // Get total count for pagination
+      const totalCount = await prisma.customer.count({ where });
+
+      // Get customers
+      const customers = await prisma.customer.findMany({
         where,
         skip,
         take: limit,
@@ -203,10 +203,10 @@ export const adminRouter = router({
     )
     .query(async ({ input }) => {
       const { limit, cursor, search } = input;
-      
+
       // Build the where clause
       let where: Prisma.CustomerWhereInput = {};
-      
+
       // Add search filter if provided
       if (search) {
         where = {
@@ -218,11 +218,11 @@ export const adminRouter = router({
           ],
         };
       }
-      
+
       // Get total count for reference
       const totalCount = await prisma.customer.count({ where });
-      
-      // Get customers with cursor pagination  
+
+      // Get customers with cursor pagination
       const findManyOptions: Prisma.CustomerFindManyArgs = {
         where,
         take: limit + 1, // Take one extra to check if there's more
@@ -240,19 +240,19 @@ export const adminRouter = router({
           },
         },
       };
-      
+
       if (cursor) {
         findManyOptions.cursor = { id: cursor.toString() };
       }
-      
+
       const customers = await prisma.customer.findMany(findManyOptions);
-      
+
       let nextCursor: number | null = null;
       if (customers.length > limit) {
         const nextItem = customers.pop();
         nextCursor = nextItem ? parseInt(nextItem.id) : null;
       }
-      
+
       return {
         customers,
         nextCursor,
@@ -261,88 +261,94 @@ export const adminRouter = router({
     }),
 
   // Get customer details by ID
-  getCustomerById: adminProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
+  getCustomerById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     const customer = await prisma.customer.findUnique({
-        where: { id: input.id },
-        include: {
-          Booking: {
-            orderBy: { createdAt: 'desc' },
-            include: {
-              Artist: {
-                include: {
-                  User: true,
-                },
+      where: { id: input.id },
+      include: {
+        Booking: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            Artist: {
+              include: {
+                User: true,
               },
             },
           },
-          Appointment: {
-            orderBy: { startDate: 'desc' },
-            include: {
-              Artist: true,
-            },
-          },
-          Transaction: {
-            orderBy: { createdAt: 'desc' },
-          },
-          Testimonial: true,
-          Tag: true,
         },
+        Appointment: {
+          orderBy: { startDate: 'desc' },
+          include: {
+            Artist: true,
+          },
+        },
+        Transaction: {
+          orderBy: { createdAt: 'desc' },
+        },
+        Testimonial: true,
+        Tag: true,
+      },
+    });
+
+    if (!customer) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: `Customer with ID ${input.id} not found`,
       });
+    }
 
-      if (!customer) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: `Customer with ID ${input.id} not found`,
-        });
-      }
-
-      return customer;
-    }),
+    return customer;
+  }),
 
   // Update customer details
   updateCustomer: adminProcedure
-  .input(
-  z.object({
-  id: z.string(),
-  firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional(),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postalCode: z.string().optional(),
-  country: z.string().optional(),
-  birthDate: z.date().optional(),
-  allergies: z.string().optional(),
-  source: z.string().optional(),
-  personalNotes: z.string().optional(),
-  }),
-  )
+    .input(
+      z.object({
+        id: z.string(),
+        firstName: z.string().min(1).optional(),
+        lastName: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        postalCode: z.string().optional(),
+        country: z.string().optional(),
+        birthDate: z.date().optional(),
+        allergies: z.string().optional(),
+        source: z.string().optional(),
+        personalNotes: z.string().optional(),
+      })
+    )
     .mutation(async ({ input }) => {
-    const { id } = input;
-    
-    try {
-    // Convert the input data to a format acceptable by Prisma
-    const updateData: Prisma.CustomerUpdateInput = {};
-    
-    if (input.firstName !== null && input.firstName !== undefined) updateData.firstName = input.firstName;
-    if (input.lastName !== null && input.lastName !== undefined) updateData.lastName = input.lastName;
-    if (input.email !== null && input.email !== undefined) updateData.email = input.email;
-    if (input.phone !== null && input.phone !== undefined) updateData.phone = input.phone;
-    if (input.address !== null && input.address !== undefined) updateData.address = input.address;
-    if (input.city !== null && input.city !== undefined) updateData.city = input.city;
-    if (input.state !== null && input.state !== undefined) updateData.state = input.state;
-    if (input.postalCode !== null && input.postalCode !== undefined) updateData.postalCode = input.postalCode;
-    if (input.country !== null && input.country !== undefined) updateData.country = input.country;
-    if (input.birthDate !== null && input.birthDate !== undefined) updateData.birthDate = input.birthDate;
-    if (input.allergies !== null && input.allergies !== undefined) updateData.allergies = input.allergies;
-    if (input.source !== null && input.source !== undefined) updateData.source = input.source;
-    if (input.personalNotes !== null && input.personalNotes !== undefined) updateData.notes = input.personalNotes;
-    
-    const updatedCustomer = await prisma.customer.update({
+      const { id } = input;
+
+      try {
+        // Convert the input data to a format acceptable by Prisma
+        const updateData: Prisma.CustomerUpdateInput = {};
+
+        if (input.firstName !== null && input.firstName !== undefined)
+          updateData.firstName = input.firstName;
+        if (input.lastName !== null && input.lastName !== undefined)
+          updateData.lastName = input.lastName;
+        if (input.email !== null && input.email !== undefined) updateData.email = input.email;
+        if (input.phone !== null && input.phone !== undefined) updateData.phone = input.phone;
+        if (input.address !== null && input.address !== undefined)
+          updateData.address = input.address;
+        if (input.city !== null && input.city !== undefined) updateData.city = input.city;
+        if (input.state !== null && input.state !== undefined) updateData.state = input.state;
+        if (input.postalCode !== null && input.postalCode !== undefined)
+          updateData.postalCode = input.postalCode;
+        if (input.country !== null && input.country !== undefined)
+          updateData.country = input.country;
+        if (input.birthDate !== null && input.birthDate !== undefined)
+          updateData.birthDate = input.birthDate;
+        if (input.allergies !== null && input.allergies !== undefined)
+          updateData.allergies = input.allergies;
+        if (input.source !== null && input.source !== undefined) updateData.source = input.source;
+        if (input.personalNotes !== null && input.personalNotes !== undefined)
+          updateData.notes = input.personalNotes;
+
+        const updatedCustomer = await prisma.customer.update({
           where: { id },
           data: updateData,
         });
@@ -362,31 +368,36 @@ export const adminRouter = router({
 
   // Add a note to a customer (placeholders until Note model is added)
   addCustomerNote: adminProcedure
-  .input(
-  z.object({
-  customerId: z.string(),
-  content: z.string().min(1),
-  type: z.string().default('manual'),
-  }),
-  )
+    .input(
+      z.object({
+        customerId: z.string(),
+        content: z.string().min(1),
+        type: z.string().default('manual'),
+      })
+    )
     .mutation(async ({ input }) => {
-    try {
-    // Since the Note model doesn't exist, we'll update the customer's notes field
-    const customer = await prisma.customer.findUnique({
+      try {
+        // Since the Note model doesn't exist, we'll update the customer's notes field
+        const customer = await prisma.customer.findUnique({
           where: { id: input.customerId },
           select: { notes: true },
         });
-        
+
         const currentNotes = customer?.notes ?? '';
         const newNote = `[${new Date().toISOString()}] ${input.content}`;
         const updatedNotes = currentNotes ? `${currentNotes}\n\n${newNote}` : newNote;
-        
+
         await prisma.customer.update({
           where: { id: input.customerId },
           data: { notes: updatedNotes },
         });
 
-        return { id: 'temp-note-id', content: input.content, type: input.type, customerId: input.customerId };
+        return {
+          id: 'temp-note-id',
+          content: input.content,
+          type: input.type,
+          customerId: input.customerId,
+        };
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
           throw new TRPCError({
@@ -400,25 +411,23 @@ export const adminRouter = router({
     }),
 
   // Delete a customer note (placeholders until Note model is added)
-  deleteCustomerNote: adminProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async () => {
-      // This is a placeholder until the Note model is properly implemented
-      // For now, just return success as notes are stored in the customer.notes field
-      return { success: true };
-    }),
+  deleteCustomerNote: adminProcedure.input(z.object({ id: z.string() })).mutation(async () => {
+    // This is a placeholder until the Note model is properly implemented
+    // For now, just return success as notes are stored in the customer.notes field
+    return { success: true };
+  }),
 
   // Manage customer tags
   addTagToCustomer: adminProcedure
-  .input(
-  z.object({
-  customerId: z.string(),
-  tagId: z.string(),
-  }),
-  )
+    .input(
+      z.object({
+        customerId: z.string(),
+        tagId: z.string(),
+      })
+    )
     .mutation(async ({ input }) => {
-    try {
-    const customer = await prisma.customer.update({
+      try {
+        const customer = await prisma.customer.update({
           where: { id: input.customerId },
           data: {
             Tag: {
@@ -445,15 +454,15 @@ export const adminRouter = router({
 
   // Remove tag from customer
   removeTagFromCustomer: adminProcedure
-  .input(
-  z.object({
-  customerId: z.string(),
-  tagId: z.string(),
-  }),
-  )
+    .input(
+      z.object({
+        customerId: z.string(),
+        tagId: z.string(),
+      })
+    )
     .mutation(async ({ input }) => {
-    try {
-    const customer = await prisma.customer.update({
+      try {
+        const customer = await prisma.customer.update({
           where: { id: input.customerId },
           data: {
             Tag: {
@@ -480,22 +489,22 @@ export const adminRouter = router({
 
   // Get all tags
   getTags: adminProcedure.query(async () => {
-  return prisma.tag.findMany({
+    return prisma.tag.findMany({
       orderBy: { name: 'asc' },
     });
   }),
 
   // Create a new tag
   createTag: adminProcedure
-  .input(
-  z.object({
-  name: z.string().min(1),
-  color: z.string().default('gray'),
-  }),
-  )
+    .input(
+      z.object({
+        name: z.string().min(1),
+        color: z.string().default('gray'),
+      })
+    )
     .mutation(async ({ input }) => {
-    try {
-    const tag = await prisma.tag.create({
+      try {
+        const tag = await prisma.tag.create({
           data: {
             id: randomUUID(),
             name: input.name,
@@ -529,8 +538,8 @@ export const adminRouter = router({
 
   // Delete a tag
   deleteTag: adminProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-  try {
-  await prisma.tag.delete({
+    try {
+      await prisma.tag.delete({
         where: { id: input.id },
       });
 
@@ -549,21 +558,22 @@ export const adminRouter = router({
 
   // Create a new customer
   createCustomer: adminProcedure
-  .input(
-  z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),  
-  email: z.string().email('Valid email is required'),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zipCode: z.string().optional(),
-  notes: z.string().optional(),
-  })
-  ).mutation(async ({ input }) => {
-    try {
-      const customer = await prisma.customer.create({
+    .input(
+      z.object({
+        firstName: z.string().min(1, 'First name is required'),
+        lastName: z.string().min(1, 'Last name is required'),
+        email: z.string().email('Valid email is required'),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const customer = await prisma.customer.create({
           data: {
             firstName: input.firstName.trim(),
             lastName: input.lastName.trim(),

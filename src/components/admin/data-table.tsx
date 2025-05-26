@@ -1,22 +1,22 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { 
-ColumnDef,
-ColumnFiltersState,
-SortingState,
-VisibilityState,
-flexRender,
-getCoreRowModel,
-getFilteredRowModel,
-getPaginationRowModel,
-getSortedRowModel,
-useReactTable,
-} from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Search, RefreshCw, Plus } from "lucide-react"
+import * as React from 'react';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Search, RefreshCw, Plus } from 'lucide-react';
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,8 +25,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -34,50 +34,50 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import type { RecordObject } from "@/types/utility-types"
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { RecordObject } from '@/types/utility-types';
 
 export interface DataTableColumn<T extends RecordObject> {
-  id: string
-  accessorKey?: string
-  header: string | (() => React.ReactNode)
-  cell?: (props: { row: { original: T }, getValue: () => unknown }) => React.ReactNode
-  enableSorting?: boolean
-  enableHiding?: boolean
+  id: string;
+  accessorKey?: string;
+  header: string | (() => React.ReactNode);
+  cell?: (props: { row: { original: T }; getValue: () => unknown }) => React.ReactNode;
+  enableSorting?: boolean;
+  enableHiding?: boolean;
   meta?: {
-    className?: string
-  }
+    className?: string;
+  };
 }
 
 export interface DataTableAction<T extends RecordObject> {
-  label: string
-  icon?: React.ReactNode
-  onClick: (row: T) => void
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  label: string;
+  icon?: React.ReactNode;
+  onClick: (row: T) => void;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
 export interface DataTableProps<T extends RecordObject> {
-  data: T[]
-  columns: DataTableColumn<T>[]
-  loading?: boolean
-  searchPlaceholder?: string
-  onRefresh?: () => void
-  onAdd?: () => void
-  actions?: DataTableAction<T>[]
-  enableRowSelection?: boolean
-  enableSearch?: boolean
-  enableColumnVisibility?: boolean
-  pageSize?: number
-  className?: string
+  data: T[];
+  columns: DataTableColumn<T>[];
+  loading?: boolean;
+  searchPlaceholder?: string;
+  onRefresh?: () => void;
+  onAdd?: () => void;
+  actions?: DataTableAction<T>[];
+  enableRowSelection?: boolean;
+  enableSearch?: boolean;
+  enableColumnVisibility?: boolean;
+  pageSize?: number;
+  className?: string;
 }
 
 export function DataTable<T extends RecordObject>({
   data,
   columns: columnsProp,
   loading = false,
-  searchPlaceholder = "Search...",
+  searchPlaceholder = 'Search...',
   onRefresh,
   onAdd,
   actions = [],
@@ -87,20 +87,20 @@ export function DataTable<T extends RecordObject>({
   pageSize = 10,
   className,
 }: DataTableProps<T>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [globalFilter, setGlobalFilter] = React.useState("")
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
   // Build columns with selection and actions
   const columns = React.useMemo<ColumnDef<T>[]>(() => {
-    const cols: ColumnDef<T>[] = []
+    const cols: ColumnDef<T>[] = [];
 
     // Add selection column if enabled
     if (enableRowSelection) {
       cols.push({
-        id: "select",
+        id: 'select',
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -119,65 +119,74 @@ export function DataTable<T extends RecordObject>({
         ),
         enableSorting: false,
         enableHiding: false,
-      })
+      });
     }
 
     // Add data columns
     cols.push(
-      ...columnsProp.map((col): ColumnDef<T> => ({
-        id: col.id,
-        accessorKey: col.accessorKey ?? col.id,
-        header: typeof col.header === "string" 
-          ? ({ column }: { column: { toggleSorting: (desc?: boolean) => void; getIsSorted: () => false | 'asc' | 'desc' } }) => (
-              col.enableSorting !== false ? (
-                <Button
-                  variant="ghost"
-                  onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                  className="h-8 px-2 lg:px-3"
-                >
-                  {col.header as string}
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <span className="font-medium">{col.header as string}</span>
-              )
-            )
-          : col.header,
-        cell: col.cell ?? (({ getValue }) => {
-          const value = getValue()
-          
-          // Handle different value types
-          if (value === null || value === undefined) {
-            return <span className="text-muted-foreground">-</span>
-          }
-          
-          if (typeof value === "boolean") {
-            return (
-              <Badge variant={value ? "default" : "secondary"}>
-                {value ? "Yes" : "No"}
-              </Badge>
-            )
-          }
-          
-          if (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}/)) {
-            return new Date(value).toLocaleDateString()
-          }
-          
-          return <div className={col.meta?.className}>{String(value)}</div>
-        }),
-        ...(col.enableSorting !== undefined && { enableSorting: col.enableSorting }),
-        ...(col.enableHiding !== undefined && { enableHiding: col.enableHiding }),
-        ...(col.meta && { meta: col.meta }),
-      }))
-    )
+      ...columnsProp.map(
+        (col): ColumnDef<T> => ({
+          id: col.id,
+          accessorKey: col.accessorKey ?? col.id,
+          header:
+            typeof col.header === 'string'
+              ? ({
+                  column,
+                }: {
+                  column: {
+                    toggleSorting: (desc?: boolean) => void;
+                    getIsSorted: () => false | 'asc' | 'desc';
+                  };
+                }) =>
+                  col.enableSorting !== false ? (
+                    <Button
+                      variant="ghost"
+                      onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                      className="h-8 px-2 lg:px-3"
+                    >
+                      {col.header as string}
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <span className="font-medium">{col.header as string}</span>
+                  )
+              : col.header,
+          cell:
+            col.cell ??
+            (({ getValue }) => {
+              const value = getValue();
+
+              // Handle different value types
+              if (value === null || value === undefined) {
+                return <span className="text-muted-foreground">-</span>;
+              }
+
+              if (typeof value === 'boolean') {
+                return (
+                  <Badge variant={value ? 'default' : 'secondary'}>{value ? 'Yes' : 'No'}</Badge>
+                );
+              }
+
+              if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
+                return new Date(value).toLocaleDateString();
+              }
+
+              return <div className={col.meta?.className}>{String(value)}</div>;
+            }),
+          ...(col.enableSorting !== undefined && { enableSorting: col.enableSorting }),
+          ...(col.enableHiding !== undefined && { enableHiding: col.enableHiding }),
+          ...(col.meta && { meta: col.meta }),
+        })
+      )
+    );
 
     // Add actions column if actions provided
     if (actions.length > 0) {
       cols.push({
-        id: "actions",
+        id: 'actions',
         enableHiding: false,
         cell: ({ row }) => {
-          const rowData = row.original
+          const rowData = row.original;
 
           return (
             <DropdownMenu>
@@ -202,13 +211,13 @@ export function DataTable<T extends RecordObject>({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-          )
+          );
         },
-      })
+      });
     }
 
-    return cols
-  }, [columnsProp, enableRowSelection, actions])
+    return cols;
+  }, [columnsProp, enableRowSelection, actions]);
 
   const table = useReactTable({
     data,
@@ -222,7 +231,7 @@ export function DataTable<T extends RecordObject>({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: "includesString",
+    globalFilterFn: 'includesString',
     initialState: {
       pagination: {
         pageSize,
@@ -235,7 +244,7 @@ export function DataTable<T extends RecordObject>({
       rowSelection,
       globalFilter,
     },
-  })
+  });
 
   if (loading) {
     return (
@@ -264,18 +273,20 @@ export function DataTable<T extends RecordObject>({
             <TableBody>
               {Array.from({ length: 5 }, (_, i) => `row-${i}`).map((rowKey) => (
                 <TableRow key={rowKey}>
-                  {Array.from({ length: columns.length }, (_, j) => `${rowKey}-cell-${j}`).map((cellKey) => (
-                    <TableCell key={cellKey}>
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
+                  {Array.from({ length: columns.length }, (_, j) => `${rowKey}-cell-${j}`).map(
+                    (cellKey) => (
+                      <TableCell key={cellKey}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    )
+                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -323,13 +334,11 @@ export function DataTable<T extends RecordObject>({
                         key={column.id}
                         className="capitalize"
                         checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
                       >
                         {column.id}
                       </DropdownMenuCheckboxItem>
-                    )
+                    );
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -346,12 +355,9 @@ export function DataTable<T extends RecordObject>({
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -361,25 +367,19 @@ export function DataTable<T extends RecordObject>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  data-state={row.getIsSelected() && 'selected'}
                   className="hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
@@ -391,7 +391,7 @@ export function DataTable<T extends RecordObject>({
         <div className="flex-1 text-sm text-muted-foreground">
           {enableRowSelection && (
             <>
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredSelectedRowModel().rows.length} of{' '}
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </>
           )}
@@ -416,7 +416,7 @@ export function DataTable<T extends RecordObject>({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default DataTable
+export default DataTable;

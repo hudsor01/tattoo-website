@@ -20,9 +20,9 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
   // Function to handle feedback - now saves to database
   const handleFeedback = async (index: number, isHelpful: boolean) => {
     try {
-      const item = items[index]
-      if (!item) return
-      
+      const item = items[index];
+      if (!item) return;
+
       // Send feedback to API
       const response = await fetch('/api/faq/feedback', {
         method: 'POST',
@@ -38,7 +38,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
       });
 
       if (response.ok) {
-        setFeedbackGiven(prev => ({
+        setFeedbackGiven((prev) => ({
           ...prev,
           [index]: isHelpful,
         }));
@@ -53,26 +53,26 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
   // Find related questions using semantic similarity and categories
   const getRelatedQuestions = (currentIndex: number) => {
     const currentItem = items[currentIndex];
-    if (!currentItem) return []
-    
+    if (!currentItem) return [];
+
     const currentQuestion = currentItem.question.toLowerCase();
-    
+
     // Score other questions based on keyword overlap and semantic similarity
     const scoredQuestions = items
       .map((item, idx) => {
         if (idx === currentIndex) return null;
-        
+
         const questionWords = item.question.toLowerCase().split(' ');
         const currentWords = currentQuestion.split(' ');
-        
+
         // Calculate keyword overlap score
-        const overlap = questionWords.filter(word => 
-          currentWords.includes(word) && word.length > 3
+        const overlap = questionWords.filter(
+          (word) => currentWords.includes(word) && word.length > 3
         ).length;
-        
+
         // No category boost since items don't have category property
         const categoryBoost = 0;
-        
+
         return {
           question: item.question,
           index: idx,
@@ -82,7 +82,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
       .filter(Boolean)
       .sort((a, b) => (b?.score ?? 0) - (a?.score ?? 0))
       .slice(0, 2)
-      .map(item => item?.question);
+      .map((item) => item?.question);
 
     return scoredQuestions.filter(Boolean) as string[];
   };
@@ -123,7 +123,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
                               onClick={() => {
                                 // Find the accordion item with this question and open it
                                 const questionIndex = items.findIndex(
-                                  item => item.question === question,
+                                  (item) => item.question === question
                                 );
                                 if (questionIndex >= 0) {
                                   void document.getElementById(`item-${questionIndex}`)?.click();
@@ -174,7 +174,7 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
                               Sorry this wasn't helpful. Need more information?
                             </p>
                             <Button variant="default" size="sm" asChild className="mt-2">
-                              <Link href="/contact" >Contact Me</Link>
+                              <Link href="/contact">Contact Me</Link>
                             </Button>
                           </div>
                         )}

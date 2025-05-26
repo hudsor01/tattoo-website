@@ -7,7 +7,7 @@ export async function GET() {
   try {
     // Check authentication
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -24,7 +24,7 @@ export async function GET() {
             lastName: true,
             email: true,
             phone: true,
-          }
+          },
         },
         Appointment: {
           select: {
@@ -34,28 +34,24 @@ export async function GET() {
             status: true,
             deposit: true,
             totalPrice: true,
-          }
-        }
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'desc',
       },
-      take: 100 // Limit to recent bookings
+      take: 100, // Limit to recent bookings
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       bookings,
-      count: bookings.length 
+      count: bookings.length,
     });
-
   } catch (error) {
     void logger.error('Failed to fetch bookings', {
       error: error instanceof Error ? error.message : String(error),
     });
 
-    return NextResponse.json(
-      { error: 'Failed to fetch bookings' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 });
   }
 }

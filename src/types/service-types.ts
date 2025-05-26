@@ -1,5 +1,5 @@
 /**
- * Type definitions for various service integrations like Google Calendar, 
+ * Type definitions for various service integrations like Google Calendar,
  * email services, and other external APIs.
  */
 
@@ -88,7 +88,7 @@ export interface EmailSendOptions {
 /**
  * Payment Webhook Event Types
  */
-export type PaymentWebhookEventType = 
+export type PaymentWebhookEventType =
   | 'payment.succeeded'
   | 'payment.failed'
   | 'customer.created'

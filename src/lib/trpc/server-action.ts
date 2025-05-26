@@ -1,6 +1,6 @@
 /**
  * tRPC Server Actions
- * 
+ *
  * This file provides utilities for using tRPC procedures in Server Actions.
  * It allows for type-safe API calls directly from server components.
  */
@@ -27,9 +27,9 @@ export async function serverTRPC() {
     const headersObj: Record<string, string> = {
       'user-agent': 'server-action-client',
       'content-type': 'application/json',
-      'host': 'localhost',
+      host: 'localhost',
     };
-    
+
     const enhancedCtx = {
       ...ctx,
       req: {} as NextRequest,
@@ -43,7 +43,7 @@ export async function serverTRPC() {
     throw new TRPCError({
       code: 'INTERNAL_SERVER_ERROR',
       message: 'Failed to create serverTRPC caller',
-      cause: error
+      cause: error,
     });
   }
 }
@@ -53,32 +53,32 @@ export async function serverTRPC() {
  */
 export function getCallerProcedure<TInput, TOutput>(
   caller: ReturnType<typeof appRouter.createCaller>,
-  namespace: string, 
+  namespace: string,
   procedure: string
 ): (input: TInput) => Promise<TOutput> {
   if (!caller[namespace as keyof typeof caller]) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
-      message: `Router "${namespace}" not found in caller`
+      message: `Router "${namespace}" not found in caller`,
     });
   }
-  
+
   const routerCaller = caller[namespace as keyof typeof caller];
   if (typeof routerCaller !== 'object' || routerCaller === null) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
-      message: `Router "${namespace}" is not an object`
+      message: `Router "${namespace}" is not an object`,
     });
   }
-  
+
   const procedureCaller = routerCaller[procedure as keyof typeof routerCaller];
   if (typeof procedureCaller !== 'function') {
     throw new TRPCError({
       code: 'BAD_REQUEST',
-      message: `Procedure "${procedure}" not found in router "${namespace}"`
+      message: `Procedure "${procedure}" not found in router "${namespace}"`,
     });
   }
-  
+
   return procedureCaller as (input: TInput) => Promise<TOutput>;
 }
 
@@ -93,35 +93,35 @@ export async function prefetchTRPCQuery<TInput, TOutput>(
   try {
     const caller = await serverTRPC();
     const splitPath = path.split('.');
-    
+
     if (splitPath.length !== 2) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: `Invalid tRPC path: ${path}. Expected format: "router.procedure"`
+        message: `Invalid tRPC path: ${path}. Expected format: "router.procedure"`,
       });
     }
-    
+
     const [namespace, procedure] = splitPath;
     // Make sure namespace and procedure are both strings and not null
     if (!namespace || !procedure) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: `Invalid tRPC path segments: ${path}. Expected format: "router.procedure"`
+        message: `Invalid tRPC path segments: ${path}. Expected format: "router.procedure"`,
       });
     }
-    
+
     return getCallerProcedure<TInput, TOutput>(caller, namespace, procedure)(input);
   } catch (error) {
     console.error(`Error prefetching tRPC query (${path}):`, error);
-    
+
     if (error instanceof TRPCError) {
       throw error;
     }
-    
+
     throw new TRPCError({
       code: 'INTERNAL_SERVER_ERROR',
       message: `Failed to prefetch tRPC query: ${path}`,
-      cause: error
+      cause: error,
     });
   }
 }
@@ -138,15 +138,15 @@ export async function executeServerMutation<TInput, TOutput>(
     return await prefetchTRPCQuery<TInput, TOutput>(path, input);
   } catch (error) {
     console.error(`Error executing server mutation (${path}):`, error);
-    
+
     if (error instanceof TRPCError) {
       throw error;
     }
-    
+
     throw new TRPCError({
       code: 'INTERNAL_SERVER_ERROR',
       message: `Failed to execute server mutation: ${path}`,
-      cause: error
+      cause: error,
     });
   }
 }

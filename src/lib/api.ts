@@ -1,6 +1,6 @@
 /**
  * Unified API client for making standardized requests
- * 
+ *
  * This module provides a consistent API client for making HTTP requests
  * with consistent error handling, validation, and response parsing.
  */
@@ -47,10 +47,7 @@ export class ApiError extends Error {
 /**
  * Validates a response against a Zod schema if provided
  */
-async function validateResponse<T>(
-  response: Response,
-  schema?: z.ZodType<T>
-): Promise<T> {
+async function validateResponse<T>(response: Response, schema?: z.ZodType<T>): Promise<T> {
   // Check for error response
   if (!response.ok) {
     let errorData = null;
@@ -59,7 +56,7 @@ async function validateResponse<T>(
     } catch {
       // If parsing fails, use null
     }
-    
+
     throw new ApiError(
       `API request failed: ${response.status} ${response.statusText}`,
       response.status,
@@ -67,7 +64,7 @@ async function validateResponse<T>(
       errorData
     );
   }
-  
+
   // For 204 No Content responses, return empty object
   if (response.status === 204) {
     return {} as T;
@@ -75,39 +72,30 @@ async function validateResponse<T>(
 
   // Parse JSON response
   const data = await response.json();
-  
+
   // Validate with Zod if schema is provided
   if (schema) {
     try {
       return schema.parse(data);
     } catch (error) {
       void console.error('Response validation error:', error);
-      throw new ApiError(
-        'Invalid response data',
-        response.status,
-        response.statusText,
-        { 
-          success: false,
-          error: 'Validation failed',
-          message: 'Invalid response data',
-          validationErrors: error as ValidationError[], 
-          data 
-        }
-      );
+      throw new ApiError('Invalid response data', response.status, response.statusText, {
+        success: false,
+        error: 'Validation failed',
+        message: 'Invalid response data',
+        validationErrors: error as ValidationError[],
+        data,
+      });
     }
   }
-  
+
   return data as T;
 }
 
 /**
  * Helper function to create fetch options with only defined properties
  */
-function createFetchOptions(
-  method: string,
-  options?: RequestOptions,
-  body?: unknown
-): RequestInit {
+function createFetchOptions(method: string, options?: RequestOptions, body?: unknown): RequestInit {
   // Start with required properties
   const fetchOptions: RequestInit = {
     method,
@@ -121,7 +109,14 @@ function createFetchOptions(
   };
 
   // Only add body if it is a string (from JSON.stringify) or valid BodyInit
-  if (typeof body === 'string' || body instanceof Blob || body instanceof FormData || body instanceof URLSearchParams || body instanceof ArrayBuffer || body instanceof ReadableStream) {
+  if (
+    typeof body === 'string' ||
+    body instanceof Blob ||
+    body instanceof FormData ||
+    body instanceof URLSearchParams ||
+    body instanceof ArrayBuffer ||
+    body instanceof ReadableStream
+  ) {
     fetchOptions.body = body;
   }
 
@@ -159,7 +154,7 @@ export const api = {
           void searchParams.append(key, String(value));
         }
       });
-      
+
       const queryString = searchParams.toString();
       if (queryString) {
         url = `${url}${url.includes('?') ? '&' : '?'}${queryString}`;
@@ -294,15 +289,15 @@ export async function trackVideoView(
         userAgent: navigator.userAgent,
         referrer: document.referrer,
         url: window.location.href,
-      }
+      },
     });
 
     return { success: true };
   } catch (error) {
     void console.error('Failed to track video view:', error);
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Unknown error' 
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -310,7 +305,7 @@ export async function trackVideoView(
 /**
  * Share content on social media platforms
  * @param contentType Type of content (tattoo, video)
- * @param contentId Content identifier 
+ * @param contentId Content identifier
  * @param platform Platform to share on
  * @returns Object containing success status and share URL
  */
@@ -322,11 +317,13 @@ export async function shareContent(
   try {
     // Base URL for the content
     const baseUrl = `${window.location.origin}/${contentType}s/${contentId}`;
-    
+
     // Encode title and URL for sharing
     const encodedUrl = encodeURIComponent(baseUrl);
-    const encodedTitle = encodeURIComponent(`Check out this amazing ${contentType} on Ink 37 Tattoo Gallery`);
-    
+    const encodedTitle = encodeURIComponent(
+      `Check out this amazing ${contentType} on Ink 37 Tattoo Gallery`
+    );
+
     // Define share URLs for different platforms
     const shareUrls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
@@ -334,20 +331,20 @@ export async function shareContent(
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
       pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedTitle}`,
       instagram: baseUrl, // Instagram doesn't have a direct share URL, so we'll just return the content URL
-      email: `mailto:?subject=${encodedTitle}&body=Check out this link: ${baseUrl}`
+      email: `mailto:?subject=${encodedTitle}&body=Check out this link: ${baseUrl}`,
     };
-    
+
     // Return success with the share URL
     return {
       success: true,
-      shareUrl: shareUrls[platform] ?? baseUrl
+      shareUrl: shareUrls[platform] ?? baseUrl,
     };
   } catch (error) {
     void console.error('Share content error:', error);
     // Return error with default URL
     return {
       success: false,
-      shareUrl: `${window.location.origin}/${contentType}s/${contentId}`
+      shareUrl: `${window.location.origin}/${contentType}s/${contentId}`,
     };
   }
 }

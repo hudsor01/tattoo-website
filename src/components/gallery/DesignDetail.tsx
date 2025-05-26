@@ -10,13 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { 
-  CalendarIcon, 
-  ChevronLeft, 
-  InfoIcon, 
-  RulerIcon, 
-  ShareIcon,
-} from 'lucide-react';
+import { CalendarIcon, ChevronLeft, InfoIcon, RulerIcon, ShareIcon } from 'lucide-react';
 import Image from 'next/image';
 
 interface RelatedDesign {
@@ -26,8 +20,6 @@ interface RelatedDesign {
   designType?: string;
 }
 
-
-
 interface DesignDetailProps {
   id: string;
 }
@@ -36,21 +28,21 @@ export function DesignDetail({ id }: DesignDetailProps) {
   const router = useRouter();
   const [showShareModal, setShowShareModal] = useState(false);
   const viewStartTimeRef = useRef<Date | null>(null);
-  
+
   // Fetch the design data
   const { design, isLoading } = useDesign(id);
-  
+
   // Get related designs (popular designs in the same category)
   // Note: Popular designs feature removed with analytics
   const popularDesigns: RelatedDesign[] = [];
-  
+
   // Initialize view tracking (analytics removed)
   useEffect(() => {
     if (design && !isLoading) {
       // Record view start time for potential future analytics
       viewStartTimeRef.current = new Date();
     }
-    
+
     // Cleanup on unmount
     return () => {
       if (viewStartTimeRef.current && design) {
@@ -58,24 +50,26 @@ export function DesignDetail({ id }: DesignDetailProps) {
       }
     };
   }, [design, isLoading, id]);
-  
+
   // Handle back navigation
   const handleBack = () => {
     void router.back();
   };
-  
+
   // Handle share button click
   const handleShare = () => {
     // Share analytics tracking removed
-    
+
     if (navigator.share) {
-      void navigator.share({
-        title: design?.name ?? 'Tattoo Design',
-        text: `Check out this awesome tattoo design from Ink 37: ${design?.name}`,
-        url: window.location.href,
-      }).catch((error) => {
-        void console.error('Error sharing', error);
-      });
+      void navigator
+        .share({
+          title: design?.name ?? 'Tattoo Design',
+          text: `Check out this awesome tattoo design from Ink 37: ${design?.name}`,
+          url: window.location.href,
+        })
+        .catch((error) => {
+          void console.error('Error sharing', error);
+        });
     } else {
       // Copy link to clipboard if Web Share API not available
       void navigator.clipboard.writeText(window.location.href);
@@ -83,15 +77,15 @@ export function DesignDetail({ id }: DesignDetailProps) {
       setTimeout(() => setShowShareModal(false), 3000);
     }
   };
-  
+
   // Handle booking click
   const handleBooking = () => {
     // Booking analytics tracking removed
-    
+
     // Navigate to booking page
     void router.push(`/booking?designId=${id}`);
   };
-  
+
   // We shouldn't hit this but just in case
   if (!design && !isLoading) {
     return (
@@ -107,22 +101,18 @@ export function DesignDetail({ id }: DesignDetailProps) {
       </div>
     );
   }
-  
+
   // Filter related designs to exclude current design
-  const relatedDesigns = popularDesigns?.filter((d: { id: string; }) => d.id !== id) || [];
-  
+  const relatedDesigns = popularDesigns?.filter((d: { id: string }) => d.id !== id) || [];
+
   return (
     <div className="space-y-8">
       {/* Back navigation */}
-      <Button
-        variant="ghost"
-        className="group"
-        onClick={handleBack}
-      >
+      <Button variant="ghost" className="group" onClick={handleBack}>
         <ChevronLeft className="h-4 w-4 mr-1 group-hover:-translate-x-1 transition-transform" />
         Back to Gallery
       </Button>
-      
+
       {/* Main content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Image */}
@@ -151,18 +141,13 @@ export function DesignDetail({ id }: DesignDetailProps) {
             </div>
           )}
         </div>
-        
+
         {/* Details */}
         <div className="space-y-6">
           <div>
             <div className="flex items-start justify-between">
               <h1 className="text-3xl font-bold">{design?.name}</h1>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleShare}
-                className="relative"
-              >
+              <Button variant="ghost" size="icon" onClick={handleShare} className="relative">
                 <ShareIcon className="h-5 w-5" />
                 {showShareModal && (
                   <div className="absolute bottom-full mb-2 right-0 bg-primary text-primary-foreground px-3 py-1 rounded text-sm whitespace-nowrap">
@@ -171,22 +156,20 @@ export function DesignDetail({ id }: DesignDetailProps) {
                 )}
               </Button>
             </div>
-            
+
             {design?.designType && (
               <Badge variant="secondary" className="mt-2">
                 {design.designType}
               </Badge>
             )}
           </div>
-          
+
           {design?.description && (
-            <p className="text-base text-muted-foreground">
-              {design.description}
-            </p>
+            <p className="text-base text-muted-foreground">{design.description}</p>
           )}
-          
+
           <Separator />
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">Added</p>
@@ -195,7 +178,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
                 {design?.createdAt && format(new Date(design.createdAt), 'MMMM d, yyyy')}
               </p>
             </div>
-            
+
             {design?.size && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">Size</p>
@@ -206,20 +189,22 @@ export function DesignDetail({ id }: DesignDetailProps) {
               </div>
             )}
           </div>
-          
+
           {design?.Artist?.User && (
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Artist</p>
-              <Link 
-                href={`/Artists/${design.Artist.id}`}
-                className="flex items-center gap-3 group"
-              >
+              <Link href={`/Artists/${design.Artist.id}`} className="flex items-center gap-3 group">
                 <Avatar className="h-10 w-10">
                   {design.Artist.User.image ? (
-                    <AvatarImage src={design.Artist.User.image} alt={`${design.Artist.User.name ?? 'Professional tattoo artist'} - Ink 37 tattoo studio`} />
+                    <AvatarImage
+                      src={design.Artist.User.image}
+                      alt={`${design.Artist.User.name ?? 'Professional tattoo artist'} - Ink 37 tattoo studio`}
+                    />
                   ) : (
                     <AvatarFallback>
-                      {design.Artist.User.name ? design.Artist.User.name.charAt(0).toUpperCase() : 'A'}
+                      {design.Artist.User.name
+                        ? design.Artist.User.name.charAt(0).toUpperCase()
+                        : 'A'}
                     </AvatarFallback>
                   )}
                 </Avatar>
@@ -227,27 +212,21 @@ export function DesignDetail({ id }: DesignDetailProps) {
                   <p className="font-medium group-hover:text-primary transition-colors">
                     {design.Artist.User.name}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    Tattoo Artist
-                  </p>
+                  <p className="text-sm text-muted-foreground">Tattoo Artist</p>
                 </div>
               </Link>
             </div>
           )}
-          
+
           <div className="pt-4">
-            <Button 
-              size="lg" 
-              className="w-full sm:w-auto"
-              onClick={handleBooking}
-            >
+            <Button size="lg" className="w-full sm:w-auto" onClick={handleBooking}>
               <CalendarIcon className="h-4 w-4 mr-2" />
               Book This Design
             </Button>
           </div>
         </div>
       </div>
-      
+
       {/* Related designs section */}
       {relatedDesigns.length > 0 && (
         <div className="pt-8">
@@ -255,7 +234,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {relatedDesigns.map((relatedDesign: RelatedDesign) => (
               <Link
-                href={`/gallery/${relatedDesign.id}`} 
+                href={`/gallery/${relatedDesign.id}`}
                 key={relatedDesign.id}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
               >

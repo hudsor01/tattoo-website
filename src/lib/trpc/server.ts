@@ -1,6 +1,6 @@
 /**
  * tRPC Server Core
- * 
+ *
  * This file re-exports the unified tRPC implementation for server-side use.
  */
 import 'server-only';
@@ -11,7 +11,7 @@ export {
   middleware,
   publicProcedure,
   protectedProcedure,
-  adminProcedure
+  adminProcedure,
 } from './procedures';
 
 // Export the appRouter directly from app-router for use in API handlers

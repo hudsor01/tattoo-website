@@ -7,7 +7,8 @@ export const revalidate = 14400;
 
 export const metadata: Metadata = {
   title: 'Ink 37 | Custom Tattoos in Dallas/Fort Worth by Fernando Govea',
-  description: 'Premier tattoo artist Fernando Govea in the Dallas/Fort Worth metroplex specializing in custom designs, traditional tattoos, and fine line work. Schedule your consultation today.',
+  description:
+    'Premier tattoo artist Fernando Govea in the Dallas/Fort Worth metroplex specializing in custom designs, traditional tattoos, and fine line work. Schedule your consultation today.',
   keywords: [
     'tattoo artist Dallas',
     'Fort Worth tattoo',
@@ -17,17 +18,20 @@ export const metadata: Metadata = {
     'traditional tattoos',
     'fine line tattoos',
     'tattoo consultation',
-    'Dallas tattoo studio'
+    'Dallas tattoo studio',
   ],
   openGraph: {
     title: 'Ink 37 Tattoos | Custom Designs by Fernando Govea',
-    description: 'Experience exceptional custom tattoo artistry in the Dallas/Fort Worth area. Specializing in traditional, fine line, and custom designs.',
-    images: [{
-      url: '/images/japanese.jpg',
-      width: 1200,
-      height: 630,
-      alt: 'Custom tattoo artwork by Fernando Govea at Ink 37'
-    }],
+    description:
+      'Experience exceptional custom tattoo artistry in the Dallas/Fort Worth area. Specializing in traditional, fine line, and custom designs.',
+    images: [
+      {
+        url: '/images/japanese.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Custom tattoo artwork by Fernando Govea at Ink 37',
+      },
+    ],
     url: 'https://ink37tattoos.com',
     type: 'website',
     siteName: 'Ink 37 Tattoos',
@@ -62,7 +66,7 @@ const jsonLd = {
   geo: {
     '@type': 'GeoCoordinates',
     latitude: 32.7767,
-    longitude: -96.7970,
+    longitude: -96.797,
   },
   openingHoursSpecification: {
     '@type': 'OpeningHoursSpecification',
@@ -70,10 +74,7 @@ const jsonLd = {
     opens: '10:00',
     closes: '18:00',
   },
-  sameAs: [
-    'https://www.instagram.com/fennyg83/',
-    'https://www.tiktok.com/fennyg83/',
-  ],
+  sameAs: ['https://www.instagram.com/fennyg83/', 'https://www.tiktok.com/fennyg83/'],
   priceRange: '$',
   founder: {
     '@type': 'Person',

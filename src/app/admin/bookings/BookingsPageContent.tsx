@@ -3,7 +3,25 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { CalendarDays, Notebook, RefreshCcw, Download, ExternalLink, MessageSquare, CheckCircle, XCircle, Edit, User, Clock, MapPin, DollarSign, Phone, Search, Globe, Calendar as CalIcon } from 'lucide-react';
+import {
+  CalendarDays,
+  Notebook,
+  RefreshCcw,
+  Download,
+  ExternalLink,
+  MessageSquare,
+  CheckCircle,
+  XCircle,
+  Edit,
+  User,
+  Clock,
+  MapPin,
+  DollarSign,
+  Phone,
+  Search,
+  Globe,
+  Calendar as CalIcon,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -60,12 +78,7 @@ export default function BookingsPageContent() {
   const [sourceFilter, setSourceFilter] = useState('all');
 
   // Get Cal.com bookings
-  const { 
-    calBookings, 
-    isSyncing,
-    syncBookings,
-    updateBookingStatus
-  } = useCalBookings();
+  const { calBookings, isSyncing, syncBookings, updateBookingStatus } = useCalBookings();
 
   // Convert Cal.com bookings to unified format
   const unifiedCalBookings: UnifiedBooking[] = useMemo(() => {
@@ -81,17 +94,24 @@ export default function BookingsPageContent() {
       endTime: booking.endTime,
       createdAt: booking.startTime, // Use start time as created date for sorting
       location: booking.location ?? undefined,
-      payment: booking.payment && Array.isArray(booking.payment) && booking.payment.length > 0 
-        ? { amount: (booking.eventType as { price?: number; currency?: string })?.price ?? 0, currency: (booking.eventType as { price?: number; currency?: string })?.currency ?? 'USD' } 
-        : null,
-      customInputs: Array.isArray(booking.customInputs) 
-        ? booking.customInputs.filter((input) => input.label && input.value).map((input) => ({
-            label: input.label,
-            value: String(input.value)
-          }))
+      payment:
+        booking.payment && Array.isArray(booking.payment) && booking.payment.length > 0
+          ? {
+              amount: (booking.eventType as { price?: number; currency?: string })?.price ?? 0,
+              currency:
+                (booking.eventType as { price?: number; currency?: string })?.currency ?? 'USD',
+            }
+          : null,
+      customInputs: Array.isArray(booking.customInputs)
+        ? booking.customInputs
+            .filter((input) => input.label && input.value)
+            .map((input) => ({
+              label: input.label,
+              value: String(input.value),
+            }))
         : undefined,
       additionalNotes: booking.description ?? '',
-      uid: booking.uid
+      uid: booking.uid,
     }));
   }, [calBookings]);
 
@@ -103,38 +123,46 @@ export default function BookingsPageContent() {
 
   // Filter bookings
   const filteredBookings = useMemo(() => {
-    return allBookings.filter(booking => {
-      const matchesSearch = !searchTerm || booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    return allBookings.filter((booking) => {
+      const matchesSearch =
+        !searchTerm ||
+        booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = selectedTab === 'all' || 
+
+      const matchesStatus =
+        selectedTab === 'all' ||
         (selectedTab === 'pending' && (booking.status === 'pending' || !booking.depositPaid)) ||
         (selectedTab === 'paid' && (booking.status === 'accepted' || booking.depositPaid));
-      
+
       const matchesSource = sourceFilter === 'all' || booking.source === sourceFilter;
-      
-      const matchesDate = !dateFilter || format(new Date(booking.startTime), 'yyyy-MM-dd') === format(dateFilter, 'yyyy-MM-dd');
-      
+
+      const matchesDate =
+        !dateFilter ||
+        format(new Date(booking.startTime), 'yyyy-MM-dd') === format(dateFilter, 'yyyy-MM-dd');
+
       return matchesSearch && matchesStatus && matchesSource && matchesDate;
     });
   }, [allBookings, searchTerm, selectedTab, sourceFilter, dateFilter]);
 
   // Group bookings by date
   const groupedBookings = useMemo(() => {
-    return filteredBookings.reduce((groups, booking) => {
-      const date = new Date(booking.startTime).toDateString();
-      groups[date] = groups[date] ?? [];
-      groups[date].push(booking);
-      return groups;
-    }, {} as Record<string, UnifiedBooking[]>);
+    return filteredBookings.reduce(
+      (groups, booking) => {
+        const date = new Date(booking.startTime).toDateString();
+        groups[date] = groups[date] ?? [];
+        groups[date].push(booking);
+        return groups;
+      },
+      {} as Record<string, UnifiedBooking[]>
+    );
   }, [filteredBookings]);
 
   const getStatusColor = (status: string, source: string) => {
     if (source === 'website') {
       return status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
     }
-    
+
     switch (status) {
       case 'accepted':
         return 'bg-green-100 text-green-800 border-green-200';
@@ -148,15 +176,17 @@ export default function BookingsPageContent() {
   };
 
   const getSourceBadge = (source: string) => {
-    return source === 'cal.com' ? 
+    return source === 'cal.com' ? (
       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
         <CalIcon className="w-3 h-3 mr-1" />
         Cal.com
-      </Badge> :
+      </Badge>
+    ) : (
       <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
         <Globe className="w-3 h-3 mr-1" />
         Website
-      </Badge>;
+      </Badge>
+    );
   };
 
   const formatTime = (dateString: string) => {
@@ -174,7 +204,7 @@ export default function BookingsPageContent() {
     const minutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    
+
     if (hours > 0) {
       return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
     }
@@ -195,8 +225,19 @@ export default function BookingsPageContent() {
 
   const handleExportBookings = () => {
     const csv = [
-      ['Date', 'Time', 'Client Name', 'Email', 'Phone', 'Status', 'Service', 'Duration', 'Source', 'Location'],
-      ...filteredBookings.map(booking => [
+      [
+        'Date',
+        'Time',
+        'Client Name',
+        'Email',
+        'Phone',
+        'Status',
+        'Service',
+        'Duration',
+        'Source',
+        'Location',
+      ],
+      ...filteredBookings.map((booking) => [
         format(new Date(booking.startTime), 'yyyy-MM-dd'),
         formatTime(booking.startTime),
         booking.clientName,
@@ -206,9 +247,11 @@ export default function BookingsPageContent() {
         booking.title,
         formatDuration(booking.startTime, booking.endTime),
         booking.source,
-        booking.location ?? 'N/A'
-      ])
-    ].map(row => row.join(',')).join('\n');
+        booking.location ?? 'N/A',
+      ]),
+    ]
+      .map((row) => row.join(','))
+      .join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -227,29 +270,21 @@ export default function BookingsPageContent() {
           <Notebook className="h-8 w-8" />
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-white mb-1">
-            All Booking Requests
-          </h1>
-          <p className="text-gray-400">
-            Manage bookings from website forms and Cal.com scheduling
-          </p>
+          <h1 className="text-2xl font-bold text-white mb-1">All Booking Requests</h1>
+          <p className="text-gray-400">Manage bookings from website forms and Cal.com scheduling</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={() => void syncBookings()} 
-            disabled={isSyncing} 
+          <Button
+            onClick={() => void syncBookings()}
+            disabled={isSyncing}
             variant="outline"
             size="sm"
           >
             <RefreshCcw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
             {isSyncing ? 'Syncing...' : 'Sync Cal.com'}
           </Button>
-          
-          <Button 
-            onClick={handleExportBookings}
-            variant="outline"
-            size="sm"
-          >
+
+          <Button onClick={handleExportBookings} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
@@ -276,21 +311,16 @@ export default function BookingsPageContent() {
               <Button
                 variant="outline"
                 className={cn(
-                  "justify-start text-left font-normal",
-                  !dateFilter && "text-muted-foreground"
+                  'justify-start text-left font-normal',
+                  !dateFilter && 'text-muted-foreground'
                 )}
               >
                 <CalendarDays className="mr-2 h-4 w-4" />
-                {dateFilter ? format(dateFilter, "PPP") : "Filter by date"}
+                {dateFilter ? format(dateFilter, 'PPP') : 'Filter by date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={dateFilter}
-                onSelect={setDateFilter}
-                initialFocus
-              />
+              <Calendar mode="single" selected={dateFilter} onSelect={setDateFilter} initialFocus />
             </PopoverContent>
           </Popover>
         </div>
@@ -307,7 +337,7 @@ export default function BookingsPageContent() {
 
           {/* Source Filter */}
           <div className="flex gap-2">
-            {['all', 'website', 'cal.com'].map(source => (
+            {['all', 'website', 'cal.com'].map((source) => (
               <Button
                 key={source}
                 variant={sourceFilter === source ? 'default' : 'outline'}
@@ -330,7 +360,9 @@ export default function BookingsPageContent() {
             <CalendarDays className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
             <p className="text-gray-500">
-              {searchTerm ? 'Try adjusting your search terms.' : 'No bookings match the current filters.'}
+              {searchTerm
+                ? 'Try adjusting your search terms.'
+                : 'No bookings match the current filters.'}
             </p>
           </Card>
         ) : (
@@ -344,11 +376,20 @@ export default function BookingsPageContent() {
                   day: 'numeric',
                 })}
               </h2>
-              
-              {dayBookings.map(booking => (
-                <Card key={booking.id} className="p-6 bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-200 border-l-4" 
-                      style={{ borderLeftColor: booking.status === 'accepted' ? '#10b981' : 
-                                               booking.status === 'pending' ? '#f59e0b' : '#ef4444' }}>
+
+              {dayBookings.map((booking) => (
+                <Card
+                  key={booking.id}
+                  className="p-6 bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-200 border-l-4"
+                  style={{
+                    borderLeftColor:
+                      booking.status === 'accepted'
+                        ? '#10b981'
+                        : booking.status === 'pending'
+                          ? '#f59e0b'
+                          : '#ef4444',
+                  }}
+                >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -371,8 +412,10 @@ export default function BookingsPageContent() {
                   <div className="grid lg:grid-cols-3 gap-6">
                     {/* Client Information */}
                     <div className="space-y-3">
-                      <h4 className="font-medium text-sm text-gray-400 uppercase tracking-wide">Client</h4>
-                      
+                      <h4 className="font-medium text-sm text-gray-400 uppercase tracking-wide">
+                        Client
+                      </h4>
+
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-gray-500" />
                         <div>
@@ -391,7 +434,8 @@ export default function BookingsPageContent() {
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-gray-500" />
                         <p className="text-sm text-gray-300">
-                          {formatTime(booking.startTime)} {booking.endTime && `- ${formatTime(booking.endTime)}`}
+                          {formatTime(booking.startTime)}{' '}
+                          {booking.endTime && `- ${formatTime(booking.endTime)}`}
                         </p>
                       </div>
 
@@ -405,22 +449,29 @@ export default function BookingsPageContent() {
 
                     {/* Service Details */}
                     <div className="space-y-3">
-                      <h4 className="font-medium text-sm text-gray-400 uppercase tracking-wide">Service Details</h4>
-                      
+                      <h4 className="font-medium text-sm text-gray-400 uppercase tracking-wide">
+                        Service Details
+                      </h4>
+
                       {booking.tattooType && (
                         <div className="text-sm">
                           <span className="font-medium text-gray-500">Type:</span>{' '}
                           <span className="text-gray-300">{booking.tattooType}</span>
                         </div>
                       )}
-                      
-                      {booking.customInputs?.map((input: { label: string; value: string }, index: number) => (
-                        <div key={`custom-input-${booking.id}-${input.label ?? `field-${index}`}`} className="text-sm">
-                          <span className="font-medium text-gray-500">{input.label}:</span>{' '}
-                          <span className="text-gray-300">{input.value}</span>
-                        </div>
-                      ))}
-                      
+
+                      {booking.customInputs?.map(
+                        (input: { label: string; value: string }, index: number) => (
+                          <div
+                            key={`custom-input-${booking.id}-${input.label ?? `field-${index}`}`}
+                            className="text-sm"
+                          >
+                            <span className="font-medium text-gray-500">{input.label}:</span>{' '}
+                            <span className="text-gray-300">{input.value}</span>
+                          </div>
+                        )
+                      )}
+
                       {(booking.description ?? booking.additionalNotes) && (
                         <div className="text-sm">
                           <span className="font-medium text-gray-500">Notes:</span>
@@ -433,13 +484,16 @@ export default function BookingsPageContent() {
 
                     {/* Actions */}
                     <div className="space-y-3">
-                      <h4 className="font-medium text-sm text-gray-400 uppercase tracking-wide">Actions</h4>
-                      
+                      <h4 className="font-medium text-sm text-gray-400 uppercase tracking-wide">
+                        Actions
+                      </h4>
+
                       {booking.payment && (
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-gray-500" />
                           <p className="text-sm text-gray-300">
-                            ${booking.payment?.amount ? booking.payment.amount / 100 : 0} {booking.payment?.currency ?? 'USD'}
+                            ${booking.payment?.amount ? booking.payment.amount / 100 : 0}{' '}
+                            {booking.payment?.currency ?? 'USD'}
                           </p>
                         </div>
                       )}
@@ -447,13 +501,17 @@ export default function BookingsPageContent() {
                       <div className="flex flex-wrap gap-2">
                         {booking.source === 'cal.com' && (
                           <Button size="sm" variant="outline" asChild>
-                            <a href={`https://cal.com/bookings/${booking.uid}`} target="_blank" rel="noopener noreferrer">
+                            <a
+                              href={`https://cal.com/bookings/${booking.uid}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
                               <ExternalLink className="h-3 w-3 mr-1" />
                               Cal.com
                             </a>
                           </Button>
                         )}
-                        
+
                         <Button size="sm" variant="outline" asChild>
                           <a href={`mailto:${booking.clientEmail}`}>
                             <MessageSquare className="h-3 w-3 mr-1" />
@@ -461,8 +519,8 @@ export default function BookingsPageContent() {
                           </a>
                         </Button>
 
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => {
                             setSelectedBooking(booking);
@@ -478,18 +536,22 @@ export default function BookingsPageContent() {
                       {/* Status-specific actions */}
                       {booking.status === 'pending' && booking.source === 'cal.com' && (
                         <div className="flex gap-2 pt-2 border-t border-gray-600">
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={() => { void handleAccept(booking); }}
+                            onClick={() => {
+                              void handleAccept(booking);
+                            }}
                           >
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Accept
                           </Button>
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="destructive"
-                            onClick={() => { void handleReject(booking); }}
+                            onClick={() => {
+                              void handleReject(booking);
+                            }}
                           >
                             <XCircle className="h-3 w-3 mr-1" />
                             Reject
@@ -498,8 +560,8 @@ export default function BookingsPageContent() {
                       )}
 
                       {booking.source === 'website' && (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           className="bg-blue-600 hover:bg-blue-700"
                           onClick={() => {
                             void router.push(`/admin/appointments/create?bookingId=${booking.id}`);
@@ -538,13 +600,15 @@ export default function BookingsPageContent() {
             <Button variant="outline" onClick={() => setIsNotesDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => {
-              toast({
-                title: 'Notes Saved',
-                description: 'Internal notes have been updated.',
-              });
-              setIsNotesDialogOpen(false);
-            }}>
+            <Button
+              onClick={() => {
+                toast({
+                  title: 'Notes Saved',
+                  description: 'Internal notes have been updated.',
+                });
+                setIsNotesDialogOpen(false);
+              }}
+            >
               Save Notes
             </Button>
           </DialogFooter>

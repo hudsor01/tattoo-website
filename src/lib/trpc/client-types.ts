@@ -1,6 +1,6 @@
 /**
  * TRPC Client-side type definitions
- * 
+ *
  * This file provides type definitions for use in client components,
  * without importing server-only code.
  */
@@ -16,8 +16,6 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 // Export specific endpoints for type-safe API calls
 export type GalleryRouter = RouterOutputs['gallery'];
 export type GalleryInputs = RouterInputs['gallery'];
-
-
 
 export type AdminRouter = RouterOutputs['admin'];
 export type AdminInputs = RouterInputs['admin'];

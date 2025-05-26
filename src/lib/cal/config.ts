@@ -7,14 +7,14 @@ export const calConfig = {
   username: process.env['NEXT_PUBLIC_CAL_USERNAME'],
   webhookSecret: process.env['CAL_WEBHOOK_SECRET'],
   apiBaseUrl: 'https://api.cal.com/v1',
-  
+
   // Event type IDs for common booking types
   eventTypes: {
-    consultation: 'consultation',  // Use the URL slug from Cal.com
-    tattooAppointment: 'tattoo-session',  // Use the URL slug from Cal.com
-    touchUp: 'touch-up',  // Use the URL slug from Cal.com
+    consultation: 'consultation', // Use the URL slug from Cal.com
+    tattooAppointment: 'tattoo-session', // Use the URL slug from Cal.com
+    touchUp: 'touch-up', // Use the URL slug from Cal.com
   },
-  
+
   // Map Cal.com status to internal status
   statusMap: {
     accepted: 'confirmed',
@@ -22,11 +22,11 @@ export const calConfig = {
     cancelled: 'cancelled',
     rejected: 'cancelled',
   },
-  
+
   // Default Cal.com settings
   defaultSettings: {
     bufferTime: 15, // minutes
-    duration: 60,   // minutes
+    duration: 60, // minutes
   },
 };
 
@@ -35,8 +35,8 @@ export const calConfig = {
  */
 export function isCalConfigured(): boolean {
   return Boolean(
-    process.env['CAL_API_KEY'] && 
-    process.env['NEXT_PUBLIC_CAL_USERNAME'] && 
-    process.env['CAL_WEBHOOK_SECRET']
+    process.env['CAL_API_KEY'] &&
+      process.env['NEXT_PUBLIC_CAL_USERNAME'] &&
+      process.env['CAL_WEBHOOK_SECRET']
   );
 }

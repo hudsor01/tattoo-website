@@ -1,7 +1,7 @@
 /**
  * utility-types.ts
  *
- * Consolidated utility types including general utilities, hooks, caching, 
+ * Consolidated utility types including general utilities, hooks, caching,
  * state management, and workflows.
  */
 
@@ -58,8 +58,6 @@ export type ApiHandler<T = unknown, R = unknown> = (data: T) => Promise<R>;
  * GENERAL UTILITY TYPES
  * ========================================================================
  */
-
-
 
 // UUID validation schema
 export const uuidParamSchema = z.object({
@@ -245,7 +243,6 @@ export type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends 
  * ========================================================================
  */
 
-
 /**
  * Generic hook state result
  */
@@ -279,10 +276,10 @@ export interface UseForm<T = Record<string, unknown>> {
   isSubmitting: boolean;
   submitCount: number;
   handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
   handleBlur: (
-    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
   handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
   setFieldValue: (name: keyof T, value: unknown) => void;
@@ -309,7 +306,6 @@ export interface UsePagination {
   setItemsPerPage: (count: number) => void;
   pageItems: <T>(items: T[]) => T[];
 }
-
 
 /**
  * File upload hook result
@@ -463,7 +459,7 @@ export interface UIState {
     type: 'info' | 'success' | 'warning' | 'error';
     message: string;
   }>;
-  
+
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -492,7 +488,7 @@ export interface AppState {
     global: Error | null;
     form: Record<string, string>;
   };
-  
+
   // Actions
   initialize: () => Promise<void>;
   setRoute: (route: string) => void;
@@ -531,11 +527,7 @@ export type TriggerCondition =
   | 'specific';
 
 // Action types that can be performed
-export type ActionType =
-  | 'email'
-  | 'sms'
-  | 'notification'
-  | 'webhook';
+export type ActionType = 'email' | 'sms' | 'notification' | 'webhook';
 
 // Timeframe for triggers
 export interface Timeframe {

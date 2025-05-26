@@ -1,6 +1,6 @@
 /**
  * Database Types
- * 
+ *
  * Type definitions related to database operations and Prisma.
  */
 
@@ -104,7 +104,7 @@ export interface BaseModel extends TimestampFields {
 /**
  * Base entity interface (alias for BaseModel)
  */
-export type BaseEntity = BaseModel
+export type BaseEntity = BaseModel;
 
 /**
  * ========================================================================

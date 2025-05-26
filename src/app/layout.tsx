@@ -7,7 +7,6 @@ import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
 import './globals.css';
 
-
 export const metadata: Metadata = {
   metadataBase: new URL(process.env['NEXT_PUBLIC_BASE_URL'] ?? 'https://ink37tattoos.com'),
   title: 'Ink 37 | Professional Tattoo Artist in Crowley, TX | Custom Tattoos DFW',
@@ -30,7 +29,7 @@ export const metadata: Metadata = {
     'Crowley tattoo',
     'Arlington tattoo',
     'Burleson tattoo',
-    'Mansfield tattoo'
+    'Mansfield tattoo',
   ],
   creator: 'Ink 37',
   openGraph: {
@@ -102,59 +101,57 @@ const businessSchema = {
     {
       '@type': 'City',
       name: 'Crowley',
-      containedInPlace: 'Texas'
-    },
-    {
-      '@type': 'City', 
-      name: 'Fort Worth',
-      containedInPlace: 'Texas'
+      containedInPlace: 'Texas',
     },
     {
       '@type': 'City',
-      name: 'Arlington', 
-      containedInPlace: 'Texas'
+      name: 'Fort Worth',
+      containedInPlace: 'Texas',
+    },
+    {
+      '@type': 'City',
+      name: 'Arlington',
+      containedInPlace: 'Texas',
     },
     {
       '@type': 'City',
       name: 'Burleson',
-      containedInPlace: 'Texas'
+      containedInPlace: 'Texas',
     },
     {
       '@type': 'City',
       name: 'Mansfield',
-      containedInPlace: 'Texas'
+      containedInPlace: 'Texas',
     },
     {
       '@type': 'City',
       name: 'Forest Hill',
-      containedInPlace: 'Texas'
+      containedInPlace: 'Texas',
     },
     {
       '@type': 'City',
       name: 'Grand Prairie',
-      containedInPlace: 'Texas'
-    }
+      containedInPlace: 'Texas',
+    },
   ],
   priceRange: '$$',
-  description: 'Professional tattoo artist in Crowley, TX specializing in custom tattoo designs, cover-ups, fine line work, and traditional tattoos. Serving the DFW metroplex including Fort Worth, Arlington, Burleson, Mansfield, Forest Hill, and Grand Prairie.',
+  description:
+    'Professional tattoo artist in Crowley, TX specializing in custom tattoo designs, cover-ups, fine line work, and traditional tattoos. Serving the DFW metroplex including Fort Worth, Arlington, Burleson, Mansfield, Forest Hill, and Grand Prairie.',
   openingHoursSpecification: {
     '@type': 'OpeningHoursSpecification',
     dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    description: 'By appointment only'
+    description: 'By appointment only',
   },
   serviceType: [
     'Custom Tattoo Design',
-    'Cover-Up Tattoos', 
+    'Cover-Up Tattoos',
     'Fine Line Tattoos',
     'Traditional Tattoos',
     'Realism Tattoos',
     'Japanese Style Tattoos',
-    'Tattoo Consultation'
+    'Tattoo Consultation',
   ],
-  sameAs: [
-    'https://www.instagram.com/fennyg83/',
-    'https://www.tiktok.com/fennyg83/'
-  ],
+  sameAs: ['https://www.instagram.com/fennyg83/', 'https://www.tiktok.com/fennyg83/'],
 };
 
 type RootLayoutProps = {
@@ -165,7 +162,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   // Get cookies for authentication
   const cookieStore = await cookies();
   const cookieEntries = Object.fromEntries(
-    cookieStore.getAll().map(cookie => [cookie.name, cookie.value])
+    cookieStore.getAll().map((cookie) => [cookie.name, cookie.value])
   );
 
   return (

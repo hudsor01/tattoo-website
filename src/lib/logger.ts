@@ -78,10 +78,10 @@ const logger = new Proxy<LoggerInterface>({} as LoggerInterface, {
   get(_, prop) {
     // Determine if we're in a browser environment
     const isClient = typeof window !== 'undefined';
-    
+
     // Use the appropriate logger
     const currentLogger = isClient ? consoleLogger : serverLogger;
-    
+
     // Return the requested method
     return currentLogger[prop as keyof LoggerInterface];
   },

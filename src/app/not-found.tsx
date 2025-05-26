@@ -2,12 +2,19 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Search, Home, ArrowLeft } from 'lucide-react';
 
 /**
  * 404 Not Found Page
- * 
+ *
  * This page is displayed when a user tries to access a non-existent route
  * Features:
  * - Clear messaging
@@ -24,16 +31,14 @@ export default function NotFound() {
             <Search className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
           <CardTitle className="text-3xl font-bold">404</CardTitle>
-          <CardDescription className="text-lg">
-            Page Not Found
-          </CardDescription>
+          <CardDescription className="text-lg">Page Not Found</CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <p className="text-center text-neutral-600 dark:text-neutral-400">
             Sorry, the page you&apos;re looking for doesn&apos;t exist or has been moved.
           </p>
-          
+
           <div className="p-4 bg-neutral-100 dark:bg-neutral-900 rounded-lg">
             <p className="text-sm font-medium mb-2">Popular pages:</p>
             <ul className="space-y-1 text-sm">
@@ -62,22 +67,14 @@ export default function NotFound() {
         </CardContent>
 
         <CardFooter className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            asChild 
-            variant="default" 
-            className="flex-1"
-          >
+          <Button asChild variant="default" className="flex-1">
             <Link href="/" className="inline-flex items-center justify-center">
               <Home className="w-4 h-4 mr-2" />
               Go Home
             </Link>
           </Button>
-          
-          <Button 
-            onClick={() => window.history.back()} 
-            variant="outline"
-            className="flex-1"
-          >
+
+          <Button onClick={() => window.history.back()} variant="outline" className="flex-1">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
           </Button>
@@ -86,13 +83,10 @@ export default function NotFound() {
         <div className="p-4 border-t text-center">
           <p className="text-xs text-neutral-500 dark:text-neutral-500">
             Lost? Try our{' '}
-            <Link
-              href="/contact"
-              className="text-primary hover:text-primary/80 underline"
-            >
+            <Link href="/contact" className="text-primary hover:text-primary/80 underline">
               contact page
-            </Link>
-            {' '}for help.
+            </Link>{' '}
+            for help.
           </p>
         </div>
       </Card>

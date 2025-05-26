@@ -1,6 +1,6 @@
 /**
  * Consolidated Validations
- * 
+ *
  * This file consolidates all validation schemas and utilities that are actually used.
  * Cleaned up from 13 separate files to remove redundancy and unused code.
  */
@@ -35,14 +35,15 @@ export function formatZodErrors(error: z.ZodError): string[] {
 export const createField = {
   name: (options: { required?: boolean; minLength?: number; maxLength?: number } = {}) => {
     const { required = true, minLength = 2, maxLength = 50 } = options;
-    
-    const schema = z.string()
+
+    const schema = z
+      .string()
       .min(minLength, { message: `Name must be at least ${minLength} characters` })
       .max(maxLength, { message: `Name cannot exceed ${maxLength} characters` })
-      .refine(val => /^[a-zA-Z\s-.']+$/.test(val), {
+      .refine((val) => /^[a-zA-Z\s-.']+$/.test(val), {
         message: 'Name can only contain letters, spaces, and basic punctuation',
       });
-    
+
     return required ? schema : schema.optional();
   },
 
@@ -54,26 +55,30 @@ export const createField = {
 
   phone: (options: { required?: boolean } = {}) => {
     const { required = true } = options;
-    const schema = z.string()
+    const schema = z
+      .string()
       .regex(patterns.phone, 'Phone number may only contain digits and +, -, (, ), or spaces')
       .min(10, 'Phone number must be at least 10 digits')
       .max(20, 'Phone number cannot exceed 20 characters');
-    
+
     return required ? schema : schema.optional();
   },
 
-  text: (options: { 
-    required?: boolean; 
-    minLength?: number; 
-    maxLength?: number; 
-    fieldName?: string 
-  } = {}) => {
+  text: (
+    options: {
+      required?: boolean;
+      minLength?: number;
+      maxLength?: number;
+      fieldName?: string;
+    } = {}
+  ) => {
     const { required = true, minLength = 1, maxLength = 500, fieldName = 'This field' } = options;
-    
-    const schema = z.string()
+
+    const schema = z
+      .string()
       .min(minLength, { message: `${fieldName} must be at least ${minLength} characters` })
       .max(maxLength, { message: `${fieldName} cannot exceed ${maxLength} characters` });
-    
+
     return required ? schema : schema.optional();
   },
 };
@@ -89,12 +94,12 @@ export const contactFormSchema = z.object({
   subject: createField.text({
     minLength: 2,
     maxLength: 100,
-    fieldName: 'Subject'
+    fieldName: 'Subject',
   }),
   message: createField.text({
     minLength: 10,
     maxLength: 1000,
-    fieldName: 'Message'
+    fieldName: 'Message',
   }),
   tattooType: z.string().optional(),
   budget: z.string().optional(),

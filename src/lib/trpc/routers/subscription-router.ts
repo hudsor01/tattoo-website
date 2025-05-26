@@ -1,6 +1,6 @@
 /**
  * Subscription Router
- * 
+ *
  * This router handles all real-time subscription endpoints using tRPC's
  * subscription feature with Server-Sent Events (SSE).
  */
@@ -133,19 +133,23 @@ export function emitGalleryEvent(event: GalleryEvent) {
 export const subscriptionRouter = router({
   // Booking events subscription
   bookingEvents: protectedProcedure
-    .input(z.object({
-      artistId: z.string().optional(),
-    }).optional())
+    .input(
+      z
+        .object({
+          artistId: z.string().optional(),
+        })
+        .optional()
+    )
     .subscription(({ input, ctx }) => {
       // Verify user has access to booking events
       const userRole = ctx.user?.role ?? (ctx.user?.publicMetadata as UserMetadata)?.role ?? 'user';
       const isAdmin = userRole === 'admin';
       const isArtist = userRole === 'artist';
-      
+
       if (!isAdmin && !isArtist && input?.artistId) {
         throw new Error('Unauthorized to subscribe to booking events');
       }
-      
+
       // Create observable for subscription
       return observable<BookingEvent>((emit) => {
         const onBookingEvent = (data: BookingEvent) => {
@@ -153,36 +157,39 @@ export const subscriptionRouter = router({
           if (input?.artistId && data.data.artistId !== input.artistId) {
             return;
           }
-          
+
           // Admin can see all events
           if (isAdmin) {
             void emit.next(data);
             return;
           }
-          
+
           // Artists can only see their own bookings
           if (isArtist && data.data.artistId === input?.artistId) {
             void emit.next(data);
-            
           }
         };
-        
+
         // Subscribe to booking events
         void ee.on('booking', onBookingEvent);
-        
+
         // Cleanup when client unsubscribes
         return () => {
           void ee.off('booking', onBookingEvent);
         };
       });
     }),
-    
+
   // Appointment events subscription
   appointmentEvents: protectedProcedure
-    .input(z.object({
-      artistId: z.string().optional(),
-      customerId: z.string().optional(),
-    }).optional())
+    .input(
+      z
+        .object({
+          artistId: z.string().optional(),
+          customerId: z.string().optional(),
+        })
+        .optional()
+    )
     .subscription(({ input }) => {
       // Create observable for subscription
       return observable<AppointmentEvent>((emit) => {
@@ -191,30 +198,34 @@ export const subscriptionRouter = router({
           if (input?.artistId && data.data.artistId !== input.artistId) {
             return;
           }
-          
+
           // Filter by customerId if provided
           if (input?.customerId && data.data.customerId !== input.customerId) {
             return;
           }
-          
+
           void emit.next(data);
         };
-        
+
         // Subscribe to appointment events
         void ee.on('appointment', onAppointmentEvent);
-        
+
         // Cleanup when client unsubscribes
         return () => {
           void ee.off('appointment', onAppointmentEvent);
         };
       });
     }),
-    
+
   // Customer events subscription (admin only)
   customerEvents: adminProcedure
-    .input(z.object({
-      customerId: z.string().optional(),
-    }).optional())
+    .input(
+      z
+        .object({
+          customerId: z.string().optional(),
+        })
+        .optional()
+    )
     .subscription(({ input }) => {
       // Create observable for subscription
       return observable<CustomerEvent>((emit) => {
@@ -223,94 +234,94 @@ export const subscriptionRouter = router({
           if (input?.customerId && data.id !== input.customerId) {
             return;
           }
-          
+
           void emit.next(data);
         };
-        
+
         // Subscribe to customer events
         void ee.on('customer', onCustomerEvent);
-        
+
         // Cleanup when client unsubscribes
         return () => {
           void ee.off('customer', onCustomerEvent);
         };
       });
     }),
-    
+
   // Gallery events subscription (public)
-  galleryEvents: publicProcedure
-    .subscription(() => {
-      // Create observable for subscription - public access for all visitors
-      return observable<GalleryEvent>((emit) => {
-        const onGalleryEvent = (data: GalleryEvent) => {
-          // Only emit events for approved designs or all events for approved designs
-          if (data.type === 'approved' || (data.type === 'created' && data.data.isApproved)) {
-            void emit.next(data);
-          }
-        };
-        
-        // Subscribe to gallery events
-        void ee.on('gallery', onGalleryEvent);
-        
-        // Cleanup when client unsubscribes
-        return () => {
-          void ee.off('gallery', onGalleryEvent);
-        };
-      });
-    }),
-    
-  // Gallery events subscription (admin only - sees all events)
-  galleryAdminEvents: adminProcedure
-    .subscription(() => {
-      // Create observable for subscription
-      return observable<GalleryEvent>((emit) => {
-        const onGalleryEvent = (data: GalleryEvent) => {
-          // Admin sees all gallery events
+  galleryEvents: publicProcedure.subscription(() => {
+    // Create observable for subscription - public access for all visitors
+    return observable<GalleryEvent>((emit) => {
+      const onGalleryEvent = (data: GalleryEvent) => {
+        // Only emit events for approved designs or all events for approved designs
+        if (data.type === 'approved' || (data.type === 'created' && data.data.isApproved)) {
           void emit.next(data);
-        };
-        
-        // Subscribe to gallery events
-        void ee.on('gallery', onGalleryEvent);
-        
-        // Cleanup when client unsubscribes
-        return () => {
-          void ee.off('gallery', onGalleryEvent);
-        };
-      });
-    }),
-    
+        }
+      };
+
+      // Subscribe to gallery events
+      void ee.on('gallery', onGalleryEvent);
+
+      // Cleanup when client unsubscribes
+      return () => {
+        void ee.off('gallery', onGalleryEvent);
+      };
+    });
+  }),
+
+  // Gallery events subscription (admin only - sees all events)
+  galleryAdminEvents: adminProcedure.subscription(() => {
+    // Create observable for subscription
+    return observable<GalleryEvent>((emit) => {
+      const onGalleryEvent = (data: GalleryEvent) => {
+        // Admin sees all gallery events
+        void emit.next(data);
+      };
+
+      // Subscribe to gallery events
+      void ee.on('gallery', onGalleryEvent);
+
+      // Cleanup when client unsubscribes
+      return () => {
+        void ee.off('gallery', onGalleryEvent);
+      };
+    });
+  }),
+
   // Dashboard activity stream (admin only)
-  dashboardActivity: adminProcedure
-    .subscription(() => {
-      // Create a generator-based subscription for more complex event handling
-      return observable<DashboardActivityEvent>((emit) => {
-        // Combined event handler for all activity types
-        const onActivity = (type: string, data: BookingEvent | AppointmentEvent | CustomerEvent | GalleryEvent) => {
-          void emit.next({
-            type,
-            data,
-            timestamp: new Date(),
-          });
-        };
-        
-        // Subscribe to all event types for dashboard
-        const onBooking = (data: BookingEvent) => onActivity('booking', data);
-        const onAppointment = (data: AppointmentEvent) => onActivity('appointment', data);
-        const onCustomer = (data: CustomerEvent) => onActivity('customer', data);
-        const onGallery = (data: GalleryEvent) => onActivity('gallery', data);
-        
-        void ee.on('booking', onBooking);
-        void ee.on('appointment', onAppointment);
-        void ee.on('customer', onCustomer);
-        void ee.on('gallery', onGallery);
-        
-        // Cleanup when client unsubscribes
-        return () => {
-          void ee.off('booking', onBooking);
-          void ee.off('appointment', onAppointment);
-          void ee.off('customer', onCustomer);
-          void ee.off('gallery', onGallery);
-        };
-      });
-    }),
+  dashboardActivity: adminProcedure.subscription(() => {
+    // Create a generator-based subscription for more complex event handling
+    return observable<DashboardActivityEvent>((emit) => {
+      // Combined event handler for all activity types
+      const onActivity = (
+        type: string,
+        data: BookingEvent | AppointmentEvent | CustomerEvent | GalleryEvent
+      ) => {
+        void emit.next({
+          type,
+          data,
+          timestamp: new Date(),
+        });
+      };
+
+      // Subscribe to all event types for dashboard
+      const onBooking = (data: BookingEvent) => onActivity('booking', data);
+      const onAppointment = (data: AppointmentEvent) => onActivity('appointment', data);
+      const onCustomer = (data: CustomerEvent) => onActivity('customer', data);
+      const onGallery = (data: GalleryEvent) => onActivity('gallery', data);
+
+      void ee.on('booking', onBooking);
+      void ee.on('appointment', onAppointment);
+      void ee.on('customer', onCustomer);
+      void ee.on('gallery', onGallery);
+
+      // Cleanup when client unsubscribes
+      return () => {
+        void ee.off('booking', onBooking);
+        void ee.off('appointment', onAppointment);
+        void ee.off('customer', onCustomer);
+        void ee.off('gallery', onGallery);
+      };
+    });
+  }),
 });

@@ -13,13 +13,10 @@ const LightboxSkeleton = () => (
 );
 
 // Dynamic import the main lightbox component
-const Lightbox = dynamic(
-  () => import('yet-another-react-lightbox'),
-  {
-    loading: () => <LightboxSkeleton />,
-    ssr: false
-  }
-);
+const Lightbox = dynamic(() => import('yet-another-react-lightbox'), {
+  loading: () => <LightboxSkeleton />,
+  ssr: false,
+});
 
 // Static imports for plugins to avoid dynamic loading complexity
 import Video from 'yet-another-react-lightbox/plugins/video';
@@ -72,7 +69,7 @@ export function DynamicLightbox(props: DynamicLightboxProps) {
       }}
       video={{
         autoPlay: false,
-        controls: true
+        controls: true,
       }}
       zoom={{
         maxZoomPixelRatio: 3,
@@ -83,7 +80,7 @@ export function DynamicLightbox(props: DynamicLightboxProps) {
         keyboardMoveDistance: 50,
         wheelZoomDistanceFactor: 100,
         pinchZoomDistanceFactor: 100,
-        scrollToZoom: true
+        scrollToZoom: true,
       }}
       render={{
         buttonPrev: () => null,
@@ -97,11 +94,11 @@ export function DynamicLightbox(props: DynamicLightboxProps) {
         imageFit: 'contain',
       }}
       fullscreen={{
-        auto: false
+        auto: false,
       }}
       slideshow={{
         autoplay: false,
-        delay: 3000
+        delay: 3000,
       }}
       animation={{
         fade: 250,
@@ -109,8 +106,8 @@ export function DynamicLightbox(props: DynamicLightboxProps) {
         easing: {
           fade: 'ease-in-out',
           swipe: 'ease-out',
-          navigation: 'ease-in-out'
-        }
+          navigation: 'ease-in-out',
+        },
       }}
     />
   );

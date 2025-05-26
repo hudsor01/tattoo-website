@@ -16,8 +16,8 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
         category: category.title,
         id: category.id,
         item,
-      }),
-    ),
+      })
+    )
   );
 
   // Search function
@@ -33,7 +33,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
     setIsSearching(true);
 
     // Simple search implementation - you might want to use a more sophisticated approach
-    const searchResults = allFAQs.filter(faq => {
+    const searchResults = allFAQs.filter((faq) => {
       const questionMatch = faq.item.question.toLowerCase().includes(term.toLowerCase());
       const answerMatch = faq.item.answer.toLowerCase().includes(term.toLowerCase());
       return questionMatch ?? answerMatch;
@@ -51,12 +51,15 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
 
     return parts.map((part) =>
       void part.toLowerCase() === searchTerm.toLowerCase() ? (
-        <span key={`highlight-${part}-${searchTerm}-${parts.indexOf(part)}`} className="bg-tattoo-blue/30 text-white font-medium px-0.5 rounded">
+        <span
+          key={`highlight-${part}-${searchTerm}-${parts.indexOf(part)}`}
+          className="bg-tattoo-blue/30 text-white font-medium px-0.5 rounded"
+        >
           {part}
         </span>
       ) : (
         part
-      ),
+      )
     );
   };
 
@@ -92,7 +95,7 @@ export default function FAQSearch({ categories }: FAQSearchProps) {
           className="block w-full pl-12 pr-4 py-4 bg-tattoo-black/50 border border-tattoo-white/10 rounded-xl focus:ring-2 focus:ring-tattoo-blue focus:border-transparent text-white placeholder-white/50 transition-all duration-200"
           placeholder="Search for questions like 'pricing' or 'aftercare'..."
           value={searchTerm}
-          onChange={e => handleSearch(e.target.value)}
+          onChange={(e) => handleSearch(e.target.value)}
         />
       </div>
 

@@ -13,10 +13,19 @@ import { Mail, Send, CheckCircle } from 'lucide-react';
 
 // Contact form validation schema
 const contactFormSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters'),
   email: z.string().email('Please enter a valid email address'),
-  subject: z.string().min(5, 'Subject must be at least 5 characters').max(200, 'Subject must be less than 200 characters'),
-  message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message must be less than 2000 characters'),
+  subject: z
+    .string()
+    .min(5, 'Subject must be at least 5 characters')
+    .max(200, 'Subject must be less than 200 characters'),
+  message: z
+    .string()
+    .min(10, 'Message must be at least 10 characters')
+    .max(2000, 'Message must be less than 2000 characters'),
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -64,7 +73,8 @@ export default function ContactForm() {
         </div>
         <h3 className="text-xl font-semibold text-white mb-2">Message Sent Successfully!</h3>
         <p className="text-white/70 mb-6">
-          Thank you for reaching out. I'll get back to you as soon as possible, usually within 24-48 hours.
+          Thank you for reaching out. I'll get back to you as soon as possible, usually within 24-48
+          hours.
         </p>
         <Button
           onClick={handleReset}
@@ -91,9 +101,7 @@ export default function ContactForm() {
           placeholder="Enter your full name"
           disabled={isSubmitting}
         />
-        {errors.name && (
-          <p className="text-red-400 text-sm">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-red-400 text-sm">{errors.name.message}</p>}
       </div>
 
       {/* Email Field */}
@@ -112,9 +120,7 @@ export default function ContactForm() {
             disabled={isSubmitting}
           />
         </div>
-        {errors.email && (
-          <p className="text-red-400 text-sm">{errors.email.message}</p>
-        )}
+        {errors.email && <p className="text-red-400 text-sm">{errors.email.message}</p>}
       </div>
 
       {/* Subject Field */}
@@ -129,9 +135,7 @@ export default function ContactForm() {
           placeholder="What can I help you with?"
           disabled={isSubmitting}
         />
-        {errors.subject && (
-          <p className="text-red-400 text-sm">{errors.subject.message}</p>
-        )}
+        {errors.subject && <p className="text-red-400 text-sm">{errors.subject.message}</p>}
       </div>
 
       {/* Message Field */}
@@ -147,9 +151,7 @@ export default function ContactForm() {
           placeholder="Tell me about your tattoo idea, questions, or how I can help you..."
           disabled={isSubmitting}
         />
-        {errors.message && (
-          <p className="text-red-400 text-sm">{errors.message.message}</p>
-        )}
+        {errors.message && <p className="text-red-400 text-sm">{errors.message.message}</p>}
         <p className="text-white/50 text-xs">
           Characters remaining: {2000 - (watch('message')?.length ?? 0)}
         </p>

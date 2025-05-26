@@ -10,14 +10,14 @@ export async function cancelAppointment(appointmentId: string) {
     return {
       success: true,
       data: result,
-      message: 'Appointment cancelled successfully'
+      message: 'Appointment cancelled successfully',
     };
   } catch (error) {
     void console.error('Error cancelling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to cancel appointment',
-      data: null
+      data: null,
     };
   }
 }
@@ -36,7 +36,7 @@ export async function checkAppointmentAvailability(
       artistId,
       startTime,
       endTime,
-      appointmentId
+      appointmentId,
     ]);
     return result;
   } catch (error) {
@@ -44,7 +44,7 @@ export async function checkAppointmentAvailability(
     return {
       isAvailable: false,
       conflicts: null,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -88,17 +88,17 @@ export async function createAppointment(params: {
       params.service_id,
       params.artist_id ?? null,
       params.notes ?? null,
-      params.status ?? 'scheduled'
+      params.status ?? 'scheduled',
     ]);
     return {
       success: true,
-      data: result
+      data: result,
     };
   } catch (error) {
     void console.error('Error creating appointment:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error creating appointment'
+      error: error instanceof Error ? error.message : 'Unknown error creating appointment',
     };
   }
 }

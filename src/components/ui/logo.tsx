@@ -36,7 +36,7 @@ export function Logo({
         initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        whileHover={{ scale: 1.05, "--glow-opacity": 0.5, "--glow-spread": "25px" }}
+        whileHover={{ scale: 1.05, '--glow-opacity': 0.5, '--glow-spread': '25px' }}
       >
         <div className="relative overflow-hidden rounded-md">
           <Image

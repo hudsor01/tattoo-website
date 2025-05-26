@@ -33,7 +33,7 @@ async function checkDatabase(): Promise<HealthCheckResult> {
     const start = Date.now();
     await prisma.$queryRaw`SELECT 1`;
     const responseTime = Date.now() - start;
-    
+
     return {
       status: 'pass',
       responseTime,
@@ -56,7 +56,7 @@ function checkMemory(): HealthCheckResult {
     const totalHeap = usage.heapTotal;
     const usedHeap = usage.heapUsed;
     const heapUsagePercentage = (usedHeap / totalHeap) * 100;
-    
+
     return {
       status: heapUsagePercentage > 90 ? 'warn' : 'pass',
       details: {
@@ -81,7 +81,7 @@ async function checkExternalServices(): Promise<HealthCheckResult> {
     const supabaseCheck = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/`, {
       method: 'HEAD',
       headers: {
-        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
       },
     });
 
@@ -102,7 +102,7 @@ async function checkExternalServices(): Promise<HealthCheckResult> {
 
 export async function GET() {
   const startTime = Date.now();
-  
+
   try {
     // Run all health checks in parallel
     const [databaseCheck, memoryCheck, externalCheck] = await Promise.all([
@@ -118,11 +118,11 @@ export async function GET() {
       external: externalCheck,
     };
 
-    const hasFailure = Object.values(checks).some(check => check?.status === 'fail');
-    const hasWarning = Object.values(checks).some(check => check?.status === 'warn');
-    
+    const hasFailure = Object.values(checks).some((check) => check?.status === 'fail');
+    const hasWarning = Object.values(checks).some((check) => check?.status === 'warn');
+
     const overallStatus = hasFailure ? 'unhealthy' : hasWarning ? 'degraded' : 'healthy';
-    
+
     const response: HealthCheck = {
       status: overallStatus,
       timestamp: new Date().toISOString(),
@@ -139,15 +139,14 @@ export async function GET() {
     };
 
     const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 200 : 503;
-    
-    return NextResponse.json(response, { 
+
+    return NextResponse.json(response, {
       status: statusCode,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'X-Health-Check-Duration': `${Date.now() - startTime}ms`,
       },
     });
-    
   } catch {
     const errorResponse: Partial<HealthCheck> = {
       status: 'unhealthy',
@@ -160,7 +159,7 @@ export async function GET() {
       },
     };
 
-    return NextResponse.json(errorResponse, { 
+    return NextResponse.json(errorResponse, {
       status: 503,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -176,8 +175,8 @@ export async function HEAD() {
     const start = Date.now();
     await prisma.$queryRaw`SELECT 1`;
     const duration = Date.now() - start;
-    
-    return new NextResponse(null, { 
+
+    return new NextResponse(null, {
       status: 200,
       headers: {
         'X-Health-Check-Duration': `${duration}ms`,
@@ -185,7 +184,7 @@ export async function HEAD() {
       },
     });
   } catch {
-    return new NextResponse(null, { 
+    return new NextResponse(null, {
       status: 503,
       headers: {
         'Cache-Control': 'no-cache',

@@ -20,17 +20,12 @@ export default function Error({
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="text-center max-w-md">
         <h1 className="text-6xl font-bold text-white mb-4">Oops!</h1>
-        <h2 className="text-2xl font-bold text-white mb-4">
-          Something went wrong
-        </h2>
+        <h2 className="text-2xl font-bold text-white mb-4">Something went wrong</h2>
         <p className="text-gray-300 mb-8">
           We apologize for the inconvenience. An unexpected error has occurred.
         </p>
         <div className="flex gap-4 justify-center">
-          <Button
-            onClick={reset}
-            className="bg-white text-black hover:bg-gray-100"
-          >
+          <Button onClick={reset} className="bg-white text-black hover:bg-gray-100">
             Try again
           </Button>
           <Link href="/">

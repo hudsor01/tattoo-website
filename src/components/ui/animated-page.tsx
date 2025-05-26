@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { type ReactNode } from 'react'
+import { motion, AnimatePresence } from 'framer-motion';
+import { type ReactNode } from 'react';
 
 interface AnimatedPageProps {
-  children: ReactNode
-  className?: string
+  children: ReactNode;
+  className?: string;
 }
 
 // Page transition variants
@@ -25,13 +25,13 @@ const pageVariants = {
     y: -20,
     scale: 0.98,
   },
-}
+};
 
 const pageTransition = {
   type: 'tween',
   ease: 'anticipate',
   duration: 0.4,
-}
+};
 
 export function AnimatedPage({ children, className }: AnimatedPageProps) {
   return (
@@ -45,14 +45,14 @@ export function AnimatedPage({ children, className }: AnimatedPageProps) {
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Fade in animation for cards and components
 interface FadeInProps {
-  children: ReactNode
-  delay?: number
-  className?: string
+  children: ReactNode;
+  delay?: number;
+  className?: string;
 }
 
 export function FadeIn({ children, delay = 0, className }: FadeInProps) {
@@ -69,15 +69,15 @@ export function FadeIn({ children, delay = 0, className }: FadeInProps) {
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Slide in from side animation
 interface SlideInProps {
-  children: ReactNode
-  direction?: 'left' | 'right' | 'up' | 'down'
-  delay?: number
-  className?: string
+  children: ReactNode;
+  direction?: 'left' | 'right' | 'up' | 'down';
+  delay?: number;
+  className?: string;
 }
 
 export function SlideIn({ children, direction = 'left', delay = 0, className }: SlideInProps) {
@@ -86,7 +86,7 @@ export function SlideIn({ children, direction = 'left', delay = 0, className }: 
     right: { x: 50, y: 0 },
     up: { x: 0, y: -50 },
     down: { x: 0, y: 50 },
-  }
+  };
 
   return (
     <motion.div
@@ -108,17 +108,21 @@ export function SlideIn({ children, direction = 'left', delay = 0, className }: 
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Stagger children animation
 interface StaggerContainerProps {
-  children: ReactNode
-  staggerDelay?: number
-  className?: string
+  children: ReactNode;
+  staggerDelay?: number;
+  className?: string;
 }
 
-export function StaggerContainer({ children, staggerDelay = 0.1, className }: StaggerContainerProps) {
+export function StaggerContainer({
+  children,
+  staggerDelay = 0.1,
+  className,
+}: StaggerContainerProps) {
   return (
     <motion.div
       initial="hidden"
@@ -136,7 +140,7 @@ export function StaggerContainer({ children, staggerDelay = 0.1, className }: St
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Stagger child item
@@ -158,14 +162,14 @@ export function StaggerItem({ children, className }: { children: ReactNode; clas
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Scale on hover animation
 interface ScaleOnHoverProps {
-  children: ReactNode
-  scale?: number
-  className?: string
+  children: ReactNode;
+  scale?: number;
+  className?: string;
 }
 
 export function ScaleOnHover({ children, scale = 1.05, className }: ScaleOnHoverProps) {
@@ -181,7 +185,7 @@ export function ScaleOnHover({ children, scale = 1.05, className }: ScaleOnHover
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Float animation for interactive elements
@@ -199,7 +203,7 @@ export function FloatOnHover({ children, className }: { children: ReactNode; cla
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Loading spinner with animation
@@ -220,11 +224,17 @@ export function AnimatedSpinner({ size = 24, className }: { size?: number; class
         style={{ width: size, height: size }}
       />
     </motion.div>
-  )
+  );
 }
 
 // Pulse animation for notifications
-export function PulseAnimation({ children, className }: { children: ReactNode; className?: string }) {
+export function PulseAnimation({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div
       animate={{
@@ -240,7 +250,7 @@ export function PulseAnimation({ children, className }: { children: ReactNode; c
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Modal animation wrapper
@@ -261,5 +271,5 @@ export function ModalAnimation({ children, isOpen }: { children: ReactNode; isOp
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

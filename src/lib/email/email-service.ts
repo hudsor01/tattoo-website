@@ -1,6 +1,6 @@
 /**
  * Simple Email Service
- * 
+ *
  * Basic email sending functionality using Resend.
  * Used only for contact form notifications.
  * Booking-related emails are handled by Cal.com.
@@ -43,7 +43,7 @@ export async function sendEmail({
       subject,
       ...(html ? { html } : { text: text ?? 'No content provided' }),
     };
-    
+
     const resend = getResendClient();
     const result = await resend.emails.send(emailOptions);
 

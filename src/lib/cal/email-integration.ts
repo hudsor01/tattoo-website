@@ -1,7 +1,7 @@
 /**
  * Cal.com Email Integration
  * This module handles sending automated emails for Cal.com booking events
- * 
+ *
  * Email templates are currently disabled
  */
 
@@ -13,7 +13,6 @@ import type { CalBookingPayload } from '@/types/booking-types';
  */
 export async function sendAppointmentConfirmationEmail(booking: CalBookingPayload): Promise<void> {
   void console.warn('Email templates disabled - would send confirmation for booking:', booking.id);
-  
 }
 
 /**
@@ -22,7 +21,6 @@ export async function sendAppointmentConfirmationEmail(booking: CalBookingPayloa
  */
 export async function sendAppointmentCancellationEmail(booking: CalBookingPayload): Promise<void> {
   void console.warn('Email templates disabled - would send cancellation for booking:', booking.id);
-  
 }
 
 /**
@@ -30,6 +28,9 @@ export async function sendAppointmentCancellationEmail(booking: CalBookingPayloa
  * Currently disabled - email templates removed
  */
 export async function sendBookingNotificationToStudio(booking: CalBookingPayload): Promise<string> {
-  void console.warn('Email templates disabled - would send studio notification for booking:', booking.id);
+  void console.warn(
+    'Email templates disabled - would send studio notification for booking:',
+    booking.id
+  );
   return 'Email templates disabled';
 }

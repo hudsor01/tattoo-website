@@ -4,15 +4,15 @@ import { useState } from 'react';
 import { DataTable, type DataTableColumn } from '@/components/admin/data-table';
 
 interface Appointment {
-id: string;
-customerName: string;
-email: string;
-date: string;
-time: string;
-service: string;
-status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-notes?: string;
-[key: string]: unknown;
+  id: string;
+  customerName: string;
+  email: string;
+  date: string;
+  time: string;
+  service: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  notes?: string;
+  [key: string]: unknown;
 }
 
 const appointmentColumns: DataTableColumn<Appointment>[] = [

@@ -173,18 +173,20 @@ export async function GET() {
     ]);
 
     // Format upcoming appointments for frontend
-    const formattedUpcomingAppointments = upcomingAppointments.map((appointment: typeof upcomingAppointments[number]) => ({
-      id: appointment.id,
-      title: appointment.title,
-      startTime: appointment.startDate,
-      endTime: appointment.endDate,
-      status: appointment.status,
-      client: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-      clientId: appointment.Customer.id,
-      deposit: appointment.deposit ?? 0,
-      depositPaid: appointment.deposit ? true : false,
-      service: appointment.description ?? appointment.title,
-    }));
+    const formattedUpcomingAppointments = upcomingAppointments.map(
+      (appointment: (typeof upcomingAppointments)[number]) => ({
+        id: appointment.id,
+        title: appointment.title,
+        startTime: appointment.startDate,
+        endTime: appointment.endDate,
+        status: appointment.status,
+        client: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
+        clientId: appointment.Customer.id,
+        deposit: appointment.deposit ?? 0,
+        depositPaid: appointment.deposit ? true : false,
+        service: appointment.description ?? appointment.title,
+      })
+    );
 
     // Calculate percentage change in clients
     const clientsPercentChange =

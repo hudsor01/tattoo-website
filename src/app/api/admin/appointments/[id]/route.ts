@@ -35,7 +35,9 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       id: appointment.id,
       title: appointment.title,
       customerId: appointment.customerId,
-      customerName: appointment.Customer ? `${appointment.Customer.firstName} ${appointment.Customer.lastName}` : '',
+      customerName: appointment.Customer
+        ? `${appointment.Customer.firstName} ${appointment.Customer.lastName}`
+        : '',
       customerEmail: appointment.Customer?.email,
       customerPhone: appointment.Customer?.phone,
       startDate: appointment.startDate,
@@ -109,11 +111,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         id,
       },
       data: {
-        ...(data.title !==  null && { title: data.title }),
-        ...(data.customerId !==  null && { customerId: data.customerId }),
-        ...(data.startDate !==  null && { startDate: new Date(data.startDate) }),
-        ...(data.endDate !==  null && { endDate: new Date(data.endDate) }),
-        ...(data.status !==  null && { status: data.status }),
+        ...(data.title !== null && { title: data.title }),
+        ...(data.customerId !== null && { customerId: data.customerId }),
+        ...(data.startDate !== null && { startDate: new Date(data.startDate) }),
+        ...(data.endDate !== null && { endDate: new Date(data.endDate) }),
+        ...(data.status !== null && { status: data.status }),
         ...(data.deposit !== null && { deposit: data.deposit }),
         ...(data.totalPrice !== null && { totalPrice: data.totalPrice }),
         ...(data.designNotes !== null && { designNotes: data.designNotes }),
@@ -128,7 +130,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Format response
     const formattedAppointment = {
       ...updatedAppointment,
-      customerName: updatedAppointment.Customer ? `${updatedAppointment.Customer.firstName} ${updatedAppointment.Customer.lastName}` : '',
+      customerName: updatedAppointment.Customer
+        ? `${updatedAppointment.Customer.firstName} ${updatedAppointment.Customer.lastName}`
+        : '',
       customerEmail: updatedAppointment.Customer?.email,
       customerPhone: updatedAppointment.Customer?.phone,
       Customer: null, // Don't include full customer in response

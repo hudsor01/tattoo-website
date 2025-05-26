@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     // Log the top-level error with full details for debugging
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
-    
+
     logger.error('tRPC handler error', {
       url,
       error: errorMessage,
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
           ...Object.fromEntries(resHeaders.entries()),
         },
-      },
+      }
     );
   }
 }
@@ -108,6 +108,6 @@ export function GET() {
       headers: {
         'Content-Type': 'application/json',
       },
-    },
+    }
   );
 }

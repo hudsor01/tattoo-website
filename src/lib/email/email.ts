@@ -1,6 +1,6 @@
 /**
  * Email Service - Contact Forms Only
- * 
+ *
  * Simplified email service for contact form notifications.
  * Booking-related emails are handled by Cal.com integration.
  */
@@ -9,9 +9,9 @@
 import { DEFAULT_FROM_EMAIL, sendEmail } from './email-service';
 
 // Import contact form email templates
-import { 
-  generateAdminContactEmail, 
-  generateCustomerContactConfirmation 
+import {
+  generateAdminContactEmail,
+  generateCustomerContactConfirmation,
 } from './email-contact-form';
 
 // Named exports - contact form functionality only

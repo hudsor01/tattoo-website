@@ -1,18 +1,18 @@
 /**
  * Cal.com tRPC Router
- * 
+ *
  * This router handles all Cal.com related operations through tRPC.
  */
 
 import { z } from 'zod';
 import { adminProcedure, protectedProcedure, publicProcedure, router } from '../server';
-import { 
-  getCalBookings, 
-  getCalBookingByUid, 
-  getCalEventTypes, 
+import {
+  getCalBookings,
+  getCalBookingByUid,
+  getCalEventTypes,
   updateCalBookingStatus,
   rescheduleCalBooking,
-  getCalAvailability
+  getCalAvailability,
 } from '@/lib/cal/api';
 import type { GetCalBookingsOptions } from '@/types/cal-types';
 import { TRPCError } from '@trpc/server';
@@ -34,11 +34,13 @@ export const calRouter = router({
   // Get all bookings from Cal.com
   getBookings: adminProcedure
     .input(
-      z.object({
-        limit: z.number().optional(),
-        status: z.string().optional(),
-        eventTypeId: z.number().optional(),
-      }).optional()
+      z
+        .object({
+          limit: z.number().optional(),
+          status: z.string().optional(),
+          eventTypeId: z.number().optional(),
+        })
+        .optional()
     )
     .query(async ({ input }) => {
       try {
@@ -57,19 +59,17 @@ export const calRouter = router({
     }),
 
   // Get a specific booking by UID
-  getBookingByUid: adminProcedure
-    .input(z.object({ uid: z.string() }))
-    .query(async ({ input }) => {
-      try {
-        return await getCalBookingByUid(input.uid);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to get Cal.com booking: ${errorMessage}`,
-        });
-      }
-    }),
+  getBookingByUid: adminProcedure.input(z.object({ uid: z.string() })).query(async ({ input }) => {
+    try {
+      return await getCalBookingByUid(input.uid);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Failed to get Cal.com booking: ${errorMessage}`,
+      });
+    }
+  }),
 
   // Get all event types from Cal.com
   getEventTypes: adminProcedure.query(async () => {
@@ -138,11 +138,7 @@ export const calRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        return await getCalAvailability(
-          input.eventTypeId,
-          input.startDate,
-          input.endDate
-        );
+        return await getCalAvailability(input.eventTypeId, input.startDate, input.endDate);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new TRPCError({
@@ -157,7 +153,7 @@ export const calRouter = router({
     try {
       // Get all bookings from Cal.com
       const calBookings = await getCalBookings({});
-      
+
       // Track statistics for the sync operation
       const stats = {
         total: calBookings.length,
@@ -193,22 +189,28 @@ export const calRouter = router({
             // Create new booking record
             if (booking.attendees.length > 0) {
               // Extract attendee information safely
-              const attendeeName = booking.attendees && booking.attendees.length > 0 ? 
-                booking.attendees[0]?.name ?? 'Unknown' : 'Unknown';
-              const attendeeEmail = booking.attendees && booking.attendees.length > 0 ? 
-                booking.attendees[0]?.email ?? 'unknown@example.com' : 'unknown@example.com';
-                
+              const attendeeName =
+                booking.attendees && booking.attendees.length > 0
+                  ? (booking.attendees[0]?.name ?? 'Unknown')
+                  : 'Unknown';
+              const attendeeEmail =
+                booking.attendees && booking.attendees.length > 0
+                  ? (booking.attendees[0]?.email ?? 'unknown@example.com')
+                  : 'unknown@example.com';
+
               // Extract customInputs if they exist
               interface CustomInput {
                 label: string;
                 value: string;
               }
-              
-              const customInputs = Array.isArray(booking.customInputs) ? booking.customInputs as CustomInput[] : [];
+
+              const customInputs = Array.isArray(booking.customInputs)
+                ? (booking.customInputs as CustomInput[])
+                : [];
               const getTattooTypeInput = customInputs.find((i) => i.label === 'Tattoo Type');
               const getSizeInput = customInputs.find((i) => i.label === 'Size');
               const getPlacementInput = customInputs.find((i) => i.label === 'Placement');
-              
+
               // Create the booking record
               await prisma.booking.create({
                 data: {

@@ -5,7 +5,7 @@
 import type { CalBookingPayload } from '@/types/booking-types';
 import type { CalEventType, CalAvailabilityResponse } from '@/types/cal-types';
 
-const CAL_API_KEY = process.env["CAL_API_KEY"];
+const CAL_API_KEY = process.env['CAL_API_KEY'];
 const CAL_API_URL = 'https://api.cal.com/v1';
 
 interface GetCalBookingsOptions {
@@ -98,7 +98,7 @@ export async function getCalEventTypes(): Promise<CalEventType[]> {
  * Update booking status on Cal.com
  */
 export async function updateCalBookingStatus(
-  uid: string, 
+  uid: string,
   status: 'accepted' | 'rejected' | 'cancelled'
 ): Promise<CalBookingPayload> {
   if (!CAL_API_KEY) {
@@ -189,23 +189,26 @@ export async function getCalAvailability(
 /**
  * Create a direct Cal.com booking link with predefined fields
  */
-export function createCalBookingLink(eventTypeId: number, prefillData: Record<string, string> = {}): string {
-  if (!process.env["NEXT_PUBLIC_CAL_USERNAME"]) {
+export function createCalBookingLink(
+  eventTypeId: number,
+  prefillData: Record<string, string> = {}
+): string {
+  if (!process.env['NEXT_PUBLIC_CAL_USERNAME']) {
     throw new Error('NEXT_PUBLIC_CAL_USERNAME not configured');
   }
-  
-  const username = process.env["NEXT_PUBLIC_CAL_USERNAME"];
+
+  const username = process.env['NEXT_PUBLIC_CAL_USERNAME'];
   const baseUrl = `https://cal.com/${username}/${eventTypeId}`;
-  
+
   if (Object.keys(prefillData).length === 0) {
     return baseUrl;
   }
-  
+
   const searchParams = new URLSearchParams();
-  
+
   for (const [key, value] of Object.entries(prefillData)) {
     void searchParams.append(key, value);
   }
-  
+
   return `${baseUrl}?${searchParams.toString()}`;
 }

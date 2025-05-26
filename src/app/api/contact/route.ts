@@ -25,7 +25,7 @@ async function parseFormData(request: NextRequest) {
   const formData = await request.formData();
   const formFields: Record<string, string | boolean> = {};
   const files: Record<string, File> = {};
-  
+
   // Extract all form fields
   for (const [key, value] of formData.entries()) {
     if (value instanceof File) {
@@ -38,7 +38,7 @@ async function parseFormData(request: NextRequest) {
       else formFields[key] = value;
     }
   }
-  
+
   return { formFields, files };
 }
 
@@ -48,29 +48,29 @@ async function parseFormData(request: NextRequest) {
 async function saveFiles(files: Record<string, File>, submissionId: string) {
   const fileUrls: string[] = [];
   const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'contact', submissionId);
-  
+
   try {
     // Create directory if it doesn't exist
     await fs.mkdir(uploadsDir, { recursive: true });
-    
+
     // Process each file
     for (const [key, file] of Object.entries(files)) {
       if (!key.startsWith('file_')) continue;
-      
+
       // Generate a unique filename
       const fileExtension = file.name.split('.').pop();
       const uniqueFilename = `${uuidv4()}.${fileExtension}`;
       const filePath = path.join(uploadsDir, uniqueFilename);
-      
+
       // Convert File to Buffer and save
       const buffer = Buffer.from(await file.arrayBuffer());
       await fs.writeFile(filePath, buffer);
-      
+
       // Store the relative URL for access
       const fileUrl = `/uploads/contact/${submissionId}/${uniqueFilename}`;
       void fileUrls.push(fileUrl);
     }
-    
+
     return fileUrls;
   } catch (error) {
     void console.error('Error saving files:', error);
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse multipart form data
     const { formFields, files } = await parseFormData(request);
-    
+
     // Validate form fields
     const validatedData = contactFormSchema.parse({
       ...formFields,
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       hasReference: formFields['hasReference'] === 'true',
       agreeToTerms: formFields['agreeToTerms'] === 'true',
     });
-    
+
     // Create submission record first to get an ID
     const contactSubmission = await prisma.contact.create({
       data: sanitizeForPrisma({
@@ -119,12 +119,12 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       }),
     });
-    
+
     // Process files if they exist
     let fileUrls: string[] = [];
     if (formFields['hasFiles'] === 'true' && Object.keys(files).length > 0) {
       fileUrls = await saveFiles(files, contactSubmission.id.toString());
-      
+
       // Update submission with file URLs
       await prisma.contact.update({
         where: { id: contactSubmission.id },
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         }),
       });
     }
-    
+
     // Send notification email to admin
     await sendEmail({
       to: process.env['ADMIN_EMAIL'] ?? 'fennyg83@gmail.com',
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     void console.error('Error processing contact form:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       {
         success: false,

@@ -27,7 +27,7 @@ export function showToast(options: EnhancedToastOptions) {
     ...(options.title && { title: options.title }),
     description: options.description,
     variant: options.variant === 'error' ? 'destructive' : (options.variant ?? 'default'),
-    ...(options.duration !== undefined && { duration: options.duration })
+    ...(options.duration !== undefined && { duration: options.duration }),
   });
 }
 

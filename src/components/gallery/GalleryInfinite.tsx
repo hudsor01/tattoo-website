@@ -1,35 +1,41 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { Search, Filter, Grid, List, Eye } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { useGalleryInfiniteQuery } from '@/hooks/use-trpc-infinite-query'
-import Image from 'next/image'
-import Link from 'next/link'
-import Lightbox from 'yet-another-react-lightbox'
-import Captions from 'yet-another-react-lightbox/plugins/captions'
-import Counter from 'yet-another-react-lightbox/plugins/counter'
-import Fullscreen from 'yet-another-react-lightbox/plugins/fullscreen'
-import Slideshow from 'yet-another-react-lightbox/plugins/slideshow'
-import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails'
-import Zoom from 'yet-another-react-lightbox/plugins/zoom'
-import 'yet-another-react-lightbox/styles.css'
-import 'yet-another-react-lightbox/plugins/captions.css'
-import 'yet-another-react-lightbox/plugins/counter.css'
-import 'yet-another-react-lightbox/plugins/thumbnails.css'
-import type { GalleryDesignDto } from '@/types/gallery-types'
+import React, { useState } from 'react';
+import { Search, Filter, Grid, List, Eye } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useGalleryInfiniteQuery } from '@/hooks/use-trpc-infinite-query';
+import Image from 'next/image';
+import Link from 'next/link';
+import Lightbox from 'yet-another-react-lightbox';
+import Captions from 'yet-another-react-lightbox/plugins/captions';
+import Counter from 'yet-another-react-lightbox/plugins/counter';
+import Fullscreen from 'yet-another-react-lightbox/plugins/fullscreen';
+import Slideshow from 'yet-another-react-lightbox/plugins/slideshow';
+import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import 'yet-another-react-lightbox/styles.css';
+import 'yet-another-react-lightbox/plugins/captions.css';
+import 'yet-another-react-lightbox/plugins/counter.css';
+import 'yet-another-react-lightbox/plugins/thumbnails.css';
+import type { GalleryDesignDto } from '@/types/gallery-types';
 
 interface GalleryInfiniteProps {
-  className?: string
-  initialDesignType?: string
-  showFilters?: boolean
-  gridCols?: number
-  itemsPerPage?: number
-  enableLightbox?: boolean
+  className?: string;
+  initialDesignType?: string;
+  showFilters?: boolean;
+  gridCols?: number;
+  itemsPerPage?: number;
+  enableLightbox?: boolean;
 }
 
 export default function GalleryInfinite({
@@ -40,116 +46,110 @@ export default function GalleryInfinite({
   itemsPerPage = 20,
   enableLightbox = false,
 }: GalleryInfiniteProps) {
-  const [designType, setDesignType] = useState<string | undefined>(initialDesignType)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'popular'>('latest')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [lightboxIndex, setLightboxIndex] = useState<number>(-1)
-  const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false)
+  const [designType, setDesignType] = useState<string | undefined>(initialDesignType);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'popular'>('latest');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
+  const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
 
   // Use the infinite query hook
   const queryResult = useGalleryInfiniteQuery({
     ...(designType && { designType }),
     limit: itemsPerPage,
-  })
+  });
 
-  const {
-    data: queryData,
-    isLoading,
-    isFetching,
-    hasNextPage,
-    fetchNextPage,
-    error,
-  } = queryResult
+  const { data: queryData, isLoading, isFetching, hasNextPage, fetchNextPage, error } = queryResult;
 
   // Flatten the paginated data
   const designs = React.useMemo(() => {
-    return queryData?.pages.flatMap((page) => page.designs) ?? []
-  }, [queryData])
-  
-  const totalCount = queryData?.pages[0]?.totalCount ?? 0
-  const hasMore = hasNextPage ?? false
+    return queryData?.pages.flatMap((page) => page.designs) ?? [];
+  }, [queryData]);
+
+  const totalCount = queryData?.pages[0]?.totalCount ?? 0;
+  const hasMore = hasNextPage ?? false;
 
   // Filter designs by search term (client-side filtering)
   const filteredDesigns = React.useMemo(() => {
-    if (!designs) return []
-    
-    let filtered = designs
-    
+    if (!designs) return [];
+
+    let filtered = designs;
+
     // Search filter
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      filtered = filtered.filter((design: GalleryDesignDto) => 
-        design.name.toLowerCase().includes(searchLower) ||
-        (design.description?.toLowerCase().includes(searchLower) ?? false) ||
-        (design.designType?.toLowerCase().includes(searchLower) ?? false)
-      )
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (design: GalleryDesignDto) =>
+          design.name.toLowerCase().includes(searchLower) ||
+          (design.description?.toLowerCase().includes(searchLower) ?? false) ||
+          (design.designType?.toLowerCase().includes(searchLower) ?? false)
+      );
     }
-    
+
     // Sort (Note: server already sorts by latest, but we can re-sort client-side)
     const sorted = [...filtered].sort((a: GalleryDesignDto, b: GalleryDesignDto) => {
       switch (sortBy) {
         case 'latest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         case 'popular':
           // You could implement a popularity metric here
-          return Number(b.id) - Number(a.id)
+          return Number(b.id) - Number(a.id);
         default:
-          return 0
+          return 0;
       }
-    })
-    
-    return sorted
-  }, [designs, searchTerm, sortBy])
+    });
+
+    return sorted;
+  }, [designs, searchTerm, sortBy]);
 
   // Prepare slides for lightbox
   const lightboxSlides = React.useMemo(() => {
-    if (!enableLightbox) return []
-    
+    if (!enableLightbox) return [];
+
     return filteredDesigns.map((design: GalleryDesignDto) => ({
       src: design.fileUrl ?? design.thumbnailUrl ?? '/images/placeholder-tattoo.jpg',
       width: 1200,
       height: 800,
       title: design.name,
       description: design.description ?? design.designType ?? '',
-    }))
-  }, [filteredDesigns, enableLightbox])
+    }));
+  }, [filteredDesigns, enableLightbox]);
 
   // Handle lightbox open/close
   const openLightbox = (index: number) => {
-    if (!enableLightbox) return
-    setLightboxIndex(index)
-    setIsLightboxOpen(true)
-  }
+    if (!enableLightbox) return;
+    setLightboxIndex(index);
+    setIsLightboxOpen(true);
+  };
 
   const closeLightbox = () => {
-    setIsLightboxOpen(false)
-    setLightboxIndex(-1)
-  }
+    setIsLightboxOpen(false);
+    setLightboxIndex(-1);
+  };
 
   // Intersection observer for infinite scrolling
-  const loadMoreRef = React.useRef<HTMLDivElement>(null)
-  
+  const loadMoreRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
-    if (!hasMore || isFetching) return undefined
+    if (!hasMore || isFetching) return undefined;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          void fetchNextPage()
+          void fetchNextPage();
         }
       },
       { threshold: 0.1 }
-    )
+    );
 
     if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current)
+      observer.observe(loadMoreRef.current);
     }
 
-    return () => observer.disconnect()
-  }, [hasMore, isFetching, fetchNextPage])
+    return () => observer.disconnect();
+  }, [hasMore, isFetching, fetchNextPage]);
 
   if (error) {
     return (
@@ -159,7 +159,7 @@ export default function GalleryInfinite({
           <p className="text-sm text-gray-500">Please try again later</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -180,7 +180,10 @@ export default function GalleryInfinite({
             </div>
 
             {/* Category Filter */}
-            <Select value={designType ?? 'all'} onValueChange={(value) => setDesignType(value === 'all' ? undefined : value)}>
+            <Select
+              value={designType ?? 'all'}
+              onValueChange={(value) => setDesignType(value === 'all' ? undefined : value)}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
@@ -195,7 +198,10 @@ export default function GalleryInfinite({
             </Select>
 
             {/* Sort */}
-            <Select value={sortBy} onValueChange={(value: 'latest' | 'oldest' | 'popular') => setSortBy(value)}>
+            <Select
+              value={sortBy}
+              onValueChange={(value: 'latest' | 'oldest' | 'popular') => setSortBy(value)}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -229,11 +235,13 @@ export default function GalleryInfinite({
 
       {/* Loading State */}
       {isLoading && (
-        <div className={`grid gap-6 ${
-          viewMode === 'grid' 
-            ? `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridCols}` 
-            : 'grid-cols-1'
-        }`}>
+        <div
+          className={`grid gap-6 ${
+            viewMode === 'grid'
+              ? `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridCols}`
+              : 'grid-cols-1'
+          }`}
+        >
           {Array.from({ length: itemsPerPage }, (_, i) => `skeleton-${i}`).map((key) => (
             <div key={key} className="animate-pulse">
               <div className="bg-gray-200 aspect-square rounded-lg mb-3"></div>
@@ -256,11 +264,13 @@ export default function GalleryInfinite({
               </div>
             </div>
           ) : (
-            <div className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridCols}` 
-                : 'grid-cols-1'
-            }`}>
+            <div
+              className={`grid gap-6 ${
+                viewMode === 'grid'
+                  ? `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridCols}`
+                  : 'grid-cols-1'
+              }`}
+            >
               {filteredDesigns.map((design: GalleryDesignDto, index: number) => {
                 if (enableLightbox) {
                   return (
@@ -268,7 +278,11 @@ export default function GalleryInfinite({
                       <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
                         <div className="relative aspect-square">
                           <Image
-                            src={design.thumbnailUrl ?? design.fileUrl ?? '/images/placeholder-tattoo.jpg'}
+                            src={
+                              design.thumbnailUrl ??
+                              design.fileUrl ??
+                              '/images/placeholder-tattoo.jpg'
+                            }
                             alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Fernando Govea, Dallas Fort Worth tattoo artist`}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -295,9 +309,7 @@ export default function GalleryInfinite({
                             </p>
                           )}
                           {design.artist?.user?.name && (
-                            <p className="text-xs text-gray-500">
-                              by {design.artist.user.name}
-                            </p>
+                            <p className="text-xs text-gray-500">by {design.artist.user.name}</p>
                           )}
                           <p className="text-xs text-gray-400 mt-1">
                             {new Date(design.createdAt).toLocaleDateString()}
@@ -305,7 +317,7 @@ export default function GalleryInfinite({
                         </CardContent>
                       </Card>
                     </div>
-                  )
+                  );
                 }
 
                 return (
@@ -313,7 +325,11 @@ export default function GalleryInfinite({
                     <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
                       <div className="relative aspect-square">
                         <Image
-                          src={design.thumbnailUrl ?? design.fileUrl ?? '/images/placeholder-tattoo.jpg'}
+                          src={
+                            design.thumbnailUrl ??
+                            design.fileUrl ??
+                            '/images/placeholder-tattoo.jpg'
+                          }
                           alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Fernando Govea, Dallas Fort Worth tattoo artist`}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -335,9 +351,7 @@ export default function GalleryInfinite({
                           </p>
                         )}
                         {design.artist?.user?.name && (
-                          <p className="text-xs text-gray-500">
-                            by {design.artist.user.name}
-                          </p>
+                          <p className="text-xs text-gray-500">by {design.artist.user.name}</p>
                         )}
                         <p className="text-xs text-gray-400 mt-1">
                           {new Date(design.createdAt).toLocaleDateString()}
@@ -345,7 +359,7 @@ export default function GalleryInfinite({
                       </CardContent>
                     </Card>
                   </Link>
-                )
+                );
               })}
             </div>
           )}
@@ -359,11 +373,7 @@ export default function GalleryInfinite({
                   <span className="text-gray-500">Loading more designs...</span>
                 </div>
               ) : (
-                <Button 
-                  variant="outline" 
-                  onClick={() => void fetchNextPage()}
-                  className="px-8"
-                >
+                <Button variant="outline" onClick={() => void fetchNextPage()} className="px-8">
                   Load More Designs
                 </Button>
               )}
@@ -426,12 +436,16 @@ export default function GalleryInfinite({
             container: { backgroundColor: 'rgba(0, 0, 0, 0.95)' },
             slide: { padding: 0 },
           }}
-          render={lightboxSlides.length <= 1 ? {
-            buttonPrev: () => null,
-            buttonNext: () => null,
-          } : {}}
+          render={
+            lightboxSlides.length <= 1
+              ? {
+                  buttonPrev: () => null,
+                  buttonNext: () => null,
+                }
+              : {}
+          }
         />
       )}
     </div>
-  )
+  );
 }

@@ -20,7 +20,7 @@ export const LinkComponent: React.FC<LinkProps> = ({
   ...props
 }) => {
   // Check if children contains an anchor tag
-  const hasNestedAnchor = React.Children.toArray(children).some(child => {
+  const hasNestedAnchor = React.Children.toArray(children).some((child) => {
     if (React.isValidElement(child) && typeof child.type !== 'string') {
       // For custom components, we can't reliably determine if they render an anchor
       // So we rely on the noWrapper prop

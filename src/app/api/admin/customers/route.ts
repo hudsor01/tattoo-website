@@ -74,13 +74,14 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Format response to maintain compatibility
-    const formattedCustomers = customers.map(customer => {
+    const formattedCustomers = customers.map((customer) => {
       // Combine first and last name to maintain client compatibility
       const name = `${customer.firstName} ${customer.lastName}`.trim();
 
       // Extract tattoo style preference from notes if available
-      const tattooStyle = customer.notes?.includes('tattoo style') ? 
-        customer.notes.split('tattoo style preference:')[1]?.trim() ?? '' : '';
+      const tattooStyle = customer.notes?.includes('tattoo style')
+        ? (customer.notes.split('tattoo style preference:')[1]?.trim() ?? '')
+        : '';
 
       // Determine status based on tags (default to 'new')
       const status = customer.tags.length > 0 ? 'active' : 'new';
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
     if (existingCustomer) {
       return NextResponse.json(
         { error: 'A customer with this email already exists' },
-        { status: 409 },
+        { status: 409 }
       );
     }
 

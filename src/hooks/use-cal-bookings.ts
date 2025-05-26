@@ -1,6 +1,6 @@
 /**
  * Cal.com Bookings Hook
- * 
+ *
  * Custom hook for managing Cal.com bookings through tRPC
  */
 
@@ -31,11 +31,7 @@ export function useCalBookings() {
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Get Cal.com bookings
-  const { 
-    data: calBookings = [], 
-    isLoading, 
-    refetch 
-  } = api.cal.getBookings.useQuery();
+  const { data: calBookings = [], isLoading, refetch } = api.cal.getBookings.useQuery();
 
   // Sync bookings
   const syncBookings = useCallback(async () => {

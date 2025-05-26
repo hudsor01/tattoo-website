@@ -18,7 +18,7 @@ interface CTASectionProps {
 
 /**
  * CTA Section Component
- * 
+ *
  * A reusable call-to-action section for use across different pages.
  */
 export function CTASection({
@@ -28,29 +28,38 @@ export function CTASection({
   primaryButtonLink,
   secondaryButtonText,
   secondaryButtonLink,
-  customClassName = "",
+  customClassName = '',
 }: CTASectionProps) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.7 }}
       className={`bg-gradient-to-br from-tattoo-black to-tattoo-black/90 rounded-2xl border border-tattoo-red/20 shadow-xl p-8 md:p-12 ${customClassName}`}
     >
       <div className="max-w-3xl mx-auto text-center">
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{title}</h2>
         <p className="text-white/80 mb-8">{description}</p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" asChild className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group">
+          <Button
+            size="lg"
+            asChild
+            className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group"
+          >
             <Link href={primaryButtonLink} className="inline-flex items-center">
               {primaryButtonText}
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
           {secondaryButtonText && secondaryButtonLink && (
-            <Button variant="outline" size="lg" asChild className="relative border-2 border-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 text-white hover:from-red-500/20 hover:via-orange-500/20 hover:to-amber-500/20 hover:scale-105 transition-all duration-300 group overflow-hidden">
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="relative border-2 border-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 text-white hover:from-red-500/20 hover:via-orange-500/20 hover:to-amber-500/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
+            >
               <Link href={secondaryButtonLink} className="inline-flex items-center relative z-10">
                 <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
                   {secondaryButtonText}

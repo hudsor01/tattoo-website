@@ -7,7 +7,14 @@ export const IDSchema = z.string().min(1, 'ID is required');
 /**
  * Customer status options
  */
-export const CustomerStatusSchema = z.enum(['active', 'inactive', 'lead', 'returning', 'vip', 'new']);
+export const CustomerStatusSchema = z.enum([
+  'active',
+  'inactive',
+  'lead',
+  'returning',
+  'vip',
+  'new',
+]);
 
 /**
  * Customer source options (how they found the studio)
@@ -52,7 +59,7 @@ export const clientSchema = z.object({
     .string()
     .optional()
     .refine(
-      val => {
+      (val) => {
         if (!val) return true;
         const date = new Date(val);
         const now = new Date();
@@ -100,7 +107,7 @@ export const CustomerCreateSchema = CustomerBaseSchema.extend({
   notes: z.string().optional(),
   notificationPreference: NotificationPreferenceSchema.optional().default('email'),
   allowsMarketing: z.boolean().optional().default(true),
-  agreeToTerms: z.boolean().refine(val => val === true, {
+  agreeToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms',
   }),
 });
@@ -294,7 +301,7 @@ export const ContactFormSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   subject: z.string().min(3, 'Subject is required'),
   message: z.string().min(20, 'Please provide more details (at least 20 characters)'),
-  agreeToTerms: z.boolean().refine(val => val === true, {
+  agreeToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to our terms to continue',
   }),
 });

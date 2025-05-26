@@ -23,24 +23,18 @@ interface TableLoadingProps {
 }
 
 // Standard loading spinner component
-export function LoadingSpinner({ 
-  size = 'md', 
-  text, 
-  className = '' 
-}: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = 'md', text, className = '' }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'h-4 w-4',
-    md: 'h-6 w-6', 
-    lg: 'h-8 w-8'
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8',
   };
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
       <div className="flex flex-col items-center gap-2">
         <Loader2 className={`${sizeClasses[size]} animate-spin text-red-500`} />
-        {text && (
-          <p className="text-sm text-muted-foreground">{text}</p>
-        )}
+        {text && <p className="text-sm text-muted-foreground">{text}</p>}
       </div>
     </div>
   );
@@ -56,16 +50,10 @@ export function PageLoading({ text = 'Loading...' }: { text?: string }) {
 }
 
 // Card loading skeleton
-export function CardLoading({ 
-  title = true, 
-  rows = 3, 
-  className = '' 
-}: LoadingCardProps) {
+export function CardLoading({ title = true, rows = 3, className = '' }: LoadingCardProps) {
   return (
     <Card className={className}>
-      <CardHeader>
-        {title && <Skeleton className="h-6 w-48" />}
-      </CardHeader>
+      <CardHeader>{title && <Skeleton className="h-6 w-48" />}</CardHeader>
       <CardContent>
         <div className="space-y-3">
           {Array.from({ length: rows }, (_, i) => `card-skeleton-${i}`).map((key) => (
@@ -87,13 +75,15 @@ export function TableLoading({ columns, rows = 5 }: TableLoadingProps) {
           <Skeleton key={key} className="h-6 flex-1" />
         ))}
       </div>
-      
+
       {/* Rows skeleton */}
       {Array.from({ length: rows }, (_, rowIndex) => `table-row-${rowIndex}`).map((rowKey) => (
         <div key={rowKey} className="flex gap-4">
-          {Array.from({ length: columns }, (_, colIndex) => `${rowKey}-col-${colIndex}`).map((cellKey) => (
-            <Skeleton key={cellKey} className="h-8 flex-1" />
-          ))}
+          {Array.from({ length: columns }, (_, colIndex) => `${rowKey}-col-${colIndex}`).map(
+            (cellKey) => (
+              <Skeleton key={cellKey} className="h-8 flex-1" />
+            )
+          )}
         </div>
       ))}
     </div>
@@ -101,11 +91,7 @@ export function TableLoading({ columns, rows = 5 }: TableLoadingProps) {
 }
 
 // Button loading state
-export function ButtonLoading({ 
-  text = 'Loading...'
-}: { 
-  text?: string;
-}) {
+export function ButtonLoading({ text = 'Loading...' }: { text?: string }) {
   return (
     <div className="flex items-center gap-2">
       <Loader2 className={`h-4 w-4 animate-spin`} />
@@ -116,9 +102,7 @@ export function ButtonLoading({
 
 // Refresh loading state
 export function RefreshLoading() {
-  return (
-    <RefreshCw className="h-4 w-4 animate-spin" />
-  );
+  return <RefreshCw className="h-4 w-4 animate-spin" />;
 }
 
 // Stats card loading
@@ -139,10 +123,7 @@ export function StatsCardLoading() {
 // Chart loading state
 export function ChartLoading({ height = '320px' }: { height?: string }) {
   return (
-    <div 
-      className="flex items-center justify-center bg-muted/20 rounded-lg"
-      style={{ height }}
-    >
+    <div className="flex items-center justify-center bg-muted/20 rounded-lg" style={{ height }}>
       <LoadingSpinner text="Loading chart..." />
     </div>
   );

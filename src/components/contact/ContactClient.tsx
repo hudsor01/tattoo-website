@@ -16,7 +16,7 @@ const TikTokIcon = ({ className }: { className?: string }) => (
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-.88-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-.88-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
   </svg>
 );
 
@@ -27,11 +27,11 @@ export default function ContactClient() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { 
+      transition: {
         duration: 0.6,
-        ease: [0.22, 1, 0.36, 1]
-      }
-    }
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
   };
 
   const staggerContainer = {
@@ -40,9 +40,9 @@ export default function ContactClient() {
       opacity: 1,
       transition: {
         staggerChildren: 0.15,
-        delayChildren: 0
-      }
-    }
+        delayChildren: 0,
+      },
+    },
   };
 
   // FAQ items for the contact page
@@ -72,18 +72,18 @@ export default function ContactClient() {
         transition={{ duration: 0.5 }}
       >
         {/* Page Title */}
-        <motion.div 
+        <motion.div
           className="mb-16 text-center"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: '-100px' }}
           variants={fadeInUp}
         >
           <h1 className="heading-large gradient-text-muted mb-4">Get In Touch</h1>
           <p className="paragraph-medium max-w-2xl mx-auto mb-6">
             Have questions? Ready to schedule a consultation? Reach out today.
           </p>
-          <motion.div 
+          <motion.div
             className="h-1 w-24 mx-auto bg-gradient-to-r from-red-500 via-orange-500 to-amber-500"
             variants={fadeInUp}
           />
@@ -239,9 +239,7 @@ export default function ContactClient() {
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">
-                      Working Hours
-                    </h3>
+                    <h3 className="text-lg font-semibold text-white mb-1">Working Hours</h3>
                     <p className="text-white/70">By appointment only</p>
                     <p className="text-xs text-white/50 mt-1">
                       Flexible scheduling for your convenience
@@ -265,12 +263,9 @@ export default function ContactClient() {
               </div>
 
               {/* Book Button */}
-              <motion.div 
-                className="mt-8 mb-6"
-                variants={fadeInUp}
-              >
-                <Button 
-                  asChild 
+              <motion.div className="mt-8 mb-6" variants={fadeInUp}>
+                <Button
+                  asChild
                   className="w-full bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 hover:scale-105 transition-all duration-300 group"
                 >
                   <Link href="/booking" className="flex items-center justify-center">
@@ -302,7 +297,7 @@ export default function ContactClient() {
                   Quick FAQs
                 </h3>
 
-                <motion.div 
+                <motion.div
                   className="space-y-5"
                   variants={staggerContainer}
                   initial="hidden"
@@ -328,10 +323,7 @@ export default function ContactClient() {
                 </motion.div>
 
                 <div className="mt-4 text-center">
-                  <a
-                    href="/faq"
-                    className="text-red-400 hover:text-red-300 text-sm font-medium"
-                  >
+                  <a href="/faq" className="text-red-400 hover:text-red-300 text-sm font-medium">
                     View all FAQs
                   </a>
                 </div>
@@ -341,43 +333,50 @@ export default function ContactClient() {
         </div>
 
         {/* Closing CTA Section */}
-        <motion.section 
+        <motion.section
           className="py-16 mt-16"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+          viewport={{ once: true, margin: '-50px' }}
           variants={fadeInUp}
         >
           <div className="bg-gradient-to-br from-tattoo-black to-tattoo-black/90 rounded-2xl border border-tattoo-red/20 shadow-xl p-8 md:p-12">
             <div className="max-w-3xl mx-auto text-center">
-              <motion.h2 
+              <motion.h2
                 className="text-2xl md:text-3xl font-bold text-white mb-4"
                 variants={fadeInUp}
               >
                 Ready to Bring Your Vision to Life?
               </motion.h2>
-              <motion.p 
-                className="text-white/80 mb-8"
-                variants={fadeInUp}
-              >
-                Whether you have a clear design in mind or need help developing your concept, I'm here to guide you through every step of the tattoo process.
+              <motion.p className="text-white/80 mb-8" variants={fadeInUp}>
+                Whether you have a clear design in mind or need help developing your concept, I'm
+                here to guide you through every step of the tattoo process.
               </motion.p>
-              
-              <motion.div 
+
+              <motion.div
                 className="flex flex-col sm:flex-row gap-4 justify-center"
                 variants={staggerContainer}
               >
                 <motion.div variants={fadeInUp}>
-                  <Button size="lg" asChild className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group">
+                  <Button
+                    size="lg"
+                    asChild
+                    className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group"
+                  >
                     <Link href="/booking" className="inline-flex items-center">
                       Book a Consultation
                       <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
                 </motion.div>
-                
+
                 <motion.div variants={fadeInUp}>
-                  <Button variant="outline" size="lg" asChild className="relative border-2 border-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 text-white hover:from-red-500/20 hover:via-orange-500/20 hover:to-amber-500/20 hover:scale-105 transition-all duration-300 group overflow-hidden">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="relative border-2 border-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 text-white hover:from-red-500/20 hover:via-orange-500/20 hover:to-amber-500/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
+                  >
                     <Link href="/gallery" className="inline-flex items-center relative z-10">
                       <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
                         View My Gallery

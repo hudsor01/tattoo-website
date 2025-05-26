@@ -1,15 +1,11 @@
 /**
  * Pricing Database Functions
- * 
+ *
  * Unified functions for pricing-related operations
  */
 
 import { executeStoredProcedure } from './prisma';
-import type { 
-  PricingBreakdown, 
-  StandardPricingData,
-  ArtistRate
-} from '@/types/payments-types';
+import type { PricingBreakdown, StandardPricingData, ArtistRate } from '@/types/payments-types';
 
 /**
  * Calculate pricing for a tattoo based on size, placement, and complexity
@@ -19,7 +15,7 @@ export async function calculatePricing(
   placement: string,
   complexity: number = 3,
   artistId?: string,
-  customHourlyRate?: number,
+  customHourlyRate?: number
 ): Promise<PricingBreakdown> {
   try {
     const result = await executeStoredProcedure<PricingBreakdown>('calculate_pricing', [
@@ -41,12 +37,12 @@ export async function calculatePricing(
  */
 export async function calculateAppointmentDuration(
   size: string,
-  complexity: number = 3,
+  complexity: number = 3
 ): Promise<string> {
   try {
     const result = await executeStoredProcedure<{ duration: string }>(
       'calculate_appointment_duration',
-      [size, complexity],
+      [size, complexity]
     );
     return result.duration;
   } catch (error) {
@@ -83,7 +79,7 @@ export async function getStandardPricingData(): Promise<StandardPricingData> {
       { size: 'full-sleeve', label: 'Full Sleeve', basePrice: 2500 },
       { size: 'back-piece', label: 'Back Piece', basePrice: 3000 },
     ];
-    
+
     const placementFactors = [
       { placement: 'inner-arm', label: 'Inner Arm', factor: 1.0 },
       { placement: 'outer-arm', label: 'Outer Arm', factor: 1.0 },
@@ -96,7 +92,7 @@ export async function getStandardPricingData(): Promise<StandardPricingData> {
       { placement: 'head', label: 'Head', factor: 1.6 },
       { placement: 'neck', label: 'Neck', factor: 1.3 },
     ];
-    
+
     const complexityLevels = [
       { level: 1, label: 'Simple (basic line work)', factor: 0.8 },
       { level: 2, label: 'Moderate (some shading/detail)', factor: 0.9 },
@@ -104,13 +100,13 @@ export async function getStandardPricingData(): Promise<StandardPricingData> {
       { level: 4, label: 'Complex (high detail/color)', factor: 1.2 },
       { level: 5, label: 'Very Complex (photorealistic/intricate)', factor: 1.5 },
     ];
-    
+
     return {
       sizePrices,
       placementFactors,
       complexityLevels,
       depositPercentage: 30, // Standard deposit percentage
-      baseHourlyRate: 150,   // Standard hourly rate
+      baseHourlyRate: 150, // Standard hourly rate
     };
   } catch (error) {
     void console.error('Error getting standard pricing data:', error);

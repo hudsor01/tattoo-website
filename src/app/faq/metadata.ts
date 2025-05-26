@@ -2,11 +2,14 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'FAQ | Frequently Asked Questions - Ink 37 Tattoos',
-  description: 'Find answers to common questions about tattoo care, booking process, pricing, and what to expect during your tattoo session.',
-  keywords: 'tattoo faq, tattoo care, tattoo booking process, tattoo pricing, tattoo aftercare, tattoo questions',
+  description:
+    'Find answers to common questions about tattoo care, booking process, pricing, and what to expect during your tattoo session.',
+  keywords:
+    'tattoo faq, tattoo care, tattoo booking process, tattoo pricing, tattoo aftercare, tattoo questions',
   openGraph: {
     title: 'Tattoo FAQ - Ink 37 Tattoos',
-    description: 'Common questions about tattoo care, booking, pricing, and the tattoo process answered.',
+    description:
+      'Common questions about tattoo care, booking, pricing, and the tattoo process answered.',
     url: '/faq',
     siteName: 'Ink 37 Tattoos',
     images: [

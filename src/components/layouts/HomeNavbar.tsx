@@ -32,10 +32,10 @@ export function HomeNavbar() {
 
     // Add scroll event listener
     void window.addEventListener('scroll', handleScroll);
-    
+
     // Set initial state
     handleScroll();
-    
+
     // Clean up
     return () => {
       void window.removeEventListener('scroll', handleScroll);
@@ -49,7 +49,7 @@ export function HomeNavbar() {
 
   // Track the current path for client-side rendering
   const [path, setPath] = React.useState('/');
-  
+
   void React.useEffect(() => {
     setPath(window.location.pathname);
   }, []);
@@ -57,14 +57,14 @@ export function HomeNavbar() {
   if (!visible && path === '/') {
     return null;
   }
-  
+
   // Don't show home navbar on non-home pages
   if (path !== '/') {
     return null;
   }
 
   return (
-    <motion.header 
+    <motion.header
       initial={{ opacity: 0, y: -100 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -100 }}
@@ -87,7 +87,7 @@ export function HomeNavbar() {
 
           {/* Desktop Navigation - hidden on mobile */}
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-            {navigationLinks.map((link) => 
+            {navigationLinks.map((link) =>
               link.isButton ? (
                 <Button
                   key={link.href}
@@ -113,16 +113,12 @@ export function HomeNavbar() {
           </nav>
 
           {/* Mobile menu button - visible only on mobile */}
-          <button 
+          <button
             className="md:hidden p-2 text-white focus:outline-none"
             onClick={toggleMobileMenu}
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
-            {mobileMenuOpen ? (
-              <X size={24} />
-            ) : (
-              <Menu size={24} />
-            )}
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>

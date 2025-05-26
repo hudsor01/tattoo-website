@@ -12,12 +12,20 @@ export function Footer() {
         <div className="flex flex-col items-center space-y-3">
           {/* Quick Links */}
           <div className="flex items-center space-x-6 text-sm">
-            <Link href="/gallery" className="text-zinc-400 hover:text-white transition-colors">Gallery</Link>
-            <Link href="/about" className="text-zinc-400 hover:text-white transition-colors">About</Link>
-            <Link href="/contact" className="text-zinc-400 hover:text-white transition-colors">Contact</Link>
-            <Link href="/booking" className="text-zinc-400 hover:text-orange-400 transition-colors">Book Consultation</Link>
+            <Link href="/gallery" className="text-zinc-400 hover:text-white transition-colors">
+              Gallery
+            </Link>
+            <Link href="/about" className="text-zinc-400 hover:text-white transition-colors">
+              About
+            </Link>
+            <Link href="/contact" className="text-zinc-400 hover:text-white transition-colors">
+              Contact
+            </Link>
+            <Link href="/booking" className="text-zinc-400 hover:text-orange-400 transition-colors">
+              Book Consultation
+            </Link>
           </div>
-          
+
           {/* Footer Info */}
           <div className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-4 text-xs text-zinc-500">
             <span>© {currentYear} Ink 37. All rights reserved.</span>

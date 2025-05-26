@@ -1,31 +1,37 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Save, User, Shield, Bell, Database, Globe, Mail, Palette } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { toast } from '@/components/ui/use-toast'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { trpc } from '@/lib/trpc/client'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useState, useEffect } from 'react';
+import { Save, User, Shield, Bell, Database, Globe, Mail, Palette } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { toast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { trpc } from '@/lib/trpc/client';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   GeneralSettingsForm,
   BookingSettingsForm,
   EmailSettingsForm,
   SecuritySettingsForm,
   NotificationSettingsForm,
-  SettingsMutationError
-} from '@/types/settings-types'
+  SettingsMutationError,
+} from '@/types/settings-types';
 
 export default function SettingsPageContent() {
   // Get settings data from tRPC
-  const { data: settings, isLoading, refetch } = trpc.settings.getSettings.useQuery()
+  const { data: settings, isLoading, refetch } = trpc.settings.getSettings.useQuery();
 
   // Local state for form data
   const [generalSettings, setGeneralSettings] = useState<GeneralSettingsForm>({
@@ -35,8 +41,8 @@ export default function SettingsPageContent() {
     contactPhone: '',
     address: '',
     businessHours: '',
-    timezone: ''
-  })
+    timezone: '',
+  });
 
   const [bookingSettings, setBookingSettings] = useState<BookingSettingsForm>({
     bookingEnabled: true,
@@ -47,8 +53,8 @@ export default function SettingsPageContent() {
     cancellationHours: 24,
     autoConfirmBookings: false,
     sendReminderEmails: true,
-    reminderHoursBefore: 24
-  })
+    reminderHoursBefore: 24,
+  });
 
   const [emailSettings, setEmailSettings] = useState<EmailSettingsForm>({
     emailProvider: 'resend',
@@ -58,8 +64,8 @@ export default function SettingsPageContent() {
     sendWelcomeEmails: true,
     sendBookingConfirmations: true,
     sendPaymentConfirmations: true,
-    sendCancellationNotices: true
-  })
+    sendCancellationNotices: true,
+  });
 
   const [securitySettings, setSecuritySettings] = useState<SecuritySettingsForm>({
     requireTwoFactor: false,
@@ -68,8 +74,8 @@ export default function SettingsPageContent() {
     lockoutDuration: 30,
     requireStrongPasswords: true,
     allowApiAccess: true,
-    logSecurityEvents: true
-  })
+    logSecurityEvents: true,
+  });
 
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsForm>({
     newBookingAlerts: true,
@@ -78,140 +84,184 @@ export default function SettingsPageContent() {
     systemMaintenanceAlerts: true,
     errorAlerts: true,
     weeklyReports: true,
-    monthlyReports: true
-  })
+    monthlyReports: true,
+  });
 
   // Update local state when settings data loads
   useEffect(() => {
-  if (settings) {
-  if (settings.general && typeof settings.general === 'object' && settings.general !== null) {
-  setGeneralSettings(prev => ({ ...prev, ...settings.general as Record<string, unknown> }))
-  }
-  if (settings.booking && typeof settings.booking === 'object' && settings.booking !== null) {
-  setBookingSettings(prev => ({ ...prev, ...settings.booking as Record<string, unknown> }))
-  }
-  if (settings.email && typeof settings.email === 'object' && settings.email !== null) {
-  setEmailSettings(prev => ({ ...prev, ...settings.email as Record<string, unknown> }))
-  }
-  if (settings.security && typeof settings.security === 'object' && settings.security !== null) {
-  setSecuritySettings(prev => ({ ...prev, ...settings.security as Record<string, unknown> }))
-  }
-  if (settings.notifications && typeof settings.notifications === 'object' && settings.notifications !== null) {
-  setNotificationSettings(prev => ({ ...prev, ...settings.notifications as Record<string, unknown> }))
-  }
-  }
-  }, [settings])
+    if (settings) {
+      if (settings.general && typeof settings.general === 'object' && settings.general !== null) {
+        setGeneralSettings((prev) => ({
+          ...prev,
+          ...(settings.general as Record<string, unknown>),
+        }));
+      }
+      if (settings.booking && typeof settings.booking === 'object' && settings.booking !== null) {
+        setBookingSettings((prev) => ({
+          ...prev,
+          ...(settings.booking as Record<string, unknown>),
+        }));
+      }
+      if (settings.email && typeof settings.email === 'object' && settings.email !== null) {
+        setEmailSettings((prev) => ({ ...prev, ...(settings.email as Record<string, unknown>) }));
+      }
+      if (
+        settings.security &&
+        typeof settings.security === 'object' &&
+        settings.security !== null
+      ) {
+        setSecuritySettings((prev) => ({
+          ...prev,
+          ...(settings.security as Record<string, unknown>),
+        }));
+      }
+      if (
+        settings.notifications &&
+        typeof settings.notifications === 'object' &&
+        settings.notifications !== null
+      ) {
+        setNotificationSettings((prev) => ({
+          ...prev,
+          ...(settings.notifications as Record<string, unknown>),
+        }));
+      }
+    }
+  }, [settings]);
 
-  // Mutations  
+  // Mutations
   const updateGeneralMutation = trpc.settings.updateGeneralSettings.useMutation({
     onSuccess: () => {
-      toast({ title: 'General settings saved successfully' })
-      void refetch()
+      toast({ title: 'General settings saved successfully' });
+      void refetch();
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error saving general settings', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({
+        title: 'Error saving general settings',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const updateBookingMutation = trpc.settings.updateBookingSettings.useMutation({
     onSuccess: () => {
-      toast({ title: 'Booking settings saved successfully' })
-      void refetch()
+      toast({ title: 'Booking settings saved successfully' });
+      void refetch();
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error saving booking settings', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({
+        title: 'Error saving booking settings',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const updateEmailMutation = trpc.settings.updateEmailSettings.useMutation({
     onSuccess: () => {
-      toast({ title: 'Email settings saved successfully' })
-      void refetch()
+      toast({ title: 'Email settings saved successfully' });
+      void refetch();
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error saving email settings', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({
+        title: 'Error saving email settings',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const updateSecurityMutation = trpc.settings.updateSecuritySettings.useMutation({
     onSuccess: () => {
-      toast({ title: 'Security settings saved successfully' })
-      void refetch()
+      toast({ title: 'Security settings saved successfully' });
+      void refetch();
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error saving security settings', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({
+        title: 'Error saving security settings',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const updateNotificationsMutation = trpc.settings.updateNotificationSettings.useMutation({
     onSuccess: () => {
-      toast({ title: 'Notification settings saved successfully' })
-      void refetch()
+      toast({ title: 'Notification settings saved successfully' });
+      void refetch();
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error saving notification settings', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({
+        title: 'Error saving notification settings',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const sendTestEmailMutation = trpc.settings.sendTestEmail.useMutation({
     onSuccess: () => {
-      toast({ title: 'Test email sent successfully' })
+      toast({ title: 'Test email sent successfully' });
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error sending test email', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({
+        title: 'Error sending test email',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const backupDatabaseMutation = trpc.settings.backupDatabase.useMutation({
     onSuccess: () => {
-      toast({ title: 'Database backup initiated' })
+      toast({ title: 'Database backup initiated' });
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error creating backup', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({ title: 'Error creating backup', description: error.message, variant: 'destructive' });
+    },
+  });
 
   const clearCacheMutation = trpc.settings.clearCache.useMutation({
     onSuccess: () => {
-      toast({ title: 'Cache cleared successfully' })
+      toast({ title: 'Cache cleared successfully' });
     },
     onError: (error: SettingsMutationError) => {
-      toast({ title: 'Error clearing cache', description: error.message, variant: 'destructive' })
-    }
-  })
+      toast({ title: 'Error clearing cache', description: error.message, variant: 'destructive' });
+    },
+  });
 
   // Handler functions
   const handleSaveGeneral = () => {
-    void updateGeneralMutation.mutate(generalSettings)
-  }
+    void updateGeneralMutation.mutate(generalSettings);
+  };
 
   const handleSaveBooking = () => {
-    void updateBookingMutation.mutate(bookingSettings)
-  }
+    void updateBookingMutation.mutate(bookingSettings);
+  };
 
   const handleSaveEmail = () => {
-    void updateEmailMutation.mutate(emailSettings)
-  }
+    void updateEmailMutation.mutate(emailSettings);
+  };
 
   const handleSaveSecurity = () => {
-    void updateSecurityMutation.mutate(securitySettings)
-  }
+    void updateSecurityMutation.mutate(securitySettings);
+  };
 
   const handleSaveNotifications = () => {
-    void updateNotificationsMutation.mutate(notificationSettings)
-  }
+    void updateNotificationsMutation.mutate(notificationSettings);
+  };
 
   const handleTestEmail = () => {
-    void sendTestEmailMutation.mutate({ email: emailSettings.replyToEmail })
-  }
+    void sendTestEmailMutation.mutate({ email: emailSettings.replyToEmail });
+  };
 
   const handleBackupDatabase = () => {
-    void backupDatabaseMutation.mutate()
-  }
+    void backupDatabaseMutation.mutate();
+  };
 
   const handleClearCache = () => {
-    void clearCacheMutation.mutate()
-  }
+    void clearCacheMutation.mutate();
+  };
 
   if (isLoading) {
     return (
@@ -236,7 +286,7 @@ export default function SettingsPageContent() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -271,7 +321,9 @@ export default function SettingsPageContent() {
                   <Input
                     id="siteName"
                     value={generalSettings.siteName}
-                    onChange={(e) => setGeneralSettings({ ...generalSettings, siteName: e.target.value })}
+                    onChange={(e) =>
+                      setGeneralSettings({ ...generalSettings, siteName: e.target.value })
+                    }
                   />
                 </div>
                 <div>
@@ -280,7 +332,9 @@ export default function SettingsPageContent() {
                     id="contactEmail"
                     type="email"
                     value={generalSettings.contactEmail}
-                    onChange={(e) => setGeneralSettings({ ...generalSettings, contactEmail: e.target.value })}
+                    onChange={(e) =>
+                      setGeneralSettings({ ...generalSettings, contactEmail: e.target.value })
+                    }
                   />
                 </div>
                 <div>
@@ -288,12 +342,19 @@ export default function SettingsPageContent() {
                   <Input
                     id="contactPhone"
                     value={generalSettings.contactPhone}
-                    onChange={(e) => setGeneralSettings({ ...generalSettings, contactPhone: e.target.value })}
+                    onChange={(e) =>
+                      setGeneralSettings({ ...generalSettings, contactPhone: e.target.value })
+                    }
                   />
                 </div>
                 <div>
                   <Label htmlFor="timezone">Timezone</Label>
-                  <Select value={generalSettings.timezone} onValueChange={(value) => setGeneralSettings({ ...generalSettings, timezone: value })}>
+                  <Select
+                    value={generalSettings.timezone}
+                    onValueChange={(value) =>
+                      setGeneralSettings({ ...generalSettings, timezone: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -311,7 +372,9 @@ export default function SettingsPageContent() {
                 <Textarea
                   id="siteDescription"
                   value={generalSettings.siteDescription}
-                  onChange={(e) => setGeneralSettings({ ...generalSettings, siteDescription: e.target.value })}
+                  onChange={(e) =>
+                    setGeneralSettings({ ...generalSettings, siteDescription: e.target.value })
+                  }
                   rows={3}
                 />
               </div>
@@ -320,7 +383,9 @@ export default function SettingsPageContent() {
                 <Input
                   id="address"
                   value={generalSettings.address}
-                  onChange={(e) => setGeneralSettings({ ...generalSettings, address: e.target.value })}
+                  onChange={(e) =>
+                    setGeneralSettings({ ...generalSettings, address: e.target.value })
+                  }
                 />
               </div>
               <div>
@@ -328,7 +393,9 @@ export default function SettingsPageContent() {
                 <Input
                   id="businessHours"
                   value={generalSettings.businessHours}
-                  onChange={(e) => setGeneralSettings({ ...generalSettings, businessHours: e.target.value })}
+                  onChange={(e) =>
+                    setGeneralSettings({ ...generalSettings, businessHours: e.target.value })
+                  }
                 />
               </div>
               <Button onClick={handleSaveGeneral} disabled={updateGeneralMutation.isPending}>
@@ -346,29 +413,39 @@ export default function SettingsPageContent() {
               <CardTitle className="flex items-center">
                 <User className="w-5 h-5 mr-2" />
                 Booking Configuration
-                <span className="ml-2 text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">Connected to Cal.com</span>
+                <span className="ml-2 text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                  Connected to Cal.com
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Enable Online Booking</Label>
-                  <p className="text-sm text-muted-foreground">Allow customers to book appointments online via Cal.com</p>
+                  <p className="text-sm text-muted-foreground">
+                    Allow customers to book appointments online via Cal.com
+                  </p>
                 </div>
                 <Switch
                   checked={bookingSettings.bookingEnabled}
-                  onCheckedChange={(checked) => setBookingSettings({ ...bookingSettings, bookingEnabled: checked })}
+                  onCheckedChange={(checked) =>
+                    setBookingSettings({ ...bookingSettings, bookingEnabled: checked })
+                  }
                 />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Require Deposit</Label>
-                  <p className="text-sm text-muted-foreground">Require a deposit for new bookings</p>
+                  <p className="text-sm text-muted-foreground">
+                    Require a deposit for new bookings
+                  </p>
                 </div>
                 <Switch
                   checked={bookingSettings.requireDeposit}
-                  onCheckedChange={(checked) => setBookingSettings({ ...bookingSettings, requireDeposit: checked })}
+                  onCheckedChange={(checked) =>
+                    setBookingSettings({ ...bookingSettings, requireDeposit: checked })
+                  }
                 />
               </div>
               {bookingSettings.requireDeposit && (
@@ -378,7 +455,12 @@ export default function SettingsPageContent() {
                     id="depositAmount"
                     type="number"
                     value={bookingSettings.depositAmount}
-                    onChange={(e) => setBookingSettings({ ...bookingSettings, depositAmount: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setBookingSettings({
+                        ...bookingSettings,
+                        depositAmount: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
               )}
@@ -389,7 +471,12 @@ export default function SettingsPageContent() {
                     id="maxAdvanceBookingDays"
                     type="number"
                     value={bookingSettings.maxAdvanceBookingDays}
-                    onChange={(e) => setBookingSettings({ ...bookingSettings, maxAdvanceBookingDays: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setBookingSettings({
+                        ...bookingSettings,
+                        maxAdvanceBookingDays: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -398,7 +485,12 @@ export default function SettingsPageContent() {
                     id="minAdvanceBookingHours"
                     type="number"
                     value={bookingSettings.minAdvanceBookingHours}
-                    onChange={(e) => setBookingSettings({ ...bookingSettings, minAdvanceBookingHours: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setBookingSettings({
+                        ...bookingSettings,
+                        minAdvanceBookingHours: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -408,17 +500,26 @@ export default function SettingsPageContent() {
                   id="cancellationHours"
                   type="number"
                   value={bookingSettings.cancellationHours}
-                  onChange={(e) => setBookingSettings({ ...bookingSettings, cancellationHours: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setBookingSettings({
+                      ...bookingSettings,
+                      cancellationHours: Number(e.target.value),
+                    })
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Auto-confirm Bookings</Label>
-                  <p className="text-sm text-muted-foreground">Automatically confirm new bookings from Cal.com</p>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically confirm new bookings from Cal.com
+                  </p>
                 </div>
                 <Switch
                   checked={bookingSettings.autoConfirmBookings}
-                  onCheckedChange={(checked) => setBookingSettings({ ...bookingSettings, autoConfirmBookings: checked })}
+                  onCheckedChange={(checked) =>
+                    setBookingSettings({ ...bookingSettings, autoConfirmBookings: checked })
+                  }
                 />
               </div>
               <Button onClick={handleSaveBooking} disabled={updateBookingMutation.isPending}>
@@ -436,7 +537,9 @@ export default function SettingsPageContent() {
               <CardTitle className="flex items-center">
                 <Mail className="w-5 h-5 mr-2" />
                 Email Configuration
-                <span className="ml-2 text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Resend Integration</span>
+                <span className="ml-2 text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                  Resend Integration
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -446,7 +549,9 @@ export default function SettingsPageContent() {
                   <Input
                     id="fromName"
                     value={emailSettings.fromName}
-                    onChange={(e) => setEmailSettings({ ...emailSettings, fromName: e.target.value })}
+                    onChange={(e) =>
+                      setEmailSettings({ ...emailSettings, fromName: e.target.value })
+                    }
                   />
                 </div>
                 <div>
@@ -455,7 +560,9 @@ export default function SettingsPageContent() {
                     id="fromEmail"
                     type="email"
                     value={emailSettings.fromEmail}
-                    onChange={(e) => setEmailSettings({ ...emailSettings, fromEmail: e.target.value })}
+                    onChange={(e) =>
+                      setEmailSettings({ ...emailSettings, fromEmail: e.target.value })
+                    }
                   />
                 </div>
                 <div>
@@ -464,12 +571,22 @@ export default function SettingsPageContent() {
                     id="replyToEmail"
                     type="email"
                     value={emailSettings.replyToEmail}
-                    onChange={(e) => setEmailSettings({ ...emailSettings, replyToEmail: e.target.value })}
+                    onChange={(e) =>
+                      setEmailSettings({ ...emailSettings, replyToEmail: e.target.value })
+                    }
                   />
                 </div>
                 <div>
                   <Label htmlFor="emailProvider">Email Provider</Label>
-                  <Select value={emailSettings.emailProvider} onValueChange={(value) => setEmailSettings({ ...emailSettings, emailProvider: value as 'resend' | 'sendgrid' | 'smtp' })}>
+                  <Select
+                    value={emailSettings.emailProvider}
+                    onValueChange={(value) =>
+                      setEmailSettings({
+                        ...emailSettings,
+                        emailProvider: value as 'resend' | 'sendgrid' | 'smtp',
+                      })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -485,10 +602,26 @@ export default function SettingsPageContent() {
               <div className="space-y-3">
                 <h4 className="font-medium">Email Notifications</h4>
                 {[
-                  { key: 'sendWelcomeEmails', label: 'Welcome Emails', description: 'Send welcome emails to new users' },
-                  { key: 'sendBookingConfirmations', label: 'Booking Confirmations', description: 'Send confirmation emails for new bookings' },
-                  { key: 'sendPaymentConfirmations', label: 'Payment Confirmations', description: 'Send confirmation emails for payments' },
-                  { key: 'sendCancellationNotices', label: 'Cancellation Notices', description: 'Send emails when bookings are cancelled' }
+                  {
+                    key: 'sendWelcomeEmails',
+                    label: 'Welcome Emails',
+                    description: 'Send welcome emails to new users',
+                  },
+                  {
+                    key: 'sendBookingConfirmations',
+                    label: 'Booking Confirmations',
+                    description: 'Send confirmation emails for new bookings',
+                  },
+                  {
+                    key: 'sendPaymentConfirmations',
+                    label: 'Payment Confirmations',
+                    description: 'Send confirmation emails for payments',
+                  },
+                  {
+                    key: 'sendCancellationNotices',
+                    label: 'Cancellation Notices',
+                    description: 'Send emails when bookings are cancelled',
+                  },
                 ].map((setting) => (
                   <div key={setting.key} className="flex items-center justify-between">
                     <div>
@@ -497,7 +630,9 @@ export default function SettingsPageContent() {
                     </div>
                     <Switch
                       checked={emailSettings[setting.key as keyof typeof emailSettings] as boolean}
-                      onCheckedChange={(checked) => setEmailSettings({ ...emailSettings, [setting.key]: checked })}
+                      onCheckedChange={(checked) =>
+                        setEmailSettings({ ...emailSettings, [setting.key]: checked })
+                      }
                     />
                   </div>
                 ))}
@@ -507,7 +642,11 @@ export default function SettingsPageContent() {
                   <Save className="w-4 h-4 mr-2" />
                   {updateEmailMutation.isPending ? 'Saving...' : 'Save Email Settings'}
                 </Button>
-                <Button variant="outline" onClick={handleTestEmail} disabled={sendTestEmailMutation.isPending}>
+                <Button
+                  variant="outline"
+                  onClick={handleTestEmail}
+                  disabled={sendTestEmailMutation.isPending}
+                >
                   {sendTestEmailMutation.isPending ? 'Sending...' : 'Send Test Email'}
                 </Button>
               </div>
@@ -522,18 +661,24 @@ export default function SettingsPageContent() {
               <CardTitle className="flex items-center">
                 <Shield className="w-5 h-5 mr-2" />
                 Security Configuration
-                <span className="ml-2 text-sm text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Clerk Authentication</span>
+                <span className="ml-2 text-sm text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                  Clerk Authentication
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Require Two-Factor Authentication</Label>
-                  <p className="text-sm text-muted-foreground">Require 2FA for admin accounts via Clerk</p>
+                  <p className="text-sm text-muted-foreground">
+                    Require 2FA for admin accounts via Clerk
+                  </p>
                 </div>
                 <Switch
                   checked={securitySettings.requireTwoFactor}
-                  onCheckedChange={(checked) => setSecuritySettings({ ...securitySettings, requireTwoFactor: checked })}
+                  onCheckedChange={(checked) =>
+                    setSecuritySettings({ ...securitySettings, requireTwoFactor: checked })
+                  }
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -543,7 +688,12 @@ export default function SettingsPageContent() {
                     id="sessionTimeout"
                     type="number"
                     value={securitySettings.sessionTimeout}
-                    onChange={(e) => setSecuritySettings({ ...securitySettings, sessionTimeout: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setSecuritySettings({
+                        ...securitySettings,
+                        sessionTimeout: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -552,7 +702,12 @@ export default function SettingsPageContent() {
                     id="maxLoginAttempts"
                     type="number"
                     value={securitySettings.maxLoginAttempts}
-                    onChange={(e) => setSecuritySettings({ ...securitySettings, maxLoginAttempts: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setSecuritySettings({
+                        ...securitySettings,
+                        maxLoginAttempts: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -562,14 +717,31 @@ export default function SettingsPageContent() {
                   id="lockoutDuration"
                   type="number"
                   value={securitySettings.lockoutDuration}
-                  onChange={(e) => setSecuritySettings({ ...securitySettings, lockoutDuration: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setSecuritySettings({
+                      ...securitySettings,
+                      lockoutDuration: Number(e.target.value),
+                    })
+                  }
                 />
               </div>
               <div className="space-y-3">
                 {[
-                  { key: 'requireStrongPasswords', label: 'Require Strong Passwords', description: 'Enforce password complexity requirements via Clerk' },
-                  { key: 'allowApiAccess', label: 'Allow API Access', description: 'Enable API access for integrations' },
-                  { key: 'logSecurityEvents', label: 'Log Security Events', description: 'Log authentication and security events' }
+                  {
+                    key: 'requireStrongPasswords',
+                    label: 'Require Strong Passwords',
+                    description: 'Enforce password complexity requirements via Clerk',
+                  },
+                  {
+                    key: 'allowApiAccess',
+                    label: 'Allow API Access',
+                    description: 'Enable API access for integrations',
+                  },
+                  {
+                    key: 'logSecurityEvents',
+                    label: 'Log Security Events',
+                    description: 'Log authentication and security events',
+                  },
                 ].map((setting) => (
                   <div key={setting.key} className="flex items-center justify-between">
                     <div>
@@ -577,8 +749,12 @@ export default function SettingsPageContent() {
                       <p className="text-sm text-muted-foreground">{setting.description}</p>
                     </div>
                     <Switch
-                      checked={securitySettings[setting.key as keyof typeof securitySettings] as boolean}
-                      onCheckedChange={(checked) => setSecuritySettings({ ...securitySettings, [setting.key]: checked })}
+                      checked={
+                        securitySettings[setting.key as keyof typeof securitySettings] as boolean
+                      }
+                      onCheckedChange={(checked) =>
+                        setSecuritySettings({ ...securitySettings, [setting.key]: checked })
+                      }
                     />
                   </div>
                 ))}
@@ -604,11 +780,32 @@ export default function SettingsPageContent() {
               <div className="space-y-3">
                 <h4 className="font-medium">Real-time Alerts</h4>
                 {[
-                  { key: 'newBookingAlerts', label: 'New Booking Alerts', description: 'Get notified when new bookings are created via Cal.com or website' },
-                  { key: 'paymentAlerts', label: 'Payment Alerts', description: 'Get notified about payment status changes' },
-                  { key: 'cancellationAlerts', label: 'Cancellation Alerts', description: 'Get notified when bookings are cancelled' },
-                  { key: 'systemMaintenanceAlerts', label: 'System Maintenance', description: 'Get notified about system maintenance' },
-                  { key: 'errorAlerts', label: 'Error Alerts', description: 'Get notified about system errors' }
+                  {
+                    key: 'newBookingAlerts',
+                    label: 'New Booking Alerts',
+                    description:
+                      'Get notified when new bookings are created via Cal.com or website',
+                  },
+                  {
+                    key: 'paymentAlerts',
+                    label: 'Payment Alerts',
+                    description: 'Get notified about payment status changes',
+                  },
+                  {
+                    key: 'cancellationAlerts',
+                    label: 'Cancellation Alerts',
+                    description: 'Get notified when bookings are cancelled',
+                  },
+                  {
+                    key: 'systemMaintenanceAlerts',
+                    label: 'System Maintenance',
+                    description: 'Get notified about system maintenance',
+                  },
+                  {
+                    key: 'errorAlerts',
+                    label: 'Error Alerts',
+                    description: 'Get notified about system errors',
+                  },
                 ].map((setting) => (
                   <div key={setting.key} className="flex items-center justify-between">
                     <div>
@@ -616,8 +813,14 @@ export default function SettingsPageContent() {
                       <p className="text-sm text-muted-foreground">{setting.description}</p>
                     </div>
                     <Switch
-                      checked={notificationSettings[setting.key as keyof typeof notificationSettings] as boolean}
-                      onCheckedChange={(checked) => setNotificationSettings({ ...notificationSettings, [setting.key]: checked })}
+                      checked={
+                        notificationSettings[
+                          setting.key as keyof typeof notificationSettings
+                        ] as boolean
+                      }
+                      onCheckedChange={(checked) =>
+                        setNotificationSettings({ ...notificationSettings, [setting.key]: checked })
+                      }
                     />
                   </div>
                 ))}
@@ -626,8 +829,16 @@ export default function SettingsPageContent() {
               <div className="space-y-3">
                 <h4 className="font-medium">Periodic Reports</h4>
                 {[
-                  { key: 'weeklyReports', label: 'Weekly Reports', description: 'Receive weekly business reports via email' },
-                  { key: 'monthlyReports', label: 'Monthly Reports', description: 'Receive monthly business reports via email' }
+                  {
+                    key: 'weeklyReports',
+                    label: 'Weekly Reports',
+                    description: 'Receive weekly business reports via email',
+                  },
+                  {
+                    key: 'monthlyReports',
+                    label: 'Monthly Reports',
+                    description: 'Receive monthly business reports via email',
+                  },
                 ].map((setting) => (
                   <div key={setting.key} className="flex items-center justify-between">
                     <div>
@@ -635,13 +846,22 @@ export default function SettingsPageContent() {
                       <p className="text-sm text-muted-foreground">{setting.description}</p>
                     </div>
                     <Switch
-                      checked={notificationSettings[setting.key as keyof typeof notificationSettings] as boolean}
-                      onCheckedChange={(checked) => setNotificationSettings({ ...notificationSettings, [setting.key]: checked })}
+                      checked={
+                        notificationSettings[
+                          setting.key as keyof typeof notificationSettings
+                        ] as boolean
+                      }
+                      onCheckedChange={(checked) =>
+                        setNotificationSettings({ ...notificationSettings, [setting.key]: checked })
+                      }
                     />
                   </div>
                 ))}
               </div>
-              <Button onClick={handleSaveNotifications} disabled={updateNotificationsMutation.isPending}>
+              <Button
+                onClick={handleSaveNotifications}
+                disabled={updateNotificationsMutation.isPending}
+              >
                 <Save className="w-4 h-4 mr-2" />
                 {updateNotificationsMutation.isPending ? 'Saving...' : 'Save Notification Settings'}
               </Button>
@@ -658,11 +878,19 @@ export default function SettingsPageContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleBackupDatabase} disabled={backupDatabaseMutation.isPending}>
+                <Button
+                  variant="outline"
+                  onClick={handleBackupDatabase}
+                  disabled={backupDatabaseMutation.isPending}
+                >
                   <Database className="w-4 h-4 mr-2" />
                   {backupDatabaseMutation.isPending ? 'Creating Backup...' : 'Backup Database'}
                 </Button>
-                <Button variant="outline" onClick={handleClearCache} disabled={clearCacheMutation.isPending}>
+                <Button
+                  variant="outline"
+                  onClick={handleClearCache}
+                  disabled={clearCacheMutation.isPending}
+                >
                   <Palette className="w-4 h-4 mr-2" />
                   {clearCacheMutation.isPending ? 'Clearing...' : 'Clear Cache'}
                 </Button>
@@ -678,12 +906,13 @@ export default function SettingsPageContent() {
                 </ul>
               </div>
               <p className="text-sm text-muted-foreground">
-                Regular maintenance helps keep your system running smoothly. Changes to these settings will impact the actual business operations.
+                Regular maintenance helps keep your system running smoothly. Changes to these
+                settings will impact the actual business operations.
               </p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

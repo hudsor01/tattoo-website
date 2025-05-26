@@ -1,6 +1,6 @@
 /**
  * API Error Handling
- * 
+ *
  * Defines standardized API error types and handlers for the application.
  * This allows for consistent error responses and client-side handling.
  */
@@ -21,7 +21,7 @@ export enum ErrorCode {
   TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  
+
   // Business Logic Errors
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
@@ -31,15 +31,15 @@ export enum ErrorCode {
   INVALID_OPERATION = 'INVALID_OPERATION',
   DATABASE_ERROR = 'DATABASE_ERROR',
   EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
-  
+
   // Payment and Booking Errors
   PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
   PAYMENT_FAILED = 'PAYMENT_FAILED',
   BOOKING_UNAVAILABLE = 'BOOKING_UNAVAILABLE',
   CALENDAR_ERROR = 'CALENDAR_ERROR',
-  
+
   // Generic Error
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
 // Standardized error response shape
@@ -54,42 +54,59 @@ export class ApiError extends Error {
   code: ErrorCode;
   status: number;
   details?: unknown;
-  
+
   constructor(code: ErrorCode, message: string, status = 500, details?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.code = code;
     this.status = status;
     this.details = details;
-    
+
     // Ensures proper stack trace in Node.js
     void Error.captureStackTrace(this, this.constructor);
   }
-  
+
   // Convert to TRPC error for API routes
   toTRPCError(): TRPCError {
     // Map our error codes to TRPC error codes
     const trpcCode = this.mapErrorCodeToTRPC();
-    
+
     return new TRPCError({
       code: trpcCode,
       message: this.message,
-      cause: this.details
+      cause: this.details,
     });
   }
-  
+
   // Maps our custom error codes to TRPC error codes
-  private mapErrorCodeToTRPC(): 'BAD_REQUEST' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 
-    'TIMEOUT' | 'CONFLICT' | 'PRECONDITION_FAILED' | 'PAYLOAD_TOO_LARGE' | 'METHOD_NOT_SUPPORTED' |
-    'UNPROCESSABLE_CONTENT' | 'TOO_MANY_REQUESTS' | 'CLIENT_CLOSED_REQUEST' | 'INTERNAL_SERVER_ERROR' {
-    
+  private mapErrorCodeToTRPC():
+    | 'BAD_REQUEST'
+    | 'UNAUTHORIZED'
+    | 'FORBIDDEN'
+    | 'NOT_FOUND'
+    | 'TIMEOUT'
+    | 'CONFLICT'
+    | 'PRECONDITION_FAILED'
+    | 'PAYLOAD_TOO_LARGE'
+    | 'METHOD_NOT_SUPPORTED'
+    | 'UNPROCESSABLE_CONTENT'
+    | 'TOO_MANY_REQUESTS'
+    | 'CLIENT_CLOSED_REQUEST'
+    | 'INTERNAL_SERVER_ERROR' {
     // Direct mappings
     if (
-      this.code === ErrorCode.BAD_REQUEST || this.code === ErrorCode.UNAUTHORIZED || this.code === ErrorCode.FORBIDDEN || this.code === ErrorCode.NOT_FOUND || this.code === ErrorCode.CONFLICT || this.code === ErrorCode.PAYLOAD_TOO_LARGE || this.code === ErrorCode.TOO_MANY_REQUESTS || this.code === ErrorCode.INTERNAL_SERVER_ERROR
+      this.code === ErrorCode.BAD_REQUEST ||
+      this.code === ErrorCode.UNAUTHORIZED ||
+      this.code === ErrorCode.FORBIDDEN ||
+      this.code === ErrorCode.NOT_FOUND ||
+      this.code === ErrorCode.CONFLICT ||
+      this.code === ErrorCode.PAYLOAD_TOO_LARGE ||
+      this.code === ErrorCode.TOO_MANY_REQUESTS ||
+      this.code === ErrorCode.INTERNAL_SERVER_ERROR
     ) {
       return this.code;
     }
-    
+
     // Indirect mappings
     switch (this.code) {
       case ErrorCode.VALIDATION_ERROR:
@@ -119,14 +136,14 @@ export class ApiError extends Error {
         return 'BAD_REQUEST';
     }
   }
-  
+
   // Convert to standard API response for Next.js API routes
   toResponse(): ApiErrorResponse {
     return {
       code: this.code,
       message: this.message,
       details: this.details,
-      ...(process.env.NODE_ENV === 'development' && this.stack && { stack: this.stack })
+      ...(process.env.NODE_ENV === 'development' && this.stack && { stack: this.stack }),
     };
   }
 }
@@ -135,47 +152,47 @@ export class ApiError extends Error {
  * Error factory methods for common error types
  */
 export const ApiErrors = {
-  badRequest: (message = 'Bad request', details?: unknown) => 
+  badRequest: (message = 'Bad request', details?: unknown) =>
     new ApiError(ErrorCode.BAD_REQUEST, message, 400, details),
-    
-  unauthorized: (message = 'Unauthorized', details?: unknown) => 
+
+  unauthorized: (message = 'Unauthorized', details?: unknown) =>
     new ApiError(ErrorCode.UNAUTHORIZED, message, 401, details),
-    
-  forbidden: (message = 'Forbidden', details?: unknown) => 
+
+  forbidden: (message = 'Forbidden', details?: unknown) =>
     new ApiError(ErrorCode.FORBIDDEN, message, 403, details),
-    
-  notFound: (message = 'Resource not found', details?: unknown) => 
+
+  notFound: (message = 'Resource not found', details?: unknown) =>
     new ApiError(ErrorCode.NOT_FOUND, message, 404, details),
-    
-  methodNotAllowed: (message = 'Method not allowed', details?: unknown) => 
+
+  methodNotAllowed: (message = 'Method not allowed', details?: unknown) =>
     new ApiError(ErrorCode.METHOD_NOT_ALLOWED, message, 405, details),
-    
-  conflict: (message = 'Resource conflict', details?: unknown) => 
+
+  conflict: (message = 'Resource conflict', details?: unknown) =>
     new ApiError(ErrorCode.CONFLICT, message, 409, details),
-    
-  validationError: (message = 'Validation error', details?: unknown) => 
+
+  validationError: (message = 'Validation error', details?: unknown) =>
     new ApiError(ErrorCode.VALIDATION_ERROR, message, 422, details),
-    
-  tooManyRequests: (message = 'Too many requests', details?: unknown) => 
+
+  tooManyRequests: (message = 'Too many requests', details?: unknown) =>
     new ApiError(ErrorCode.TOO_MANY_REQUESTS, message, 429, details),
-    
-  internalServerError: (message = 'Internal server error', details?: unknown) => 
+
+  internalServerError: (message = 'Internal server error', details?: unknown) =>
     new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, message, 500, details),
-    
-  serviceUnavailable: (message = 'Service unavailable', details?: unknown) => 
+
+  serviceUnavailable: (message = 'Service unavailable', details?: unknown) =>
     new ApiError(ErrorCode.SERVICE_UNAVAILABLE, message, 503, details),
-    
+
   // Domain-specific errors
-  paymentRequired: (message = 'Payment required', details?: unknown) => 
+  paymentRequired: (message = 'Payment required', details?: unknown) =>
     new ApiError(ErrorCode.PAYMENT_REQUIRED, message, 402, details),
-    
-  paymentFailed: (message = 'Payment failed', details?: unknown) => 
+
+  paymentFailed: (message = 'Payment failed', details?: unknown) =>
     new ApiError(ErrorCode.PAYMENT_FAILED, message, 400, details),
-    
-  bookingUnavailable: (message = 'Booking unavailable', details?: unknown) => 
+
+  bookingUnavailable: (message = 'Booking unavailable', details?: unknown) =>
     new ApiError(ErrorCode.BOOKING_UNAVAILABLE, message, 400, details),
-    
-  calendarError: (message = 'Calendar service error', details?: unknown) => 
+
+  calendarError: (message = 'Calendar service error', details?: unknown) =>
     new ApiError(ErrorCode.CALENDAR_ERROR, message, 500, details),
 };
 
@@ -184,28 +201,28 @@ export const ApiErrors = {
  */
 export function handleApiError(error: unknown, showToast = true): ApiErrorResponse {
   void console.error('API Error:', error);
-  
+
   let formattedError: ApiErrorResponse;
-  
+
   if (error instanceof ApiError) {
     formattedError = error.toResponse();
   } else if (error instanceof Error) {
     formattedError = {
       code: ErrorCode.UNKNOWN_ERROR,
       message: error.message ?? 'An unexpected error occurred',
-      ...(process.env.NODE_ENV === 'development' && error.stack && { stack: error.stack })
+      ...(process.env.NODE_ENV === 'development' && error.stack && { stack: error.stack }),
     };
   } else {
     formattedError = {
       code: ErrorCode.UNKNOWN_ERROR,
-      message: 'An unexpected error occurred'
+      message: 'An unexpected error occurred',
     };
   }
-  
+
   if (showToast) {
     void toast.error(formattedError.message);
   }
-  
+
   return formattedError;
 }
 
@@ -219,16 +236,22 @@ export function isValidationError(error: unknown): boolean {
 }
 
 export function isAuthError(error: unknown): boolean {
-  return isApiError(error) && 
-    (error.code === ErrorCode.UNAUTHORIZED || error.code === ErrorCode.AUTHENTICATION_ERROR);
+  return (
+    isApiError(error) &&
+    (error.code === ErrorCode.UNAUTHORIZED || error.code === ErrorCode.AUTHENTICATION_ERROR)
+  );
 }
 
 export function isNotFoundError(error: unknown): boolean {
-  return isApiError(error) && 
-    (error.code === ErrorCode.NOT_FOUND || error.code === ErrorCode.RESOURCE_NOT_FOUND);
+  return (
+    isApiError(error) &&
+    (error.code === ErrorCode.NOT_FOUND || error.code === ErrorCode.RESOURCE_NOT_FOUND)
+  );
 }
 
 export function isPaymentError(error: unknown): boolean {
-  return isApiError(error) && 
-    (error.code === ErrorCode.PAYMENT_REQUIRED || error.code === ErrorCode.PAYMENT_FAILED);
+  return (
+    isApiError(error) &&
+    (error.code === ErrorCode.PAYMENT_REQUIRED || error.code === ErrorCode.PAYMENT_FAILED)
+  );
 }

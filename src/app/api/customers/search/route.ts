@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Format response with combined name and appointment count
-    const formattedCustomers = customers.map(customer => ({
+    const formattedCustomers = customers.map((customer) => ({
       id: customer.id,
       name: `${customer.firstName} ${customer.lastName}`.trim(),
       email: customer.email,
@@ -74,9 +74,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     void console.error('Error searching customers:', error);
-    return NextResponse.json(
-      { error: 'Failed to search customers' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to search customers' }, { status: 500 });
   }
 }

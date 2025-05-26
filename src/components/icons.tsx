@@ -16,7 +16,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   X,
-  
+
   // Actions & Common UI
   Plus,
   PlusCircle,
@@ -30,19 +30,19 @@ import {
   Upload,
   Share,
   Save,
-  
+
   // Communication & Notifications
   Mail,
   MessageSquare,
   Bell,
-  
+
   // Status & Indicators
   Check,
   AlertCircle,
   AlertTriangle,
   Info,
   HelpCircle,
-  
+
   // Users & Authentication
   User,
   Users,
@@ -50,54 +50,54 @@ import {
   Shield,
   Lock,
   LogOut,
-  
+
   // Data & Content
   File,
   FileText,
   Clipboard,
   Calendar as CalendarIcon,
   Clock,
-  
+
   // Media
   Image,
   Video,
-  
+
   // E-Commerce
   ShoppingCart,
   CreditCard,
-  
+
   // Data Visualization
   BarChart,
   LineChart,
   PieChart,
-  
+
   // Specific to this application
-  Palette, 
+  Palette,
   Tags,
   Eye,
   EyeOff,
-  
+
   // Navigation-specific
   Home,
   BookOpen,
   Inbox,
   Activity,
-  
+
   // Social
   Twitter,
   Instagram,
   Facebook,
   Youtube,
-  
+
   // Devices
   Smartphone,
   Monitor,
-  
+
   // Misc
   RefreshCw,
   MoreVertical,
   DownloadCloud,
-  
+
   // Additional icons
   ArrowLeft,
   ArrowRight,
@@ -107,7 +107,7 @@ import {
   MapPin,
   PencilRuler,
   XCircle,
-  
+
   // Additional commonly used icons
   Star,
   Bookmark,
@@ -116,7 +116,7 @@ import {
   Phone,
   User2,
   Folder,
-  CalendarDays
+  CalendarDays,
 } from 'lucide-react';
 
 // Export all icons directly
@@ -131,7 +131,7 @@ export {
   ChevronsLeft,
   ChevronsRight,
   X,
-  
+
   // Actions & Common UI
   Plus,
   PlusCircle,
@@ -145,19 +145,19 @@ export {
   Upload,
   Share,
   Save,
-  
+
   // Communication & Notifications
   Mail,
   MessageSquare,
   Bell,
-  
+
   // Status & Indicators
   Check,
   AlertCircle,
   AlertTriangle,
   Info,
   HelpCircle,
-  
+
   // Users & Authentication
   User,
   Users,
@@ -165,54 +165,54 @@ export {
   Shield,
   Lock,
   LogOut,
-  
+
   // Data & Content
   File,
   FileText,
   Clipboard,
   CalendarIcon,
   Clock,
-  
+
   // Media
   Image,
   Video,
-  
+
   // E-Commerce
   ShoppingCart,
   CreditCard,
-  
+
   // Data Visualization
   BarChart,
   LineChart,
   PieChart,
-  
+
   // Specific to this application
-  Palette, 
+  Palette,
   Tags,
   Eye,
   EyeOff,
-  
+
   // Navigation-specific
   Home,
   BookOpen,
   Inbox,
   Activity,
-  
+
   // Social
   Twitter,
   Instagram,
   Facebook,
   Youtube,
-  
+
   // Devices
   Smartphone,
   Monitor,
-  
+
   // Misc
   RefreshCw,
   MoreVertical,
   DownloadCloud,
-  
+
   // Additional icons
   ArrowLeft,
   ArrowRight,
@@ -222,7 +222,7 @@ export {
   MapPin,
   PencilRuler,
   XCircle,
-  
+
   // Additional commonly used icons
   Star,
   Bookmark,

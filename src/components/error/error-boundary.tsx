@@ -36,7 +36,7 @@ interface ErrorBoundaryState {
 interface ErrorBoundaryInnerProps {
   children: ReactNode;
   fallback?: ReactNode;
-  componentName: string; 
+  componentName: string;
   title: string;
   description: string;
   fullPage: boolean;
@@ -73,16 +73,9 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, ErrorBoundar
   }
 
   override render(): ReactNode {
-    const { 
-      children, 
-      fallback, 
-      title, 
-      description, 
-      fullPage, 
-      showBackButton, 
-      variant 
-    } = this.props;
-    
+    const { children, fallback, title, description, fullPage, showBackButton, variant } =
+      this.props;
+
     if (this.state.hasError && this.state.error) {
       // Use custom fallback if provided
       if (fallback) {
@@ -112,10 +105,10 @@ class ErrorBoundaryInner extends Component<ErrorBoundaryInnerProps, ErrorBoundar
 
 /**
  * ErrorBoundary Component
- * 
+ *
  * A React error boundary that catches errors in its child component tree and
  * displays a fallback UI instead of crashing the whole application.
- * 
+ *
  * @example
  * ```tsx
  * <ErrorBoundary>
@@ -151,7 +144,7 @@ export function ErrorBoundary({
 
 /**
  * Higher-order component to wrap components with error boundary
- * 
+ *
  * @example
  * ```tsx
  * const SafeComponent = withErrorBoundary(UnsafeComponent, {
@@ -162,11 +155,11 @@ export function ErrorBoundary({
  */
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  options: Omit<ErrorBoundaryProps, 'children'> = {},
+  options: Omit<ErrorBoundaryProps, 'children'> = {}
 ): React.FC<P> {
   const { componentName = Component.displayName ?? Component.name } = options;
 
-  const WithErrorBoundary: React.FC<P> = props => (
+  const WithErrorBoundary: React.FC<P> = (props) => (
     <ErrorBoundary {...options} componentName={componentName}>
       <Component {...props} />
     </ErrorBoundary>

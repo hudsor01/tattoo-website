@@ -14,7 +14,7 @@ export function isMobileDevice(): boolean {
   if (typeof window === 'undefined') {
     return false;
   }
-  
+
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     window.navigator.userAgent
   );
@@ -27,7 +27,7 @@ export function getBrowserLanguage(): string {
   if (typeof window === 'undefined') {
     return 'en';
   }
-  
+
   return window.navigator.language ?? 'en';
 }
 
@@ -38,21 +38,15 @@ export function getDeviceInfo() {
   if (typeof window === 'undefined') {
     return { deviceType: 'unknown', browser: 'unknown', os: 'unknown' };
   }
-  
+
   const userAgent = window.navigator.userAgent;
-  
+
   // Determine device type
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    userAgent
-  );
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
   const isTablet = /iPad|Android(?!.*Mobile)/i.test(userAgent);
-  
-  const deviceType = isTablet 
-    ? 'tablet' 
-    : isMobile 
-      ? 'mobile' 
-      : 'desktop';
-  
+
+  const deviceType = isTablet ? 'tablet' : isMobile ? 'mobile' : 'desktop';
+
   // Determine browser
   let browser;
   if (userAgent.indexOf('Chrome') > -1) {
@@ -68,7 +62,7 @@ export function getDeviceInfo() {
   } else {
     browser = 'Unknown';
   }
-  
+
   // Determine OS
   let os;
   if (userAgent.indexOf('Windows') > -1) {
@@ -84,6 +78,6 @@ export function getDeviceInfo() {
   } else {
     os = 'Unknown';
   }
-  
+
   return { deviceType, browser, os };
 }

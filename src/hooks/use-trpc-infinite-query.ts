@@ -1,31 +1,31 @@
-'use client'
+'use client';
 
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpc/client-provider'
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { trpc } from '@/lib/trpc/client-provider';
 
 interface UseTRPCInfiniteQueryProps<T> {
-  queryKey: string[]
+  queryKey: string[];
   queryFn: (params: { pageParam?: number }) => Promise<{
-    data: T[]
-    nextCursor?: number | null
-    totalCount?: number
-  }>
-  enabled?: boolean
-  staleTime?: number
-  initialPageParam?: number
+    data: T[];
+    nextCursor?: number | null;
+    totalCount?: number;
+  }>;
+  enabled?: boolean;
+  staleTime?: number;
+  initialPageParam?: number;
 }
 
 interface UseTRPCInfiniteQueryResult<T> {
-  data: T[]
-  count: number
-  isSuccess: boolean
-  isLoading: boolean
-  isFetching: boolean
-  isError: boolean
-  error: unknown | null
-  hasMore: boolean
-  fetchNextPage: () => void
-  refetch: () => Promise<unknown>
+  data: T[];
+  count: number;
+  isSuccess: boolean;
+  isLoading: boolean;
+  isFetching: boolean;
+  isError: boolean;
+  error: unknown | null;
+  hasMore: boolean;
+  fetchNextPage: () => void;
+  refetch: () => Promise<unknown>;
 }
 
 export function useTRPCInfiniteQuery<T>({
@@ -48,19 +48,19 @@ export function useTRPCInfiniteQuery<T>({
   } = useInfiniteQuery({
     queryKey,
     queryFn: async ({ pageParam = initialPageParam }) => {
-      return await queryFn({ pageParam })
+      return await queryFn({ pageParam });
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam,
     enabled,
     staleTime,
-  })
+  });
 
   // Flatten the paginated data
-  const flatData = queryData?.pages.flatMap((page) => page.data) ?? []
-  
+  const flatData = queryData?.pages.flatMap((page) => page.data) ?? [];
+
   // Get total count from the first page (assuming it's consistent)
-  const totalCount = queryData?.pages[0]?.totalCount ?? 0
+  const totalCount = queryData?.pages[0]?.totalCount ?? 0;
 
   return {
     data: flatData,
@@ -72,8 +72,10 @@ export function useTRPCInfiniteQuery<T>({
     error: error as unknown | null,
     hasMore: hasNextPage ?? false,
     fetchNextPage: () => void fetchNextPage(),
-    refetch: async () => { await refetch(); },
-  }
+    refetch: async () => {
+      await refetch();
+    },
+  };
 }
 
 // Specific hook for gallery designs
@@ -82,9 +84,9 @@ export function useGalleryInfiniteQuery({
   limit = 20,
   enabled = true,
 }: {
-  designType?: string
-  limit?: number
-  enabled?: boolean
+  designType?: string;
+  limit?: number;
+  enabled?: boolean;
 } = {}) {
   return trpc.gallery.getPublicDesigns.useInfiniteQuery(
     {
@@ -95,7 +97,7 @@ export function useGalleryInfiniteQuery({
       enabled,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
-  )
+  );
 }
 
 // Specific hook for bookings
@@ -104,9 +106,9 @@ export function useBookingsInfiniteQuery({
   limit = 20,
   enabled = true,
 }: {
-  status?: string
-  limit?: number
-  enabled?: boolean
+  status?: string;
+  limit?: number;
+  enabled?: boolean;
 } = {}) {
   return trpc.dashboard.getRecentBookings.useInfiniteQuery(
     {
@@ -117,5 +119,5 @@ export function useBookingsInfiniteQuery({
       enabled,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
-  )
+  );
 }

@@ -1,6 +1,6 @@
 /**
  * tRPC API Router
- * 
+ *
  * This file re-exports the AppRouter type for client usage without importing
  * server-only code. The actual router implementation stays in app-router.ts.
  */

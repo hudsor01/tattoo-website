@@ -15,7 +15,6 @@ import {
   MessageSquare,
 } from 'lucide-react';
 
-
 // FAQ categories and items
 const faqCategories = [
   {
@@ -175,7 +174,7 @@ export default function FAQClient() {
         {/* Category Navigation */}
         <div className="mb-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {faqCategories.map(category => (
+            {faqCategories.map((category) => (
               <a
                 key={category.id}
                 href={`#${category.id}`}
@@ -220,7 +219,7 @@ export default function FAQClient() {
                   faqCategories[1]?.items[0],
                   faqCategories[2]?.items[0],
                   faqCategories[3]?.items[0],
-                ].filter((item): item is {question: string; answer: string} => item !== null)}
+                ].filter((item): item is { question: string; answer: string } => item !== null)}
               />
             </div>
           </div>
@@ -228,7 +227,7 @@ export default function FAQClient() {
 
         {/* Main FAQ Categories */}
         <section className="space-y-16">
-          {faqCategories.map(category => (
+          {faqCategories.map((category) => (
             <div key={category.id} id={category.id} className="scroll-mt-24 max-w-4xl mx-auto">
               <div className="flex items-center mb-6">
                 <div className="h-10 w-10 rounded-full bg-tattoo-blue/10 flex items-center justify-center mr-4">
@@ -375,15 +374,15 @@ export default function FAQClient() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
-            mainEntity: faqCategories.flatMap(category =>
-              category.items.map(item => ({
+            mainEntity: faqCategories.flatMap((category) =>
+              category.items.map((item) => ({
                 '@type': 'Question',
                 name: item.question,
                 acceptedAnswer: {
                   '@type': 'Answer',
                   text: item.answer,
                 },
-              })),
+              }))
             ),
           }),
         }}

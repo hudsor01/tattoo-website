@@ -213,15 +213,15 @@ export type DashboardSection = 'bookings' | 'payments' | 'leads' | 'contacts';
 /**
  * Form Field Type
  */
-export type FormFieldType = 
-  | 'text' 
-  | 'email' 
-  | 'password' 
-  | 'number' 
-  | 'tel' 
-  | 'url' 
-  | 'date' 
-  | 'time' 
+export type FormFieldType =
+  | 'text'
+  | 'email'
+  | 'password'
+  | 'number'
+  | 'tel'
+  | 'url'
+  | 'date'
+  | 'time'
   | 'datetime'
   | 'select'
   | 'radio'
@@ -233,7 +233,7 @@ export type FormFieldType =
 /**
  * Supported File Types
  */
-export type SupportedFileType = 
+export type SupportedFileType =
   | 'image/jpeg'
   | 'image/png'
   | 'image/gif'

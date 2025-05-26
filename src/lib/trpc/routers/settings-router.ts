@@ -1,7 +1,7 @@
-import { z } from 'zod'
-import { router, protectedProcedure } from '@/lib/trpc/procedures'
-import { prisma } from '@/lib/db/prisma'
-import { TRPCError } from '@trpc/server'
+import { z } from 'zod';
+import { router, protectedProcedure } from '@/lib/trpc/procedures';
+import { prisma } from '@/lib/db/prisma';
+import { TRPCError } from '@trpc/server';
 
 // Define validation schemas
 const generalSettingsSchema = z.object({
@@ -11,8 +11,8 @@ const generalSettingsSchema = z.object({
   contactPhone: z.string(),
   address: z.string(),
   businessHours: z.string(),
-  timezone: z.string()
-})
+  timezone: z.string(),
+});
 
 const bookingSettingsSchema = z.object({
   bookingEnabled: z.boolean(),
@@ -23,8 +23,8 @@ const bookingSettingsSchema = z.object({
   cancellationHours: z.number().min(1),
   autoConfirmBookings: z.boolean(),
   sendReminderEmails: z.boolean(),
-  reminderHoursBefore: z.number().min(1)
-})
+  reminderHoursBefore: z.number().min(1),
+});
 
 const emailSettingsSchema = z.object({
   emailProvider: z.enum(['resend', 'sendgrid', 'smtp']),
@@ -34,8 +34,8 @@ const emailSettingsSchema = z.object({
   sendWelcomeEmails: z.boolean(),
   sendBookingConfirmations: z.boolean(),
   sendPaymentConfirmations: z.boolean(),
-  sendCancellationNotices: z.boolean()
-})
+  sendCancellationNotices: z.boolean(),
+});
 
 const securitySettingsSchema = z.object({
   requireTwoFactor: z.boolean(),
@@ -44,8 +44,8 @@ const securitySettingsSchema = z.object({
   lockoutDuration: z.number().min(1),
   requireStrongPasswords: z.boolean(),
   allowApiAccess: z.boolean(),
-  logSecurityEvents: z.boolean()
-})
+  logSecurityEvents: z.boolean(),
+});
 
 const notificationSettingsSchema = z.object({
   newBookingAlerts: z.boolean(),
@@ -54,16 +54,16 @@ const notificationSettingsSchema = z.object({
   systemMaintenanceAlerts: z.boolean(),
   errorAlerts: z.boolean(),
   weeklyReports: z.boolean(),
-  monthlyReports: z.boolean()
-})
+  monthlyReports: z.boolean(),
+});
 
 export const settingsRouter = router({
   // Get all settings
   getSettings: protectedProcedure.query(async () => {
     try {
       const settings = await prisma.settings.findFirst({
-        orderBy: { updatedAt: 'desc' }
-      })
+        orderBy: { updatedAt: 'desc' },
+      });
 
       // Return default values if no settings exist
       if (!settings) {
@@ -75,7 +75,7 @@ export const settingsRouter = router({
             contactPhone: '',
             address: '123 Tattoo Street, Art City, AC 12345',
             businessHours: 'Monday - Saturday: 10:00 AM - 8:00 PM',
-            timezone: 'America/New_York'
+            timezone: 'America/New_York',
           },
           booking: {
             bookingEnabled: true,
@@ -86,7 +86,7 @@ export const settingsRouter = router({
             cancellationHours: 24,
             autoConfirmBookings: false,
             sendReminderEmails: true,
-            reminderHoursBefore: 24
+            reminderHoursBefore: 24,
           },
           email: {
             emailProvider: 'resend' as const,
@@ -96,7 +96,7 @@ export const settingsRouter = router({
             sendWelcomeEmails: true,
             sendBookingConfirmations: true,
             sendPaymentConfirmations: true,
-            sendCancellationNotices: true
+            sendCancellationNotices: true,
           },
           security: {
             requireTwoFactor: false,
@@ -105,7 +105,7 @@ export const settingsRouter = router({
             lockoutDuration: 30,
             requireStrongPasswords: true,
             allowApiAccess: true,
-            logSecurityEvents: true
+            logSecurityEvents: true,
           },
           notifications: {
             newBookingAlerts: true,
@@ -114,9 +114,9 @@ export const settingsRouter = router({
             systemMaintenanceAlerts: true,
             errorAlerts: true,
             weeklyReports: true,
-            monthlyReports: true
-          }
-        }
+            monthlyReports: true,
+          },
+        };
       }
 
       return {
@@ -124,14 +124,14 @@ export const settingsRouter = router({
         booking: settings.bookingSettings as unknown,
         email: settings.emailSettings as unknown,
         security: settings.securitySettings as unknown,
-        notifications: settings.notificationSettings as unknown
-      }
+        notifications: settings.notificationSettings as unknown,
+      };
     } catch (error) {
-      void console.error('Error fetching settings:', error)
+      void console.error('Error fetching settings:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch settings'
-      })
+        message: 'Failed to fetch settings',
+      });
     }
   }),
 
@@ -147,25 +147,25 @@ export const settingsRouter = router({
             bookingSettings: {},
             emailSettings: {},
             securitySettings: {},
-            notificationSettings: {}
+            notificationSettings: {},
           },
           update: {
             generalSettings: input,
-            updatedAt: new Date()
-          }
-        })
+            updatedAt: new Date(),
+          },
+        });
 
-        return { success: true, settings }
+        return { success: true, settings };
       } catch (error) {
-        void console.error('Error updating general settings:', error)
+        void console.error('Error updating general settings:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update general settings'
-        })
+          message: 'Failed to update general settings',
+        });
       }
     }),
 
-  // Update booking settings  
+  // Update booking settings
   updateBookingSettings: protectedProcedure
     .input(bookingSettingsSchema)
     .mutation(async ({ input }) => {
@@ -177,53 +177,51 @@ export const settingsRouter = router({
             bookingSettings: input,
             emailSettings: {},
             securitySettings: {},
-            notificationSettings: {}
+            notificationSettings: {},
           },
           update: {
             bookingSettings: input,
-            updatedAt: new Date()
-          }
-        })
+            updatedAt: new Date(),
+          },
+        });
 
-        return { success: true, settings }
+        return { success: true, settings };
       } catch (error) {
-        void console.error('Error updating booking settings:', error)
+        void console.error('Error updating booking settings:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update booking settings'
-        })
+          message: 'Failed to update booking settings',
+        });
       }
     }),
 
   // Update email settings
-  updateEmailSettings: protectedProcedure
-    .input(emailSettingsSchema)
-    .mutation(async ({ input }) => {
-      try {
-        const settings = await prisma.settings.upsert({
-          where: { id: 1 },
-          create: {
-            generalSettings: {},
-            bookingSettings: {},
-            emailSettings: input,
-            securitySettings: {},
-            notificationSettings: {}
-          },
-          update: {
-            emailSettings: input,
-            updatedAt: new Date()
-          }
-        })
+  updateEmailSettings: protectedProcedure.input(emailSettingsSchema).mutation(async ({ input }) => {
+    try {
+      const settings = await prisma.settings.upsert({
+        where: { id: 1 },
+        create: {
+          generalSettings: {},
+          bookingSettings: {},
+          emailSettings: input,
+          securitySettings: {},
+          notificationSettings: {},
+        },
+        update: {
+          emailSettings: input,
+          updatedAt: new Date(),
+        },
+      });
 
-        return { success: true, settings }
-      } catch (error) {
-        void console.error('Error updating email settings:', error)
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update email settings'
-        })
-      }
-    }),
+      return { success: true, settings };
+    } catch (error) {
+      void console.error('Error updating email settings:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to update email settings',
+      });
+    }
+  }),
 
   // Update security settings
   updateSecuritySettings: protectedProcedure
@@ -237,21 +235,21 @@ export const settingsRouter = router({
             bookingSettings: {},
             emailSettings: {},
             securitySettings: input,
-            notificationSettings: {}
+            notificationSettings: {},
           },
           update: {
             securitySettings: input,
-            updatedAt: new Date()
-          }
-        })
+            updatedAt: new Date(),
+          },
+        });
 
-        return { success: true, settings }
+        return { success: true, settings };
       } catch (error) {
-        void console.error('Error updating security settings:', error)
+        void console.error('Error updating security settings:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update security settings'
-        })
+          message: 'Failed to update security settings',
+        });
       }
     }),
 
@@ -267,21 +265,21 @@ export const settingsRouter = router({
             bookingSettings: {},
             emailSettings: {},
             securitySettings: {},
-            notificationSettings: input
+            notificationSettings: input,
           },
           update: {
             notificationSettings: input,
-            updatedAt: new Date()
-          }
-        })
+            updatedAt: new Date(),
+          },
+        });
 
-        return { success: true, settings }
+        return { success: true, settings };
       } catch (error) {
-        void console.error('Error updating notification settings:', error)
+        void console.error('Error updating notification settings:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update notification settings'
-        })
+          message: 'Failed to update notification settings',
+        });
       }
     }),
 
@@ -291,16 +289,16 @@ export const settingsRouter = router({
     .mutation(async ({ input }) => {
       try {
         // TODO: Implement actual email sending logic using Resend
-        void console.warn('Sending test email to:', input.email)
-        
+        void console.warn('Sending test email to:', input.email);
+
         // For now, just return success
-        return { success: true, message: 'Test email sent successfully' }
+        return { success: true, message: 'Test email sent successfully' };
       } catch (error) {
-        void console.error('Error sending test email:', error)
+        void console.error('Error sending test email:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to send test email'
-        })
+          message: 'Failed to send test email',
+        });
       }
     }),
 
@@ -308,16 +306,16 @@ export const settingsRouter = router({
   backupDatabase: protectedProcedure.mutation(async () => {
     try {
       // TODO: Implement actual database backup logic
-      void console.warn('Creating database backup...')
-      
+      void console.warn('Creating database backup...');
+
       // For now, just return success
-      return { success: true, message: 'Database backup initiated' }
+      return { success: true, message: 'Database backup initiated' };
     } catch (error) {
-      void console.error('Error creating backup:', error)
+      void console.error('Error creating backup:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to create backup'
-      })
+        message: 'Failed to create backup',
+      });
     }
   }),
 
@@ -325,16 +323,16 @@ export const settingsRouter = router({
   clearCache: protectedProcedure.mutation(async () => {
     try {
       // TODO: Implement actual cache clearing logic
-      void console.warn('Clearing cache...')
-      
+      void console.warn('Clearing cache...');
+
       // For now, just return success
-      return { success: true, message: 'Cache cleared successfully' }
+      return { success: true, message: 'Cache cleared successfully' };
     } catch (error) {
-      void console.error('Error clearing cache:', error)
+      void console.error('Error clearing cache:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to clear cache'
-      })
+        message: 'Failed to clear cache',
+      });
     }
-  })
-})
+  }),
+});

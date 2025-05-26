@@ -1,93 +1,100 @@
-'use client'
+'use client';
 
-import React, { useState, useMemo } from 'react'
-import { Search, Calendar, User, Clock, DollarSign, ChevronDown } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { trpc } from '@/lib/trpc/client'
-import { format } from 'date-fns'
-import type { VirtualizedBookingsListProps } from '@/types/component-types'
+import React, { useState, useMemo } from 'react';
+import { Search, Calendar, User, Clock, DollarSign, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { trpc } from '@/lib/trpc/client';
+import { format } from 'date-fns';
+import type { VirtualizedBookingsListProps } from '@/types/component-types';
 
 const statusColors = {
-  'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  'confirmed': 'bg-green-100 text-green-800 border-green-200',
-  'cancelled': 'bg-red-100 text-red-800 border-red-200',
-  'completed': 'bg-blue-100 text-blue-800 border-blue-200',
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  confirmed: 'bg-green-100 text-green-800 border-green-200',
+  cancelled: 'bg-red-100 text-red-800 border-red-200',
+  completed: 'bg-blue-100 text-blue-800 border-blue-200',
   'in-progress': 'bg-purple-100 text-purple-800 border-purple-200',
   'no-show': 'bg-gray-100 text-gray-800 border-gray-200',
-}
+};
 
-export default function VirtualizedBookingsList({ 
+export default function VirtualizedBookingsList({
   defaultStatus,
-  containerHeight = 600 
+  containerHeight = 600,
 }: VirtualizedBookingsListProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>(defaultStatus ?? 'all')
-  const [sortBy, setSortBy] = useState<string>('date-desc')
-  const [expandedBookings, setExpandedBookings] = useState<Set<number>>(new Set())
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>(defaultStatus ?? 'all');
+  const [sortBy, setSortBy] = useState<string>('date-desc');
+  const [expandedBookings, setExpandedBookings] = useState<Set<number>>(new Set());
 
   // Fetch bookings with tRPC
   const { data: bookingsData, isLoading } = trpc.dashboard.getRecentBookings.useQuery({
     limit: 50,
-    status: statusFilter === 'all' ? undefined : statusFilter
-  })
+    status: statusFilter === 'all' ? undefined : statusFilter,
+  });
 
   // Process and filter bookings
   const filteredBookings = useMemo(() => {
-    if (!bookingsData?.bookings) return []
-    
-    let filtered = bookingsData.bookings
+    if (!bookingsData?.bookings) return [];
+
+    let filtered = bookingsData.bookings;
 
     // Search filter
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      filtered = filtered.filter(booking => 
-        booking.name?.toLowerCase().includes(searchLower) ||
-        booking.email?.toLowerCase().includes(searchLower) ||
-        booking.tattooType?.toLowerCase().includes(searchLower) ||
-        booking.placement?.toLowerCase().includes(searchLower) ||
-        false
-      )
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (booking) =>
+          booking.name?.toLowerCase().includes(searchLower) ||
+          booking.email?.toLowerCase().includes(searchLower) ||
+          booking.tattooType?.toLowerCase().includes(searchLower) ||
+          booking.placement?.toLowerCase().includes(searchLower) ||
+          false
+      );
     }
 
     // Sort bookings
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'date-asc':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         case 'date-desc':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'name-asc': {
-          const nameA = a.name || ''
-          const nameB = b.name || ''
-          return nameA.localeCompare(nameB)
+          const nameA = a.name || '';
+          const nameB = b.name || '';
+          return nameA.localeCompare(nameB);
         }
         case 'name-desc': {
-          const nameA = a.name || ''
-          const nameB = b.name || ''
-          return nameB.localeCompare(nameA)
+          const nameA = a.name || '';
+          const nameB = b.name || '';
+          return nameB.localeCompare(nameA);
         }
         default:
-          return 0
+          return 0;
       }
-    })
+    });
 
-    return sorted
-  }, [bookingsData, searchTerm, sortBy])
+    return sorted;
+  }, [bookingsData, searchTerm, sortBy]);
 
   const toggleExpanded = (bookingId: number) => {
-    const newExpanded = new Set(expandedBookings)
+    const newExpanded = new Set(expandedBookings);
     if (newExpanded.has(bookingId)) {
-      newExpanded.delete(bookingId)
+      newExpanded.delete(bookingId);
     } else {
-      newExpanded.add(bookingId)
+      newExpanded.add(bookingId);
     }
-    setExpandedBookings(newExpanded)
-  }
+    setExpandedBookings(newExpanded);
+  };
 
   if (isLoading) {
     return (
@@ -98,7 +105,7 @@ export default function VirtualizedBookingsList({
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -156,7 +163,7 @@ export default function VirtualizedBookingsList({
             <Collapsible key={booking.id}>
               <Card className="border-l-4 border-l-blue-500">
                 <CollapsibleTrigger asChild>
-                  <CardHeader 
+                  <CardHeader
                     className="cursor-pointer hover:bg-gray-50 pb-4"
                     onClick={() => toggleExpanded(booking.id)}
                   >
@@ -165,18 +172,18 @@ export default function VirtualizedBookingsList({
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-gray-500" />
                           <div>
-                            <CardTitle className="text-base">
-                              {booking.name}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                              {booking.email}
-                            </p>
+                            <CardTitle className="text-base">{booking.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">{booking.email}</p>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge 
-                          className={statusColors[(booking.status ?? 'pending') as keyof typeof statusColors] ?? 'bg-gray-100 text-gray-800'}
+                        <Badge
+                          className={
+                            statusColors[
+                              (booking.status ?? 'pending') as keyof typeof statusColors
+                            ] ?? 'bg-gray-100 text-gray-800'
+                          }
                         >
                           {booking.status ?? 'pending'}
                         </Badge>
@@ -188,16 +195,16 @@ export default function VirtualizedBookingsList({
                             {format(new Date(booking.createdAt), 'h:mm a')}
                           </p>
                         </div>
-                        <ChevronDown 
+                        <ChevronDown
                           className={`w-4 h-4 transition-transform ${
                             expandedBookings.has(booking.id) ? 'rotate-180' : ''
-                          }`} 
+                          }`}
                         />
                       </div>
                     </div>
                   </CardHeader>
                 </CollapsibleTrigger>
-                
+
                 <CollapsibleContent>
                   <CardContent className="pt-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -208,10 +215,21 @@ export default function VirtualizedBookingsList({
                           Tattoo Details
                         </h4>
                         <div className="space-y-1 text-sm">
-                          <p><span className="text-gray-500">Type:</span> {booking.tattooType ?? 'Not specified'}</p>
-                          <p><span className="text-gray-500">Size:</span> {booking.size ?? 'Not specified'}</p>
-                          <p><span className="text-gray-500">Placement:</span> {booking.placement ?? 'Not specified'}</p>
-                          <p><span className="text-gray-500">Est. Price:</span> Estimate pending</p>
+                          <p>
+                            <span className="text-gray-500">Type:</span>{' '}
+                            {booking.tattooType ?? 'Not specified'}
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Size:</span>{' '}
+                            {booking.size ?? 'Not specified'}
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Placement:</span>{' '}
+                            {booking.placement ?? 'Not specified'}
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Est. Price:</span> Estimate pending
+                          </p>
                         </div>
                       </div>
 
@@ -222,8 +240,13 @@ export default function VirtualizedBookingsList({
                           Contact Info
                         </h4>
                         <div className="space-y-1 text-sm">
-                          <p><span className="text-gray-500">Email:</span> {booking.email}</p>
-                          <p><span className="text-gray-500">Customer ID:</span> {booking.customerId ?? 'Not linked'}</p>
+                          <p>
+                            <span className="text-gray-500">Email:</span> {booking.email}
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Customer ID:</span>{' '}
+                            {booking.customerId ?? 'Not linked'}
+                          </p>
                         </div>
                       </div>
 
@@ -234,12 +257,21 @@ export default function VirtualizedBookingsList({
                           Booking Info
                         </h4>
                         <div className="space-y-1 text-sm">
-                          <p><span className="text-gray-500">Booked:</span> {format(new Date(booking.createdAt), 'PPP p')}</p>
+                          <p>
+                            <span className="text-gray-500">Booked:</span>{' '}
+                            {format(new Date(booking.createdAt), 'PPP p')}
+                          </p>
                           {booking.preferredDate && (
-                            <p><span className="text-gray-500">Preferred:</span> {booking.preferredDate}</p>
+                            <p>
+                              <span className="text-gray-500">Preferred:</span>{' '}
+                              {booking.preferredDate}
+                            </p>
                           )}
                           {booking.updatedAt && booking.updatedAt !== booking.createdAt && (
-                            <p><span className="text-gray-500">Updated:</span> {format(new Date(booking.updatedAt), 'PPP p')}</p>
+                            <p>
+                              <span className="text-gray-500">Updated:</span>{' '}
+                              {format(new Date(booking.updatedAt), 'PPP p')}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -264,12 +296,14 @@ export default function VirtualizedBookingsList({
                         Edit
                       </Button>
                       {(booking.status === 'pending' || !booking.status) && (
-                        <Button size="sm">
-                          Confirm
-                        </Button>
+                        <Button size="sm">Confirm</Button>
                       )}
                       {booking.status !== 'cancelled' && (
-                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
                           Cancel
                         </Button>
                       )}
@@ -289,5 +323,5 @@ export default function VirtualizedBookingsList({
         </p>
       </div>
     </div>
-  )
+  );
 }

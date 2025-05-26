@@ -3,7 +3,14 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react';
-import { useDropzone, type DropzoneProps, type FileWithPath, type FileRejection, type FileError, type DropEvent } from 'react-dropzone';
+import {
+  useDropzone,
+  type DropzoneProps,
+  type FileWithPath,
+  type FileRejection,
+  type FileError,
+  type DropEvent,
+} from 'react-dropzone';
 import { useCallback, useRef, useState, useContext, createContext } from 'react';
 
 export const formatBytes = (
@@ -17,7 +24,7 @@ export const formatBytes = (
 
   if (bytes === 0 || bytes === undefined) return size !== undefined ? `0 ${size}` : '0 bytes';
   const i = size !== undefined ? sizes.indexOf(size) : Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))  } ${  sizes[i]}`;
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
 
 // Add className to Dropzone's props
@@ -25,7 +32,9 @@ interface CustomDropzoneProps extends Omit<DropzoneProps, 'children'> {
   className?: string;
   children?: React.ReactNode;
   getRootProps?: (props?: React.HTMLAttributes<HTMLElement>) => React.HTMLAttributes<HTMLElement>;
-  getInputProps?: (props?: React.InputHTMLAttributes<HTMLInputElement>) => React.InputHTMLAttributes<HTMLInputElement>;
+  getInputProps?: (
+    props?: React.InputHTMLAttributes<HTMLInputElement>
+  ) => React.InputHTMLAttributes<HTMLInputElement>;
 }
 
 // Define the DropzoneContextType interface
@@ -53,36 +62,40 @@ type DropzoneFile = FileWithPath & {
   errors: { message: string }[];
 };
 
-const Dropzone = ({
-  className,
-  children,
-  ...restProps
-}: CustomDropzoneProps) => {
+const Dropzone = ({ className, children, ...restProps }: CustomDropzoneProps) => {
   const [files, setFiles] = useState<DropzoneFile[]>([]);
   const [successes, setSuccesses] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ name: string; message: string }[]>([]);
   const [isSuccess, setIsSuccess] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const onDrop = useCallback((acceptedFiles: FileWithPath[], fileRejections: FileRejection[]) => {
-    setFiles(acceptedFiles.map((file) =>
-      Object.assign(file, {
-        preview: URL.createObjectURL(file),
-        errors: [],
-      }) as DropzoneFile
-    ));
-    setErrors(fileRejections.map((rej) => ({
-      name: rej.file.name,
-      message: rej.errors.map((e: FileError) => e.message).join(', '),
-    })));
-    setIsSuccess(false);
-    setSuccesses([]);
-    
-    // Call external onDrop if provided
-    if (restProps.onDrop) {
-      restProps.onDrop(acceptedFiles, fileRejections, new Event('drop') as DropEvent);
-    }
-  }, [restProps]);
+  const onDrop = useCallback(
+    (acceptedFiles: FileWithPath[], fileRejections: FileRejection[]) => {
+      setFiles(
+        acceptedFiles.map(
+          (file) =>
+            Object.assign(file, {
+              preview: URL.createObjectURL(file),
+              errors: [],
+            }) as DropzoneFile
+        )
+      );
+      setErrors(
+        fileRejections.map((rej) => ({
+          name: rej.file.name,
+          message: rej.errors.map((e: FileError) => e.message).join(', '),
+        }))
+      );
+      setIsSuccess(false);
+      setSuccesses([]);
+
+      // Call external onDrop if provided
+      if (restProps.onDrop) {
+        restProps.onDrop(acceptedFiles, fileRejections, new Event('drop') as DropEvent);
+      }
+    },
+    [restProps]
+  );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     ...restProps,
@@ -112,11 +125,15 @@ const Dropzone = ({
           className: cn(
             'border-2 border-dashed border-white/30 rounded-xl p-6 text-center bg-black/20 transition-all duration-300 text-white cursor-pointer',
             className,
-            contextValue.isSuccess ? 'border-solid border-green-500/50 bg-green-500/10' : 'border-dashed',
-            isDragActive && 'border-red-400/60 bg-gradient-to-br from-red-500/10 via-orange-500/10 to-amber-500/10',
+            contextValue.isSuccess
+              ? 'border-solid border-green-500/50 bg-green-500/10'
+              : 'border-dashed',
+            isDragActive &&
+              'border-red-400/60 bg-gradient-to-br from-red-500/10 via-orange-500/10 to-amber-500/10',
             ((isDragActive && isDragReject) ||
               (errors.length > 0 && !contextValue.isSuccess) ||
-              files.some((file) => file.errors && file.errors.length !== 0)) && 'border-red-500/50 bg-red-500/10'
+              files.some((file) => file.errors && file.errors.length !== 0)) &&
+              'border-red-500/50 bg-red-500/10'
           ),
         })}
       >
@@ -275,9 +292,7 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
           to upload
         </p>
         {maxFileSize !== Number.POSITIVE_INFINITY && (
-          <p className="text-xs text-white/50">
-            Maximum file size: {formatBytes(maxFileSize, 2)}
-          </p>
+          <p className="text-xs text-white/50">Maximum file size: {formatBytes(maxFileSize, 2)}</p>
         )}
       </div>
     </div>

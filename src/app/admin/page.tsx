@@ -8,16 +8,13 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow', // Prevent search engines from indexing admin pages
 };
 
-const AdminDashboard = dynamic(
-  () => import('@/components/admin/DashboardModern'),
-  {
-    loading: () => (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">Loading dashboard...</div>
-      </div>
-    ),
-  }
-);
+const AdminDashboard = dynamic(() => import('@/components/admin/DashboardModern'), {
+  loading: () => (
+    <div className="flex h-screen items-center justify-center">
+      <div className="text-lg">Loading dashboard...</div>
+    </div>
+  ),
+});
 
 export default function AdminPage() {
   return <AdminDashboard />;

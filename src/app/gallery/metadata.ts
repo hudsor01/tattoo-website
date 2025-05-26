@@ -2,11 +2,14 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Tattoo Gallery | Ink 37 Tattoos Portfolio',
-  description: 'Browse our extensive portfolio of custom tattoos including traditional, fine line, black and grey, and colored designs by Ink 37 Tattoos.',
-  keywords: 'tattoo gallery, tattoo portfolio, custom tattoo designs, traditional tattoos, fine line tattoos, black and grey tattoos',
+  description:
+    'Browse our extensive portfolio of custom tattoos including traditional, fine line, black and grey, and colored designs by Ink 37 Tattoos.',
+  keywords:
+    'tattoo gallery, tattoo portfolio, custom tattoo designs, traditional tattoos, fine line tattoos, black and grey tattoos',
   openGraph: {
     title: 'Tattoo Gallery - Ink 37 Tattoos Portfolio',
-    description: 'Explore our tattoo portfolio featuring custom designs, traditional, fine line, and unique artwork.',
+    description:
+      'Explore our tattoo portfolio featuring custom designs, traditional, fine line, and unique artwork.',
     url: '/gallery',
     siteName: 'Ink 37 Tattoos',
     images: [

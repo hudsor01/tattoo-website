@@ -1,6 +1,6 @@
 /**
  * tRPC Procedures
- * 
+ *
  * This file contains procedures for server-only usage.
  * Should not be imported by client components.
  */
@@ -30,21 +30,21 @@ export const middleware = t.middleware;
 const authMiddleware = middleware(async ({ ctx, next }) => {
   if (!ctx.userId) {
     void logger.debug('Auth middleware: No userId found', {
-      userId: ctx.userId, 
+      userId: ctx.userId,
       hasUser: !!ctx.user,
-      userEmail: ctx.userEmail 
+      userEmail: ctx.userEmail,
     });
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'You must be logged in to access this resource',
     });
   }
-  
+
   void logger.debug('Auth middleware: User authenticated', {
-    userId: ctx.userId, 
-    userEmail: ctx.userEmail 
+    userId: ctx.userId,
+    userEmail: ctx.userEmail,
   });
-  
+
   return next({
     ctx: {
       ...ctx,
@@ -59,31 +59,29 @@ const authMiddleware = middleware(async ({ ctx, next }) => {
 // Create logger middleware
 const loggerMiddleware = middleware(async ({ path, next, type }) => {
   const start = Date.now();
-  
+
   const result = await next();
-  
+
   const duration = Date.now() - start;
   void logger.info(`[tRPC] ${type} ${path} - ${duration}ms`);
-  
+
   return result;
 });
 
 // Public procedure - accessible without authentication
-export const publicProcedure = t.procedure
-  .use(loggerMiddleware)
-  .use(middleware(async ({ ctx, next }) => {
+export const publicProcedure = t.procedure.use(loggerMiddleware).use(
+  middleware(async ({ ctx, next }) => {
     return next({
       ctx: {
         ...ctx,
         db: ctx.prisma, // Ensure prisma is passed
       },
     });
-  }));
+  })
+);
 
 // Protected procedure - requires authentication
-export const protectedProcedure = t.procedure
-  .use(loggerMiddleware)
-  .use(authMiddleware);
+export const protectedProcedure = t.procedure.use(loggerMiddleware).use(authMiddleware);
 
 // Admin procedure - now just an alias for protected since all signed-in users are admins
 export const adminProcedure = protectedProcedure;

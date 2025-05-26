@@ -1,50 +1,50 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { Plus, Search, Eye, User, Mail, Phone, MapPin} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
-import { format } from 'date-fns'
-import { api } from '@/lib/trpc/client'
+import React, { useState } from 'react';
+import { Plus, Search, Eye, User, Mail, Phone, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { api } from '@/lib/trpc/client';
 interface CustomersModernProps {
-  className?: string
+  className?: string;
 }
 
 // Type for Customer data from Prisma (matches actual database schema)
 type CustomerData = {
-  id: string
-  firstName: string
-  lastName: string
-  email: string | null
-  phone: string | null
-  avatarUrl: string | null
-  address: string | null
-  city: string | null
-  state: string | null
-  postalCode: string | null
-  zipCode?: string | null  // For form compatibility
-  country: string | null
-  birthDate: Date | null
-  notes: string | null
-  allergies: string | null
-  source: string | null
-  tags: string[]
-  createdAt: Date
-  updatedAt: Date
-}
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  avatarUrl: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  zipCode?: string | null; // For form compatibility
+  country: string | null;
+  birthDate: Date | null;
+  notes: string | null;
+  allergies: string | null;
+  source: string | null;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export default function CustomersModern({ className }: CustomersModernProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [viewDialogOpen, setViewDialogOpen] = useState(false)
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null)
-  const [isCreating, setIsCreating] = useState(false)
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
   // Form state for new customer
   const [newCustomer, setNewCustomer] = useState({
     firstName: '',
@@ -56,20 +56,20 @@ export default function CustomersModern({ className }: CustomersModernProps) {
     state: '',
     zipCode: '',
     notes: '',
-  })
+  });
 
   // Create customer mutation
   const createCustomerMutation = api.admin.createCustomer.useMutation({
     onSuccess: () => {
-      toast.success('Customer created successfully!')
-      setCreateDialogOpen(false)
-      resetForm()
-      void refetch()
+      toast.success('Customer created successfully!');
+      setCreateDialogOpen(false);
+      resetForm();
+      void refetch();
     },
     onError: (error) => {
-      toast.error('Failed to create customer: ' + error.message)
-    }
-  })
+      toast.error('Failed to create customer: ' + error.message);
+    },
+  });
 
   // Use tRPC infinite query for customers
   const {
@@ -79,7 +79,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
     hasNextPage: hasMore,
     fetchNextPage,
     isSuccess,
-    refetch
+    refetch,
   } = api.admin.getCustomersInfinite.useInfiniteQuery(
     {
       limit: 20,
@@ -88,10 +88,10 @@ export default function CustomersModern({ className }: CustomersModernProps) {
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
-  )
+  );
 
-  const customers = data?.pages.flatMap(page => page.customers) ?? []
-  const count = data?.pages[0]?.totalCount ?? 0
+  const customers = data?.pages.flatMap((page) => page.customers) ?? [];
+  const count = data?.pages[0]?.totalCount ?? 0;
 
   // Reset new customer form
   const resetForm = () => {
@@ -105,38 +105,38 @@ export default function CustomersModern({ className }: CustomersModernProps) {
       state: '',
       zipCode: '',
       notes: '',
-    })
-  }
+    });
+  };
 
   // Create customer using secure Supabase function
   const handleCreateCustomer = async (e?: React.FormEvent) => {
-    e?.preventDefault()
-    
+    e?.preventDefault();
+
     // Validate required fields
     if (!newCustomer.firstName.trim()) {
-      void toast.error('First name is required')
-      return
+      void toast.error('First name is required');
+      return;
     }
-    
+
     if (!newCustomer.lastName.trim()) {
-      void toast.error('Last name is required')
-      return
+      void toast.error('Last name is required');
+      return;
     }
-    
+
     if (!newCustomer.email.trim()) {
-      void toast.error('Email is required')
-      return
+      void toast.error('Email is required');
+      return;
     }
-    
+
     // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newCustomer.email)) {
-      void toast.error('Please enter a valid email address')
-      return
+      void toast.error('Please enter a valid email address');
+      return;
     }
-    
-    setIsCreating(true)
-    
+
+    setIsCreating(true);
+
     try {
       await createCustomerMutation.mutateAsync({
         firstName: newCustomer.firstName.trim(),
@@ -148,32 +148,31 @@ export default function CustomersModern({ className }: CustomersModernProps) {
         state: newCustomer.state?.trim() || undefined,
         zipCode: newCustomer.zipCode?.trim() || undefined,
         notes: newCustomer.notes?.trim() || undefined,
-      })
-      void refetch()
-      
+      });
+      void refetch();
     } catch (error) {
-      void console.error('❌ Unexpected error:', error)
-      void toast.error(`Failed to create customer: ${error}`)
+      void console.error('❌ Unexpected error:', error);
+      void toast.error(`Failed to create customer: ${error}`);
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   // View customer details
   const handleViewCustomer = (customer: CustomerData) => {
-    setSelectedCustomer(customer)
-    setViewDialogOpen(true)
-  }
+    setSelectedCustomer(customer);
+    setViewDialogOpen(true);
+  };
 
   // Get customer display name
   const getCustomerName = (customer: CustomerData) => {
-    const firstName = customer.firstName ?? ''
-    const lastName = customer.lastName ?? ''
-    return `${firstName} ${lastName}`.trim() ?? 'Unknown Customer'
-  }
+    const firstName = customer.firstName ?? '';
+    const lastName = customer.lastName ?? '';
+    return `${firstName} ${lastName}`.trim() ?? 'Unknown Customer';
+  };
 
   // Filter customers based on search
-  const filteredCustomers = customers
+  const filteredCustomers = customers;
 
   if (isLoading) {
     return (
@@ -187,7 +186,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
           </Card>
         ))}
       </div>
-    )
+    );
   }
 
   return (
@@ -200,7 +199,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
             Manage your customer database ({count} total)
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -225,13 +224,12 @@ export default function CustomersModern({ className }: CustomersModernProps) {
             <User className="h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
             <p className="text-gray-500 text-center max-w-sm">
-              {searchQuery ? `No customers match "${searchQuery}"` : 'Get started by adding your first customer.'}
+              {searchQuery
+                ? `No customers match "${searchQuery}"`
+                : 'Get started by adding your first customer.'}
             </p>
             {!searchQuery && (
-              <Button 
-                onClick={() => setCreateDialogOpen(true)} 
-                className="mt-4"
-              >
+              <Button onClick={() => setCreateDialogOpen(true)} className="mt-4">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First Customer
               </Button>
@@ -249,7 +247,9 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   {getCustomerName(customer).charAt(0).toUpperCase()}
                 </div>
                 <div className="space-y-1 min-w-0 flex-1">
-                  <h3 className="font-semibold text-base md:text-lg truncate">{getCustomerName(customer)}</h3>
+                  <h3 className="font-semibold text-base md:text-lg truncate">
+                    {getCustomerName(customer)}
+                  </h3>
                   <div className="space-y-1">
                     {customer.email && (
                       <div className="flex items-center text-xs md:text-sm text-gray-500">
@@ -267,7 +267,9 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                       {(customer.city ?? customer.state) && (
                         <div className="flex items-center">
                           <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1 shrink-0" />
-                          <span className="truncate">{[customer.city, customer.state].filter(Boolean).join(', ')}</span>
+                          <span className="truncate">
+                            {[customer.city, customer.state].filter(Boolean).join(', ')}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -302,9 +304,11 @@ export default function CustomersModern({ className }: CustomersModernProps) {
               <span className="text-gray-500">Loading more customers...</span>
             </div>
           ) : (
-            <Button 
-              variant="outline" 
-              onClick={() => { void fetchNextPage() }}
+            <Button
+              variant="outline"
+              onClick={() => {
+                void fetchNextPage();
+              }}
               className="px-8"
             >
               Load More Customers
@@ -331,14 +335,21 @@ export default function CustomersModern({ className }: CustomersModernProps) {
           <DialogHeader>
             <DialogTitle>Add New Customer</DialogTitle>
           </DialogHeader>
-          <form onSubmit={e => { void handleCreateCustomer(e) }} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              void handleCreateCustomer(e);
+            }}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
                   id="firstName"
                   value={newCustomer.firstName}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, firstName: e.target.value }))}
+                  onChange={(e) =>
+                    setNewCustomer((prev) => ({ ...prev, firstName: e.target.value }))
+                  }
                   placeholder="John"
                   required
                 />
@@ -348,7 +359,9 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                 <Input
                   id="lastName"
                   value={newCustomer.lastName}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, lastName: e.target.value }))}
+                  onChange={(e) =>
+                    setNewCustomer((prev) => ({ ...prev, lastName: e.target.value }))
+                  }
                   placeholder="Doe"
                   required
                 />
@@ -359,7 +372,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   id="email"
                   type="email"
                   value={newCustomer.email}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="john@example.com"
                   required
                 />
@@ -370,7 +383,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   id="phone"
                   type="tel"
                   value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, phone: e.target.value }))}
                   placeholder="Optional"
                 />
               </div>
@@ -379,7 +392,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                 <Input
                   id="address"
                   value={newCustomer.address}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, address: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, address: e.target.value }))}
                   placeholder="123 Main St"
                 />
               </div>
@@ -388,7 +401,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                 <Input
                   id="city"
                   value={newCustomer.city}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, city: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, city: e.target.value }))}
                   placeholder="New York"
                 />
               </div>
@@ -397,7 +410,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                 <Input
                   id="state"
                   value={newCustomer.state}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, state: e.target.value }))}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, state: e.target.value }))}
                   placeholder="NY"
                 />
               </div>
@@ -407,24 +420,24 @@ export default function CustomersModern({ className }: CustomersModernProps) {
               <Textarea
                 id="notes"
                 value={newCustomer.notes}
-                onChange={(e) => setNewCustomer(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={(e) => setNewCustomer((prev) => ({ ...prev, notes: e.target.value }))}
                 placeholder="Any additional notes about this customer..."
                 rows={3}
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => {
-                  setCreateDialogOpen(false)
-                  resetForm()
+                  setCreateDialogOpen(false);
+                  resetForm();
                 }}
                 disabled={isCreating}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 disabled={!newCustomer.firstName.trim() || !newCustomer.email.trim() || isCreating}
               >
@@ -450,30 +463,42 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Email</Label>
-                  <p className="text-sm text-gray-600">{selectedCustomer.email ?? 'Not provided'}</p>
+                  <p className="text-sm text-gray-600">
+                    {selectedCustomer.email ?? 'Not provided'}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Phone</Label>
-                  <p className="text-sm text-gray-600">{selectedCustomer.phone ?? 'Not provided'}</p>
+                  <p className="text-sm text-gray-600">
+                    {selectedCustomer.phone ?? 'Not provided'}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Address</Label>
                   <p className="text-sm text-gray-600">
-                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.postalCode]
-                    .filter(Boolean).join(', ') ?? 'Not provided'}
+                    {[
+                      selectedCustomer.address,
+                      selectedCustomer.city,
+                      selectedCustomer.state,
+                      selectedCustomer.postalCode,
+                    ]
+                      .filter(Boolean)
+                      .join(', ') ?? 'Not provided'}
                   </p>
                 </div>
               </div>
               {selectedCustomer.notes && (
                 <div>
                   <Label className="text-sm font-medium">Notes</Label>
-                  <p className="text-sm text-gray-600 whitespace-pre-line">{selectedCustomer.notes}</p>
+                  <p className="text-sm text-gray-600 whitespace-pre-line">
+                    {selectedCustomer.notes}
+                  </p>
                 </div>
               )}
               <div>
                 <Label className="text-sm font-medium">Created</Label>
                 <p className="text-sm text-gray-600">
-                  {format(new Date(selectedCustomer.createdAt), 'MMMM d, yyyy \'at\' h:mm a')}
+                  {format(new Date(selectedCustomer.createdAt), "MMMM d, yyyy 'at' h:mm a")}
                 </p>
               </div>
             </div>
@@ -481,5 +506,5 @@ export default function CustomersModern({ className }: CustomersModernProps) {
         </Dialog>
       )}
     </div>
-  )
+  );
 }

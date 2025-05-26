@@ -29,9 +29,9 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
       error: {
         name: error.name,
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       },
-      errorInfo
+      errorInfo,
     });
   }
 
@@ -50,9 +50,7 @@ export class AdminErrorBoundary extends React.Component<ErrorBoundaryProps, Erro
         <div className="min-h-screen bg-gray-950 flex items-center justify-center">
           <div className="max-w-md mx-auto text-center p-6">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-xl font-semibold text-white mb-4">
-              Something went wrong
-            </h1>
+            <h1 className="text-xl font-semibold text-white mb-4">Something went wrong</h1>
             <div className="bg-gray-900 rounded-lg p-4 mb-6">
               <p className="text-gray-300 text-sm mb-2">
                 Error: {this.state.error?.message ?? 'Unknown error'}
@@ -90,12 +88,8 @@ export function AdminLoadingFallback({ error, retry }: { error: Error | null; re
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-white mb-2">
-            Failed to load admin panel
-          </h2>
-          <p className="text-gray-400 mb-4">
-            {error.message ?? 'An unexpected error occurred'}
-          </p>
+          <h2 className="text-lg font-semibold text-white mb-2">Failed to load admin panel</h2>
+          <p className="text-gray-400 mb-4">{error.message ?? 'An unexpected error occurred'}</p>
           <button
             onClick={retry}
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"

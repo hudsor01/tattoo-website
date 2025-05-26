@@ -13,11 +13,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-
 /**
  * Sleep utility for server components/routes
  */
-export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Safely extract error message from unknown error
@@ -49,7 +48,6 @@ export async function verifyAdminAccess(): Promise<boolean> {
     // This bypasses Clerk JWT issues while maintaining security through middleware
     void console.warn('✅ Admin access granted - production mode');
     return true;
-    
   } catch (error) {
     void console.error('❌ Error verifying admin access:', error);
     return false;

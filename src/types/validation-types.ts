@@ -1,6 +1,6 @@
 /**
  * Validation Types
- * 
+ *
  * This file defines TypeScript types derived from the consolidated validation schemas.
  * This is the single source of truth for validation-related types across the application.
  */

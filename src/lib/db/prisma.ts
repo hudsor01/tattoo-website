@@ -20,10 +20,10 @@ export async function executeStoredProcedure<T = unknown>(
     // Format parameters for SQL query
     const paramPlaceholders = params.map((_, index) => `$${index + 1}`).join(', ');
     const query = `SELECT * FROM ${procedureName}(${paramPlaceholders})`;
-    
+
     // Execute the query with parameters
     const result = await prisma.$queryRawUnsafe(query, ...params);
-    
+
     // Return the first result or the entire result set
     if (Array.isArray(result) && result.length > 0) {
       return result[0] as T;

@@ -3,7 +3,13 @@ import { Toaster as SonnerToaster } from 'sonner';
 
 export interface ToasterProps extends React.ComponentProps<typeof SonnerToaster> {
   /** Position where toasts will appear */
-  position?: 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center';
+  position?:
+    | 'top-left'
+    | 'top-right'
+    | 'top-center'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'bottom-center';
   /** Base duration for toasts (in ms) */
   duration?: number;
   /** Theme for the toasts (system uses the user's system preference) */
@@ -43,7 +49,8 @@ export function Toaster({
       className={`toaster ${className}`}
       toastOptions={{
         classNames: {
-          toast: 'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
+          toast:
+            'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
           description: 'group-[.toast]:text-muted-foreground',
           actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
           cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',

@@ -37,41 +37,51 @@ export function useGalleryInfinite(): UseGalleryInfiniteResult {
     }
   }, [isError, error]);
 
-  const sortDesignsByOrder = useCallback((designs: GalleryDesign[], order: 'latest' | 'oldest' | 'popular') => {
-    switch (order) {
-      case 'latest':
-        return [...designs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      case 'oldest':
-        return [...designs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      case 'popular':
-        return [...designs].sort((a, b) => {
-          if (a.isApproved && !b.isApproved) return -1;
-          if (!a.isApproved && b.isApproved) return 1;
+  const sortDesignsByOrder = useCallback(
+    (designs: GalleryDesign[], order: 'latest' | 'oldest' | 'popular') => {
+      switch (order) {
+        case 'latest':
+          return [...designs].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case 'oldest':
+          return [...designs].sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case 'popular':
+          return [...designs].sort((a, b) => {
+            if (a.isApproved && !b.isApproved) return -1;
+            if (!a.isApproved && b.isApproved) return 1;
 
-          if (a.approvedAt && b.approvedAt) {
-            return new Date(b.approvedAt).getTime() - new Date(a.approvedAt).getTime();
-          }
+            if (a.approvedAt && b.approvedAt) {
+              return new Date(b.approvedAt).getTime() - new Date(a.approvedAt).getTime();
+            }
 
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
-      default:
-        return designs;
-    }
-  }, []);
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+        default:
+          return designs;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    let result = designs?.pages.reduce((acc, page) => [...acc, ...page.designs], [] as GalleryDesign[]) ?? [];
+    let result =
+      designs?.pages.reduce((acc, page) => [...acc, ...page.designs], [] as GalleryDesign[]) ?? [];
 
     if (artistId) {
-      result = result.filter(design => design.artistId === artistId);
+      result = result.filter((design) => design.artistId === artistId);
     }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(design =>
-        (design.name.toLowerCase().includes(query) ??
-        (design.description?.toLowerCase().includes(query) ?? false)) ||
-        (design.designType?.toLowerCase().includes(query) ?? false)
+      result = result.filter(
+        (design) =>
+          (design.name.toLowerCase().includes(query) ??
+            design.description?.toLowerCase().includes(query) ??
+            false) ||
+          (design.designType?.toLowerCase().includes(query) ?? false)
       );
     }
 

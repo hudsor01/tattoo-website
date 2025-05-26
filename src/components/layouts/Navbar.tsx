@@ -31,7 +31,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  
+
   // Determine which navigation to use based on path
   const isClientPortal = pathname.startsWith('/customer');
   const isAdminDashboard = pathname.startsWith('/admin-dashboard');
@@ -45,10 +45,10 @@ export function Navbar() {
 
     // Add scroll event listener
     void window.addEventListener('scroll', handleScroll);
-    
+
     // Set initial state
     handleScroll();
-    
+
     // Clean up
     return () => {
       void window.removeEventListener('scroll', handleScroll);
@@ -59,12 +59,12 @@ export function Navbar() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
-  
+
   // Skip rendering navbar on admin dashboard (uses DashboardLayout instead)
   if (isAdminDashboard) {
     return null;
   }
-  
+
   // Use appropriate navigation links based on path
   const links = isClientPortal ? clientLinks : navigationLinks;
 
@@ -77,13 +77,13 @@ export function Navbar() {
     <>
       {/* Spacer div to prevent content from being hidden under navbar */}
       <div className="nav-spacer"></div>
-      
-      <header 
+
+      <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isClientPortal 
+          isClientPortal
             ? 'bg-tattoo-black shadow-md py-3'
-            : scrolled 
-              ? 'bg-black/90 backdrop-blur-sm shadow-md py-3' 
+            : scrolled
+              ? 'bg-black/90 backdrop-blur-sm shadow-md py-3'
               : 'bg-black/80 backdrop-blur-sm py-4'
         }`}
       >
@@ -104,7 +104,7 @@ export function Navbar() {
 
             {/* Desktop Navigation - hidden on mobile */}
             <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-              {links.map((link) => 
+              {links.map((link) =>
                 link.isButton ? (
                   <Button
                     key={link.href}
@@ -132,16 +132,12 @@ export function Navbar() {
             </nav>
 
             {/* Mobile menu button - visible only on mobile */}
-            <button 
+            <button
               className="md:hidden p-2 text-white focus:outline-none"
               onClick={toggleMobileMenu}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
-              {mobileMenuOpen ? (
-                <X size={24} />
-              ) : (
-                <Menu size={24} />
-              )}
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
@@ -162,9 +158,7 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     className={`text-white py-2 px-4 rounded-md ${
-                      pathname === link.href 
-                        ? 'bg-tattoo-red/20 font-medium' 
-                        : 'hover:bg-white/5'
+                      pathname === link.href ? 'bg-tattoo-red/20 font-medium' : 'hover:bg-white/5'
                     } ${link.isButton ? 'bg-tattoo-red text-center' : ''}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >

@@ -1,32 +1,32 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Calendar, ChevronDown, Clock, Filter } from 'lucide-react'
-import { format, subDays, subMonths, subYears, startOfDay, endOfDay } from 'date-fns'
-import { motion } from 'framer-motion'
+import * as React from 'react';
+import { Calendar, ChevronDown, Clock, Filter } from 'lucide-react';
+import { format, subDays, subMonths, subYears, startOfDay, endOfDay } from 'date-fns';
+import { motion } from 'framer-motion';
 
-import { Button } from '@/components/ui/button'
-import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import type { DateRange as ReactDayPickerDateRange } from 'react-day-picker'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import type { DateRange as ReactDayPickerDateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 // import { Separator } from '@/components/ui/separator' // unused
 
 export interface DateRange {
-  from: Date
-  to: Date
+  from: Date;
+  to: Date;
 }
 
 export interface TimeRangeOption {
-  label: string
-  value: string
-  range: DateRange
-  description?: string
+  label: string;
+  value: string;
+  range: DateRange;
+  description?: string;
 }
 
 const getPresetRanges = (): TimeRangeOption[] => {
-  const now = new Date()
-  
+  const now = new Date();
+
   return [
     {
       label: 'Today',
@@ -109,16 +109,16 @@ const getPresetRanges = (): TimeRangeOption[] => {
       },
       description: 'Current month',
     },
-  ]
-}
+  ];
+};
 
 interface TimeRangeFilterProps {
-  value?: DateRange
-  onChange: (range: DateRange) => void
-  presets?: TimeRangeOption[]
-  className?: string
-  placeholder?: string
-  showDescription?: boolean
+  value?: DateRange;
+  onChange: (range: DateRange) => void;
+  presets?: TimeRangeOption[];
+  className?: string;
+  placeholder?: string;
+  showDescription?: boolean;
 }
 
 export function TimeRangeFilter({
@@ -129,82 +129,81 @@ export function TimeRangeFilter({
   placeholder = 'Select date range',
   showDescription = true,
 }: TimeRangeFilterProps) {
-  const [isOpen, setIsOpen] = React.useState(false)
-  const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null)
-  const [customRange, setCustomRange] = React.useState<DateRange | undefined>(value)
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null);
+  const [customRange, setCustomRange] = React.useState<DateRange | undefined>(value);
 
   // Find matching preset for current value
   React.useEffect(() => {
     if (value) {
-      const matchingPreset = presets.find(preset => 
-        preset.range.from.getTime() === value.from.getTime() &&
-        preset.range.to.getTime() === value.to.getTime()
-      )
-      setSelectedPreset(matchingPreset?.value ?? null)
+      const matchingPreset = presets.find(
+        (preset) =>
+          preset.range.from.getTime() === value.from.getTime() &&
+          preset.range.to.getTime() === value.to.getTime()
+      );
+      setSelectedPreset(matchingPreset?.value ?? null);
     }
-  }, [value, presets])
+  }, [value, presets]);
 
   const handlePresetSelect = (preset: TimeRangeOption) => {
-    setSelectedPreset(preset.value)
-    setCustomRange(undefined)
-    onChange(preset.range)
-    setIsOpen(false)
-  }
+    setSelectedPreset(preset.value);
+    setCustomRange(undefined);
+    onChange(preset.range);
+    setIsOpen(false);
+  };
 
   const handleCustomRangeSelect = (range: ReactDayPickerDateRange | undefined) => {
     if (range?.from && range?.to) {
       const validRange: DateRange = {
         from: range.from,
-        to: range.to
-      }
-      setCustomRange(validRange)
-      setSelectedPreset(null)
-      onChange(validRange)
-      setIsOpen(false)
+        to: range.to,
+      };
+      setCustomRange(validRange);
+      setSelectedPreset(null);
+      onChange(validRange);
+      setIsOpen(false);
     } else {
-      setCustomRange(undefined)
+      setCustomRange(undefined);
     }
-  }
+  };
 
   const formatDateRange = (range: DateRange) => {
-    const from = format(range.from, 'MMM d')
-    const to = format(range.to, 'MMM d, yyyy')
-    
+    const from = format(range.from, 'MMM d');
+    const to = format(range.to, 'MMM d, yyyy');
+
     if (range.from.getTime() === range.to.getTime()) {
-      return format(range.from, 'MMM d, yyyy')
+      return format(range.from, 'MMM d, yyyy');
     }
-    
+
     if (range.from.getFullYear() === range.to.getFullYear()) {
-      return `${from} - ${to}`
+      return `${from} - ${to}`;
     }
-    
-    return `${format(range.from, 'MMM d, yyyy')} - ${to}`
-  }
+
+    return `${format(range.from, 'MMM d, yyyy')} - ${to}`;
+  };
 
   const getDisplayText = () => {
-    if (!value) return placeholder
-    
-    const matchingPreset = presets.find(preset => 
-      preset.range.from.getTime() === value.from.getTime() &&
-      preset.range.to.getTime() === value.to.getTime()
-    )
-    
-    return matchingPreset?.label ?? formatDateRange(value)
-  }
+    if (!value) return placeholder;
+
+    const matchingPreset = presets.find(
+      (preset) =>
+        preset.range.from.getTime() === value.from.getTime() &&
+        preset.range.to.getTime() === value.to.getTime()
+    );
+
+    return matchingPreset?.label ?? formatDateRange(value);
+  };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={`justify-start text-left font-normal ${className}`}
-        >
+        <Button variant="outline" className={`justify-start text-left font-normal ${className}`}>
           <Calendar className="mr-2 h-4 w-4" />
           <span className="truncate">{getDisplayText()}</span>
           <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
-      
+
       <PopoverContent className="w-auto p-0" align="start">
         <div className="flex">
           {/* Preset options */}
@@ -236,9 +235,7 @@ export function TimeRangeFilter({
                       )}
                     </div>
                     {showDescription && preset.description && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {preset.description}
-                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">{preset.description}</div>
                     )}
                   </motion.button>
                 ))}
@@ -261,28 +258,26 @@ export function TimeRangeFilter({
               numberOfMonths={2}
               disabled={(date) => date > new Date()}
             />
-            
+
             {customRange?.from && customRange?.to && (
               <div className="mt-3 p-2 bg-muted rounded-md">
                 <div className="text-sm font-medium">Selected Range:</div>
-                <div className="text-sm text-muted-foreground">
-                  {formatDateRange(customRange)}
-                </div>
+                <div className="text-sm text-muted-foreground">{formatDateRange(customRange)}</div>
               </div>
             )}
           </div>
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 
 // Quick time range selector for common use cases
 interface QuickTimeRangeProps {
-  value?: string
-  onChange: (value: string, range: DateRange) => void
-  options?: TimeRangeOption[]
-  className?: string
+  value?: string;
+  onChange: (value: string, range: DateRange) => void;
+  options?: TimeRangeOption[];
+  className?: string;
 }
 
 export function QuickTimeRange({
@@ -309,49 +304,51 @@ export function QuickTimeRange({
         </motion.button>
       ))}
     </div>
-  )
+  );
 }
 
 // Hook for managing time range state
 export function useTimeRange(initialRange?: string) {
-  const presets = getPresetRanges()
-  const [selectedRange, setSelectedRange] = React.useState<string>(
-    initialRange ?? '30d'
-  )
-  
+  const presets = getPresetRanges();
+  const [selectedRange, setSelectedRange] = React.useState<string>(initialRange ?? '30d');
+
   const currentRange = React.useMemo(() => {
-    const preset = presets.find(p => p.value === selectedRange)
-    return preset?.range ?? presets[3]?.range ?? presets[0]?.range ?? {
-      from: new Date(),
-      to: new Date()
-    } // Default to 30 days or first preset or today
-  }, [selectedRange, presets])
+    const preset = presets.find((p) => p.value === selectedRange);
+    return (
+      preset?.range ??
+      presets[3]?.range ??
+      presets[0]?.range ?? {
+        from: new Date(),
+        to: new Date(),
+      }
+    ); // Default to 30 days or first preset or today
+  }, [selectedRange, presets]);
 
   const setRange = React.useCallback((value: string) => {
-    setSelectedRange(value)
-  }, [])
+    setSelectedRange(value);
+  }, []);
 
   return {
     selectedRange,
     currentRange,
     setRange,
     presets,
-  }
+  };
 }
 
 // Utility functions for date range operations
 export const dateRangeUtils = {
   isToday: (range: DateRange) => {
-    const today = new Date()
+    const today = new Date();
     return (
       startOfDay(range.from).getTime() === startOfDay(today).getTime() &&
       endOfDay(range.to).getTime() === endOfDay(today).getTime()
-    )
+    );
   },
 
   getDaysDifference: (range: DateRange) => {
-    const diffTime = range.to.getTime() - range.from.getTime()
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+    const diffTime = range.to.getTime() - range.from.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   },
 
   formatForAPI: (range: DateRange) => ({
@@ -360,6 +357,6 @@ export const dateRangeUtils = {
   }),
 
   isValidRange: (range: Partial<DateRange>) => {
-    return range.from && range.to && range.from <= range.to
+    return range.from && range.to && range.from <= range.to;
   },
-}
+};

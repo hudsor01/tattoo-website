@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 import {
   AreaChart,
   Area,
@@ -15,36 +15,40 @@ import {
   Tooltip,
   ResponsiveContainer,
   type TooltipProps,
-} from 'recharts'
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, TrendingUp, Users, Clock, Loader2 } from 'lucide-react'
-import { trpc } from '@/lib/trpc/client'
-import { format } from 'date-fns'
-import type { ServiceStat, TimeStatItem } from '@/types/dashboard-types'
+} from 'recharts';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Calendar, TrendingUp, Users, Clock, Loader2 } from 'lucide-react';
+import { trpc } from '@/lib/trpc/client';
+import { format } from 'date-fns';
+import type { ServiceStat, TimeStatItem } from '@/types/dashboard-types';
 
 // Types for chart data
 interface RevenueData {
-  month: string
-  revenue: number
-  bookings: number
+  month: string;
+  revenue: number;
+  bookings: number;
 }
 
 interface ServiceData {
-  name: string
-  value: number
-  sessions: number
-  color: string
+  name: string;
+  value: number;
+  sessions: number;
+  color: string;
 }
-
 
 interface TimeSlotData {
-  time: string
-  bookings: number
+  time: string;
+  bookings: number;
 }
-
 
 // Color palette for charts
 const CHART_COLORS = [
@@ -56,7 +60,7 @@ const CHART_COLORS = [
   '#ec4899', // pink
   '#6b7280', // gray
   '#14b8a6', // teal
-]
+];
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload?.length) {
@@ -64,57 +68,66 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
       <div className="bg-background border border-border rounded-lg shadow-lg p-3">
         <p className="font-medium text-foreground">{label}</p>
         {payload.map((entry) => (
-          <p key={entry.dataKey ?? entry.name ?? 'unknown'} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {typeof entry.value === 'number' && (entry.name?.includes('revenue') ?? false)
-              ? `$${entry.value.toLocaleString()}` 
+          <p
+            key={entry.dataKey ?? entry.name ?? 'unknown'}
+            className="text-sm"
+            style={{ color: entry.color }}
+          >
+            {entry.name}:{' '}
+            {typeof entry.value === 'number' && (entry.name?.includes('revenue') ?? false)
+              ? `$${entry.value.toLocaleString()}`
               : entry.value}
           </p>
         ))}
       </div>
-    )
+    );
   }
-  return null
-}
+  return null;
+};
 
 interface RevenueChartProps {
-  timeRange: string
+  timeRange: string;
 }
 
 export function RevenueChart({ timeRange }: RevenueChartProps) {
-  const [animationKey, setAnimationKey] = React.useState(0)
+  const [animationKey, setAnimationKey] = React.useState(0);
 
   // Date range calculation based on timeRange (currently not used but available for future use)
 
   // const { start, end } = getDateRange()
 
   // Fetch revenue data from API
-  const { data: revenueStats, isLoading, error } = trpc.dashboard.getStats.useQuery({
-    period: timeRange === '1y' ? 'year' : timeRange === '90d' ? 'month' : 'month'
-  })
+  const {
+    data: revenueStats,
+    isLoading,
+    error,
+  } = trpc.dashboard.getStats.useQuery({
+    period: timeRange === '1y' ? 'year' : timeRange === '90d' ? 'month' : 'month',
+  });
 
   // Process data for chart
   const revenueData: RevenueData[] = React.useMemo(() => {
-    if (!revenueStats?.summary) return []
+    if (!revenueStats?.summary) return [];
 
     // Create mock data based on the summary stats
-    return [{
-      month: timeRange === '1y' 
-        ? format(new Date(), 'MMM yyyy')
-        : format(new Date(), 'MMM dd'),
-      revenue: revenueStats.summary.revenue?.period ?? 0,
-      bookings: revenueStats.summary.appointments?.period ?? 0
-    }]
-  }, [revenueStats, timeRange])
+    return [
+      {
+        month: timeRange === '1y' ? format(new Date(), 'MMM yyyy') : format(new Date(), 'MMM dd'),
+        revenue: revenueStats.summary.revenue?.period ?? 0,
+        bookings: revenueStats.summary.appointments?.period ?? 0,
+      },
+    ];
+  }, [revenueStats, timeRange]);
 
   // Calculate growth percentage
   const growthPercentage = React.useMemo(() => {
-    if (!revenueStats?.summary?.revenue?.change) return 0
-    return Math.round(revenueStats.summary.revenue.change * 100) / 100
-  }, [revenueStats])
+    if (!revenueStats?.summary?.revenue?.change) return 0;
+    return Math.round(revenueStats.summary.revenue.change * 100) / 100;
+  }, [revenueStats]);
 
   React.useEffect(() => {
-    setAnimationKey(prev => prev + 1)
-  }, [timeRange])
+    setAnimationKey((prev) => prev + 1);
+  }, [timeRange]);
 
   if (error) {
     return (
@@ -123,7 +136,7 @@ export function RevenueChart({ timeRange }: RevenueChartProps) {
           <p className="text-muted-foreground">Failed to load revenue data</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -143,15 +156,16 @@ export function RevenueChart({ timeRange }: RevenueChartProps) {
               <CardDescription>Revenue and booking trends over time</CardDescription>
             </div>
             {!isLoading && (
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className={`${
-                  growthPercentage >= 0 
+                  growthPercentage >= 0
                     ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                     : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                 }`}
               >
-                {growthPercentage >= 0 ? '+' : ''}{growthPercentage}% vs last period
+                {growthPercentage >= 0 ? '+' : ''}
+                {growthPercentage}% vs last period
               </Badge>
             )}
           </div>
@@ -167,18 +181,18 @@ export function RevenueChart({ timeRange }: RevenueChartProps) {
                 <AreaChart data={revenueData} key={animationKey}>
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="month" 
+                  <XAxis
+                    dataKey="month"
                     className="text-muted-foreground text-xs"
                     axisLine={false}
                     tickLine={false}
                   />
-                  <YAxis 
+                  <YAxis
                     className="text-muted-foreground text-xs"
                     axisLine={false}
                     tickLine={false}
@@ -200,32 +214,32 @@ export function RevenueChart({ timeRange }: RevenueChartProps) {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }
 
 export function ServiceBreakdownChart() {
-  const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
+  const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
 
   // Fetch service breakdown data
-  const { data: serviceStats, isLoading, error } = trpc.dashboard.getServiceDistribution.useQuery()
+  const { data: serviceStats, isLoading, error } = trpc.dashboard.getServiceDistribution.useQuery();
 
   // Process data for pie chart
   const serviceData: ServiceData[] = React.useMemo(() => {
-  if (!serviceStats || !Array.isArray(serviceStats)) return []
-  
-    const validServiceStats = serviceStats as ServiceStat[]
-    const total = validServiceStats.reduce((sum, service) => sum + service.value, 0)
-    
+    if (!serviceStats || !Array.isArray(serviceStats)) return [];
+
+    const validServiceStats = serviceStats as ServiceStat[];
+    const total = validServiceStats.reduce((sum, service) => sum + service.value, 0);
+
     return validServiceStats.map((service, index): ServiceData => {
       const color = service.color ?? CHART_COLORS[index % CHART_COLORS.length] ?? '#ef4444';
       return {
         name: service.name,
         value: total > 0 ? Math.round((service.value / total) * 100) : 0,
         sessions: service.value,
-        color: color
+        color: color,
       };
-    })
-  }, [serviceStats])
+    });
+  }, [serviceStats]);
 
   if (error) {
     return (
@@ -234,7 +248,7 @@ export function ServiceBreakdownChart() {
           <p className="text-muted-foreground">Failed to load service data</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -291,7 +305,7 @@ export function ServiceBreakdownChart() {
                     <Tooltip
                       content={({ active, payload }) => {
                         if (active && payload?.length && payload[0]?.payload) {
-                          const data = payload[0].payload as ServiceData
+                          const data = payload[0].payload as ServiceData;
                           return (
                             <div className="bg-background border border-border rounded-lg shadow-lg p-3">
                               <p className="font-medium">{data.name}</p>
@@ -299,9 +313,9 @@ export function ServiceBreakdownChart() {
                                 {data.value}% ({data.sessions} sessions)
                               </p>
                             </div>
-                          )
+                          );
                         }
-                        return null
+                        return null;
                       }}
                     />
                   </PieChart>
@@ -319,8 +333,8 @@ export function ServiceBreakdownChart() {
                     onMouseLeave={() => setHoveredIndex(null)}
                   >
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
+                      <div
+                        className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: service.color }}
                       />
                       <div>
@@ -341,22 +355,22 @@ export function ServiceBreakdownChart() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }
 
 export function BookingTimesChart() {
   // Fetch booking time distribution data
-  const { data: timeStats, isLoading, error } = trpc.dashboard.getWeeklyBookings.useQuery()
+  const { data: timeStats, isLoading, error } = trpc.dashboard.getWeeklyBookings.useQuery();
 
   // Process data for bar chart
   const timeSlotData: TimeSlotData[] = React.useMemo(() => {
-    if (!timeStats || !Array.isArray(timeStats)) return []
+    if (!timeStats || !Array.isArray(timeStats)) return [];
 
     return timeStats.map((day: TimeStatItem) => ({
       time: day.name,
-      bookings: day.bookings
-    }))
-  }, [timeStats])
+      bookings: day.bookings,
+    }));
+  }, [timeStats]);
 
   if (error) {
     return (
@@ -365,7 +379,7 @@ export function BookingTimesChart() {
           <p className="text-muted-foreground">Failed to load booking time data</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -392,13 +406,13 @@ export function BookingTimesChart() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={timeSlotData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="time" 
+                  <XAxis
+                    dataKey="time"
                     className="text-muted-foreground text-xs"
                     axisLine={false}
                     tickLine={false}
                   />
-                  <YAxis 
+                  <YAxis
                     className="text-muted-foreground text-xs"
                     axisLine={false}
                     tickLine={false}
@@ -417,13 +431,13 @@ export function BookingTimesChart() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }
 
 interface ChartContainerProps {
-  children: React.ReactNode
-  timeRange: string
-  setTimeRange: (range: string) => void
+  children: React.ReactNode;
+  timeRange: string;
+  setTimeRange: (range: string) => void;
 }
 
 export function ChartContainer({ children, timeRange, setTimeRange }: ChartContainerProps) {
@@ -451,12 +465,12 @@ export function ChartContainer({ children, timeRange, setTimeRange }: ChartConta
       </div>
       {children}
     </div>
-  )
+  );
 }
 
 // Main dashboard charts component
 export function DashboardCharts() {
-  const [timeRange, setTimeRange] = React.useState('30d')
+  const [timeRange, setTimeRange] = React.useState('30d');
 
   return (
     <ChartContainer timeRange={timeRange} setTimeRange={setTimeRange}>
@@ -468,5 +482,5 @@ export function DashboardCharts() {
         </div>
       </div>
     </ChartContainer>
-  )
+  );
 }

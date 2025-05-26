@@ -5,43 +5,43 @@
 /**
  * Format a date range based on period
  */
-export function formatDateRange(period: string): { startDate: Date, endDate: Date } {
+export function formatDateRange(period: string): { startDate: Date; endDate: Date } {
   const now = new Date();
-  
+
   switch (period) {
     case 'today': {
       const startDate = new Date(now);
       void startDate.setHours(0, 0, 0, 0);
-      
+
       const endDate = new Date(startDate);
       void endDate.setHours(23, 59, 59, 999);
-      
+
       return { startDate, endDate };
     }
-    
+
     case 'week': {
       const startDate = new Date(now);
       void startDate.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
       void startDate.setHours(0, 0, 0, 0);
-      
+
       const endDate = new Date(startDate);
       void endDate.setDate(startDate.getDate() + 6); // End of week (Saturday)
       void endDate.setHours(23, 59, 59, 999);
-      
+
       return { startDate, endDate };
     }
-    
+
     case 'month': {
       return getCurrentMonthRange();
     }
-    
+
     case 'year': {
       const startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0); // January 1st of current year
       const endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // December 31st of current year
-      
+
       return { startDate, endDate };
     }
-    
+
     default: {
       // Default to current month
       return getCurrentMonthRange();
@@ -52,22 +52,22 @@ export function formatDateRange(period: string): { startDate: Date, endDate: Dat
 /**
  * Get the date range for the current month
  */
-export function getCurrentMonthRange(): { startDate: Date, endDate: Date } {
+export function getCurrentMonthRange(): { startDate: Date; endDate: Date } {
   const now = new Date();
   const startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0); // First day of current month
   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999); // Last day of current month
-  
+
   return { startDate, endDate };
 }
 
 /**
  * Get the date range for the previous month
  */
-export function getPreviousMonthRange(): { startDate: Date, endDate: Date } {
+export function getPreviousMonthRange(): { startDate: Date; endDate: Date } {
   const now = new Date();
   const startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0); // First day of previous month
   const endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999); // Last day of previous month
-  
+
   return { startDate, endDate };
 }
 
@@ -111,7 +111,7 @@ export function formatDate(date: Date, format: string = 'medium'): string {
 export function getRelativeTimeString(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+
   // In the past
   if (diffInSeconds >= 0) {
     if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
@@ -121,8 +121,8 @@ export function getRelativeTimeString(date: Date): string {
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
     if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
     return `${Math.floor(diffInSeconds / 31536000)} years ago`;
-  } 
-  
+  }
+
   // In the future
   const diffInFutureSeconds = Math.abs(diffInSeconds);
   if (diffInFutureSeconds < 60) return `in ${diffInFutureSeconds} seconds`;
@@ -130,7 +130,8 @@ export function getRelativeTimeString(date: Date): string {
   if (diffInFutureSeconds < 86400) return `in ${Math.floor(diffInFutureSeconds / 3600)} hours`;
   if (diffInFutureSeconds < 604800) return `in ${Math.floor(diffInFutureSeconds / 86400)} days`;
   if (diffInFutureSeconds < 2592000) return `in ${Math.floor(diffInFutureSeconds / 604800)} weeks`;
-  if (diffInFutureSeconds < 31536000) return `in ${Math.floor(diffInFutureSeconds / 2592000)} months`;
+  if (diffInFutureSeconds < 31536000)
+    return `in ${Math.floor(diffInFutureSeconds / 2592000)} months`;
   return `in ${Math.floor(diffInFutureSeconds / 31536000)} years`;
 }
 
@@ -139,9 +140,11 @@ export function getRelativeTimeString(date: Date): string {
  */
 export function isToday(date: Date): boolean {
   const today = new Date();
-  return date.getDate() === today.getDate() &&
+  return (
+    date.getDate() === today.getDate() &&
     void date.getMonth() === today.getMonth() &&
-    void date.getFullYear() === today.getFullYear();
+    void date.getFullYear() === today.getFullYear()
+  );
 }
 
 /**
@@ -176,7 +179,7 @@ export function formatCurrency(amount: number): string {
 export function formatPhoneNumber(phone: string): string {
   // Remove all non-numeric characters
   const cleaned = phone.replace(/\D/g, '');
-  
+
   // Check if the number has the expected length for US phone
   if (cleaned.length === 10) {
     return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
@@ -184,7 +187,7 @@ export function formatPhoneNumber(phone: string): string {
     // Handle numbers with country code
     return `(${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
   }
-  
+
   // Return original if format doesn't match expected patterns
   return phone;
 }

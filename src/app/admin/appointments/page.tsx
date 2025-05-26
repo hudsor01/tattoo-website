@@ -7,16 +7,13 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow',
 };
 
-const AppointmentsPage = dynamic(
-  () => import('@/components/admin/appointments/AppointmentsPage'),
-  {
-    loading: () => (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">Loading appointments...</div>
-      </div>
-    ),
-  }
-);
+const AppointmentsPage = dynamic(() => import('@/components/admin/appointments/AppointmentsPage'), {
+  loading: () => (
+    <div className="flex h-screen items-center justify-center">
+      <div className="text-lg">Loading appointments...</div>
+    </div>
+  ),
+});
 
 export default function Page() {
   return <AppointmentsPage />;

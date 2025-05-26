@@ -1,6 +1,6 @@
 /**
  * Email Types - Contact Forms Only
- * 
+ *
  * Simplified types for contact form email functionality.
  * Booking-related email types removed since Cal.com handles those.
  */
