@@ -27,8 +27,8 @@ export function AdminPageLoading() {
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={`admin-card-${i}`} className="bg-gray-900 border-gray-800">
+          {Array.from({ length: 6 }, (_, i) => `admin-card-${Date.now()}-${i}`).map((cardId) => (
+            <Card key={cardId} className="bg-gray-900 border-gray-800">
               <CardContent className="p-4 space-y-3">
                 <Skeleton className="h-4 w-3/4 bg-gray-800" />
                 <Skeleton className="h-4 w-1/2 bg-gray-800" />
@@ -53,8 +53,8 @@ export function AdminTableLoading() {
       <Card className="bg-gray-900 border-gray-800">
         <CardContent className="p-0">
           <div className="space-y-1">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={`table-row-${i}`} className="flex items-center space-x-4 p-4 border-b border-gray-800 last:border-b-0">
+            {Array.from({ length: 8 }, (_, i) => `table-row-${Date.now()}-${i}`).map((rowId) => (
+              <div key={rowId} className="flex items-center space-x-4 p-4 border-b border-gray-800 last:border-b-0">
                 <Skeleton className="h-4 w-24 bg-gray-800" />
                 <Skeleton className="h-4 w-32 bg-gray-800" />
                 <Skeleton className="h-4 w-48 bg-gray-800" />
