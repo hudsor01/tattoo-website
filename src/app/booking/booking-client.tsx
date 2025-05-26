@@ -26,7 +26,7 @@ export default function BookingClient() {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-6">Book Your Appointment</h1>
             <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-              Schedule your tattoo consultation directly with Fernando Govea. Choose your preferred time and we'll handle the rest.
+              Schedule your tattoo consultation directly with Ink 37 Tattoos. Choose your preferred time and we'll handle the rest.
             </p>
           </div>
           
@@ -89,12 +89,9 @@ export default function BookingClient() {
                     📧 Email Us
                   </Button>
                   
-                  <Button
-                    onClick={() => window.location.href = `tel:+12145551234`}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-                  >
-                    📞 Call Us
-                  </Button>
+                  <div className="w-full bg-gray-400 text-gray-700 font-bold py-3 px-6 rounded-lg text-center">
+                    📧 Contact via website only
+                  </div>
                   
                   <Button
                     onClick={() => window.open('https://instagram.com/ink37tattoos', '_blank')}

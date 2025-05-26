@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: 'About Fernando Govea - Professional Tattoo Artist',
     description: 'Learn about Fernando Govea\'s journey as a professional tattoo artist with over 10 years of experience in custom designs.',
     url: '/about',
-    siteName: 'Fernando Govea Tattoo',
+    siteName: 'Ink 37 Tattoos',
     images: [
       {
         url: '/images/japanese.jpg',

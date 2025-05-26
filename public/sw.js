@@ -1,5 +1,5 @@
 /**
- * Service Worker for Fernando Govea Tattoo Studio PWA
+ * Service Worker for Ink 37 Tattoos PWA
  * Implements offline functionality, caching, and background sync
  */
 
@@ -95,7 +95,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('Fernando Govea Tattoo Studio', options)
+    self.registration.showNotification('Ink 37 Tattoos', options)
   );
 });
 

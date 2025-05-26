@@ -365,7 +365,7 @@ export default function CustomersOptimistic() {
               <Search className="h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
               <p className="text-gray-500 text-center max-w-sm">
-                No customers match "{searchQuery}"
+                No customers match &quot;{searchQuery}&quot;
               </p>
             </CardContent>
           </Card>
@@ -495,7 +495,7 @@ export default function CustomersOptimistic() {
                 type="tel"
                 value={newCustomer.phone}
                 onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="(555) 123-4567"
+                placeholder="Optional"
               />
             </div>
             
@@ -648,16 +648,6 @@ export default function CustomersOptimistic() {
                   >
                     <Mail className="h-4 w-4 mr-2" />
                     Email
-                  </Button>
-                )}
-                {selectedCustomer.phone && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => window.open(`tel:${selectedCustomer.phone}`, '_blank')}
-                  >
-                    <Phone className="h-4 w-4 mr-2" />
-                    Call
                   </Button>
                 )}
                 <Button 

@@ -207,7 +207,7 @@ async function createBooking(booking: CalWebhookPayload['payload'], customerId: 
       customerId,
       name: booking.attendees?.[0]?.name ?? 'Unknown',
       email: booking.attendees?.[0]?.email ?? 'unknown@example.com',
-      phone: '000-000-0000', // Default phone since it's required
+      phone: '', // No phone number provided
       tattooType: 'Consultation', // Default for Cal.com bookings
       size: 'Medium',
       placement: 'TBD',
