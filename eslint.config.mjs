@@ -4,6 +4,7 @@ import tseslintParser from '@typescript-eslint/parser';
 import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
+import { FlatCompat } from '@eslint/eslintrc';
 
 /**
  * Production-ready ESLint Configuration
@@ -12,6 +13,14 @@ import globals from 'globals';
 
 const reactPlugin = eslintPluginReact || {};
 const reactHooksPlugin = eslintPluginReactHooks || {};
+
+// Next.js compatibility
+const compat = new FlatCompat({
+  baseDirectory: import.meta.dirname,
+});
+
+// Include Next.js rules
+const nextRules = compat.extends('next/core-web-vitals');
 
 // Base configuration for all JS/TS files
 const baseConfig = {
@@ -145,6 +154,17 @@ const typeScriptConfig = {
 };
 
 export default [
+  ...nextRules.map(config => ({
+    ...config,
+    rules: {
+      ...config.rules,
+      // Downgrade Next.js warnings for deployment
+      '@next/next/no-img-element': 'warn',
+      '@next/next/no-html-link-for-pages': 'warn',
+      'jsx-a11y/alt-text': 'warn',
+      'import/no-anonymous-default-export': 'warn',
+    },
+  })),
   baseConfig,
   reactConfig,
   typeScriptConfig,
