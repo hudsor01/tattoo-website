@@ -196,8 +196,9 @@ export function SidebarSearch() {
 
   const groupedResults = results.reduce((acc, result) => {
     if (!result?.category) return acc
-    acc[result.category] ??= []
-    acc[result.category].push(result)
+    const category = result.category
+    acc[category] ??= []
+    acc[category].push(result)
     return acc
   }, {} as Record<string, SearchResult[]>)
 

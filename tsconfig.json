@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
-    // Target and module settings optimized for Next.js 15
     "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "preserve",
     "module": "esnext",
     "moduleResolution": "bundler",
-    
-    // Path resolution
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -20,18 +17,12 @@
       "@store/*": ["./src/store/*"],
       "@types/*": ["./src/types/*"]
     },
-    
-    // Module settings
     "resolveJsonModule": true,
     "allowJs": true,
     "moduleDetection": "force",
-    
-    // Emit settings
     "noEmit": true,
     "incremental": true,
     "tsBuildInfoFile": "./.tsbuildinfo",
-    
-    // Type checking - strict production settings
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -45,25 +36,17 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": false,
     "exactOptionalPropertyTypes": true,
-    
-    // Additional checks - production ready
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
-    
-    // Interop and compatibility
     "isolatedModules": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    
-    // Decorators
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
-    
-    // Plugins
     "plugins": [
       {
         "name": "next"

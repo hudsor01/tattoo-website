@@ -228,7 +228,7 @@ export function GalleryGrid({
                   <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-zinc-800/50 border border-zinc-700/30 group-hover:border-red-500/50 transition-all duration-300">
                     <Image
                       src={photo.src}
-                      alt={photo.alt ?? ''}
+                      alt={photo.alt ?? `${photo.category ?? 'Custom'} tattoo design by Fernando Govea - Professional tattoo artist Dallas Fort Worth`}
                       fill
                       priority={index < 12} 
                       quality={95}
@@ -285,7 +285,7 @@ export function GalleryGrid({
                   <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-zinc-800/50 border border-zinc-700/30 group-hover:border-red-500/50 transition-all duration-300 shadow-xl group-hover:shadow-2xl">
                     <Image
                       src={photo.src}
-                      alt={photo.alt ?? ''}
+                      alt={photo.alt ?? `${photo.category ?? 'Custom'} tattoo design by Fernando Govea - Professional tattoo artist Dallas Fort Worth`}
                       fill
                       priority={index < 6} 
                       quality={95}
