@@ -15,22 +15,65 @@ export default function SignUpPage() {
           .cl-footerPages {
             display: none !important;
           }
+          
+          /* AGGRESSIVE LOGO SIZING - Multiple selectors for all scenarios */
           .cl-logoImage,
           .cl-logoImg,
           .cl-headerLogo img,
           .cl-headerLogo,
-          [data-localization-key="logoImageAltText"] {
-            width: 200px !important;
+          .cl-header img,
+          .cl-card .cl-header img,
+          .cl-main .cl-header img,
+          .cl-signUp-start .cl-header img,
+          .cl-signIn-start .cl-header img,
+          [data-localization-key="logoImageAltText"],
+          .cl-header .cl-logoImage,
+          .cl-header .cl-logoImg,
+          .cl-header [data-localization-key="logoImageAltText"],
+          .cl-card .cl-logoImage,
+          .cl-card .cl-logoImg,
+          .cl-main .cl-logoImage,
+          .cl-main .cl-logoImg,
+          .cl-signUp .cl-logoImage,
+          .cl-signUp .cl-logoImg,
+          .cl-signIn .cl-logoImage,
+          .cl-signIn .cl-logoImg {
+            width: 300px !important;
             height: auto !important;
             max-width: none !important;
             max-height: none !important;
-            min-width: 200px !important;
+            min-width: 300px !important;
+            transform: scale(1) !important;
+            object-fit: contain !important;
           }
+          
+          /* Logo container styling */
           .cl-logoBox,
-          .cl-headerLogo {
+          .cl-headerLogo,
+          .cl-header .cl-logoBox,
+          .cl-header .cl-headerLogo,
+          .cl-card .cl-logoBox,
+          .cl-card .cl-headerLogo {
             height: auto !important;
+            width: 100% !important;
             margin-bottom: 32px !important;
             text-align: center !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+          }
+          
+          /* Force all img tags inside Clerk components to be large */
+          .cl-rootBox img,
+          .cl-card img,
+          .cl-main img,
+          .cl-header img,
+          .cl-signUp img,
+          .cl-signIn img {
+            min-width: 300px !important;
+            width: 300px !important;
+            height: auto !important;
+            max-width: none !important;
           }
         `,
         }}
@@ -47,6 +90,10 @@ export default function SignUpPage() {
               fontSize: '17px',
               fontFamily: 'system-ui, sans-serif',
               borderRadius: '12px',
+            },
+            layout: {
+              logoImageUrl: '/logo.png',
+              logoLinkUrl: '/',
             },
             elements: {
               card: 'bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 shadow-2xl rounded-xl p-8',
