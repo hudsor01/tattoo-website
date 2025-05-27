@@ -213,9 +213,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://qrcweallqlcgwiwzhqpb.supabase.co" />
           <link rel="dns-prefetch" href="https://js.clerk.com" />
-          {/* Preload critical hero images */}
-          <link rel="preload" href="/images/traditional.jpg" as="image" type="image/jpeg" />
-          <link rel="preload" href="/images/japanese.jpg" as="image" type="image/jpeg" />
+          {/* Preload critical hero images only on home page */}
           
         </head>
         <body className="font-inter bg-black text-white antialiased">
