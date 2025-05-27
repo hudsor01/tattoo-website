@@ -119,6 +119,7 @@ export default function SignInPage() {
             layout: {
               logoImageUrl: '/logo.png',
               logoLinkUrl: '/',
+              logoPlacement: 'inside',
             },
             elements: {
               card: 'bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 shadow-2xl rounded-xl p-8',
@@ -139,6 +140,8 @@ export default function SignInPage() {
               footerPages: 'hidden',
               dividerLine: 'bg-zinc-700/50',
               dividerText: 'text-zinc-500 text-base font-medium px-4',
+              logoBox: 'flex justify-center items-center w-full mb-8',
+              logoImage: 'w-[250px] h-auto',
             },
           }}
         />
