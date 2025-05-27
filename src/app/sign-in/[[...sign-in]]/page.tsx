@@ -117,9 +117,7 @@ export default function SignInPage() {
               borderRadius: '12px',
             },
             layout: {
-              logoImageUrl: '/logo.png',
-              logoLinkUrl: '/',
-              logoPlacement: 'inside',
+              logoPlacement: 'none',
             },
             elements: {
               card: 'bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 shadow-2xl rounded-xl p-8',
