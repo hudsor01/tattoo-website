@@ -35,11 +35,12 @@ export default clerkMiddleware(async (auth, req) => {
   // CSP for production security
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://unpkg.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.clerk.accounts.dev",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' https: data: blob:",
-    "connect-src 'self' https: wss:",
+    "connect-src 'self' https: wss: https://www.google-analytics.com https://analytics.google.com",
+    "worker-src 'self' blob:",
     "frame-src 'self' https://challenges.cloudflare.com https://js.clerk.com https://*.clerk.accounts.dev",
     "object-src 'none'",
     "base-uri 'self'",
