@@ -173,10 +173,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <ClerkProvider
-      signInUrl="/sign-in"
-      signUpUrl="/sign-up"
-      afterSignInUrl="/admin"
-      afterSignUpUrl="/admin"
+      signInFallbackRedirectUrl="/admin"
+      signUpFallbackRedirectUrl="/admin"
       appearance={{
         variables: {
           colorPrimary: '#dc2626', // Red theme for tattoo branding
