@@ -15,7 +15,7 @@ export default function SignInPage() {
           .cl-footerPages {
             display: none !important;
           }
-          
+
           /* AGGRESSIVE LOGO SIZING - Multiple selectors for all scenarios */
           .cl-logoImage,
           .cl-logoImg,
@@ -46,7 +46,7 @@ export default function SignInPage() {
             transform: scale(1) !important;
             object-fit: contain !important;
           }
-          
+
           /* Logo container styling */
           .cl-logoBox,
           .cl-headerLogo,
@@ -62,16 +62,16 @@ export default function SignInPage() {
             justify-content: center !important;
             align-items: center !important;
           }
-          
-          /* Force all img tags inside Clerk components to be large */
-          .cl-rootBox img,
-          .cl-card img,
-          .cl-main img,
-          .cl-header img,
-          .cl-signUp img,
-          .cl-signIn img,
-          img[alt*="logo"],
-          img[src*="logo"],
+
+          /* Force all img tags inside Clerk components to be large, EXCLUDING social provider icons */
+          .cl-rootBox img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          .cl-card img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          .cl-main img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          .cl-header img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          .cl-signUp img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          .cl-signIn img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          img[alt*="logo"]:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          img[src*="logo"]:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
           img[src="/logo.png"] {
             min-width: 300px !important;
             width: 300px !important;
@@ -79,11 +79,21 @@ export default function SignInPage() {
             max-width: none !important;
             transform: scale(1.5) !important;
           }
-          
-          /* Nuclear option - force ALL images in auth to be huge */
-          div[data-clerk-theme] img,
-          [data-clerk-appearance] img,
-          .cl-component img {
+
+          /* Style for social provider icons (e.g., Google icon) */
+          .cl-socialButtonsProviderIcon__google,
+          .cl-providerIcon {
+            width: 24px !important; /* Or your desired size */
+            height: 24px !important; /* Or your desired size */
+            min-width: unset !important;
+            transform: scale(1) !important; /* Reset scaling */
+            margin-right: 8px !important; /* Optional: add some space next to text */
+          }
+
+          /* Nuclear option - force ALL images in auth to be huge, EXCLUDING social provider icons */
+          div[data-clerk-theme] img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          [data-clerk-appearance] img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon),
+          .cl-component img:not(.cl-socialButtonsProviderIcon__google):not(.cl-providerIcon) {
             width: 300px !important;
             min-width: 300px !important;
             height: auto !important;
