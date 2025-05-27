@@ -69,11 +69,26 @@ export default function SignUpPage() {
           .cl-main img,
           .cl-header img,
           .cl-signUp img,
-          .cl-signIn img {
+          .cl-signIn img,
+          img[alt*="logo"],
+          img[src*="logo"],
+          img[src="/logo.png"] {
             min-width: 300px !important;
             width: 300px !important;
             height: auto !important;
             max-width: none !important;
+            transform: scale(1.5) !important;
+          }
+          
+          /* Nuclear option - force ALL images in auth to be huge */
+          div[data-clerk-theme] img,
+          [data-clerk-appearance] img,
+          .cl-component img {
+            width: 300px !important;
+            min-width: 300px !important;
+            height: auto !important;
+            max-width: 300px !important;
+            transform: scale(1.5) !important;
           }
         `,
         }}
