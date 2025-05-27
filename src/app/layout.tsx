@@ -173,6 +173,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <ClerkProvider
+      frontendApi="clerk.ink37tattoos.com"
       signInFallbackRedirectUrl="/admin"
       signUpFallbackRedirectUrl="/admin"
       appearance={{
