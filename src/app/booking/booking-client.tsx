@@ -27,7 +27,7 @@ export default function BookingClient() {
             <h1 className="text-4xl font-bold text-white mb-6">Book Your Appointment</h1>
             <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
               Schedule your tattoo consultation directly with Ink 37 Tattoos. Choose your preferred
-              time and we'll handle the rest.
+              time and we&apos;ll handle the rest.
             </p>
           </div>
 
@@ -81,7 +81,7 @@ export default function BookingClient() {
                   Contact Us Directly
                 </h3>
                 <p className="text-gray-300 mb-6 text-center">
-                  If you're having trouble with the booking system, reach out to us using any of
+                  If you&apos;re having trouble with the booking system, reach out to us using any of
                   these methods:
                 </p>
 

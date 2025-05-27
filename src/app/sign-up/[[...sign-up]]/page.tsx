@@ -1,8 +1,8 @@
 'use client';
 
-import { SignIn } from '@clerk/nextjs';
+import { SignUp } from '@clerk/nextjs';
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-black px-4 py-8">
       <style
@@ -36,7 +36,7 @@ export default function SignInPage() {
         }}
       />
       <div className="w-full max-w-md relative">
-        <SignIn
+        <SignUp
           forceRedirectUrl="/admin"
           fallbackRedirectUrl="/admin"
           appearance={{

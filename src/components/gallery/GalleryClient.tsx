@@ -24,7 +24,7 @@ export default function GalleryClient() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">Tattoo Gallery</h1>
           <p className="text-lg text-gray-600">
-            Explore Ink 37 Tattoos' custom tattoo artwork and get inspired for your next piece.
+            Explore Ink 37 Tattoos&apos; custom tattoo artwork and get inspired for your next piece.
           </p>
         </div>
         <GalleryInfinite showFilters={true} gridCols={3} itemsPerPage={24} />
