@@ -941,3 +941,16 @@ export interface ContactFormErrorResponse {
   success: boolean;
   errors?: Array<{ field: string; message: string }>;
 }
+
+/**
+ * ========================================================================
+ * SERVER ACTION TYPES (React 19)
+ * ========================================================================
+ */
+
+export interface ContactFormState {
+  status: 'idle' | 'pending' | 'success' | 'error';
+  message?: string;
+  errors?: Record<string, string[]>;
+  submissionId?: string;
+}

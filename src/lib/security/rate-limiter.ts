@@ -1,0 +1,249 @@
+/**
+ * Advanced Rate Limiting and Security Middleware
+ *
+ * Implements multiple rate limiting strategies and security enhancements
+ * for different types of requests and user types.
+ */
+import { NextRequest } from 'next/server';
+
+// Rate limit configurations
+const RATE_LIMITS = {
+  // API endpoints
+  API_GENERAL: { requests: 100, window: 60 * 1000 }, // 100 requests per minute
+  API_CONTACT: { requests: 5, window: 60 * 1000 }, // 5 contact form submissions per minute
+  API_BOOKING: { requests: 10, window: 60 * 1000 }, // 10 booking requests per minute
+  API_UPLOAD: { requests: 20, window: 60 * 1000 }, // 20 uploads per minute
+
+  // Authentication endpoints
+  AUTH_SIGNIN: { requests: 5, window: 15 * 60 * 1000 }, // 5 sign-in attempts per 15 minutes
+  AUTH_SIGNUP: { requests: 3, window: 60 * 60 * 1000 }, // 3 sign-ups per hour
+
+  // Public pages
+  GALLERY_VIEW: { requests: 200, window: 60 * 1000 }, // 200 gallery views per minute
+  PAGE_VIEW: { requests: 300, window: 60 * 1000 }, // 300 page views per minute
+} as const;
+
+// In-memory store for rate limiting (consider Redis for production at scale)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Clean up expired entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of rateLimitStore.entries()) {
+    if (now > value.resetTime) {
+      rateLimitStore.delete(key);
+    }
+  }
+}, 60 * 1000); // Clean every minute
+
+/**
+ * Get client IP address with support for various proxy configurations
+ */
+function getClientIP(request: NextRequest): string {
+  // Check common proxy headers
+  const xForwardedFor = request.headers.get('x-forwarded-for');
+  const xRealIp = request.headers.get('x-real-ip');
+  const cfConnectingIp = request.headers.get('cf-connecting-ip'); // Cloudflare
+
+  if (xForwardedFor) {
+    // x-forwarded-for can contain multiple IPs, take the first one
+    return xForwardedFor.split(',')[0]?.trim() ?? 'unknown';
+  }
+
+  if (xRealIp) {
+    return xRealIp;
+  }
+
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+
+  // Fallback to connection IP (Note: request.ip may not be available in all environments)
+  return 'unknown';
+}
+
+/**
+ * Determine rate limit configuration based on request path and method
+ */
+function getRateLimitConfig(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Authentication endpoints
+  if (pathname.includes('/sign-in')) {
+    return RATE_LIMITS.AUTH_SIGNIN;
+  }
+  if (pathname.includes('/sign-up')) {
+    return RATE_LIMITS.AUTH_SIGNUP;
+  }
+
+  // API endpoints
+  if (pathname.startsWith('/api/')) {
+    if (pathname.includes('/contact')) {
+      return RATE_LIMITS.API_CONTACT;
+    }
+    if (pathname.includes('/booking') || pathname.includes('/appointments')) {
+      return RATE_LIMITS.API_BOOKING;
+    }
+    if (pathname.includes('/upload')) {
+      return RATE_LIMITS.API_UPLOAD;
+    }
+    return RATE_LIMITS.API_GENERAL;
+  }
+
+  // Gallery pages (higher limit for browsing)
+  if (pathname.startsWith('/gallery')) {
+    return RATE_LIMITS.GALLERY_VIEW;
+  }
+
+  // Default for other pages
+  return RATE_LIMITS.PAGE_VIEW;
+}
+
+/**
+ * Check if request should be rate limited
+ */
+export function checkRateLimit(request: NextRequest): {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+  limit: number;
+} {
+  const clientIP = getClientIP(request);
+  const config = getRateLimitConfig(request);
+  const key = `${clientIP}:${request.nextUrl.pathname}`;
+
+  const now = Date.now();
+
+  // Get or create rate limit entry
+  let entry = rateLimitStore.get(key);
+
+  if (!entry || now > entry.resetTime) {
+    // Create new entry or reset expired one
+    entry = {
+      count: 0,
+      resetTime: now + config.window,
+    };
+  }
+
+  // Increment request count
+  entry.count++;
+  rateLimitStore.set(key, entry);
+
+  const allowed = entry.count <= config.requests;
+  const remaining = Math.max(0, config.requests - entry.count);
+
+  return {
+    allowed,
+    remaining,
+    resetTime: entry.resetTime,
+    limit: config.requests,
+  };
+}
+
+/**
+ * Advanced security headers configuration
+ */
+export function getSecurityHeaders(nonce: string) {
+  return {
+    // Prevent MIME type sniffing
+    'X-Content-Type-Options': 'nosniff',
+
+    // Prevent clickjacking
+    'X-Frame-Options': 'DENY',
+
+    // XSS protection (legacy but still useful)
+    'X-XSS-Protection': '1; mode=block',
+
+    // Referrer policy
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+
+    // Permissions policy
+    'Permissions-Policy': [
+      'camera=()',
+      'microphone=()',
+      'geolocation=()',
+      'payment=()',
+      'usb=()',
+      'magnetometer=()',
+      'gyroscope=()',
+      'accelerometer=()',
+    ].join(', '),
+
+    // Strict Transport Security (HTTPS only)
+    'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+
+    // Content Security Policy with nonce
+    'Content-Security-Policy': [
+      "default-src 'self'",
+      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://js.clerk.com https://*.clerk.ink37tattoos.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com`,
+      `style-src 'self' 'nonce-${nonce}' 'unsafe-inline' https://fonts.googleapis.com https://*.clerk.ink37tattoos.com`,
+      "font-src 'self' https://fonts.gstatic.com https://ssl.gstatic.com",
+      "img-src 'self' https: data: blob:",
+      "connect-src 'self' https: wss: https://www.google-analytics.com https://analytics.google.com https://*.googleapis.com https://*.gstatic.com https://*.clerk.ink37tattoos.com https://*.supabase.co",
+      "worker-src 'self' blob:",
+      "frame-src 'self' https://challenges.cloudflare.com https://js.clerk.com https://*.clerk.ink37tattoos.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      'upgrade-insecure-requests',
+    ].join('; '),
+  };
+}
+
+/**
+ * Detect potential security threats and suspicious patterns
+ */
+export function detectThreats(request: NextRequest): {
+  isSuspicious: boolean;
+  threats: string[];
+} {
+  const threats: string[] = [];
+  const { pathname, searchParams } = request.nextUrl;
+  const userAgent = request.headers.get('user-agent') ?? '';
+
+  // Check for common attack patterns in URL
+  const suspiciousPatterns = [
+    /\.\./, // Directory traversal
+    /<script/i, // XSS attempts
+    /union.*select/i, // SQL injection
+    /javascript:/i, // JavaScript injection
+    /vbscript:/i, // VBScript injection
+    /onload=/i, // Event handler injection
+    /onerror=/i, // Error handler injection
+  ];
+
+  for (const pattern of suspiciousPatterns) {
+    if (pattern.test(pathname) || pattern.test(searchParams.toString())) {
+      threats.push(`Suspicious pattern in URL: ${pattern.source}`);
+    }
+  }
+
+  // Check for bot/scanner user agents
+  const botPatterns = [/sqlmap/i, /nikto/i, /nessus/i, /openvas/i, /nmap/i, /masscan/i];
+
+  for (const pattern of botPatterns) {
+    if (pattern.test(userAgent)) {
+      threats.push(`Malicious scanner detected: ${pattern.source}`);
+    }
+  }
+
+  // Check for suspicious request frequency from same IP
+  // (This would be enhanced with more sophisticated tracking)
+
+  return {
+    isSuspicious: threats.length > 0,
+    threats,
+  };
+}
+
+/**
+ * Generate rate limit headers for client
+ */
+export function getRateLimitHeaders(rateLimitResult: ReturnType<typeof checkRateLimit>) {
+  return {
+    'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+    'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+    'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
+  };
+}

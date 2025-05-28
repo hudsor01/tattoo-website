@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ContactForm from '@/components/ContactForm';
+import ContactFormModern from '@/components/ContactFormModern';
 import { motion } from 'framer-motion';
 import { Mail, Instagram, MapPin, Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -122,7 +122,7 @@ export default function ContactClient() {
               </p>
 
               <div className="flex-grow">
-                <ContactForm />
+                <ContactFormModern />
               </div>
 
               {/* Map Section */}

@@ -13,10 +13,13 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   experimental: {
-    optimisticClientCache: true,
+    // Server Actions configuration
     serverActions: {
       bodySizeLimit: '2mb',
+      allowedOrigins: ['localhost:3000', 'ink37tattoos.com'],
     },
+    
+    // Optimize package imports for better tree shaking
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-accordion',
@@ -42,12 +45,14 @@ const nextConfig = {
       'framer-motion',
       'recharts',
       'date-fns',
-
       '@tanstack/react-query',
       'react-hook-form',
       'yet-another-react-lightbox',
       'react-day-picker',
-      'embla-carousel-react'
+      'embla-carousel-react',
+      '@clerk/nextjs',
+      'zod',
+      'class-variance-authority'
     ],
   },
   async headers() {

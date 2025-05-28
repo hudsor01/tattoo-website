@@ -154,6 +154,17 @@ const typeScriptConfig = {
 };
 
 export default [
+  // Global ignores at the top level
+  {
+    ignores: [
+      '**/.next/**',
+      '**/node_modules/**',
+      '**/out/**',
+      '**/build/**',
+      '**/dist/**',
+      '**/coverage/**',
+    ],
+  },
   ...nextRules.map(config => ({
     ...config,
     rules: {

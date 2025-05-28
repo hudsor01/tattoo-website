@@ -1,13 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Plus, Search, Eye, User, Mail, Phone, MapPin } from 'lucide-react';
+import React, { useState, useOptimistic, useTransition, useMemo, useCallback } from 'react';
+import { Plus, Search, Eye, User, Mail, Phone, MapPin, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { api } from '@/lib/trpc/client';
@@ -38,12 +45,40 @@ type CustomerData = {
   updatedAt: Date;
 };
 
+// React 19 useOptimistic action types for customer operations
+type OptimisticCustomerAction =
+  | { type: 'add'; customer: CustomerData }
+  | { type: 'update'; id: string; updates: Record<string, unknown> };
+
+function optimisticCustomerReducer(
+  customers: CustomerData[],
+  action: OptimisticCustomerAction
+): CustomerData[] {
+  switch (action.type) {
+    case 'add':
+      return [action.customer, ...customers];
+    case 'update':
+      return customers.map((customer) =>
+        customer.id === action.id
+          ? ({ ...customer, ...action.updates, updatedAt: new Date() } as CustomerData)
+          : customer
+      );
+    default:
+      return customers;
+  }
+}
+
 export default function CustomersModern({ className }: CustomersModernProps) {
+  // React 19 useTransition for non-blocking state updates
+  const [isPending, startTransition] = useTransition();
+
+  // Local UI state
   const [searchQuery, setSearchQuery] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<CustomerData | null>(null);
 
   // Form state for new customer
   const [newCustomer, setNewCustomer] = useState({
@@ -56,19 +91,6 @@ export default function CustomersModern({ className }: CustomersModernProps) {
     state: '',
     zipCode: '',
     notes: '',
-  });
-
-  // Create customer mutation
-  const createCustomerMutation = api.admin.createCustomer.useMutation({
-    onSuccess: () => {
-      toast.success('Customer created successfully!');
-      setCreateDialogOpen(false);
-      resetForm();
-      void refetch();
-    },
-    onError: (error) => {
-      toast.error('Failed to create customer: ' + error.message);
-    },
   });
 
   // Use tRPC infinite query for customers
@@ -87,14 +109,82 @@ export default function CustomersModern({ className }: CustomersModernProps) {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
     }
   );
 
-  const customers = data?.pages.flatMap((page) => page.customers) ?? [];
+  const fetchedCustomers = data?.pages.flatMap((page) => page.customers) ?? [];
   const count = data?.pages[0]?.totalCount ?? 0;
 
-  // Reset new customer form
-  const resetForm = () => {
+  // React 19 useOptimistic for instant UI updates
+  const [optimisticCustomers, addOptimisticUpdate] = useOptimistic(
+    fetchedCustomers,
+    optimisticCustomerReducer
+  );
+
+  // Create customer mutation with optimistic updates
+  const createCustomerMutation = api.admin.createCustomer.useMutation({
+    onMutate: async (newCustomerData) => {
+      const tempCustomer: CustomerData = {
+        id: `temp-${Date.now()}`,
+        firstName: newCustomerData.firstName,
+        lastName: newCustomerData.lastName,
+        email: newCustomerData.email ?? null,
+        phone: newCustomerData.phone ?? null,
+        avatarUrl: null,
+        address: newCustomerData.address ?? null,
+        city: newCustomerData.city ?? null,
+        state: newCustomerData.state ?? null,
+        postalCode: newCustomerData.zipCode ?? null,
+        zipCode: newCustomerData.zipCode ?? null,
+        country: null,
+        birthDate: null,
+        notes: newCustomerData.notes ?? null,
+        allergies: null,
+        source: null,
+        tags: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      addOptimisticUpdate({ type: 'add', customer: tempCustomer });
+      return { tempCustomer };
+    },
+    onError: (error) => {
+      // Revert optimistic update on error by refetching
+      void refetch();
+      toast.error('Failed to create customer: ' + error.message);
+    },
+    onSuccess: () => {
+      toast.success('Customer created successfully!');
+      setCreateDialogOpen(false);
+      resetForm();
+      void refetch();
+    },
+  });
+
+  // Update customer mutation with optimistic updates
+  const updateCustomerMutation = api.admin.updateCustomer.useMutation({
+    onMutate: async (data) => {
+      const { id, ...updates } = data;
+      addOptimisticUpdate({ type: 'update', id, updates });
+      return { id, updates };
+    },
+    onError: (error) => {
+      // Revert optimistic update - refetch to get correct state
+      void refetch();
+      toast.error('Failed to update customer: ' + error.message);
+    },
+    onSuccess: () => {
+      toast.success('Customer updated successfully');
+      setEditDialogOpen(false);
+      setEditingCustomer(null);
+    },
+  });
+
+  // Optimized event handlers with React 19 patterns
+  const resetForm = useCallback(() => {
     setNewCustomer({
       firstName: '',
       lastName: '',
@@ -106,73 +196,121 @@ export default function CustomersModern({ className }: CustomersModernProps) {
       zipCode: '',
       notes: '',
     });
-  };
+  }, []);
 
-  // Create customer using secure Supabase function
-  const handleCreateCustomer = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  // React 19 optimized create customer handler with startTransition
+  const handleCreateCustomer = useCallback(
+    async (e?: React.FormEvent) => {
+      e?.preventDefault();
 
-    // Validate required fields
-    if (!newCustomer.firstName.trim()) {
-      void toast.error('First name is required');
-      return;
-    }
+      // Validate required fields
+      if (!newCustomer.firstName.trim()) {
+        toast.error('First name is required');
+        return;
+      }
 
-    if (!newCustomer.lastName.trim()) {
-      void toast.error('Last name is required');
-      return;
-    }
+      if (!newCustomer.lastName.trim()) {
+        toast.error('Last name is required');
+        return;
+      }
 
-    if (!newCustomer.email.trim()) {
-      void toast.error('Email is required');
-      return;
-    }
+      if (!newCustomer.email.trim()) {
+        toast.error('Email is required');
+        return;
+      }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newCustomer.email)) {
-      void toast.error('Please enter a valid email address');
-      return;
-    }
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(newCustomer.email)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
 
-    setIsCreating(true);
-
-    try {
-      await createCustomerMutation.mutateAsync({
-        firstName: newCustomer.firstName.trim(),
-        lastName: newCustomer.lastName.trim(),
-        email: newCustomer.email.trim().toLowerCase(),
-        phone: newCustomer.phone?.trim() || undefined,
-        address: newCustomer.address?.trim() || undefined,
-        city: newCustomer.city?.trim() || undefined,
-        state: newCustomer.state?.trim() || undefined,
-        zipCode: newCustomer.zipCode?.trim() || undefined,
-        notes: newCustomer.notes?.trim() || undefined,
+      startTransition(() => {
+        createCustomerMutation.mutate({
+          firstName: newCustomer.firstName.trim(),
+          lastName: newCustomer.lastName.trim(),
+          email: newCustomer.email.trim().toLowerCase(),
+          phone: newCustomer.phone?.trim() || undefined,
+          address: newCustomer.address?.trim() || undefined,
+          city: newCustomer.city?.trim() || undefined,
+          state: newCustomer.state?.trim() || undefined,
+          zipCode: newCustomer.zipCode?.trim() || undefined,
+          notes: newCustomer.notes?.trim() || undefined,
+        });
       });
-      void refetch();
-    } catch (error) {
-      void console.error('❌ Unexpected error:', error);
-      void toast.error(`Failed to create customer: ${error}`);
-    } finally {
-      setIsCreating(false);
-    }
-  };
+    },
+    [newCustomer, createCustomerMutation]
+  );
+
+  // React 19 optimized update customer handler
+  const handleUpdateCustomer = useCallback(
+    (
+      id: string,
+      updates: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        personalNotes?: string;
+      }
+    ) => {
+      updateCustomerMutation.mutate({ id, ...updates });
+    },
+    [updateCustomerMutation]
+  );
 
   // View customer details
-  const handleViewCustomer = (customer: CustomerData) => {
+  const handleViewCustomer = useCallback((customer: CustomerData) => {
     setSelectedCustomer(customer);
     setViewDialogOpen(true);
-  };
+  }, []);
+
+  // React 19 optimized search handler using startTransition
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  // Dialog handlers
+  const openEditDialog = useCallback((customer: CustomerData) => {
+    setEditingCustomer(customer);
+    setNewCustomer({
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email ?? '',
+      phone: customer.phone ?? '',
+      address: customer.address ?? '',
+      city: customer.city ?? '',
+      state: customer.state ?? '',
+      zipCode: customer.postalCode ?? '',
+      notes: customer.notes ?? '',
+    });
+    setEditDialogOpen(true);
+  }, []);
 
   // Get customer display name
-  const getCustomerName = (customer: CustomerData) => {
+  const getCustomerName = useCallback((customer: CustomerData) => {
     const firstName = customer.firstName ?? '';
     const lastName = customer.lastName ?? '';
     return `${firstName} ${lastName}`.trim() ?? 'Unknown Customer';
-  };
+  }, []);
 
-  // Filter customers based on search
-  const filteredCustomers = customers;
+  // React 19 useMemo for performance optimization
+  const filteredCustomers = useMemo(() => {
+    if (!searchQuery.trim()) return optimisticCustomers;
+
+    const query = searchQuery.toLowerCase();
+    return optimisticCustomers.filter((customer) => {
+      const name = getCustomerName(customer).toLowerCase();
+      const email = customer.email?.toLowerCase() ?? '';
+      const phone = customer.phone?.toLowerCase() ?? '';
+      return name.includes(query) || email.includes(query) || phone.includes(query);
+    });
+  }, [optimisticCustomers, searchQuery, getCustomerName]);
 
   if (isLoading) {
     return (
@@ -206,7 +344,7 @@ export default function CustomersModern({ className }: CustomersModernProps) {
             <Input
               placeholder="Search customers..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -239,7 +377,12 @@ export default function CustomersModern({ className }: CustomersModernProps) {
       )}
 
       {filteredCustomers.map((customer) => (
-        <Card key={customer.id} className="hover:shadow-md transition-shadow">
+        <Card
+          key={customer.id}
+          className={`hover:shadow-md transition-all ${
+            customer.id.startsWith('temp-') ? 'opacity-70 animate-pulse' : ''
+          }`}
+        >
           <CardContent className="p-4 md:p-6">
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               <div className="flex items-center space-x-4 flex-1 min-w-0">
@@ -247,9 +390,16 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   {getCustomerName(customer).charAt(0).toUpperCase()}
                 </div>
                 <div className="space-y-1 min-w-0 flex-1">
-                  <h3 className="font-semibold text-base md:text-lg truncate">
-                    {getCustomerName(customer)}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-base md:text-lg truncate">
+                      {getCustomerName(customer)}
+                    </h3>
+                    {customer.id.startsWith('temp-') && (
+                      <Badge variant="secondary" className="text-xs">
+                        Saving...
+                      </Badge>
+                    )}
+                  </div>
                   <div className="space-y-1">
                     {customer.email && (
                       <div className="flex items-center text-xs md:text-sm text-gray-500">
@@ -279,15 +429,22 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-end sm:justify-start">
+              <div className="flex items-center gap-2 justify-end sm:justify-start">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handleViewCustomer(customer)}
-                  className="w-full sm:w-auto"
+                  disabled={isPending}
                 >
-                  <Eye className="h-4 w-4 mr-2 sm:mr-0" />
-                  <span className="sm:hidden">View Details</span>
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openEditDialog(customer)}
+                  disabled={isPending || customer.id.startsWith('temp-')}
+                >
+                  <Edit className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -334,6 +491,9 @@ export default function CustomersModern({ className }: CustomersModernProps) {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Customer</DialogTitle>
+            <DialogDescription>
+              Create a new customer with instant visual feedback using React 19 optimistic updates
+            </DialogDescription>
           </DialogHeader>
           <form
             onSubmit={(e) => {
@@ -433,15 +593,15 @@ export default function CustomersModern({ className }: CustomersModernProps) {
                   setCreateDialogOpen(false);
                   resetForm();
                 }}
-                disabled={isCreating}
+                disabled={isPending}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={!newCustomer.firstName.trim() || !newCustomer.email.trim() || isCreating}
+                disabled={!newCustomer.firstName.trim() || !newCustomer.email.trim() || isPending}
               >
-                {isCreating ? 'Creating...' : 'Create Customer'}
+                {isPending ? 'Creating...' : 'Create Customer'}
               </Button>
             </div>
           </form>
@@ -505,6 +665,149 @@ export default function CustomersModern({ className }: CustomersModernProps) {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Edit Customer Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+            <DialogDescription>
+              Update customer information with React 19 optimistic updates for instant feedback
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (editingCustomer) {
+                const phone = newCustomer.phone?.trim();
+                const address = newCustomer.address?.trim();
+                const city = newCustomer.city?.trim();
+                const state = newCustomer.state?.trim();
+                const postalCode = newCustomer.zipCode?.trim();
+                const personalNotes = newCustomer.notes?.trim();
+
+                handleUpdateCustomer(editingCustomer.id, {
+                  firstName: newCustomer.firstName.trim(),
+                  lastName: newCustomer.lastName.trim(),
+                  email: newCustomer.email.trim().toLowerCase(),
+                  ...(phone && { phone }),
+                  ...(address && { address }),
+                  ...(city && { city }),
+                  ...(state && { state }),
+                  ...(postalCode && { postalCode }),
+                  ...(personalNotes && { personalNotes }),
+                });
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-firstName">First Name *</Label>
+                <Input
+                  id="edit-firstName"
+                  value={newCustomer.firstName}
+                  onChange={(e) =>
+                    setNewCustomer((prev) => ({ ...prev, firstName: e.target.value }))
+                  }
+                  placeholder="John"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-lastName">Last Name *</Label>
+                <Input
+                  id="edit-lastName"
+                  value={newCustomer.lastName}
+                  onChange={(e) =>
+                    setNewCustomer((prev) => ({ ...prev, lastName: e.target.value }))
+                  }
+                  placeholder="Doe"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-email">Email *</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={newCustomer.email}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="john@example.com"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-phone">Phone</Label>
+                <Input
+                  id="edit-phone"
+                  type="tel"
+                  value={newCustomer.phone}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Input
+                  id="edit-address"
+                  value={newCustomer.address}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, address: e.target.value }))}
+                  placeholder="123 Main St"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-city">City</Label>
+                <Input
+                  id="edit-city"
+                  value={newCustomer.city}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, city: e.target.value }))}
+                  placeholder="New York"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-state">State</Label>
+                <Input
+                  id="edit-state"
+                  value={newCustomer.state}
+                  onChange={(e) => setNewCustomer((prev) => ({ ...prev, state: e.target.value }))}
+                  placeholder="NY"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea
+                id="edit-notes"
+                value={newCustomer.notes}
+                onChange={(e) => setNewCustomer((prev) => ({ ...prev, notes: e.target.value }))}
+                placeholder="Any additional notes about this customer..."
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setEditDialogOpen(false);
+                  setEditingCustomer(null);
+                  resetForm();
+                }}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={!newCustomer.firstName.trim() || !newCustomer.email.trim() || isPending}
+              >
+                {isPending ? 'Updating...' : 'Update Customer'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

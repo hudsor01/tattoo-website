@@ -171,9 +171,15 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     cookieStore.getAll().map((cookie) => [cookie.name, cookie.value])
   );
 
+  // Ensure Clerk publishable key is available
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  if (!clerkPublishableKey) {
+    throw new Error('Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable');
+  }
+
   return (
     <ClerkProvider
-      frontendApi="clerk.ink37tattoos.com"
+      publishableKey={clerkPublishableKey}
       signInFallbackRedirectUrl="/admin"
       signUpFallbackRedirectUrl="/admin"
       appearance={{
@@ -206,14 +212,16 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <meta name="format-detection" content="telephone=no" />
-          <meta name="google-site-verification" content="qv1_HzbLkbp9qF_TxoQryposrxfe8HsgyrM_erp-pCs" />
+          <meta
+            name="google-site-verification"
+            content="qv1_HzbLkbp9qF_TxoQryposrxfe8HsgyrM_erp-pCs"
+          />
           <link rel="canonical" href="https://ink37tattoos.com" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://qrcweallqlcgwiwzhqpb.supabase.co" />
           <link rel="dns-prefetch" href="https://js.clerk.com" />
           {/* Preload critical hero images only on home page */}
-          
         </head>
         <body className="font-inter bg-black text-white antialiased">
           {/* Google Analytics */}
@@ -233,7 +241,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               </Script>
             </>
           )}
-          
+
           {/* Structured data for business */}
           <script
             type="application/ld+json"

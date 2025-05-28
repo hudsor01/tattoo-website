@@ -9,9 +9,8 @@ const GalleryClient = dynamicImport(() => import('@/components/gallery/GalleryCl
   ),
 });
 
-// Force static generation with revalidation every 2 hours (new tattoos)
-export const dynamic = 'force-static';
-export const revalidate = 7200;
+// Use dynamic rendering to avoid server/client component issues
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',
