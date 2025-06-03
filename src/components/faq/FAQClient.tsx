@@ -150,14 +150,14 @@ export default function FAQClient() {
         {/* Hero Section */}
         <div className="relative mb-16">
           {/* Background with gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-tattoo-blue/10 to-transparent rounded-3xl -z-10"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-tattoo-blue/10 to-transparent rounded-3xl -z-10"></div>
           <div className="absolute inset-0 bg-tattoo-black/60 backdrop-blur-sm rounded-3xl -z-10"></div>
 
           <div className="max-w-4xl mx-auto text-center py-16 px-6">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 relative">
               <span className="relative inline-block">
                 Frequently Asked Questions
-                <span className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-tattoo-blue via-tattoo-blue to-transparent"></span>
+                <span className="absolute -bottom-1 left-0 right-0 h-1 bg-linear-to-r from-tattoo-blue via-tattoo-blue to-transparent"></span>
               </span>
             </h1>
             <p className="text-white/70 text-lg max-w-2xl mx-auto mb-8">
@@ -237,92 +237,9 @@ export default function FAQClient() {
               </div>
 
               <div className="bg-tattoo-black/70 backdrop-blur-md rounded-xl border border-white/10 p-6 shadow-lg relative overflow-hidden">
-                {/* Background decorative elements */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-                  {category.icon === 'pen-tool' && (
-                    <svg
-                      width="100%"
-                      height="100%"
-                      viewBox="0 0 500 500"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M50,50 C150,150 250,50 350,150 C450,250 350,350 250,450"
-                        stroke="white"
-                        strokeWidth="10"
-                        fill="none"
-                      />
-                    </svg>
-                  )}
-                  {category.icon === 'help-circle' && (
-                    <svg
-                      width="100%"
-                      height="100%"
-                      viewBox="0 0 500 500"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle
-                        cx="250"
-                        cy="250"
-                        r="200"
-                        stroke="white"
-                        strokeWidth="10"
-                        fill="none"
-                      />
-                      <circle
-                        cx="150"
-                        cy="150"
-                        r="50"
-                        stroke="white"
-                        strokeWidth="10"
-                        fill="none"
-                      />
-                      <circle
-                        cx="350"
-                        cy="350"
-                        r="50"
-                        stroke="white"
-                        strokeWidth="10"
-                        fill="none"
-                      />
-                    </svg>
-                  )}
-                  {category.icon === 'clipboard' && (
-                    <svg
-                      width="100%"
-                      height="100%"
-                      viewBox="0 0 500 500"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect
-                        x="100"
-                        y="50"
-                        width="300"
-                        height="400"
-                        stroke="white"
-                        strokeWidth="10"
-                        fill="none"
-                      />
-                      <line x1="150" y1="150" x2="350" y2="150" stroke="white" strokeWidth="10" />
-                      <line x1="150" y1="200" x2="350" y2="200" stroke="white" strokeWidth="10" />
-                      <line x1="150" y1="250" x2="350" y2="250" stroke="white" strokeWidth="10" />
-                    </svg>
-                  )}
-                  {category.icon === 'scroll' && (
-                    <svg
-                      width="100%"
-                      height="100%"
-                      viewBox="0 0 500 500"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M100,100 Q250,50 400,100 T100,200 T400,300 T100,400"
-                        stroke="white"
-                        strokeWidth="10"
-                        fill="none"
-                      />
-                    </svg>
-                  )}
+                {/* Subtle background pattern */}
+                <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+                <div className="w-full h-full bg-linear-to-br from-var(--color-tattoo-blue)/5 to-transparent" />
                 </div>
 
                 <div className="relative z-10">
@@ -335,7 +252,7 @@ export default function FAQClient() {
 
         {/* CTA Section */}
         <section className="mt-20 relative max-w-4xl mx-auto">
-          <div className="absolute inset-0 bg-gradient-to-r from-tattoo-blue/10 to-tattoo-red/10 blur-2xl rounded-xl"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-var(--color-tattoo-blue)/10 to-var(--color-tattoo-red)/10 blur-2xl rounded-xl"></div>
           <div className="relative z-10 bg-tattoo-black/80 backdrop-blur-lg rounded-xl border border-white/10 p-8 md:p-10 text-center">
             <div className="flex justify-center mb-6">
               <div className="h-16 w-16 rounded-full bg-tattoo-blue/10 flex items-center justify-center">

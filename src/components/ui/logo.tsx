@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/utils';
 import { motion } from 'framer-motion';
-import type { LogoProps } from '@/types/component-types';
+import type { LogoProps } from '@prisma/client';
 
 export function Logo({
   className,
@@ -47,7 +47,7 @@ export function Logo({
             priority
             className="relative z-10"
           />
-          <div className="absolute inset-0 bg-gradient-fancy opacity-40 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-linear-to-tr from-tattoo-red to-accent-orange opacity-40 mix-blend-overlay"></div>
         </div>
       </motion.div>
     ) : (
@@ -60,9 +60,9 @@ export function Logo({
       >
         <span className="text-tattoo-white">Ink</span>{' '}
         <span className="relative">
-          <span className="bg-gradient-fancy bg-clip-text text-transparent">37</span>
+          <span className="bg-linear-to-tr from-tattoo-red to-accent-orange bg-clip-text text-transparent">37</span>
           <motion.span
-            className="absolute -bottom-1 -left-1 -right-1 h-0.5 bg-gradient-to-r from-primary to-secondary"
+            className="absolute -bottom-1 -left-1 -right-1 h-0.5 bg-linear-to-r from-primary to-secondary"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}

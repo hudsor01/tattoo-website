@@ -6,24 +6,54 @@
  */
 
 import { z } from 'zod';
-import type { ApiResponse, ErrorResponse, ValidationError } from '@/types/api-types';
-import { type RecordObject } from '@/types/utility-types';
+// API types for standardized responses and requests
+type ApiResponse<T = unknown> = {
+  data: T;
+  success: boolean;
+  message?: string;
+  meta?: {
+    total?: number;
+    page?: number;
+    limit?: number;
+    hasMore?: boolean;
+  };
+};
 
-/**
- * Common options for all API requests
- */
-interface RequestOptions {
+type ErrorResponse = {
+  error: string;
+  message: string;
+  statusCode: number;
+  timestamp: string;
+  path?: string;
+  details?: unknown;
+};
+
+type ValidationError = {
+  field: string;
+  message: string;
+  code?: string;
+};
+
+type RequestOptions = {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
-  signal?: AbortSignal;
-  cache?: RequestCache;
-}
+  body?: unknown;
+  timeout?: number;
+  validateResponse?: boolean;
+};
 
-/**
- * Parameters for filtering API results
- */
-export interface FilterParams {
-  [key: string]: string | number | boolean | null;
-}
+type FilterParams = {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  search?: string;
+  filters?: Record<string, unknown>;
+};
+
+type RecordObject = Record<string, unknown>;
+
+import { logger } from "@/lib/logger";
 
 /**
  * Error from API requests with status code and structured data
@@ -78,7 +108,7 @@ async function validateResponse<T>(response: Response, schema?: z.ZodType<T>): P
     try {
       return schema.parse(data);
     } catch (error) {
-      void console.error('Response validation error:', error);
+      void void logger.error('Response validation error:', error);
       throw new ApiError('Invalid response data', response.status, response.statusText, {
         success: false,
         error: 'Validation failed',
@@ -294,7 +324,7 @@ export async function trackVideoView(
 
     return { success: true };
   } catch (error) {
-    void console.error('Failed to track video view:', error);
+    void void logger.error('Failed to track video view:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -340,7 +370,7 @@ export async function shareContent(
       shareUrl: shareUrls[platform] ?? baseUrl,
     };
   } catch (error) {
-    void console.error('Share content error:', error);
+    void void logger.error('Share content error:', error);
     // Return error with default URL
     return {
       success: false,

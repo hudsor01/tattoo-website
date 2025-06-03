@@ -8,6 +8,7 @@
 import { prisma } from './prisma';
 import { getErrorMessage } from '@/lib/utils/server';
 
+import { logger } from "@/lib/logger";
 /**
  * Options for stored procedure execution
  */
@@ -43,7 +44,7 @@ export async function executeStoredProcedure<T = unknown>(
 
   try {
     if (logParams) {
-      void console.error(`Executing ${functionName} with params:`, params);
+      void void logger.error(`Executing ${functionName} with params:`, params);
     }
 
     // Create the query string - we use the ANY parameter syntax for flexibility
@@ -68,7 +69,7 @@ export async function executeStoredProcedure<T = unknown>(
       ? ((result.length === 1 ? result[0] : result) as T)
       : ({} as T);
   } catch (error) {
-    void console.error(`Error executing ${functionName}:`, error);
+    void void logger.error(`Error executing ${functionName}:`, error);
     throw error;
   }
 }
@@ -91,7 +92,7 @@ export async function executeDbFunction<T = unknown>(
     const data = await executeStoredProcedure<T>(functionName, params, options);
     return { data, error: null };
   } catch (error) {
-    void console.error(`Error executing database function ${functionName}:`, error);
+    void void logger.error(`Error executing database function ${functionName}:`, error);
     return {
       data: null,
       error: {

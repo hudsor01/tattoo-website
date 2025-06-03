@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { auth } from '@clerk/nextjs/server';
+import { auth } from '@/lib/auth';
+import { ENV } from '@/lib/utils/env';
+import { headers } from 'next/headers';
+import { logger } from '@/lib/logger';
+import { ApiErrors } from '@/lib/api-errors';
+import { validateFileWithErrorHandling, generateSecureFilename, getFileValidationOptions } from '@/lib/utils/file-validation';
+
+// Route runtime configuration (Node.js runtime for Next.js 15.2.0+)
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication (Clerk)
-    const { userId } = await auth();
-    if (!userId) {
+    // Check authentication using direct API access (Next.js 15.2.0+ feature)
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -17,13 +28,23 @@ export async function POST(request: NextRequest) {
     const folder = (formData.get('folder') as string) ?? 'tattoos';
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      throw ApiErrors.badRequest('No file provided');
     }
 
+    // Determine file type based on bucket
+    const fileCategory = bucket === 'gallery' ? 'image' : 
+                        bucket === 'documents' ? 'document' : 'any';
+    
+    // Validate file using our utility
+    validateFileWithErrorHandling(file, getFileValidationOptions(fileCategory));
+
     // Create Supabase client - using anon key since we removed RLS
+    const supabaseUrl = typeof ENV.NEXT_PUBLIC_SUPABASE_URL === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_URL : '';
+    const supabaseKey = typeof ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY : '';
+    
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+      supabaseUrl,
+      supabaseKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -32,9 +53,8 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    // Generate secure filename with proper validation
+    const fileName = generateSecureFilename(file.name, folder);
 
     // Upload to Supabase storage
     const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
@@ -43,8 +63,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      void console.error('Upload error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      void logger.error('Upload error:', error);
+      throw ApiErrors.internalServerError('Failed to upload file', error.message);
     }
 
     // Get public URL
@@ -55,11 +75,28 @@ export async function POST(request: NextRequest) {
       path: data.path,
     });
   } catch (error) {
-    void console.error('Upload failed:', error);
+    void logger.error('Upload failed:', error);
+    
+    // Use our ApiErrors utilities to handle different error types
+    if (error instanceof Error) {
+      // Check if it's already an ApiError
+      if ('code' in error && 'status' in error) {
+        return NextResponse.json(
+          { error: error.message, code: (error as { code: string }).code },
+          { status: (error as { status: number }).status }
+        );
+      }
+      
+      // Generic error
+      return NextResponse.json(
+        { error: error.message, code: 'UPLOAD_FAILED' },
+        { status: 500 }
+      );
+    }
+    
+    // Unknown error
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Upload failed',
-      },
+      { error: 'Upload failed', code: 'UNKNOWN_ERROR' },
       { status: 500 }
     );
   }
@@ -67,9 +104,12 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Check authentication (Clerk)
-    const { userId } = await auth();
-    if (!userId) {
+    // Check authentication using direct API access (Next.js 15.2.0+ feature)
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -77,13 +117,16 @@ export async function DELETE(request: NextRequest) {
     const { path, bucket = 'gallery' } = await request.json();
 
     if (!path) {
-      return NextResponse.json({ error: 'No path provided' }, { status: 400 });
+      throw ApiErrors.badRequest('No path provided');
     }
 
     // Create Supabase client - using anon key since we removed RLS
+    const supabaseUrl = typeof ENV.NEXT_PUBLIC_SUPABASE_URL === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_URL : '';
+    const supabaseKey = typeof ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY : '';
+    
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+      supabaseUrl,
+      supabaseKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -96,17 +139,34 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase.storage.from(bucket).remove([path]);
 
     if (error) {
-      void console.error('Delete error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      void logger.error('Delete error:', error);
+      throw ApiErrors.internalServerError('Failed to delete file', error.message);
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    void console.error('Delete failed:', error);
+    void logger.error('Delete failed:', error);
+    
+    // Use our ApiErrors utilities to handle different error types
+    if (error instanceof Error) {
+      // Check if it's already an ApiError
+      if ('code' in error && 'status' in error) {
+        return NextResponse.json(
+          { error: error.message, code: (error as { code: string }).code },
+          { status: (error as { status: number }).status }
+        );
+      }
+      
+      // Generic error
+      return NextResponse.json(
+        { error: error.message, code: 'DELETE_FAILED' },
+        { status: 500 }
+      );
+    }
+    
+    // Unknown error
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Delete failed',
-      },
+      { error: 'Delete failed', code: 'UNKNOWN_ERROR' },
       { status: 500 }
     );
   }

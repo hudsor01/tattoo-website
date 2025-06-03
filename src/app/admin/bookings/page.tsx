@@ -1,10 +1,6 @@
-import dynamic from 'next/dynamic';
-import { AdminBookingsLoading } from '@/components/admin/AdminLoadingStates';
-
-const BookingsPageContent = dynamic(() => import('./BookingsPageContent'), {
-  loading: () => <AdminBookingsLoading />,
-});
+import React from 'react';
+import { BookingsPageClient } from './client';
 
 export default function BookingsPage() {
-  return <BookingsPageContent />;
+  return <BookingsPageClient />;
 }

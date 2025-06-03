@@ -1,3 +1,5 @@
+// CONVERTED TO SERVER COMPONENT: Pure HTML table elements with forwardRef work in Server Components
+
 import * as React from 'react';
 
 import { cn } from '@/utils';

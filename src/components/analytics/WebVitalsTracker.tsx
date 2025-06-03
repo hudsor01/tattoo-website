@@ -8,22 +8,23 @@
 
 import { useEffect } from 'react';
 import { initWebVitals, trackNavigationTiming } from '@/lib/analytics/web-vitals';
-
-interface WebVitalsTrackerProps {
+import { ENV } from '@/lib/utils/env';
+// Web vitals tracker props
+type WebVitalsTrackerProps = {
   enableLogging?: boolean;
   sampleRate?: number;
-}
+};
 
 export default function WebVitalsTracker({
-  enableLogging = process.env.NODE_ENV === 'development',
-  sampleRate = process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  enableLogging = ENV.NODE_ENV === 'development',
+  sampleRate = ENV.NODE_ENV === 'production' ? 0.1 : 1.0,
 }: WebVitalsTrackerProps) {
   useEffect(() => {
     // Initialize Web Vitals monitoring
     initWebVitals({
       enableConsoleLogging: enableLogging,
       enableAnalytics: true,
-      enableAlerts: process.env.NODE_ENV === 'production',
+      enableAlerts: ENV.NODE_ENV === 'production',
       sampleRate,
     });
 

@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { logger } from "@/lib/logger";
 // Validation schema for custom metrics
 const customMetricSchema = z.object({
   name: z.string().min(1).max(100),
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // Log significant performance events
     if (validatedData.name.includes('render_time') && validatedData.value > 100) {
-      void console.warn('Slow render detected:', {
+      void void logger.warn('Slow render detected:', {
         metric: validatedData.name,
         value: validatedData.value,
         metadata: validatedData.metadata,
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, id: dataPoint.id });
   } catch (error) {
-    void console.error('Error processing custom metric:', error);
+    void void logger.error('Error processing custom metric:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
       metricName: metricName ?? 'all',
     });
   } catch (error) {
-    void console.error('Error retrieving custom metrics:', error);
+    void void logger.error('Error retrieving custom metrics:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

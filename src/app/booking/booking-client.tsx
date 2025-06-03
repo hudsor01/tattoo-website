@@ -1,23 +1,43 @@
+/**
+ * Booking Client Component
+ * 
+ * This component uses the unified Cal.com booking system that provides:
+ * - Service selection and management
+ * - Simple Cal.com iframe integration
+ * - Responsive design for all devices
+ * 
+ * The CalBookingUnified component handles all Cal.com iframe integration,
+ * allowing this component to focus on the page layout and contact fallback.
+ */
 'use client';
 
 import { Button } from '@/components/ui/button';
 import './booking.css';
 import Footer from '@/components/layouts/Footer';
-import { useState, useEffect } from 'react';
-import Script from 'next/script';
+import { useState } from 'react';
+import { CalBookingUnified } from '@/components/booking/cal-booking';
+import type { Prisma, CalEventType } from '@prisma/client';
+
+// Cal service type using Prisma.GetPayload
+type CalService = Prisma.CalEventTypeGetPayload<{
+  select: {
+    id: true;
+    title: true;
+    slug: true;
+    description: true;
+    duration: true;
+    price: true;
+  };
+}>;
 
 export default function BookingClient() {
   const [showContact, setShowContact] = useState(false);
-  const [isCalLoaded, setIsCalLoaded] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('free-consultation');
 
-  useEffect(() => {
-    if (isCalLoaded && typeof window !== 'undefined' && window.Cal) {
-      // Initialize Cal.com with full-width, natural sizing
-      void window.Cal('init', {
-        origin: 'https://cal.com',
-      });
-    }
-  }, [isCalLoaded]);
+  // Handle service selection from the unified component
+  const handleServiceSelect = (service: CalService) => {
+    setSelectedServiceId(service.id);
+  };
 
   return (
     <>
@@ -25,36 +45,22 @@ export default function BookingClient() {
         <div className="container max-w-7xl mx-auto py-12 px-4">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-6">Book Your Appointment</h1>
-            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
               Schedule your tattoo consultation directly with Ink 37 Tattoos. Choose your preferred
               time and we&apos;ll handle the rest.
             </p>
           </div>
 
-          {/* Cal.com Script */}
-          <Script
-            src="https://app.cal.com/embed/embed.js"
-            onLoad={() => setIsCalLoaded(true)}
-            strategy="afterInteractive"
-          />
-
           {!showContact ? (
             <div className="space-y-6">
-              {/* Cal.com Iframe Embed - Primary Booking Method */}
-              <div className="cal-embed-wrapper w-full">
-                <iframe
-                  src="https://cal.com/ink37tattoos/consultation"
-                  width="100%"
-                  height="700"
-                  frameBorder="0"
-                  title="Book Tattoo Consultation"
-                  className="cal-embed-iframe w-full rounded-lg shadow-2xl"
-                  allow="camera; microphone; autoplay; encrypted-media; fullscreen"
-                  loading="lazy"
-                />
-              </div>
+              {/* Unified Cal.com Booking Component */}
+              <CalBookingUnified
+                selectedService={selectedServiceId}
+                onServiceSelect={handleServiceSelect}
+                className="mx-auto"
+              />
 
-              <div className="text-center">
+              <div className="text-center mt-8">
                 <Button
                   variant="outline"
                   onClick={() => setShowContact(true)}
@@ -72,7 +78,7 @@ export default function BookingClient() {
                   onClick={() => setShowContact(false)}
                   className="text-sm bg-white text-black hover:bg-gray-100"
                 >
-                  ← Back to Cal.com booking
+                  ← Back to booking
                 </Button>
               </div>
 
@@ -80,7 +86,7 @@ export default function BookingClient() {
                 <h3 className="text-xl font-bold mb-6 text-white text-center">
                   Contact Us Directly
                 </h3>
-                <p className="text-gray-300 mb-6 text-center">
+                <p className="text-white/70 mb-6 text-center">
                   If you&apos;re having trouble with the booking system, reach out to us using any of
                   these methods:
                 </p>
@@ -107,9 +113,9 @@ export default function BookingClient() {
                   </Button>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-700">
-                  <p className="text-sm text-gray-400 text-center">
-                    For all bookings, we prefer using the Cal.com system above as it handles
+                <div className="mt-6 pt-6 border-t border-white/20">
+                  <p className="text-sm text-white/40 text-center">
+                    For all bookings, we prefer using the booking system above as it handles
                     scheduling and deposits automatically.
                   </p>
                 </div>

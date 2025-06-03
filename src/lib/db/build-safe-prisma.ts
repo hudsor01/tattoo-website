@@ -5,6 +5,7 @@
 
 import { prisma } from './prisma';
 
+import { logger } from "@/lib/logger";
 export interface BuildSafeQueryOptions<T = unknown> {
   timeout?: number;
   fallback?: T;
@@ -22,10 +23,10 @@ export async function buildSafeQuery<T>(
   const { timeout = 3000, fallback = null, buildTimeFallback = null } = options;
 
   // Check if we're in build mode without database access
-  const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+  const isBuildTime = process.env['NODE_ENV'] === 'production' && !process.env['DATABASE_URL'];
 
   if (isBuildTime && buildTimeFallback !== null) {
-    console.warn('Database unavailable during build, using build-time fallback');
+    void logger.warn('Database unavailable during build, using build-time fallback');
     return buildTimeFallback;
   }
 
@@ -40,7 +41,7 @@ export async function buildSafeQuery<T>(
 
     return result;
   } catch (error) {
-    console.warn(
+    void logger.warn(
       'Database query failed, using fallback:',
       error instanceof Error ? error.message : 'Unknown error'
     );

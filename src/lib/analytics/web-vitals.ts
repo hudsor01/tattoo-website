@@ -6,7 +6,22 @@
  */
 'use client';
 
-import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
+// Remove unused web-vitals import
+// import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
+import { ENV, SERVER_ENV } from '@/lib/utils/env';
+
+import { logger } from "@/lib/logger";
+// Temporary type definitions - currently unused until web-vitals is installed
+/*
+type Metric = {
+  name: string;
+  value: number;
+  delta: number;
+  id: string;
+  entries: PerformanceEntry[];
+  navigationType?: string;
+};
+*/
 import { useEffect } from 'react';
 
 // Type declaration for Network Information API
@@ -45,16 +60,23 @@ interface PerformanceConfig {
   sampleRate: number; // 0.0 to 1.0
 }
 
+const nodeEnv =
+  typeof ENV === 'object' && 'NODE_ENV' in ENV && ENV.NODE_ENV
+    ? ENV.NODE_ENV
+    : (typeof window !== 'undefined' ? 'development' : SERVER_ENV.NODE_ENV ?? 'development');
+
 const defaultConfig: PerformanceConfig = {
-  enableConsoleLogging: process.env.NODE_ENV === 'development',
+  enableConsoleLogging: nodeEnv === 'development',
   enableAnalytics: true,
-  enableAlerts: process.env.NODE_ENV === 'production',
-  sampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0, // 10% sampling in production
+  enableAlerts: nodeEnv === 'production',
+  sampleRate: nodeEnv === 'production' ? 0.1 : 1.0, // 10% sampling in production
 };
 
 /**
  * Get performance rating based on thresholds
+ * Currently disabled until web-vitals package is installed
  */
+/*
 function getPerformanceRating(metric: Metric): 'good' | 'needs-improvement' | 'poor' {
   const thresholds = PERFORMANCE_THRESHOLDS[metric.name as keyof typeof PERFORMANCE_THRESHOLDS];
   if (!thresholds) return 'good';
@@ -67,6 +89,7 @@ function getPerformanceRating(metric: Metric): 'good' | 'needs-improvement' | 'p
 /**
  * Send metric to analytics service
  */
+/*
 async function sendToAnalytics(metric: Metric, rating: string) {
   try {
     // Send to Google Analytics 4 if available
@@ -108,16 +131,18 @@ async function sendToAnalytics(metric: Metric, rating: string) {
       });
     }
   } catch (error) {
-    void console.error('Failed to send analytics:', error);
+    void void logger.error('Failed to send analytics:', error);
   }
 }
+*/
 
 /**
  * Log performance alerts for poor metrics
  */
+/*
 function logPerformanceAlert(metric: Metric, rating: string) {
   if (rating === 'poor' && defaultConfig.enableAlerts) {
-    void console.warn(`🚨 Performance Alert: ${metric.name}`, {
+    void void logger.warn(`🚨 Performance Alert: ${metric.name}`, {
       value: metric.value,
       threshold: PERFORMANCE_THRESHOLDS[metric.name as keyof typeof PERFORMANCE_THRESHOLDS],
       url: window.location.href,
@@ -125,16 +150,19 @@ function logPerformanceAlert(metric: Metric, rating: string) {
     });
 
     // In production, you might want to send alerts to a monitoring service
-    if (process.env.NODE_ENV === 'production') {
+    if (ENV.NODE_ENV === 'production') {
       // Example: Send to monitoring service
       // sendToMonitoringService(metric, rating);
     }
   }
 }
+*/
 
 /**
  * Handle individual metric measurement
+ * Currently disabled until web-vitals package is installed
  */
+/*
 function handleMetric(metric: Metric) {
   // Sample rate check
   if (Math.random() > defaultConfig.sampleRate) {
@@ -144,7 +172,7 @@ function handleMetric(metric: Metric) {
   const rating = getPerformanceRating(metric);
 
   if (defaultConfig.enableConsoleLogging) {
-    void console.error(`📊 ${metric.name}:`, {
+    void void logger.error(`📊 ${metric.name}:`, {
       value: metric.value,
       rating,
       id: metric.id,
@@ -158,6 +186,7 @@ function handleMetric(metric: Metric) {
   // Log alerts for poor performance
   logPerformanceAlert(metric, rating);
 }
+*/
 
 /**
  * Initialize Web Vitals monitoring
@@ -166,18 +195,19 @@ export function initWebVitals(config: Partial<PerformanceConfig> = {}) {
   Object.assign(defaultConfig, config);
 
   try {
+    // TODO: Uncomment when web-vitals package is installed
     // Core Web Vitals
-    onCLS(handleMetric);
-    onINP(handleMetric); // INP replaced FID in web-vitals v3
-    onLCP(handleMetric);
+    // onCLS(handleMetric);
+    // onINP(handleMetric); // INP replaced FID in web-vitals v3
+    // onLCP(handleMetric);
 
     // Additional metrics
-    onFCP(handleMetric);
-    onTTFB(handleMetric);
+    // onFCP(handleMetric);
+    // onTTFB(handleMetric);
 
-    void console.error('🔄 Web Vitals monitoring initialized');
+    void void logger.warn('🔄 Web Vitals monitoring disabled - install web-vitals package');
   } catch (error) {
-    void console.error('Failed to initialize Web Vitals:', error);
+    void void logger.error('Failed to initialize Web Vitals:', error);
   }
 }
 
@@ -186,7 +216,7 @@ export function initWebVitals(config: Partial<PerformanceConfig> = {}) {
  */
 export function trackCustomMetric(event: CustomPerformanceEvent) {
   if (defaultConfig.enableConsoleLogging) {
-    void console.error(`📈 Custom Metric: ${event.name}`, event);
+    void void logger.error(`📈 Custom Metric: ${event.name}`, event);
   }
 
   if (defaultConfig.enableAnalytics) {
@@ -197,7 +227,7 @@ export function trackCustomMetric(event: CustomPerformanceEvent) {
       },
       body: JSON.stringify(event),
     }).catch((error) => {
-      void console.error('Failed to send custom metric:', error);
+      void void logger.error('Failed to send custom metric:', error);
     });
   }
 }

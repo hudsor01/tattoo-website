@@ -5,11 +5,12 @@
  * including retrieving tattoo designs and portfolio items.
  */
 import { z } from 'zod';
-import { publicProcedure, protectedProcedure, adminProcedure, router } from '../server';
+import { logger } from '@/lib/logger';
+import { publicProcedure, protectedProcedure, adminProcedure, router } from '../procedures';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
-import type { DatabaseDesignType } from '@/types/gallery-types';
 import { randomUUID } from 'node:crypto';
+
 
 // Validation schema for creating a design
 export const designValidator = z.object({
@@ -54,19 +55,8 @@ export const galleryRouter = router({
       const queryOptions: Prisma.TattooDesignFindManyArgs = {
         where,
         take: limit + 1, // take an extra item to determine if there are more
-        orderBy: { createdAt: 'desc' },
-        include: {
-          Artist: {
-            include: {
-              User: {
-                select: {
-                  name: true,
-                  image: true,
-                },
-              },
-            },
-          },
-        },
+        orderBy: { createdAt: 'desc' }
+        // No relationships in current schema
       };
 
       // Only add cursor if it's provided
@@ -96,26 +86,8 @@ export const galleryRouter = router({
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
       const design = await ctx.db.tattooDesign.findUnique({
-        where: { id: input.id },
-        include: {
-          Artist: {
-            include: {
-              User: {
-                select: {
-                  name: true,
-                  image: true,
-                },
-              },
-            },
-          },
-          Customer: {
-            select: {
-              firstName: true,
-              lastName: true,
-              email: true,
-            },
-          },
-        },
+        where: { id: input.id }
+        // No relationships in current schema
       });
 
       if (!design) {
@@ -138,8 +110,10 @@ export const galleryRouter = router({
 
   // Create a new design (protected - must be logged in)
   create: protectedProcedure.input(designValidator).mutation(async ({ input, ctx }) => {
-    void console.warn('tRPC gallery.create input received:', JSON.stringify(input, null, 2));
-    void console.warn('Input validation result:', designValidator.safeParse(input));
+    void logger.info('tRPC gallery.create input received', {
+      input: JSON.stringify(input, null, 2),
+      validationResult: designValidator.safeParse(input)
+    });
 
     try {
       // Create the design - artist already exists in database
@@ -205,8 +179,8 @@ export const galleryRouter = router({
       try {
         // Find the design first
         const existingDesign = await ctx.db.tattooDesign.findUnique({
-          where: { id },
-          include: { Artist: true },
+          where: { id }
+          // No Artist relationship in current schema
         });
 
         if (!existingDesign) {
@@ -279,7 +253,7 @@ export const galleryRouter = router({
       try {
         // Find the design first
         const existingDesign = await ctx.db.tattooDesign.findUnique({
-          where: { id: input.id },
+          where: { id: input.id }
         });
 
         if (!existingDesign) {
@@ -327,7 +301,7 @@ export const galleryRouter = router({
 
     // Extract unique design types and filter out null/undefined values
     const designTypes = designs
-      .map((design: DatabaseDesignType) => design.designType)
+      .map((design: { designType: string | null }) => design.designType)
       .filter((type): type is string => typeof type === 'string' && type !== '');
 
     return designTypes;

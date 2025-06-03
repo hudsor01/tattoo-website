@@ -1,259 +1,169 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
-import { verifyAdminAccess } from '@/lib/utils/server';
-
 /**
- * GET /api/admin/dashboard
- * Get dashboard statistics and overview data for the admin dashboard
+ * Admin Dashboard API - Cal.com Integration
+ * 
+ * Purpose: Fetch real-time booking and analytics data for admin dashboard
+ * Dependencies: Cal.com webhooks, Prisma database, analytics services
  */
-export async function GET() {
+
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db/prisma";
+import type { User } from '@prisma/client';
+
+import { logger } from "@/lib/logger";
+export async function GET(request: NextRequest) {
   try {
-    // Verify admin access
-    const hasAccess = await verifyAdminAccess();
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    // Verify admin authentication
+    const session = await auth.api.getSession({
+      headers: request.headers
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const today = new Date();
-    const startOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const endOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    const user = session.user as User;
+    if (user.role !== 'admin' && user.role !== 'superadmin') {
+      return NextResponse.json(
+        { error: "Forbidden - Admin access required" },
+        { status: 403 }
+      );
+    }
 
-    // Execute all database queries in parallel for better performance
+    // Fetch dashboard metrics
     const [
-      totalClients,
-      newClientsThisMonth,
-      newClientsPrevMonth,
-      upcomingAppointments,
-      upcomingAppointmentsCount,
-      recentMessages,
-      unreadMessagesCount,
-      currentMonthPayments,
-      prevMonthPayments,
-      todayAppointments,
+      totalAppointments,
+      pendingAppointments,
+      confirmedAppointments,
+      cancelledAppointments,
+      totalCustomers,
+      recentAppointments
     ] = await Promise.all([
-      // Total clients
-      prisma.customer.count(),
-
-      // New clients this month
-      prisma.customer.count({
-        where: {
-          createdAt: {
-            gte: today,
-          },
-        },
-      }),
-
-      // New clients previous month
-      prisma.customer.count({
-        where: {
-          createdAt: {
-            gte: startOfPrevMonth,
-            lte: endOfPrevMonth,
-          },
-        },
-      }),
-
-      // Upcoming appointments
-      prisma.appointment.findMany({
-        where: {
-          startDate: {
-            gte: today,
-          },
-          status: {
-            in: ['scheduled', 'confirmed'],
-          },
-        },
-        orderBy: {
-          startDate: 'asc',
-        },
-        take: 5,
-        include: {
-          Customer: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true,
-            },
-          },
-        },
-      }),
-
-      // Total upcoming appointments count
+      // Total appointments
+      prisma.appointment.count(),
+      
+      // Pending appointments
       prisma.appointment.count({
-        where: {
-          startDate: {
-            gte: today,
-          },
-          status: {
-            in: ['scheduled', 'confirmed'],
-          },
-        },
+        where: { status: "PENDING" }
       }),
-
-      // Recent messages (interactions)
-      prisma.interaction.findMany({
-        where: {
-          type: 'message',
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 5,
-        include: {
-          Customer: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-        },
+      
+      // Confirmed appointments
+      prisma.appointment.count({
+        where: { status: "CONFIRMED" }
       }),
-
-      // Unread messages count
-      prisma.interaction.count({
-        where: {
-          type: 'message',
-          direction: 'incoming',
-          // No completedAt means not read yet
-          completedAt: null,
-        },
+      
+      // Cancelled appointments
+      prisma.appointment.count({
+        where: { status: "CANCELLED" }
       }),
-
-      // Monthly revenue
-      prisma.transaction.aggregate({
-        where: {
-          createdAt: {
-            gte: today,
-          },
-          status: 'completed',
-        },
-        _sum: {
-          amount: true,
-        },
-      }),
-
-      // Previous month revenue
-      prisma.transaction.aggregate({
-        where: {
-          createdAt: {
-            gte: startOfPrevMonth,
-            lte: endOfPrevMonth,
-          },
-          status: 'completed',
-        },
-        _sum: {
-          amount: true,
-        },
-      }),
-
-      // Today's appointments
+      
+      // Total customers
+      prisma.customer.count(),
+      
+      // Recent appointments with customer info
       prisma.appointment.findMany({
-        where: {
-          startDate: {
-            gte: new Date(today.setHours(0, 0, 0, 0)),
-            lte: new Date(today.setHours(23, 59, 59, 999)),
-          },
-        },
-        orderBy: {
-          startDate: 'asc',
-        },
+        take: 10,
+        orderBy: { createdAt: 'desc' },
         include: {
-          Customer: {
+          customer: {
             select: {
-              id: true,
               firstName: true,
               lastName: true,
-            },
-          },
-        },
-      }),
+              email: true
+            }
+          }
+        }
+      })
     ]);
 
-    // Format upcoming appointments for frontend
-    const formattedUpcomingAppointments = upcomingAppointments.map(
-      (appointment: (typeof upcomingAppointments)[number]) => ({
-        id: appointment.id,
-        title: appointment.title,
-        startTime: appointment.startDate,
-        endTime: appointment.endDate,
-        status: appointment.status,
-        client: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-        clientId: appointment.Customer.id,
-        deposit: appointment.deposit ?? 0,
-        depositPaid: appointment.deposit ? true : false,
-        service: appointment.description ?? appointment.title,
-      })
-    );
-
-    // Calculate percentage change in clients
-    const clientsPercentChange =
-      newClientsPrevMonth > 0
-        ? Math.round(((newClientsThisMonth - newClientsPrevMonth) / newClientsPrevMonth) * 100)
-        : newClientsThisMonth > 0
-          ? 100
-          : 0;
-
-    // Calculate percentage change in revenue
-    const currentMonthRevenue = currentMonthPayments._sum.amount ?? 0;
-    const prevMonthRevenue = prevMonthPayments._sum.amount ?? 0;
-    const revenuePercentChange =
-      prevMonthRevenue > 0
-        ? Math.round(((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
-        : currentMonthRevenue > 0
-          ? 100
-          : 0;
-
-    // Compile stats for frontend
-    const stats = [
-      {
-        title: 'Total Clients',
-        value: totalClients,
-        description: 'Active clients in your studio',
-        icon: 'PersonIcon',
-        color: '#3b82f6',
-        change: `${clientsPercentChange > 0 ? '+' : ''}${clientsPercentChange}%`,
-        link: '/admin/dashboard/customers',
+    // Calculate revenue metrics
+    const revenueData = await prisma.appointment.aggregate({
+      _sum: {
+        totalPrice: true
       },
-      {
-        title: 'Upcoming Sessions',
-        value: upcomingAppointmentsCount,
-        description: 'Scheduled in next 30 days',
-        icon: 'EventIcon',
-        color: '#d62828',
-        change: 'Current',
-        link: '/admin/dashboard/appointments',
+      _avg: {
+        totalPrice: true
       },
-      {
-        title: 'New Messages',
-        value: unreadMessagesCount,
-        description: 'Unread inquiries and requests',
-        icon: 'MessageIcon',
-        color: '#10b981',
-        change: unreadMessagesCount > 0 ? 'New' : 'None',
-        link: '/admin/dashboard/messages',
-      },
-      {
-        title: 'Monthly Revenue',
-        value: `$${currentMonthRevenue.toFixed(2)}`,
-        description: 'Total payments this month',
-        icon: 'PaymentIcon',
-        color: '#9c27b0',
-        change: `${revenuePercentChange > 0 ? '+' : ''}${revenuePercentChange}%`,
-        link: '/admin/dashboard/payments',
-      },
-    ];
-
-    return NextResponse.json({
-      stats,
-      upcomingAppointments: formattedUpcomingAppointments,
-      recentMessages,
-      todayAppointments,
+      where: {
+        status: {
+          in: ["CONFIRMED", "COMPLETED"]
+        }
+      }
     });
+
+    // Calculate customer metrics (simplified for now)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const newCustomers = await prisma.customer.count({
+      where: {
+        createdAt: {
+          gte: thirtyDaysAgo
+        }
+      }
+    });
+
+    // Format recent bookings
+    const recentBookings = recentAppointments.map(appointment => ({
+      id: appointment.id,
+      customerName: appointment.customer 
+        ? `${appointment.customer.firstName} ${appointment.customer.lastName}`.trim()
+        : 'Unknown Customer',
+      service: getServiceName(appointment.serviceId),
+      date: appointment.startTime.toLocaleDateString(),
+      status: appointment.status.toLowerCase() as 'pending' | 'confirmed' | 'cancelled',
+      amount: appointment.totalPrice ?? 0
+    }));
+
+    // Cal.com webhook status (mock for now - you can track this in a separate table)
+    const calStatus = {
+      lastReceived: recentAppointments.length > 0 
+        ? recentAppointments[0].createdAt.toISOString()
+        : null,
+      isConnected: recentAppointments.length > 0,
+      totalWebhooks: totalAppointments // Simplified - you might want to track actual webhook events
+    };
+
+    const dashboardData = {
+      metrics: {
+        totalBookings: totalAppointments,
+        pendingBookings: pendingAppointments,
+        confirmedBookings: confirmedAppointments,
+        cancelledBookings: cancelledAppointments,
+        totalRevenue: revenueData._sum.totalPrice ?? 0,
+        avgBookingValue: Math.round(revenueData._avg.totalPrice ?? 0),
+        newCustomers,
+        returningCustomers: totalCustomers - newCustomers,
+      },
+      recentBookings,
+      calStatus,
+      lastUpdated: new Date().toISOString()
+    };
+
+    return NextResponse.json(dashboardData);
+
   } catch (error) {
-    void console.error('Error fetching dashboard data:', error);
-    return NextResponse.json({ error: 'Failed to fetch dashboard data' }, { status: 500 });
+    void logger.error('Dashboard API error:', error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
+}
+
+// Helper function to get service name from service ID
+function getServiceName(serviceId: string): string {
+  const serviceMap: Record<string, string> = {
+    'consultation': 'Consultation',
+    'small_tattoo': 'Small Tattoo',
+    'medium_tattoo': 'Medium Tattoo',
+    'large_tattoo': 'Large Tattoo',
+    'touch_up': 'Touch Up',
+    'default_service': 'General Service'
+  };
+  
+  return serviceMap[serviceId] ?? 'Unknown Service';
 }

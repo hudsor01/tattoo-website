@@ -4,42 +4,8 @@ import { logger } from '@/lib/logger';
 import { TRPCClientError } from '@trpc/client';
 import { ZodError } from 'zod';
 import { toast } from '@/hooks/use-toast';
-
-/**
- * Error categories for categorizing different types of errors
- */
-export enum ErrorCategory {
-  VALIDATION = 'validation',
-  NETWORK = 'network',
-  AUTHENTICATION = 'authentication',
-  AUTHORIZATION = 'authorization',
-  NOT_FOUND = 'not_found',
-  SERVER = 'server',
-  CLIENT = 'client',
-  UNKNOWN = 'unknown',
-}
-
-/**
- * Error severity levels to indicate the importance of an error
- */
-export enum ErrorSeverity {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical',
-}
-
-/**
- * Error context to provide additional information about where/when an error occurred
- */
-export interface ErrorContext {
-  component?: string;
-  action?: string;
-  userId?: string;
-  additionalData?: Record<string, unknown>;
-  displayToUser?: boolean;
-  severity?: ErrorSeverity;
-}
+import { ErrorContext } from 'better-auth/react';
+import { ErrorCategory, ErrorSeverity } from '@prisma/client';
 
 /**
  * Determine if an error should be displayed to the user

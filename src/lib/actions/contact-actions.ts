@@ -3,10 +3,21 @@
 import { revalidateTag } from 'next/cache';
 import { contactFormSchema } from '@/lib/validation-schemas';
 import { prisma } from '@/lib/db/prisma';
-import { sendEmail } from '@/lib/email/email';
+import { sendEmail, generateAdminContactEmail, generateCustomerContactConfirmation } from '@/lib/email/email-service';
 import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
-import type { ContactFormState } from '@/types/component-types';
+import { ENV } from '@/lib/utils/env';
+import { checkRateLimit } from '@/lib/security/rate-limiter';
+import { headers } from 'next/headers';
+import { NextRequest } from 'next/server';
+// Contact form state type for server actions
+type ContactFormState = {
+  success: boolean;
+  message: string;
+  errors?: Record<string, string[]>;
+  data?: Record<string, unknown>;
+};
 
+import { logger } from "@/lib/logger";
 /**
  * Server Action for contact form submission
  * Uses React 19 Server Actions for better SEO and progressive enhancement
@@ -44,8 +55,45 @@ export async function submitContactAction(
 
     const validatedData = validationResult.data;
 
-    // Basic server-side rate limiting would go here
-    // Note: In a real app, you'd use a more sophisticated rate limiting solution
+    // Implement server-side rate limiting
+    // Create a fake NextRequest to use with checkRateLimit
+    const headersList = headers();
+    // Headers are accessed synchronously in Next.js App Router
+    // Using optional chaining to safely access headers in case it's a Promise
+    const userAgent = headersList?.get?.('user-agent') ?? '';
+    const xForwardedFor = headersList?.get?.('x-forwarded-for') ?? '';
+    const host = headersList?.get?.('host') ?? '';
+    
+    // Create a proper request object with the required properties for rate limiting
+    const request: NextRequest = {
+      headers: new Headers({
+        'user-agent': userAgent,
+        'x-forwarded-for': xForwardedFor,
+        'host': host
+      }),
+      nextUrl: new URL('/api/contact', ENV.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+    } as NextRequest;
+    
+    // Use the rate limiter with our properly constructed request object
+    // Since checkRateLimit is now async, we need to await it
+    const rateLimitResult = await checkRateLimit(request);
+
+    // If rate limit exceeded, return error response with additional rate limit information
+    if (!rateLimitResult.allowed) {
+      const resetTime = new Date(rateLimitResult.resetTime);
+      const timeRemaining = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
+      
+      return {
+        status: 'error',
+        message: `Rate limit exceeded. You can try again in ${timeRemaining} seconds.`,
+        rateLimitInfo: {
+          limit: rateLimitResult.limit,
+          remaining: rateLimitResult.remaining,
+          resetTime: resetTime.toISOString(),
+          timeRemaining: timeRemaining
+        }
+      };
+    }
 
     // Create submission record in database
     const contactSubmission = await prisma.contact.create({
@@ -69,38 +117,48 @@ export async function submitContactAction(
 
     // Send notification email to admin
     try {
+      // Use the contact form data with the contact ID for admin email
+      const adminEmailData = {
+        name: validatedData.name ?? '',
+        email: validatedData.email ?? '',
+        subject: validatedData.subject ?? '',
+        message: validatedData.message ?? '',
+        contactId: contactSubmission.id,
+        phone: validatedData.phone,
+        service: validatedData.service,
+        referralSource: validatedData.referralSource,
+        preferredTime: validatedData.preferredTime,
+        budget: validatedData.budget,
+        hasReference: validatedData.hasReference,
+        agreeToTerms: validatedData.agreeToTerms,
+        // Adding missing preferred contact method with default
+        preferredContactMethod: validatedData.preferredContactMethod ?? 'email'
+      };
+      
+      const adminEmail = generateAdminContactEmail(adminEmailData);
       await sendEmail({
-        to: (process.env['ARTIST_EMAIL'] ?? 'fennyg83@gmail.com') as string,
-        subject: `New Contact Form Submission: ${validatedData.subject ?? 'Website Inquiry'}`,
-        html: `
-          <h2>New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${validatedData.name}</p>
-          <p><strong>Email:</strong> ${validatedData.email}</p>
-          <p><strong>Phone:</strong> ${validatedData.phone ?? 'Not provided'}</p>
-          <p><strong>Subject:</strong> ${validatedData.subject ?? 'Website Contact Form'}</p>
-          <p><strong>Service:</strong> ${validatedData.service ?? 'Not specified'}</p>
-          <p><strong>Message:</strong> ${validatedData.message}</p>
-          <p><strong>Submission ID:</strong> ${contactSubmission.id}</p>
-        `,
-        text: `New Contact Form Submission\n\nName: ${validatedData.name}\nEmail: ${validatedData.email}\nPhone: ${validatedData.phone ?? 'Not provided'}\nSubject: ${validatedData.subject ?? 'Website Contact Form'}\nService: ${validatedData.service ?? 'Not specified'}\nMessage: ${validatedData.message}\nSubmission ID: ${contactSubmission.id}`,
+        to: (ENV['ARTIST_EMAIL'] ?? 'fennyg83@gmail.com') as string,
+        subject: adminEmail.subject,
+        html: adminEmail.html,
+        text: adminEmail.text,
       });
 
       // Send confirmation email to user
+      const customerEmailData = {
+        name: validatedData.name ?? '',
+        email: validatedData.email ?? '',
+        subject: validatedData.subject ?? '',
+        message: validatedData.message ?? ''
+      };
+      const customerEmail = generateCustomerContactConfirmation(customerEmailData);
       await sendEmail({
         to: validatedData.email ?? '',
-        subject: 'Thank you for contacting Ink 37 Tattoos',
-        html: `
-          <h2>Thank you for contacting Ink 37 Tattoos</h2>
-          <p>Hi ${validatedData.name},</p>
-          <p>Thank you for reaching out about your tattoo. I've received your message and will get back to you as soon as possible, usually within 24-48 hours.</p>
-          <p><strong>Your message:</strong></p>
-          <p>${validatedData.message}</p>
-          <p>Best regards,<br>Fernando<br>Ink 37 Tattoos</p>
-        `,
-        text: `Thank you for contacting Ink 37 Tattoos\n\nHi ${validatedData.name},\n\nThank you for reaching out about your tattoo. I've received your message and will get back to you as soon as possible, usually within 24-48 hours.\n\nYour message: ${validatedData.message}\n\nBest regards,\nFernando\nInk 37 Tattoos`,
+        subject: customerEmail.subject,
+        html: customerEmail.html,
+        text: customerEmail.text,
       });
     } catch (emailError) {
-      console.error('Failed to send emails:', emailError);
+      void logger.error('Failed to send emails:', emailError);
       // Continue execution - don't fail the entire submission if email fails
     }
 
@@ -115,7 +173,7 @@ export async function submitContactAction(
       submissionId: contactSubmission.id.toString(),
     };
   } catch (error) {
-    console.error('Contact form submission error:', error);
+    void logger.error('Contact form submission error:', error);
 
     return {
       status: 'error',

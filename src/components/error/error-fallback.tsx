@@ -38,6 +38,10 @@ export interface ErrorFallbackProps {
   className?: string;
   /** Whether to show a go back button */
   showBackButton?: boolean;
+  /** Error event ID for tracking */
+  eventId?: string | undefined;
+  /** Whether to show contact support link */
+  showContact?: boolean;
 }
 
 /**
@@ -117,13 +121,13 @@ export function ErrorFallback({
   if (variant === 'simple') {
     return (
       <div
-        className={`p-4 border border-red-200 rounded-md bg-red-50 dark:bg-red-900/20 ${className}`}
+        className={`p-4 border border-red-200 rounded-md bg-red-50@light bg-red-900/20@dark ${className}`}
       >
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle className="h-4 w-4 text-red-500" />
-          <p className="font-medium text-red-700 dark:text-red-400">{title}</p>
+          <p className="font-medium text-red-700@light text-red-400@dark">{title}</p>
         </div>
-        <p className="text-sm text-red-600 dark:text-red-300 mb-3">{errorMessage}</p>
+        <p className="text-sm text-red-600@light text-red-300@dark mb-3">{errorMessage}</p>
         <div className="flex gap-2">
           {resetErrorBoundary && (
             <Button size="sm" variant="outline" onClick={handleReset}>

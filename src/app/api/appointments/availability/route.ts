@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import {
   checkAppointmentAvailability,
   calculateAppointmentDurationWithFallback,
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
     // Return availability information
     return NextResponse.json(availability);
   } catch (error) {
-    void console.error('Error checking availability:', error);
+    logger.error('Error checking availability:', error);
 
     return NextResponse.json({ error: 'Failed to check availability' }, { status: 500 });
   }

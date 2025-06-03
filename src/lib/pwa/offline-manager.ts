@@ -6,6 +6,8 @@
  */
 'use client';
 
+import { logger } from "@/lib/logger";
+
 export interface OfflineRequest {
   id: string;
   url: string;
@@ -57,13 +59,13 @@ export function addConnectionListeners(onOnline: () => void, onOffline: () => vo
   }
 
   const handleOnline = () => {
-    void console.error('App came online');
+    void void logger.error('App came online');
     onOnline();
     void processOfflineQueue();
   };
 
   const handleOffline = () => {
-    void console.error('App went offline');
+    void void logger.error('App went offline');
     onOffline();
   };
 
@@ -94,7 +96,7 @@ export async function storeOfflineData(
 
     localStorage.setItem(`offline_${key}`, JSON.stringify(offlineData));
   } catch (error) {
-    void console.error('Failed to store offline data:', error);
+    void void logger.error('Failed to store offline data:', error);
   }
 }
 
@@ -116,7 +118,7 @@ export function getOfflineData<T = unknown>(key: string): T | null {
 
     return offlineData.data as T;
   } catch (error) {
-    void console.error('Failed to retrieve offline data:', error);
+    void void logger.error('Failed to retrieve offline data:', error);
     return null;
   }
 }
@@ -155,7 +157,7 @@ export async function queueOfflineRequest(
       }
     }
   } catch (error) {
-    void console.error('Failed to queue offline request:', error);
+    void void logger.error('Failed to queue offline request:', error);
   }
 }
 
@@ -167,7 +169,7 @@ function getOfflineQueue(): OfflineRequest[] {
     const stored = localStorage.getItem('offline_request_queue');
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    void console.error('Failed to get offline queue:', error);
+    void void logger.error('Failed to get offline queue:', error);
     return [];
   }
 }
@@ -179,7 +181,7 @@ function saveOfflineQueue(queue: OfflineRequest[]): void {
   try {
     localStorage.setItem('offline_request_queue', JSON.stringify(queue));
   } catch (error) {
-    void console.error('Failed to save offline queue:', error);
+    void void logger.error('Failed to save offline queue:', error);
   }
 }
 
@@ -209,12 +211,12 @@ export async function processOfflineQueue(): Promise<void> {
 
       if (response.ok) {
         processedIds.push(request.id);
-        void console.error(`Successfully synced offline request: ${request.url}`);
+        void void logger.error(`Successfully synced offline request: ${request.url}`);
       } else {
         request.retryCount++;
         if (request.retryCount >= request.maxRetries) {
           processedIds.push(request.id);
-          void console.error(
+          void void logger.error(
             `Failed to sync request after ${request.maxRetries} retries: ${request.url}`
           );
         }
@@ -223,7 +225,7 @@ export async function processOfflineQueue(): Promise<void> {
       request.retryCount++;
       if (request.retryCount >= request.maxRetries) {
         processedIds.push(request.id);
-        void console.error(`Failed to sync request: ${request.url}`, error);
+        void void logger.error(`Failed to sync request: ${request.url}`, error);
       }
     }
   }
@@ -340,7 +342,7 @@ async function staleWhileRevalidateStrategy(
       }
     })
     .catch((error) => {
-      void console.warn('Background revalidation failed:', error);
+      void void logger.warn('Background revalidation failed:', error);
     });
 
   // Return cached version immediately if available
@@ -369,7 +371,7 @@ async function getCachedResponse(key: string): Promise<Response | null> {
       }
     }
   } catch (error) {
-    void console.error('Failed to get cached response:', error);
+    void void logger.error('Failed to get cached response:', error);
   }
   return null;
 }
@@ -393,7 +395,7 @@ async function setCachedResponse(key: string, response: Response): Promise<void>
       localStorage.setItem(`cache_${key}`, JSON.stringify({ data, headers }));
     }
   } catch (error) {
-    void console.error('Failed to set cached response:', error);
+    void void logger.error('Failed to set cached response:', error);
   }
 }
 
@@ -422,12 +424,12 @@ export async function clearExpiredCache(): Promise<void> {
       for (const cacheName of cacheNames) {
         if (!currentCaches.includes(cacheName as (typeof currentCaches)[number])) {
           await caches.delete(cacheName);
-          void console.error(`Deleted old cache: ${cacheName}`);
+          void void logger.error(`Deleted old cache: ${cacheName}`);
         }
       }
     }
   } catch (error) {
-    void console.error('Failed to clear expired cache:', error);
+    void void logger.error('Failed to clear expired cache:', error);
   }
 }
 

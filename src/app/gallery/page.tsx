@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
-import dynamicImport from 'next/dynamic';
+import { Suspense } from 'react';
+import GalleryClient from '@/components/gallery/GalleryClient';
+import { GallerySkeleton } from '@/components/gallery/GallerySkeleton';
 
-const GalleryClient = dynamicImport(() => import('@/components/gallery/GalleryClient'), {
-  loading: () => (
-    <div className="flex h-96 items-center justify-center">
-      <div className="text-lg">Loading gallery...</div>
-    </div>
-  ),
-});
+// Enable Partial Prerendering (PPR) for optimal performance
+export const experimental_ppr = true;
 
-// Use dynamic rendering to avoid server/client component issues
-export const dynamic = 'force-dynamic';
+// Static parts will be prerendered, dynamic parts will stream
+export const dynamic = 'auto';
 
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',
@@ -33,5 +30,9 @@ export const metadata: Metadata = {
 };
 
 export default function GalleryPage() {
-  return <GalleryClient />;
+  return (
+    <Suspense fallback={<GallerySkeleton />}>
+      <GalleryClient />
+    </Suspense>
+  );
 }

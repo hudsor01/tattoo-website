@@ -1,0 +1,969 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  name            String?
+  email           String    @unique
+  emailVerified   Boolean   @default(false)
+  image           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  role            String    @default("user")
+  phone           String?
+  banned          Boolean   @default(false)
+  banReason       String?
+  banExpires      DateTime?
+  customerId      String?
+  accounts        Account[]
+  sessions        Session[]
+  appointments    Appointment[]
+  artist          Artist?
+  
+  @@index([email])
+  @@index([role])
+  @@index([emailVerified])
+  @@map("user")
+}
+
+model Session {
+  id            String   @id @default(uuid())
+  userId        String
+  expiresAt     DateTime
+  token         String   @unique
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  impersonatedBy String?
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("session")
+}
+
+model Account {
+  id                        String  @id @default(uuid())
+  userId                    String
+  accountId                 String  
+  providerId                String  
+  accessToken               String? @db.Text
+  refreshToken              String? @db.Text
+  accessTokenExpiresAt      DateTime?
+  refreshTokenExpiresAt     DateTime?
+  scope                     String?
+  idToken                   String? @db.Text
+  password                  String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  user                      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([providerId])
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@index([identifier])
+  @@index([expiresAt])
+  @@unique([identifier, value])
+  @@map("verification")
+}
+
+model RateLimit {
+  id          String @id @default(uuid())
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([key])
+  @@index([lastRequest])
+  @@map("rateLimit")
+}
+
+model Customer {
+  id         String    @id @default(uuid())
+  firstName  String
+  lastName   String
+  email      String?   @unique
+  phone      String?
+  address    String?
+  city       String?
+  state      String?
+  postalCode String?
+  country    String?
+  birthDate  DateTime?
+  totalSpent     Float        @default(0)
+  bookingCount   Int          @default(0)
+  lastBookingAt  DateTime?
+  avgRating      Float?
+  preferredEventTypes String[] @default([])
+  tags               String[] @default([])
+  communicationPrefs Json
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  appointments Appointment[]
+  notes        Note[]
+  calBookings  CalBooking[]
+  payments     Payment[]
+  tattooDesigns TattooDesign[]
+  
+  @@index([email])
+  @@index([phone])
+  @@index([firstName, lastName])
+  @@index([totalSpent])
+  @@index([lastBookingAt])
+}
+
+model Appointment {
+  id         String   @id @default(uuid())
+  customerId String
+  userId     String
+  serviceId  String
+  startTime  DateTime
+  endTime    DateTime
+  status     AppointmentStatus @default(PENDING)
+  notes      String?
+  totalPrice Float    @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  customer   Customer @relation(fields: [customerId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  payments   Payment[]
+  
+  @@index([customerId])
+  @@index([userId])
+  @@index([status])
+  @@index([startTime, endTime])
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  content    String   @db.Text
+  type       NoteType @default(MANUAL)
+  pinned     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String?
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  
+  // Cal.com Integration
+  calPaymentId      String?       @unique // Cal.com payment ID
+  calBookingId      Int?          // Reference to Cal.com booking
+  
+  // Local References
+  bookingId         String?       // Reference to CalBooking.id
+  appointmentId     String?       // Reference to Appointment.id
+  customerId        String?       // Reference to Customer.id
+  
+  // Payment Details
+  amount            Float         // Total payment amount
+  currency          String        @default("USD")
+  paymentType       PaymentType   @default(FULL)
+  paymentMethod     PaymentMethod @default(CARD)
+  status            PaymentStatus @default(PENDING)
+  
+  // Transaction Details
+  transactionId     String?       // External transaction ID (Stripe, etc.)
+  receiptUrl        String?       // URL to payment receipt
+  invoiceId         String?       // Invoice reference if applicable
+  
+  // Customer Information (denormalized for historical accuracy)
+  customerEmail     String
+  customerName      String
+  customerPhone     String?
+  
+  // Service Information
+  serviceName       String?       // Name of the service paid for
+  serviceId         String?       // Reference to service/event type
+  description       String?       // Payment description
+  
+  // Refund Information
+  refundedAmount    Float?        // Amount refunded if any
+  refundedAt        DateTime?     // When refund was processed
+  refundReason      String?       // Reason for refund
+  
+  // Processing Information
+  processedAt       DateTime?     // When payment was successfully processed
+  failedAt          DateTime?     // When payment failed (if applicable)
+  failureReason     String?       // Reason for payment failure
+  
+  // Metadata
+  metadata          Json?         // Additional payment metadata
+  notes             String?       @db.Text // Internal notes
+  
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relations
+  booking           CalBooking?   @relation(fields: [bookingId], references: [id])
+  appointment       Appointment?  @relation(fields: [appointmentId], references: [id])
+  customer          Customer?     @relation(fields: [customerId], references: [id])
+  
+  // Indexes for performance
+  @@index([calPaymentId])
+  @@index([calBookingId])
+  @@index([bookingId])
+  @@index([appointmentId])
+  @@index([customerId])
+  @@index([status])
+  @@index([paymentMethod])
+  @@index([createdAt])
+  @@index([processedAt])
+  @@index([customerEmail])
+  @@map("payments")
+}
+
+model CalBooking {
+  id              String   @id @default(uuid())
+  calBookingId    Int      @unique
+  calBookingUid   String   @unique
+  uid             String   @unique // Cal.com booking UID for compatibility
+  title           String
+  description     String?
+  startTime       DateTime
+  endTime         DateTime
+  timeZone        String   @default("UTC")
+  status          CalBookingStatus @default(PENDING)
+  attendeeEmail   String
+  attendeeName    String
+  attendeePhone   String?
+  attendeeTimeZone String  @default("UTC")
+  hostId          String?
+  hostEmail       String
+  hostName        String
+  serviceId       String?
+  serviceName     String
+  servicePrice    Float    @default(0)
+  serviceCurrency String   @default("USD")
+  eventTypeId     Int
+  eventTypeSlug   String
+  isPaid          Boolean  @default(false)
+  paymentId       String?
+  paymentStatus   PaymentStatus @default(PENDING)
+  paymentAmount   Float?
+  paymentCurrency String?
+  source          String?  @default("website")
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  referrer        String?
+  userAgent       String?
+  sessionId       String?
+  customFields    Json?
+  attendeeResponses Json?
+  internalNotes   String?
+  confirmationSent Boolean @default(false)
+  remindersSent   Boolean  @default(false)
+  followUpSent    Boolean  @default(false)
+  feedbackCollected Boolean @default(false)
+  bookedAt        DateTime @default(now())
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  rescheduledAt   DateTime?
+  completedAt     DateTime?
+  noShowAt        DateTime?
+  // Additional fields expected by the code
+  location        String?
+  organizer       Json?
+  payment         Json? // For payment information structure
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  syncedAt        DateTime @default(now())
+  customer        Customer? @relation(fields: [attendeeEmail], references: [email])
+  eventType       CalEventType? @relation(fields: [eventTypeId], references: [calEventTypeId])
+  attendees       BookingAttendee[]
+  payments        Payment[]
+  
+  @@index([calBookingId])
+  @@index([calBookingUid])
+  @@index([uid])
+  @@index([attendeeEmail])
+  @@index([startTime])
+  @@index([status])
+  @@index([eventTypeId])
+  @@index([syncedAt])
+  @@index([bookedAt])
+  @@map("cal_bookings")
+}
+
+model CalEventType {
+  id                    String   @id @default(uuid())
+  calEventTypeId        Int      @unique
+  title                 String
+  slug                  String   @unique
+  description           String?
+  length                Int
+  price                 Float    @default(0)
+  currency              String   @default("USD")
+  hidden                Boolean  @default(false)
+  requiresConfirmation  Boolean  @default(false)
+  requiresPayment       Boolean  @default(false)
+  disableGuests         Boolean  @default(false)
+  minimumBookingNotice  Int      @default(0)
+  beforeEventBuffer     Int      @default(0)
+  afterEventBuffer      Int      @default(0)
+  slotInterval          Int?
+  locations             Json?
+  integrations          Json?
+  customInputs          Json?
+  isActive              Boolean  @default(true)
+  category              String?
+  tags                  String[] @default([])
+  metadata              Json?
+  totalBookings         Int      @default(0)
+  totalRevenue          Float    @default(0)
+  lastBookingAt         DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  syncedAt              DateTime @default(now())
+  
+  // Relations
+  calBookings           CalBooking[]
+  
+  @@index([calEventTypeId])
+  @@index([slug])
+  @@index([isActive])
+  @@index([category])
+  @@index([syncedAt])
+  @@map("cal_event_types")
+}
+
+model BookingAttendee {
+  id           String     @id @default(uuid())
+  calBookingId String
+  name         String
+  email        String
+  phone        String?
+  timeZone     String     @default("UTC")
+  locale       String?
+  absent       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // Relations
+  calBooking   CalBooking @relation(fields: [calBookingId], references: [id], onDelete: Cascade)
+  
+  @@index([calBookingId])
+  @@index([email])
+  @@map("booking_attendees")
+}
+
+model Booking {
+  id               String    @id @default(uuid())
+  name             String
+  email            String
+  phone            String
+  calBookingUid    String?   @unique
+  calEventTypeId   Int?
+  calStatus        String?
+  calMeetingUrl    String?
+  tattooType       String
+  size             String?
+  placement        String?
+  description      String?
+  preferredDate    DateTime
+  preferredTime    String
+  paymentMethod    String
+  source           String    @default("website")
+  status           String    @default("pending")
+  totalCost        Float     @default(0)
+  notes            Json?     // Changed to Json for cal-router usage
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([calBookingUid])
+  @@index([calEventTypeId])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+model CalWebhookEvent {
+  id              String   @id @default(uuid())
+  triggerEvent    String
+  calBookingId    Int?
+  calBookingUid   String?
+  payload         Json
+  signature       String?
+  processed       Boolean  @default(false)
+  processedAt     DateTime?
+  processingError String?
+  retryCount      Int      @default(0)
+  maxRetries      Int      @default(3)
+  ipAddress       String?
+  userAgent       String?
+  receivedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([triggerEvent])
+  @@index([calBookingId])
+  @@index([processed])
+  @@index([receivedAt])
+  @@index([retryCount])
+  @@map("cal_webhook_events")
+}
+
+model CalMetricsSnapshot {
+  id                  String   @id @default(uuid())
+  date                DateTime
+  hour                Int
+  totalBookings       Int      @default(0)
+  confirmedBookings   Int      @default(0)
+  cancelledBookings   Int      @default(0)
+  pendingBookings     Int      @default(0)
+  noShoenum CalBookingStatus {
+PENDING
+ACCEPTED
+CONFIRMED
+CANCELLED
+REJECTED
+NO_SHOW
+COMPLETED
+}
+
+enum TattooSize {
+SMALL
+MEDIUM
+LARGE
+EXTRA_LARGE
+FULL_SLEEVE
+HALF_SLEEVE
+BACK_PIECE
+CUSTOM
+}
+
+enum TattooStyle {
+TRADITIONAL
+NEO_TRADITIONAL
+REALISM
+WATERCOLOR
+BLACKWORK
+TRIBAL
+JAPANESE
+MINIMALIST
+GEOMETRIC
+PORTRAIT
+SCRIPT
+COVER_UP
+CUSTOM
+}
+
+enum BookingSource {
+WEBSITE
+PHONE
+EMAIL
+SOCIAL
+WALK_IN
+REFERRAL
+}oat    @default(0)
+  averageBookingValue Float    @default(0)
+  websiteVisitors     Int      @default(0)
+  bookingPageViews    Int      @default(0)
+  bookingStarted      Int      @default(0)
+  conversionRate      Float    @default(0)
+  topServiceId        String?
+  topServiceBookings  Int      @default(0)
+  newCustomers        Int      @default(0)
+  returningCustomers  Int      @default(0)
+  liveVisitors        Int      @default(0)
+  activeSessions      Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  @@unique([date, hour])
+  @@index([date])
+  @@index([hour])
+  @@index([createdAt])
+  @@map("cal_metrics_snapshots")
+}
+
+model CalIntegrationHealth {
+  id                String   @id @default(uuid())
+  service           String
+  status            HealthStatus @default(HEALTHY)
+  responseTime      Int?
+  errorRate         Float    @default(0)
+  lastSuccessAt     DateTime?
+  lastErrorAt       DateTime?
+  lastErrorMessage  String?
+  uptimePercentage  Float    @default(100)
+  checksPerformed   Int      @default(0)
+  checksSuccessful  Int      @default(0)
+  checkedAt         DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([service])
+  @@index([status])
+  @@index([checkedAt])
+  @@map("cal_integration_health")
+}
+
+model CalSyncState {
+  id                String   @id @default(uuid())
+  syncType          String
+  lastSyncAt        DateTime?
+  nextSyncAt        DateTime?
+  isRunning         Boolean  @default(false)
+  lastRunStatus     SyncStatus @default(IDLE)
+  lastRunError      String?
+  totalRecords      Int      @default(0)
+  recordsProcessed  Int      @default(0)
+  recordsSkipped    Int      @default(0)
+  recordsError      Int      @default(0)
+  avgProcessingTime Int      @default(0)
+  lastRunDuration   Int      @default(0)
+  syncInterval      Int      @default(300)
+  isEnabled         Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([syncType])
+  @@index([lastSyncAt])
+  @@index([nextSyncAt])
+  @@index([isRunning])
+  @@map("cal_sync_states")
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum NoteType {
+  MANUAL
+  SYSTEM
+  APPOINTMENT
+  BOOKING
+  PAYMENT
+  INTERACTION
+  FOLLOW_UP
+}
+
+enum UserRole {
+  USER
+  CUSTOMER
+  ARTIST
+  ADMIN
+  SUPERADMIN
+}
+
+enum CalBookingStatus {
+  PENDING
+  ACCEPTED
+  CONFIRMED
+  CANCELLED
+  REJECTED
+  NO_SHOW
+  COMPLETED
+}
+
+enum PaymentType {
+  DEPOSIT
+  FULL
+  PARTIAL
+  TIP
+  PRODUCT
+  GIFT_CARD
+  CONSULTATION
+  OTHER
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  VENMO
+  PAYPAL
+  CASHAPP
+  BANK_TRANSFER
+  CHECK
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum HealthStatus {
+  HEALTHY
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum SyncStatus {
+  IDLE
+  RUNNING
+  SUCCESS
+  ERROR
+  PARTIAL_SUCCESS
+}
+
+model CalAnalyticsEvent {
+  id            String    @id @default(uuid())
+  sessionId     String?
+  userId        String?
+  eventType     String
+  eventName     String
+  properties    Json?
+  metadata      Json?
+  timestamp     DateTime  @default(now())
+  url           String?
+  userAgent     String?
+  ipAddress     String?
+  referrer      String?
+  deviceType    String?
+  browserName   String?
+  osName        String?
+  screenWidth   Int?
+  screenHeight  Int?
+  createdAt     DateTime  @default(now())
+  
+  @@index([eventType])
+  @@index([eventName])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([timestamp])
+  @@map("cal_analytics_event")
+}
+
+model CalServiceAnalytics {
+  id              String   @id @default(uuid())
+  serviceId       String?
+  serviceName     String
+  eventType       String
+  count           Int      @default(1)
+  totalRevenue    Float?
+  avgBookingTime  Float?
+  conversionRate  Float?
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([serviceId])
+  @@index([serviceName])
+  @@index([eventType])
+  @@index([date])
+  @@map("cal_service_analytics")
+}
+
+model CalUserAnalytics {
+  id             String   @id @default(uuid())
+  userId         String?
+  sessionId      String
+  sessionStart   DateTime
+  sessionEnd     DateTime?
+  pageViews      Int      @default(0)
+  totalTime      Int      @default(0)
+  bounceRate     Float?
+  conversionType String?
+  source         String?
+  medium         String?
+  campaign       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([sessionStart])
+  @@index([source])
+  @@map("cal_user_analytics")
+}
+
+model CalPerformanceMetrics {
+  id            String   @id @default(uuid())
+  page          String
+  metricType    String
+  value         Float
+  rating        String
+  deviceType    String?
+  connectionType String?
+  timestamp     DateTime @default(now())
+  sessionId     String?
+  userId        String?
+  
+  @@index([page])
+  @@index([metricType])
+  @@index([rating])
+  @@index([timestamp])
+  @@map("cal_performance_metrics")
+}
+
+model CalBookingFunnel {
+  id            String   @id @default(uuid())
+  sessionId     String
+  step          String
+  stepOrder     Int
+  timestamp     DateTime @default(now())
+  timeSpent     Int?
+  completed     Boolean  @default(false)
+  abandoned     Boolean  @default(false)
+  errorMessage  String?
+  serviceId     String?
+  userId        String?
+  
+  @@index([sessionId])
+  @@index([step])
+  @@index([stepOrder])
+  @@index([timestamp])
+  @@index([completed])
+  @@map("cal_booking_funnel")
+}
+
+model CalErrorLog {
+  id           String   @id @default(uuid())
+  errorType    String
+  errorMessage String   @db.Text
+  stackTrace   String?  @db.Text
+  url          String?
+  userAgent    String?
+  userId       String?
+  sessionId    String?
+  timestamp    DateTime @default(now())
+  resolved     Boolean  @default(false)
+  severity     String   @default("medium")
+  
+  @@index([errorType])
+  @@index([timestamp])
+  @@index([resolved])
+  @@index([severity])
+  @@map("cal_error_log")
+}
+
+model CalGDPRRequest {
+  id              String    @id @default(uuid())
+  userId          String?
+  email           String?
+  requestType     String
+  status          String    @default("pending")
+  requestData     Json?
+  responseData    Json?
+  processedAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([email])
+  @@index([requestType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("cal_gdpr_request")
+}
+
+model CalDataRetention {
+  id              String    @id @default(uuid())
+  tableName       String
+  recordId        String?
+  retentionPolicy String
+  createdAt       DateTime
+  expiresAt       DateTime
+  processed       Boolean   @default(false)
+  processedAt     DateTime?
+  
+  @@index([tableName])
+  @@index([expiresAt])
+  @@index([processed])
+  @@map("cal_data_retention")
+}
+
+model TattooDesign {
+  id           String    @id @default(uuid())
+  name         String
+  description  String?
+  fileUrl      String?
+  thumbnailUrl String?
+  designType   String?
+  size         String?
+  isApproved   Boolean   @default(false)
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  artistId     String
+  customerId   String?
+  artist       Artist    @relation(fields: [artistId], references: [id])
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  
+  @@index([artistId])
+  @@index([customerId])
+  @@index([designType])
+  @@index([isApproved])
+  @@index([createdAt])
+  @@map("tattoo_designs")
+}
+
+model Artist {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  bio          String?
+  specialties  String[]       @default([])
+  portfolio    String[]       @default([])
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  userId       String?        @unique
+  user         User?          @relation(fields: [userId], references: [id])
+  tattooDesigns TattooDesign[]
+  
+  @@index([email])
+  @@index([isActive])
+  @@index([userId])
+  @@map("artists")
+}
+
+model CalRealtimeMetrics {
+  id                String   @id @default(uuid())
+  timestamp         DateTime @default(now())
+  liveVisitors      Int      @default(0)
+  activeSessions    Int      @default(0)
+  todayBookings     Int      @default(0)
+  todayRevenue      Float    @default(0)
+  pendingBookings   Int      @default(0)
+  confirmedBookings Int      @default(0)
+  cancelledBookings Int      @default(0)
+  conversionRate    Float    @default(0)
+  topServiceId      String?
+  avgResponseTime   Int      @default(0)
+  errorRate         Float    @default(0)
+  systemLoad        Float    @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([timestamp])
+  @@index([createdAt])
+  @@map("cal_realtime_metrics")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  resource    String
+  action      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([resource, action])
+  @@index([name])
+  @@index([resource])
+  @@map("permissions")
+}
+
+model CalCacheEntry {
+  id         String    @id @default(uuid())
+  key        String    @unique
+  value      Json
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  hitCount   Int       @default(0)
+  
+  @@index([key])
+  @@index([expiresAt])
+  @@map("cal_cache_entry")
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  domain      String
+  key         String
+  value       Json
+  valueType   String
+  description String?
+  isSystem    Boolean  @default(false)
+  isEncrypted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
+  
+  history     SettingsHistory[]
+  
+  @@unique([domain, key])
+  @@index([domain])
+  @@index([isSystem])
+  @@index([updatedAt])
+  @@map("settings")
+}
+
+model SettingsHistory {
+  id         String   @id @default(uuid())
+  settingId  String
+  oldValue   Json?
+  newValue   Json
+  changedBy  String
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  
+  setting    Setting  @relation(fields: [settingId], references: [id], onDelete: Cascade)
+  
+  @@index([settingId])
+  @@index([createdAt])
+  @@index([changedBy])
+  @@map("settings_history")
+}
+
+model SettingsBackup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  data        Json
+  metadata    Json?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("settings_backups")
+}

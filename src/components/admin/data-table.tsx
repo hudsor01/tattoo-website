@@ -37,28 +37,40 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { RecordObject } from '@/types/utility-types';
 
-export interface DataTableColumn<T extends RecordObject> {
-  id: string;
-  accessorKey?: string;
-  header: string | (() => React.ReactNode);
-  cell?: (props: { row: { original: T }; getValue: () => unknown }) => React.ReactNode;
-  enableSorting?: boolean;
-  enableHiding?: boolean;
-  meta?: {
-    className?: string;
+// Custom meta type for our columns
+interface CustomColumnMeta {
+  className?: string;
+}
+
+// Component-specific action type
+interface DataTableAction<T> {
+  label: string;
+  onClick: (row: T) => void;
+  icon?: React.ReactNode;
+}
+
+// Header context type for sortable columns
+interface SortableColumnContext {
+  column: {
+    toggleSorting: (desc?: boolean) => void;
+    getIsSorted: () => false | 'asc' | 'desc';
   };
 }
 
-export interface DataTableAction<T extends RecordObject> {
-  label: string;
-  icon?: React.ReactNode;
-  onClick: (row: T) => void;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+// DataTableColumn interface with custom properties
+export interface DataTableColumn<T> {
+  id?: string;
+  accessorKey?: keyof T | string;
+  header?: string | ((props: SortableColumnContext) => React.ReactNode);
+  cell?: (props: any) => React.ReactNode;
+  enableSorting?: boolean;
+  enableHiding?: boolean;
+  meta?: CustomColumnMeta;
 }
 
-export interface DataTableProps<T extends RecordObject> {
+// Component props
+interface DataTableProps<T extends Record<string, unknown>> {
   data: T[];
   columns: DataTableColumn<T>[];
   loading?: boolean;
@@ -73,7 +85,7 @@ export interface DataTableProps<T extends RecordObject> {
   className?: string;
 }
 
-export function DataTable<T extends RecordObject>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns: columnsProp,
   loading = false,
@@ -90,8 +102,8 @@ export function DataTable<T extends RecordObject>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
+  const [globalFilter, setGlobalFilter] = React.useState<string>('');
 
   // Build columns with selection and actions
   const columns = React.useMemo<ColumnDef<T>[]>(() => {
@@ -127,17 +139,10 @@ export function DataTable<T extends RecordObject>({
       ...columnsProp.map(
         (col): ColumnDef<T> => ({
           id: col.id,
-          accessorKey: col.accessorKey ?? col.id,
+          accessorKey: col.accessorKey as string,
           header:
             typeof col.header === 'string'
-              ? ({
-                  column,
-                }: {
-                  column: {
-                    toggleSorting: (desc?: boolean) => void;
-                    getIsSorted: () => false | 'asc' | 'desc';
-                  };
-                }) =>
+              ? ({ column }) =>
                   col.enableSorting !== false ? (
                     <Button
                       variant="ghost"
@@ -171,11 +176,13 @@ export function DataTable<T extends RecordObject>({
                 return new Date(value).toLocaleDateString();
               }
 
-              return <div className={col.meta?.className}>{String(value)}</div>;
+              // Use custom meta className if provided
+              const metaClassName = col.meta?.className;
+              return <div className={metaClassName}>{String(value)}</div>;
             }),
           ...(col.enableSorting !== undefined && { enableSorting: col.enableSorting }),
           ...(col.enableHiding !== undefined && { enableHiding: col.enableHiding }),
-          ...(col.meta && { meta: col.meta }),
+          ...(col.meta && { meta: col.meta as Record<string, unknown> }),
         })
       )
     );

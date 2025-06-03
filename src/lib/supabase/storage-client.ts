@@ -1,16 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
+import { getRequiredEnvVar } from '@/lib/utils/env';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
+// Get required environment variables for Supabase storage client
+const SUPABASE_URL = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_URL');
+const SUPABASE_ANON_KEY = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-// Supabase client for storage only - auth handled by Clerk
+// Supabase client for storage only
 export const supabaseStorage = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    persistSession: false, // Don't persist auth since we use Clerk
+    persistSession: false,
     autoRefreshToken: false,
   },
 });

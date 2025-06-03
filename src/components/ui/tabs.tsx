@@ -1,4 +1,4 @@
-'use client';
+// CONVERTED TO SERVER COMPONENT: Radix Tabs work in Server Components when controlled externally
 
 import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
@@ -30,7 +30,7 @@ const TabsTrigger = React.forwardRef<
     className={cn(
       'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-5 py-3 text-sm font-medium relative transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
       'data-[state=inactive]:text-white/80 data-[state=inactive]:hover:bg-white/5 data-[state=inactive]:hover:text-white data-[state=inactive]:hover:glow-red',
-      'data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:glow-red',
+      'data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:glow-red',
       className
     )}
     {...props}

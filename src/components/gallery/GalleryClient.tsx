@@ -1,34 +1,22 @@
 'use client';
 
 import React from 'react';
-import GalleryInfinite from '@/components/gallery/GalleryInfinite';
+import { ModernGallery } from '@/components/gallery/ModernGallery';
 import Footer from '@/components/layouts/Footer';
-import { motion } from 'framer-motion';
 
 /**
  * Gallery Client Component
  *
- * Client-side component for the Gallery page that manages animations and layout.
+ * Client-side component for the Gallery page that uses the modern Aceternity UI layout grid.
  * This allows the page.tsx file to be a server component for SEO.
- * Now using infinite scroll for better performance.
+ * Features a more engaging visual design with modern animations and interactions.
  */
 export default function GalleryClient() {
   return (
-    <div className="min-h-screen">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="container mx-auto px-4 py-8"
-      >
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">Tattoo Gallery</h1>
-          <p className="text-lg text-gray-600">
-            Explore Ink 37 Tattoos&apos; custom tattoo artwork and get inspired for your next piece.
-          </p>
-        </div>
-        <GalleryInfinite showFilters={true} gridCols={3} itemsPerPage={24} />
-      </motion.div>
+    <div className="min-h-screen bg-linear-to-b from-background to-background/90">
+      <div className="container mx-auto px-4 py-8">
+        <ModernGallery />
+      </div>
       <Footer />
     </div>
   );

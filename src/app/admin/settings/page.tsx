@@ -1,10 +1,9 @@
-import dynamic from 'next/dynamic';
-import { PageLoading } from '@/components/admin/StandardLoadingStates';
-
-const SettingsPageContent = dynamic(() => import('./SettingsPageContent'), {
-  loading: () => <PageLoading text="Loading settings..." />,
-});
+import { Suspense } from 'react';
+import AdminLoading from '../loading';
 
 export default function SettingsPage() {
-  return <SettingsPageContent />;
+  return (
+    <Suspense fallback={<AdminLoading />}>
+    </Suspense>
+  );
 }

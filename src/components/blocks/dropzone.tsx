@@ -5,13 +5,36 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react';
 import {
   useDropzone,
-  type DropzoneProps,
   type FileWithPath,
   type FileRejection,
   type FileError,
   type DropEvent,
 } from 'react-dropzone';
 import { useCallback, useRef, useState, useContext, createContext } from 'react';
+// Dropzone types
+type DropzoneFile = FileWithPath & {
+  preview?: string;
+  id?: string;
+};
+
+type DropzoneContextType = {
+  files: DropzoneFile[];
+  addFiles: (files: File[]) => void;
+  removeFile: (fileId: string) => void;
+  clearFiles: () => void;
+};
+
+type CustomDropzoneProps = {
+  onDrop?: (files: File[]) => void;
+  onChange?: (files: File[]) => void;
+  value?: File[];
+  accept?: Record<string, string[]>;
+  maxSize?: number;
+  maxFiles?: number;
+  multiple?: boolean;
+  disabled?: boolean;
+  className?: string;
+};
 
 export const formatBytes = (
   bytes: number,
@@ -27,40 +50,8 @@ export const formatBytes = (
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
 
-// Add className to Dropzone's props
-interface CustomDropzoneProps extends Omit<DropzoneProps, 'children'> {
-  className?: string;
-  children?: React.ReactNode;
-  getRootProps?: (props?: React.HTMLAttributes<HTMLElement>) => React.HTMLAttributes<HTMLElement>;
-  getInputProps?: (
-    props?: React.InputHTMLAttributes<HTMLInputElement>
-  ) => React.InputHTMLAttributes<HTMLInputElement>;
-}
-
-// Define the DropzoneContextType interface
-interface DropzoneContextType {
-  files: DropzoneFile[];
-  setFiles: React.Dispatch<React.SetStateAction<DropzoneFile[]>>;
-  onUpload: () => void;
-  loading: boolean;
-  successes: string[];
-  errors: { name: string; message: string }[];
-  maxFileSize: number;
-  maxFiles: number;
-  isSuccess: boolean;
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  isDragActive: boolean;
-  isDragReject: boolean;
-}
-
 // Create a context for Dropzone state
 const DropzoneContext = createContext<DropzoneContextType | null>(null);
-
-// Extend FileWithPath to include preview and errors
-type DropzoneFile = FileWithPath & {
-  preview: string;
-  errors: { message: string }[];
-};
 
 const Dropzone = ({ className, children, ...restProps }: CustomDropzoneProps) => {
   const [files, setFiles] = useState<DropzoneFile[]>([]);
@@ -129,7 +120,7 @@ const Dropzone = ({ className, children, ...restProps }: CustomDropzoneProps) =>
               ? 'border-solid border-green-500/50 bg-green-500/10'
               : 'border-dashed',
             isDragActive &&
-              'border-red-400/60 bg-gradient-to-br from-red-500/10 via-orange-500/10 to-amber-500/10',
+              'border-red-400/60 bg-linear-to-tr from-red-500/10 via-orange-500/10 to-amber-500/10',
             ((isDragActive && isDragReject) ||
               (errors.length > 0 && !contextValue.isSuccess) ||
               files.some((file) => file.errors && file.errors.length !== 0)) &&
@@ -190,7 +181,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
           >
             {file.type.startsWith('image/') ? (
               <div className="h-10 w-10 rounded border border-white/20 overflow-hidden shrink-0 bg-black/40 flex items-center justify-center">
-                <img src={file.preview} alt={file.name} className="object-cover w-full h-full" />
+                <img src={file.preview} alt={file.name} className="w-full h-full" style={{ objectFit: 'cover' }} />
               </div>
             ) : (
               <div className="h-10 w-10 rounded border border-white/20 bg-black/40 flex items-center justify-center">
@@ -276,7 +267,7 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
     <div className={cn('flex flex-col items-center gap-y-2', className)}>
       <Upload size={20} className="text-white/60" />
       <p className="text-sm text-white/90 font-medium">
-        <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">
+        <span className="bg-linear-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">
           Click to upload or drag and drop
         </span>
       </p>

@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { logger } from "@/lib/logger";
 
 interface WebVital {
   name: string;
@@ -46,7 +47,7 @@ export default function PerformanceDashboard() {
       setWebVitals(data.data ?? []);
       setSummary(data.summary ?? null);
     } catch (error) {
-      void console.error('Failed to fetch performance data:', error);
+      void void logger.error('Failed to fetch performance data:', error);
     } finally {
       setLoading(false);
     }

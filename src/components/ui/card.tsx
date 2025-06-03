@@ -1,6 +1,8 @@
+// CONVERTED TO SERVER COMPONENT: Pure layout components with CSS classes only
+
 import * as React from 'react';
 
-import { cn } from '@/utils';
+import { cn } from '@/lib/utils';
 
 function Card({ className, ...props }: React.ComponentProps<'div'>) {
   return (

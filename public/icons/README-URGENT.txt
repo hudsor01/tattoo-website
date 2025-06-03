@@ -1,5 +1,5 @@
 IMPORTANT: PWA Icons Missing
-============================
+
 
 Your manifest.json references the following icon files that need to be created:
 

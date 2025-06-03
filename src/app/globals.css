@@ -1,155 +1,1059 @@
-/* Critical CSS optimizations applied */
 @import 'tailwindcss';
 
-@custom-variant dark (&:is(.dark *));
-
-@layer base, components, utilities;
-
-/* Main theme configuration - Optimized */
+/* Configure Tailwind v4 theme using CSS variables */
 @theme {
-  /* Core spacing and colors only */
-  --spacing: 0.25rem;
-  
-  /* Essential color palette */
-  --color-background: #ffffff;
+  /* Colors - Tattoo-Specific Brand Palette */
+  --color-background: #fafafa;
   --color-foreground: #0a0a0a;
-  --color-primary: #e53935;
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #0f172a;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-border: #e2e8f0;
-  --color-ring: #e53935;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-primary: #dc2626;        /* Signature red */
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f5f5f5;
+  --color-secondary-foreground: #262626;
+  --color-muted: #f1f1f1;
+  --color-muted-foreground: #525252;
+  --color-accent: #f5f5f5;
+  --color-accent-foreground: #0a0a0a;
+  --color-destructive: #b91c1c;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e5e5e5;
+  --color-input: #e5e5e5;
+  --color-ring: #dc2626;
   
-  /* Tattoo brand colors */
-  --color-tattoo-red: #e53935;
-  --color-tattoo-red-dark: #c62828;
-  --color-tattoo-black: #0a0a0a;
-  --color-tattoo-white: #fafafa;
+  /* Tattoo Brand Specific Colors */
+  --color-ink-black: #0a0a0a;      /* Deep black */
+  --color-charcoal: #171717;       /* Charcoal black */
+  --color-steel: #404040;          /* Steel gray */
+  --color-silver: #737373;         /* Silver gray */
+  --color-chrome: #a3a3a3;         /* Chrome gray */
+  --color-platinum: #d4d4d4;       /* Light metallic */
+  --color-crimson: #b91c1c;        /* Deep red */
+  --color-blood: #dc2626;          /* Blood red */
+  --color-fire: #f87171;           /* Fire red */
   
-  /* Essential radius and animations */
+  /* Chart Colors - Tattoo Theme */
+  --color-chart-1: #dc2626;        /* Blood red */
+  --color-chart-2: #404040;        /* Steel gray */
+  --color-chart-3: #737373;        /* Silver */
+  --color-chart-4: #f87171;        /* Fire red */
+  --color-chart-5: #171717;        /* Charcoal */
+  
+  /* Sidebar specific colors */
+  --color-sidebar: #0a0a0a;
+  --color-sidebar-foreground: #fafafa;
+  --color-sidebar-border: #262626;
+  --color-sidebar-accent: #262626;
+  --color-sidebar-accent-foreground: #fafafa;
+  --color-sidebar-ring: #dc2626;
+  
+  /* Success/Warning/Info colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  
+  /* Additional colors for compatibility */
+  --color-green-100: #dcfce7;
+  --color-green-300: #86efac;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+  --color-amber-100: #fef3c7;
+  --color-amber-300: #fcd34d;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-red-300: #fca5a5;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  
+  /* Radius */
   --radius: 0.5rem;
-  --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
-  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
   
-  /* Font family theme variables */
-  --font-inter-var: var(--font-inter);
-  --font-montserrat-var: var(--font-montserrat);
-  --font-pacifico-var: var(--font-pacifico);
-  --font-satisfy-var: var(--font-satisfy);
+  /* Font families */
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-inter: 'Inter', var(--font-sans);
+  --font-montserrat: 'Montserrat', var(--font-sans);
+  --font-pacifico: 'Pacifico', cursive;
+  --font-satisfy: 'Satisfy', cursive;
+  
+  /* Font weight scale */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+  
+  /* Font size scale (optimized for modern devices) */
+  --text-xs: 0.75rem;  /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem;   /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem;  /* 20px */
+  --text-2xl: 1.5rem;  /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+  --text-4xl: 2.25rem;  /* 36px */
+  --text-5xl: 3rem;     /* 48px */
+  --text-6xl: 3.75rem;  /* 60px */
+  --text-7xl: 4.5rem;   /* 72px */
+  --text-8xl: 6rem;     /* 96px */
+  --text-9xl: 8rem;     /* 128px */
+  
+  /* Line height scale */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+  
+  /* Fixed line-heights (for more precise control) */
+  --leading-3: 0.75rem;
+  --leading-4: 1rem;
+  --leading-5: 1.25rem;
+  --leading-6: 1.5rem;
+  --leading-7: 1.75rem;
+  --leading-8: 2rem;
+  --leading-9: 2.25rem;
+  --leading-10: 2.5rem;
+  --leading-12: 3rem;
+  --leading-16: 4rem;
+  
+  /* Letter spacing scale */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+  
+  /* Text size and line height combinations for consistent typography */
+  --text-xs--line-height: var(--text-xs)/var(--leading-4);
+  --text-sm--line-height: var(--text-sm)/var(--leading-5);
+  --text-base--line-height: var(--text-base)/var(--leading-6);
+  --text-lg--line-height: var(--text-lg)/var(--leading-7);
+  --text-xl--line-height: var(--text-xl)/var(--leading-7);
+  --text-2xl--line-height: var(--text-2xl)/var(--leading-8);
+  --text-3xl--line-height: var(--text-3xl)/var(--leading-9);
+  --text-4xl--line-height: var(--text-4xl)/var(--leading-10);
+  --text-5xl--line-height: var(--text-5xl)/var(--leading-none);
+  --text-6xl--line-height: var(--text-6xl)/var(--leading-none);
+  --text-7xl--line-height: var(--text-7xl)/var(--leading-none);
+  --text-8xl--line-height: var(--text-8xl)/var(--leading-none);
+  --text-9xl--line-height: var(--text-9xl)/var(--leading-none);
+  
+  /* Responsive font sizes (fluid typography) */
+  --fluid-text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --fluid-text-lg: clamp(1.125rem, 1.0875rem + 0.1875vw, 1.25rem);
+  --fluid-text-xl: clamp(1.25rem, 1.2rem + 0.25vw, 1.375rem);
+  --fluid-text-2xl: clamp(1.5rem, 1.4rem + 0.5vw, 1.75rem);
+  --fluid-text-3xl: clamp(1.875rem, 1.75rem + 0.625vw, 2.25rem);
+  --fluid-text-4xl: clamp(2.25rem, 2rem + 1.25vw, 3rem);
+  --fluid-text-5xl: clamp(3rem, 2.75rem + 1.25vw, 3.75rem);
+  --fluid-text-6xl: clamp(3.75rem, 3.25rem + 2.5vw, 4.5rem);
+  --fluid-text-7xl: clamp(4.5rem, 3.75rem + 3.75vw, 6rem);
+  
+  /* Responsive spacing (important for typography layout) */
+  --fluid-space-1: clamp(0.25rem, 0.2rem + 0.25vw, 0.375rem);
+  --fluid-space-2: clamp(0.5rem, 0.45rem + 0.25vw, 0.625rem);
+  --fluid-space-3: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --fluid-space-4: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --fluid-space-5: clamp(1.25rem, 1.175rem + 0.375vw, 1.5rem);
+  --fluid-space-6: clamp(1.5rem, 1.4rem + 0.5vw, 1.75rem);
+  --fluid-space-8: clamp(2rem, 1.85rem + 0.75vw, 2.5rem);
+  --fluid-space-10: clamp(2.5rem, 2.25rem + 1.25vw, 3.25rem);
+  --fluid-space-12: clamp(3rem, 2.75rem + 1.25vw, 3.75rem);
+  --fluid-space-16: clamp(4rem, 3.5rem + 2.5vw, 5.5rem);
+  
+  /* Responsive line heights */
+  --fluid-leading-normal: clamp(1.5, 1.45 + 0.25vw, 1.65);
+  --fluid-leading-relaxed: clamp(1.625, 1.575 + 0.25vw, 1.75);
+  --fluid-leading-loose: clamp(2, 1.9 + 0.5vw, 2.25);
+  
+  /* Breakpoints */
+  --breakpoint-sm: 40rem;   /* 640px */
+  --breakpoint-md: 48rem;   /* 768px */
+  --breakpoint-lg: 64rem;   /* 1024px */
+  --breakpoint-xl: 80rem;   /* 1280px */
+  --breakpoint-2xl: 96rem;  /* 1536px */
+  
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-none: 0 0 #0000;
+  
+  /* Sidebar width variables */
+  --sidebar-width: 20rem;
+  --sidebar-width-mobile: 22rem;
+  --sidebar-width-icon: 3rem;
 }
 
-/* Dark theme overrides - Essential only */
-.dark {
-  --color-background: #0a0a0a;
-  --color-foreground: #fafafa;
-  --color-primary: #e53935;
-  --color-secondary: #1e293b;
-  --color-muted: #1e293b;
-  --color-muted-foreground: #94a3b8;
-  --color-border: #1e293b;
-}
-
-/* Base styles - Critical only */
 @layer base {
+  /* Dark mode - Enhanced Tattoo Theme */
+  :root[class~="dark"],
+  :root.dark {
+    /* Base colors - Enhanced contrast */
+    --color-background: #000000;         /* Pure black for maximum contrast */
+    --color-foreground: #ffffff;         /* Pure white text */
+    --color-card: #0f0f0f;               /* Subtle card background */
+    --color-card-foreground: #ffffff;
+    --color-primary: #ff4444;            /* Brighter red for dark mode */
+    --color-primary-foreground: #000000;
+    --color-secondary: #1a1a1a;          /* Dark secondary */
+    --color-secondary-foreground: #d4d4d4;
+    --color-muted: #1a1a1a;
+    --color-muted-foreground: #a3a3a3;
+    --color-accent: #262626;
+    --color-accent-foreground: #ffffff;
+    --color-destructive: #dc2626;
+    --color-destructive-foreground: #ffffff;
+    --color-border: #262626;
+    --color-input: #1a1a1a;
+    --color-ring: #ff4444;
+    
+    /* Enhanced Tattoo Brand Colors for Dark Mode */
+    --color-ink-black: #000000;          /* Pure black */
+    --color-charcoal: #0f0f0f;          /* Deeper charcoal */
+    --color-steel: #525252;              /* Brighter steel */
+    --color-silver: #a3a3a3;            /* Metallic silver */
+    --color-chrome: #d4d4d4;            /* Chrome highlight */
+    --color-platinum: #f5f5f5;          /* Platinum accent */
+    --color-crimson: #dc2626;           /* Rich crimson */
+    --color-blood: #ff4444;             /* Vibrant blood red */
+    --color-fire: #ff6b6b;              /* Bright fire red */
+    
+    /* Enhanced Sidebar Dark Mode Colors */
+    --color-sidebar: #000000;               /* Pure black sidebar */
+    --color-sidebar-foreground: #ffffff;    /* Pure white text */
+    --color-sidebar-border: #1a1a1a;       /* Subtle border */
+    --color-sidebar-accent: #1a1a1a;       /* Accent background */
+    --color-sidebar-accent-foreground: #ffffff;
+    
+    /* Dark mode typography adjustments */
+    --dark-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --dark-heading-opacity: 0.95;
+    --dark-body-opacity: 0.85;
+    --dark-muted-opacity: 0.7;
+    --dark-link-hover: #ff4545;
+    
+    /* Dark mode colors in RGB format for rgba() usage */
+    --color-foreground-rgb: 250, 250, 250;
+    --color-muted-foreground-rgb: 163, 163, 163;
+    --admin-foreground-rgb: 255, 255, 255;
+    --admin-muted-rgb: 163, 163, 163;
+    
+    /* Dark mode specific spacing */
+    --dark-letter-spacing-display: -0.015em;
+    --dark-line-height-adjustment: 1.05;
+  }
+  
   * {
     @apply border-border;
   }
   
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter);
     font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
   }
   
-  html, body {
-    height: 100%;
-    overflow-x: hidden;
-  }
-}
-
-/* Essential animations only */
-@keyframes fade-in {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(1rem);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Critical component styles only */
-@layer components {
-  .animate-fade-in {
-    animation: fade-in 0.6s ease forwards;
+  /* Global typography elements for client-facing site */
+  h1, .h1 {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-4xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: var(--fluid-space-6);
   }
   
-  .animate-slide-up {
-    animation: slide-up 0.6s ease forwards;
+  h2, .h2 {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-3xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: var(--fluid-space-5);
   }
-}
-
-/* Essential utilities only */
-@layer utilities {
+  
+  h3, .h3 {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-2xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--fluid-space-4);
+  }
+  
+  h4, .h4 {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-xl);
+    line-height: var(--leading-snug);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--fluid-space-3);
+  }
+  
+  h5, .h5 {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-lg);
+    line-height: var(--leading-snug);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--fluid-space-2);
+  }
+  
+  h6, .h6 {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-base);
+    line-height: var(--leading-normal);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--fluid-space-2);
+  }
+  
+  p {
+    font-size: var(--fluid-text-base);
+    line-height: var(--fluid-leading-normal);
+    margin-bottom: var(--fluid-space-4);
+    max-width: 65ch;
+  }
+  
+  /* Utility typography classes */
+  .heading-display {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-5xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-black);
+    letter-spacing: var(--tracking-tight);
+    text-transform: uppercase;
+  }
+  
+  .heading-hero {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-7xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-extrabold);
+    letter-spacing: var(--tracking-tight);
+  }
+  
+  .heading-section {
+    font-family: var(--font-montserrat);
+    font-size: var(--fluid-text-3xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-tight);
+    position: relative;
+    padding-bottom: var(--fluid-space-2);
+  }
+  
+  .heading-section::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: var(--fluid-space-16);
+    height: 3px;
+    background-color: var(--color-primary);
+  }
+  
+  .paragraph-large {
+    font-size: var(--fluid-text-xl);
+    line-height: var(--fluid-leading-relaxed);
+    color: var(--color-muted-foreground);
+  }
+  
+  .paragraph-lead {
+    font-size: var(--fluid-text-lg);
+    line-height: var(--fluid-leading-relaxed);
+    color: var(--color-muted-foreground);
+    font-weight: var(--font-weight-medium);
+  }
+  
+  .paragraph-small {
+    font-size: var(--text-sm);
+    line-height: var(--fluid-leading-normal);
+    color: var(--color-muted-foreground);
+  }
+  
+  .caption {
+    font-size: var(--text-xs);
+    line-height: var(--leading-tight);
+    color: var(--color-muted-foreground);
+    letter-spacing: var(--tracking-wide);
+  }
+  
   .text-balance {
     text-wrap: balance;
   }
   
-  .gradient-text {
-    @apply bg-gradient-to-r from-tattoo-red to-orange-500 bg-clip-text text-transparent;
+  .text-pretty {
+    text-wrap: pretty;
   }
   
-  /* Critical typography utilities */
-  .artist-name {
-    font-family: var(--font-montserrat-var);
-    font-size: clamp(2.5rem, 8vw, 5rem);
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-
-  .paragraph-large {
-    font-family: var(--font-inter-var);
-    font-size: clamp(1.125rem, 2.5vw, 1.375rem);
-    line-height: 1.4;
-    color: rgba(255, 255, 255, 0.85);
-    font-weight: 400;
-    letter-spacing: 0.01em;
+  /* Link styles */
+  a:not([class]) {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    color: var(--color-primary);
+    transition: all 0.2s ease;
   }
   
-  /* Essential font utilities */
-  .font-inter {
-    font-family: var(--font-inter-var);
+  a:not([class]):hover {
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
   }
-
-  .font-montserrat {
-    font-family: var(--font-montserrat-var);
+  
+  /* Dark mode typography adjustments */
+  :root.dark h1, 
+  :root.dark .h1,
+  :root[class~="dark"] h1, 
+  :root[class~="dark"] .h1 {
+    color: rgba(var(--color-foreground-rgb), var(--dark-heading-opacity));
+    text-shadow: var(--dark-text-shadow);
+    letter-spacing: var(--dark-letter-spacing-display);
   }
-
-  .font-pacifico {
-    font-family: var(--font-pacifico-var);
+  
+  :root.dark h2, 
+  :root.dark .h2,
+  :root[class~="dark"] h2, 
+  :root[class~="dark"] .h2 {
+    color: rgba(var(--color-foreground-rgb), var(--dark-heading-opacity));
+    text-shadow: var(--dark-text-shadow);
   }
-
-  .font-satisfy {
-    font-family: var(--font-satisfy-var);
+  
+  :root.dark h3, 
+  :root.dark .h3,
+  :root.dark h4, 
+  :root.dark .h4,
+  :root.dark h5, 
+  :root.dark .h5,
+  :root.dark h6, 
+  :root.dark .h6,
+  :root[class~="dark"] h3, 
+  :root[class~="dark"] .h3,
+  :root[class~="dark"] h4, 
+  :root[class~="dark"] .h4,
+  :root[class~="dark"] h5, 
+  :root[class~="dark"] .h5,
+  :root[class~="dark"] h6, 
+  :root[class~="dark"] .h6 {
+    color: rgba(var(--color-foreground-rgb), var(--dark-heading-opacity));
+  }
+  
+  :root.dark p,
+  :root[class~="dark"] p {
+    color: rgba(var(--color-foreground-rgb), var(--dark-body-opacity));
+    line-height: calc(var(--fluid-leading-normal) * var(--dark-line-height-adjustment));
+  }
+  
+  :root.dark .heading-display,
+  :root[class~="dark"] .heading-display {
+    color: rgba(var(--color-foreground-rgb), var(--dark-heading-opacity));
+    text-shadow: var(--dark-text-shadow);
+    letter-spacing: var(--dark-letter-spacing-display);
+  }
+  
+  :root.dark .heading-hero,
+  :root[class~="dark"] .heading-hero {
+    color: rgba(var(--color-foreground-rgb), var(--dark-heading-opacity));
+    text-shadow: var(--dark-text-shadow);
+    letter-spacing: var(--dark-letter-spacing-display);
+  }
+  
+  :root.dark .heading-section::after,
+  :root[class~="dark"] .heading-section::after {
+    background-color: var(--color-primary);
+    height: 4px;
+  }
+  
+  :root.dark .paragraph-large,
+  :root.dark .paragraph-lead,
+  :root.dark .paragraph-small,
+  :root.dark .caption,
+  :root[class~="dark"] .paragraph-large,
+  :root[class~="dark"] .paragraph-lead,
+  :root[class~="dark"] .paragraph-small,
+  :root[class~="dark"] .caption {
+    color: rgba(var(--color-foreground-rgb), var(--dark-muted-opacity));
+  }
+  
+  :root.dark a:not([class]),
+  :root[class~="dark"] a:not([class]) {
+    color: var(--color-primary);
+    text-shadow: none;
+  }
+  
+  :root.dark a:not([class]):hover,
+  :root[class~="dark"] a:not([class]):hover {
+    color: var(--dark-link-hover);
   }
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .artist-name {
-    font-size: clamp(2rem, 12vw, 3rem);
+/* Custom utilities for the dashboard */
+@layer utilities {
+  /* Text balance utilities */
+  .text-balance {
+    text-wrap: balance;
   }
   
-  .paragraph-large {
-    font-size: clamp(1rem, 4vw, 1.25rem);
+  .text-pretty {
+    text-wrap: pretty;
   }
+  
+  /* Enhanced Tattoo Dashboard Utilities */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .metric-card {
+    @apply bg-card rounded-xl shadow-sm border p-6 transition-all duration-300;
+    background: linear-gradient(135deg, var(--color-card) 0%, var(--color-muted) 100%);
+    border: 1px solid var(--color-border);
+  }
+
+  .metric-card:hover {
+    @apply shadow-xl scale-[1.02];
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .metric-card-critical {
+    @apply bg-red-600 text-white rounded-xl shadow-sm border p-6 transition-all duration-300;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border-color: #dc2626;
+  }
+
+  .metric-card-success {
+    @apply bg-slate-100 rounded-xl shadow-sm border p-6 transition-all duration-300;
+    background: linear-gradient(135deg, #404040 0%, #737373 100%);
+    border-color: #737373;
+  }
+
+  /* Enhanced Chart Container Styles - Matching Metric Cards */
+  .chart-container {
+    @apply rounded-xl shadow-sm border p-6 transition-all duration-300;
+    background: linear-gradient(135deg, var(--color-card) 0%, var(--color-muted) 100%);
+    border: 1px solid var(--color-border);
+  }
+
+  .chart-container:hover {
+    @apply shadow-lg;
+    border-color: var(--color-primary);
+  }
+
+  /* Activity Card Styles */
+  .activity-card {
+    @apply rounded-lg border p-4 transition-all duration-300;
+    background: linear-gradient(135deg, var(--color-card) 0%, var(--color-accent) 100%);
+    border: 1px solid var(--color-border);
+  }
+
+  .activity-card:hover {
+    @apply shadow-md scale-[1.01];
+    border-color: var(--color-primary);
+  }
+
+  /* Quick Action Button Styles */
+  .quick-action-btn {
+    @apply rounded-xl p-3 transition-all duration-300;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: 1px solid #dc2626;
+    color: white;
+  }
+
+  .quick-action-btn:hover {
+    @apply shadow-lg scale-[1.05];
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.3);
+  }
+
+  /* Status Indicator Styles */
+  .status-indicator {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .status-healthy {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+  }
+
+  .status-warning {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
+  }
+
+  .status-critical {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+  }
+
+  /* Tattoo Brand Visual Hierarchy */
+  .gradient-text {
+    background: linear-gradient(135deg, #dc2626, #f87171, #dc2626);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .brand-gradient {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  }
+
+  .metallic-gradient {
+    @apply bg-gradient-to-br from-slate-400 to-slate-600;
+  }
+
+  .critical-metric {
+    @apply text-red-400 font-bold;
+    text-shadow: 0 0 8px rgba(220, 38, 38, 0.3);
+  }
+
+  .success-metric {
+    @apply text-slate-400 font-semibold;
+  }
+
+  .neutral-metric {
+    @apply text-slate-500 font-medium;
+  }
+  
+  /* Enhanced Focus states for accessibility */
+  .focus-ring {
+    @apply outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+  
+  /* High contrast focus indicator */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  
+  /* Card focus states */
+  .metric-card:focus-within,
+  .chart-container:focus-within,
+  .activity-card:focus-within {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+  
+  /* Button focus enhancement */
+  button:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+  
+  /* Skip to main content link */
+  .skip-to-main {
+    @apply absolute left-0 top-0 -translate-y-full focus:translate-y-0 bg-primary text-primary-foreground px-4 py-2 z-50 transition-transform;
+  }
+  
+  /* Color mix utilities for hover states */
+  .hover-dim {
+    @apply transition-opacity hover:opacity-90;
+  }
+  
+  /* Admin dashboard typography utilities */
+  .admin-heading-1 {
+    font-family: var(--font-inter);
+    font-size: var(--fluid-text-3xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-sidebar-foreground);
+    margin-bottom: var(--fluid-space-5);
+  }
+  
+  .admin-heading-2 {
+    font-family: var(--font-inter);
+    font-size: var(--fluid-text-2xl);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-sidebar-foreground);
+    margin-bottom: var(--fluid-space-4);
+  }
+  
+  .admin-heading-3 {
+    font-family: var(--font-inter);
+    font-size: var(--fluid-text-xl);
+    line-height: var(--leading-snug);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-sidebar-foreground);
+    margin-bottom: var(--fluid-space-3);
+  }
+  
+  .admin-heading-4 {
+    font-family: var(--font-inter);
+    font-size: var(--fluid-text-lg);
+    line-height: var(--leading-snug);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-sidebar-foreground);
+    margin-bottom: var(--fluid-space-2);
+  }
+  
+  .admin-text {
+    font-family: var(--font-inter);
+    font-size: var(--fluid-text-base);
+    line-height: var(--fluid-leading-normal);
+    color: var(--color-sidebar-foreground);
+  }
+  
+  .admin-text-small {
+    font-family: var(--font-inter);
+    font-size: var(--text-sm);
+    line-height: var(--fluid-leading-normal);
+    color: var(--color-muted-foreground);
+  }
+  
+  .admin-text-xs {
+    font-family: var(--font-inter);
+    font-size: var(--text-xs);
+    line-height: var(--leading-tight);
+    color: var(--color-muted-foreground);
+  }
+  
+  .admin-metric-title {
+    font-family: var(--font-inter);
+    font-size: var(--fluid-text-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-muted-foreground);
+    margin-bottom: var(--fluid-space-3);
+    letter-spacing: 0.025em;
+  }
+  
+  .admin-metric-value {
+    font-family: var(--font-inter);
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--leading-tight);
+    color: var(--color-sidebar-foreground);
+    margin-bottom: var(--fluid-space-2);
+  }
+  
+  .admin-metric-comparison {
+    font-family: var(--font-inter);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--fluid-space-2);
+  }
+
+  /* Dashboard Section Headings */
+  .dashboard-section-heading {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+    color: var(--color-foreground);
+  }
+
+  .dashboard-section-subheading {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-size: clamp(1rem, 2vw, 1.125rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+    color: var(--color-muted-foreground);
+  }
+  
+  .admin-code {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    padding: var(--fluid-space-1) var(--fluid-space-2);
+    background-color: var(--color-muted);
+    border-radius: 0.25rem;
+  }
+  
+  .admin-table-header {
+    font-family: var(--font-inter);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-muted-foreground);
+  }
+  
+  .admin-table-cell {
+    font-family: var(--font-inter);
+    font-size: var(--text-sm);
+    color: var(--color-sidebar-foreground);
+  }
+  
+  /* Dark mode admin typography adjustments */
+  :root.dark .admin-heading-1,
+  :root.dark .admin-heading-2,
+  :root.dark .admin-heading-3,
+  :root.dark .admin-heading-4,
+  :root[class~="dark"] .admin-heading-1,
+  :root[class~="dark"] .admin-heading-2,
+  :root[class~="dark"] .admin-heading-3,
+  :root[class~="dark"] .admin-heading-4 {
+    color: rgba(var(--admin-foreground-rgb), var(--dark-heading-opacity));
+    text-shadow: var(--dark-text-shadow);
+    letter-spacing: var(--dark-letter-spacing-display);
+  }
+  
+  :root.dark .admin-text,
+  :root[class~="dark"] .admin-text {
+    color: rgba(var(--admin-foreground-rgb), var(--dark-body-opacity));
+  }
+  
+  :root.dark .admin-text-small,
+  :root.dark .admin-text-xs,
+  :root.dark .admin-metric-title,
+  :root[class~="dark"] .admin-text-small,
+  :root[class~="dark"] .admin-text-xs,
+  :root[class~="dark"] .admin-metric-title {
+    color: rgba(var(--admin-foreground-rgb), var(--dark-muted-opacity));
+  }
+  
+  :root.dark .admin-metric-value,
+  :root[class~="dark"] .admin-metric-value {
+    color: rgba(var(--admin-foreground-rgb), var(--dark-heading-opacity));
+    text-shadow: var(--dark-text-shadow);
+  }
+  
+  :root.dark .admin-table-header,
+  :root[class~="dark"] .admin-table-header {
+    color: rgba(var(--admin-foreground-rgb), var(--dark-muted-opacity));
+  }
+  
+  :root.dark .admin-table-cell,
+  :root[class~="dark"] .admin-table-cell {
+    color: rgba(var(--admin-foreground-rgb), var(--dark-body-opacity));
+  }
+  
+  :root.dark .admin-code,
+  :root[class~="dark"] .admin-code {
+    background-color: rgba(38, 38, 38, 0.8);
+    color: rgba(var(--admin-foreground-rgb), var(--dark-body-opacity));
+  }
+}
+
+/* Component-specific styles */
+@layer components {
+  /* Button hover states using opacity for better browser support */
+  .btn-hover-primary {
+    @apply hover:opacity-90 active:opacity-80;
+  }
+  
+  /* Card styles */
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+  
+  /* Input styles */
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  /* Label styles */
+  .label {
+    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+  
+  /* Dark mode component typography adjustments */
+  :root.dark .card,
+  :root[class~="dark"] .card {
+    border-color: var(--color-border);
+    background-color: var(--color-card);
+  }
+  
+  :root.dark .card h3,
+  :root[class~="dark"] .card h3 {
+    color: rgba(var(--color-foreground-rgb), var(--dark-heading-opacity));
+  }
+  
+  :root.dark .card p,
+  :root[class~="dark"] .card p {
+    color: rgba(var(--color-foreground-rgb), var(--dark-body-opacity));
+  }
+  
+  /* Enhanced Dark Mode Admin Dashboard Styles */
+  :root.dark .metric-card,
+  :root[class~="dark"] .metric-card {
+    @apply bg-slate-900/90 border-slate-700;
+    background: linear-gradient(135deg, rgba(15, 15, 15, 0.9) 0%, rgba(26, 26, 26, 0.7) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+  }
+  
+  :root.dark .metric-card:hover,
+  :root[class~="dark"] .metric-card:hover {
+    @apply border-red-500;
+    box-shadow: 0 0 0 1px #ef4444, 0 8px 32px rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(38, 38, 38, 0.8) 100%);
+  }
+
+  :root.dark .metric-card-critical,
+  :root[class~="dark"] .metric-card-critical {
+    @apply bg-red-600/90 border-red-500 text-white;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.9) 0%, rgba(185, 28, 28, 0.8) 100%);
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.3);
+  }
+
+  :root.dark .metric-card-success,
+  :root[class~="dark"] .metric-card-success {
+    @apply bg-slate-700/90 border-slate-500;
+    background: linear-gradient(135deg, rgba(64, 64, 64, 0.9) 0%, rgba(115, 115, 115, 0.3) 100%);
+    box-shadow: 0 0 16px rgba(115, 115, 115, 0.2);
+  }
+  
+  :root.dark .chart-container,
+  :root[class~="dark"] .chart-container {
+    @apply bg-slate-900/90 border-slate-700;
+    background: linear-gradient(135deg, rgba(15, 15, 15, 0.9) 0%, rgba(26, 26, 26, 0.7) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+  }
+
+  :root.dark .chart-container:hover,
+  :root[class~="dark"] .chart-container:hover {
+    @apply border-red-500;
+    box-shadow: 0 0 0 1px #ef4444, 0 8px 24px rgba(239, 68, 68, 0.15);
+  }
+
+  :root.dark .activity-card,
+  :root[class~="dark"] .activity-card {
+    @apply bg-slate-800/80 border-slate-700;
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.8) 0%, rgba(30, 30, 30, 0.6) 100%);
+    backdrop-filter: blur(4px);
+  }
+
+  :root.dark .activity-card:hover,
+  :root[class~="dark"] .activity-card:hover {
+    @apply border-red-500;
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(40, 40, 40, 0.7) 100%);
+  }
+
+  :root.dark .quick-action-btn,
+  :root[class~="dark"] .quick-action-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-color: #ef4444;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  }
+
+  :root.dark .quick-action-btn:hover,
+  :root[class~="dark"] .quick-action-btn:hover {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.4);
+  }
+  
+  /* Chart specific dark mode adjustments */
+  :root.dark .recharts-cartesian-grid-horizontal line,
+  :root.dark .recharts-cartesian-grid-vertical line,
+  :root[class~="dark"] .recharts-cartesian-grid-horizontal line,
+  :root[class~="dark"] .recharts-cartesian-grid-vertical line {
+    stroke: rgba(255, 255, 255, 0.1);
+  }
+  
+  :root.dark .recharts-tooltip-wrapper .bg-background,
+  :root[class~="dark"] .recharts-tooltip-wrapper .bg-background {
+    background-color: rgba(25, 25, 25, 0.9);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  
+  :root.dark .recharts-text,
+  :root[class~="dark"] .recharts-text {
+    fill: rgba(255, 255, 255, 0.7);
+  }
+  
+  :root.dark text.recharts-text,
+  :root[class~="dark"] text.recharts-text {
+    fill: rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* Sidebar specific styles */
+@layer components {
+  [data-sidebar="sidebar"] {
+    @apply bg-sidebar text-sidebar-foreground;
+  }
+  
+  [data-sidebar="separator"] {
+    @apply bg-sidebar-border;
+  }
+  
+  /* Menu item styles */
+  [data-sidebar="menu-button"] {
+    @apply transition-colors;
+  }
+  
+  [data-sidebar="menu-button"]:hover {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+  
+  [data-sidebar="menu-button"][data-active="true"] {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground font-medium;
+  }
+}
+
+/* Animation utilities */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Badge variants */
+.badge-success {
+  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+}
+
+.badge-destructive {
+  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
 }

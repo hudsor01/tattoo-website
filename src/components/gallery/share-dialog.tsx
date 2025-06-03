@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,7 @@ import type {
   ShareDialogProps,
   ShareMetadata,
   ShareButton,
-} from '@/types/component-types';
+} from '@prisma/client';
 
 export function ShareDialog({
   open,
@@ -52,7 +53,7 @@ export function ShareDialog({
         description: `Content shared on ${platform}`,
       });
     } catch (error) {
-      void console.error('Share error:', error);
+      void void logger.error('Share error:', error);
       toast({
         title: 'Share failed',
         description: 'Could not share content. Please try again.',
@@ -73,7 +74,7 @@ export function ShareDialog({
         description: 'Link copied to clipboard successfully',
       });
     } catch (err) {
-      void console.error('Failed to copy:', err);
+      void void logger.error('Failed to copy:', err);
       toast({
         title: 'Copy failed',
         description: 'Could not copy to clipboard. Please try manually.',
@@ -103,7 +104,7 @@ export function ShareDialog({
     {
       name: 'instagram',
       icon: Instagram,
-      color: 'bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90',
+      color: 'bg-linear-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90',
     },
     { name: 'email', icon: Mail, color: 'bg-gray-600 hover:bg-gray-700' },
   ];
@@ -130,7 +131,8 @@ export function ShareDialog({
                   }
                   width={64}
                   height={64}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full"
+                  style={{ objectFit: 'cover' }}
                   onError={(e) => {
                     // Fallback to placeholder if image fails to load
                     (e.target as HTMLImageElement).src = '/placeholder.svg?height=64&width=64';

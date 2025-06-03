@@ -8,7 +8,7 @@ export const revalidate = 86400; // 24 hours
 export const metadata: Metadata = {
   title: 'About Us | Ink 37 Tattoos',
   description:
-    'Learn about Ink 37, a custom tattoo studio in Dallas/Fort Worth. Meet Fernando Govea, a passionate artist with over 10 years of experience.',
+    'Learn about Ink 37 Tattoos, a custom tattoo artist\'s dream in Dallas/Fort Worth. Meet Fernando Govea, a passionate artist with over 10 years of experience.',
 };
 
 /**

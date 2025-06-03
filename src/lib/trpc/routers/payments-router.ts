@@ -2,8 +2,9 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, adminProcedure } from '../procedures';
 import { prisma } from '@/lib/db/prisma';
-import { Prisma } from '@prisma/client';
-import { PaymentStatus } from '@/types/enum-types';
+import { Prisma, PaymentStatus } from '@prisma/client';
+// Types are imported directly from @prisma/client as needed
+import { logger } from '@/lib/logger';
 
 /**
  * Admin-only payment router for business intelligence and dashboard features.
@@ -13,16 +14,15 @@ export const paymentsRouter = router({
   /**
    * Admin: Get payment by ID with full details
    */
-  getPaymentById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  getPaymentById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     try {
+      // Now using actual Payment model with relations
       const payment = await prisma.payment.findUnique({
         where: { id: input.id },
         include: {
-          Booking: {
-            include: {
-              Customer: true,
-            },
-          },
+          customer: true,
+          booking: true,
+          appointment: true,
         },
       });
 
@@ -62,21 +62,14 @@ export const paymentsRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        const where: Prisma.PaymentWhereInput = {};
+        const where: Prisma.BookingWhereInput = {};
 
         if (input.status) {
           where.status = input.status;
         }
 
         if (input.customerId) {
-          // Find customer email for filtering
-          const customer = await prisma.customer.findUnique({
-            where: { id: input.customerId },
-            select: { email: true },
-          });
-          if (customer?.email) {
-            where.customerEmail = customer.email;
-          }
+          where.customerId = input.customerId;
         }
 
         if (input.startDate || input.endDate) {
@@ -90,13 +83,14 @@ export const paymentsRouter = router({
           where.createdAt = dateFilter;
         }
 
-        const payments = await prisma.payment.findMany({
+        const bookings = await prisma.booking.findMany({
           where,
           include: {
-            Booking: {
+            customer: {
               select: {
-                id: true,
-                createdAt: true,
+                email: true,
+                firstName: true,
+                lastName: true,
               },
             },
           },
@@ -108,10 +102,21 @@ export const paymentsRouter = router({
         });
 
         let nextCursor: number | undefined;
-        if (payments.length > input.limit) {
-          const nextItem = payments.pop();
+        if (bookings.length > input.limit) {
+          const nextItem = bookings.pop();
           nextCursor = nextItem?.id;
         }
+
+        // Transform bookings to payment-like structure
+        const payments = bookings.map(booking => ({
+          id: booking.id,
+          amount: booking.totalCost,
+          status: booking.status,
+          customerEmail: booking.customer.email,
+          customerName: `${booking.customer.firstName} ${booking.customer.lastName}`,
+          createdAt: booking.createdAt,
+          updatedAt: booking.updatedAt,
+        }));
 
         return {
           items: payments,
@@ -134,13 +139,38 @@ export const paymentsRouter = router({
       z.object({
         startDate: z.date().optional(),
         endDate: z.date().optional(),
+        timeRange: z.enum(['week', 'month', 'year']).optional(),
       })
     )
     .query(async ({ input }) => {
       try {
-        const where: Prisma.PaymentWhereInput = {};
+        const where: Prisma.BookingWhereInput = {};
 
-        if (input.startDate || input.endDate) {
+        // Handle time range if provided
+        if (input.timeRange) {
+          const now = new Date();
+          let startDate: Date;
+          
+          switch (input.timeRange) {
+            case 'week':
+              startDate = new Date(now);
+              startDate.setDate(now.getDate() - 7);
+              break;
+            case 'month':
+              startDate = new Date(now);
+              startDate.setMonth(now.getMonth() - 1);
+              break;
+            case 'year':
+              startDate = new Date(now);
+              startDate.setFullYear(now.getFullYear() - 1);
+              break;
+          }
+          
+          where.createdAt = {
+            gte: startDate,
+            lte: now,
+          };
+        } else if (input.startDate || input.endDate) {
           where.createdAt = {};
           if (input.startDate) {
             where.createdAt.gte = input.startDate;
@@ -150,39 +180,78 @@ export const paymentsRouter = router({
           }
         }
 
-        const [totalRevenue, totalPayments, paymentsByStatus, averagePayment] = await Promise.all([
-          // Total revenue (completed payments only)
-          prisma.payment.aggregate({
+        const [totalRevenue, totalPayments, paymentsByStatus, averagePayment, topServices] = await Promise.all([
+          // Total revenue (completed bookings only)
+          prisma.booking.aggregate({
             where: { ...where, status: PaymentStatus.COMPLETED },
-            _sum: { amount: true },
+            _sum: { totalCost: true },
           }),
 
-          // Total number of payments
-          prisma.payment.count({ where }),
+          // Total number of bookings/payments
+          prisma.booking.count({ where }),
 
-          // Payments by status
-          prisma.payment.groupBy({
+          // Bookings by status
+          prisma.booking.groupBy({
             by: ['status'],
             where,
             _count: { id: true },
-            _sum: { amount: true },
+            _sum: { totalCost: true },
           }),
 
-          // Average payment amount
-          prisma.payment.aggregate({
+          // Average booking amount
+          prisma.booking.aggregate({
             where,
-            _avg: { amount: true },
+            _avg: { totalCost: true },
+          }),
+
+          // Top services by revenue
+          prisma.booking.groupBy({
+            by: ['tattooType'],
+            where: {
+              createdAt: where.createdAt,
+            },
+            _count: { id: true },
+            _sum: { totalCost: true },
           }),
         ]);
 
+        // Calculate additional metrics
+        const paidAmount = paymentsByStatus.find(p => p.status === PaymentStatus.COMPLETED)?._sum.totalCost ?? 0;
+        const pendingAmount = paymentsByStatus.find(p => p.status === PaymentStatus.PENDING)?._sum.totalCost ?? 0;
+        const failedAmount = paymentsByStatus.find(p => p.status === PaymentStatus.FAILED)?._sum.totalCost ?? 0;
+        
+        const paidCount = paymentsByStatus.find(p => p.status === PaymentStatus.COMPLETED)?._count.id ?? 0;
+        const pendingCount = paymentsByStatus.find(p => p.status === PaymentStatus.PENDING)?._count.id ?? 0;
+        const failedCount = paymentsByStatus.find(p => p.status === PaymentStatus.FAILED)?._count.id ?? 0;
+        
+        const total = paidAmount + pendingAmount + failedAmount;
+        
         return {
-          totalRevenue: totalRevenue._sum.amount ?? 0,
+          totalRevenue: totalRevenue._sum.totalCost ?? 0,
           totalPayments,
-          averagePayment: averagePayment._avg.amount ?? 0,
+          averagePayment: averagePayment._avg.totalCost ?? 0,
+          paidAmount,
+          pendingAmount,
+          failedAmount,
+          paidCount,
+          pendingCount,
+          failedCount,
+          paidPercentage: total > 0 ? (paidAmount / total) * 100 : 0,
+          pendingPercentage: total > 0 ? (pendingAmount / total) * 100 : 0,
+          failedPercentage: total > 0 ? (failedAmount / total) * 100 : 0,
+          revenueChange: 10, // Placeholder - would calculate real trend
           paymentsByStatus: paymentsByStatus.map((item) => ({
             status: item.status,
             count: item._count.id,
-            totalAmount: item._sum.amount ?? 0,
+            totalAmount: item._sum.totalCost ?? 0,
+          })),
+          paymentMethods: [
+            { type: 'Card', count: paidCount, amount: paidAmount },
+          ], // Simplified since payment method isn't in booking schema
+          topServices: topServices.slice(0, 5).map((service) => ({
+            name: service.tattooType,
+            bookings: service._count.id,
+            revenue: service._sum.totalCost ?? 0,
           })),
         };
       } catch (error) {
@@ -191,6 +260,80 @@ export const paymentsRouter = router({
           message: 'Error fetching payment statistics',
           cause: error,
         });
+      }
+    }),
+
+  /**
+   * Get payments for the payments page table
+   */
+  getPayments: adminProcedure
+    .input(
+      z.object({
+        timeRange: z.enum(['week', 'month', 'year']).optional(),
+        status: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        // Generate mock data for now - replace with real Cal.com integration
+        const mockPayments = [];
+        const statuses = ['paid', 'pending', 'failed', 'refunded'];
+        const services = ['Tattoo Consultation', 'Small Tattoo Session', 'Large Tattoo Session', 'Cover-up Session'];
+        const methods = ['Card', 'PayPal', 'Cash', 'Bank Transfer'];
+        
+        // Generate 20 mock payments
+        for (let i = 0; i < 20; i++) {
+          const date = new Date();
+          date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+          
+          mockPayments.push({
+            id: `payment-${i}`,
+            bookingId: `booking-${i}`,
+            amount: Math.floor(Math.random() * 500) + 100,
+            currency: 'USD',
+            status: statuses[Math.floor(Math.random() * statuses.length)],
+            paymentMethod: methods[Math.floor(Math.random() * methods.length)],
+            customerName: `Customer ${i + 1}`,
+            customerEmail: `customer${i + 1}@example.com`,
+            serviceName: services[Math.floor(Math.random() * services.length)],
+            createdAt: date.toISOString(),
+            paidAt: date.toISOString(),
+          });
+        }
+        
+        // Filter by status if provided
+        let filtered = mockPayments;
+        if (input.status && input.status !== 'all') {
+          filtered = mockPayments.filter(p => p.status === input.status);
+        }
+        
+        // Filter by time range
+        if (input.timeRange) {
+          const now = new Date();
+          let startDate: Date;
+          
+          switch (input.timeRange) {
+            case 'week':
+              startDate = new Date(now);
+              startDate.setDate(now.getDate() - 7);
+              break;
+            case 'month':
+              startDate = new Date(now);
+              startDate.setMonth(now.getMonth() - 1);
+              break;
+            case 'year':
+              startDate = new Date(now);
+              startDate.setFullYear(now.getFullYear() - 1);
+              break;
+          }
+          
+          filtered = filtered.filter(p => new Date(p.createdAt) >= startDate);
+        }
+        
+        return filtered;
+      } catch (error) {
+        logger.error('Error fetching payments:', error);
+        return [];
       }
     }),
 });

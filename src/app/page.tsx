@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import HomeClient from '@/components/home/HomeClient';
 
+// Enable Partial Prerendering (PPR) for optimal performance
+export const experimental_ppr = true;
+
 // Force static generation with revalidation every 4 hours
 export const dynamic = 'force-static';
 export const revalidate = 14400;
@@ -18,7 +21,14 @@ export const metadata: Metadata = {
     'traditional tattoos',
     'fine line tattoos',
     'tattoo consultation',
-    'Dallas tattoo studio',
+    'Dallas custom tattoos',
+    'Fort Worth custom tattoos',
+    'Fort Worth tattoo artist',
+    'Dallas tattoo artist',
+    'Dallas tattoo consultation',
+    'Fort Worth tattoo consultation',
+    'Dallas custom tattoo',
+    'Fort Worth custom tattoo'
   ],
   openGraph: {
     title: 'Ink 37 Tattoos | Custom Designs by Fernando Govea',
@@ -41,7 +51,7 @@ export const metadata: Metadata = {
     title: 'Ink 37 Tattoos | Custom Designs by Fernando Govea',
     description: 'Experience exceptional custom tattoo artistry in the Dallas/Fort Worth area.',
     images: ['/images/japanese.jpg'],
-    creator: '@ink37tattoo',
+    creator: '@ink37tattoos',
   },
   alternates: {
     canonical: 'https://ink37tattoos.com',

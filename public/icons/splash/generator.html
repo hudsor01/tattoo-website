@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Splash Screen Generator - Ink 37</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            color: #8B5A2B;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .instructions {
+            background-color: #1e1e1e;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .generator {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #1e1e1e;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #8B5A2B;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background-color: #70492a;
+        }
+        canvas {
+            background-color: #000;
+            border-radius: 8px;
+            max-width: 100%;
+            margin-top: 1rem;
+        }
+        .output {
+            margin-top: 2rem;
+        }
+        .splash-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .splash-image {
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .splash-image h3 {
+            margin-top: 0;
+        }
+        .splash-image img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        code {
+            background-color: #2d2d2d;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PWA Splash Screen Generator - Ink 37</h1>
+        
+        <div class="instructions">
+            <h2>Instructions</h2>
+            <p>This tool generates splash screen images for iOS devices to use in your PWA. Upload your logo below and click "Generate Splash Screens" to create optimized splash screens for various device sizes.</p>
+            <p>The generated images will be saved in the <code>/public/icons/splash/</code> directory. You can then include them in your PWA manifest and HTML head tags.</p>
+        </div>
+        
+        <div class="generator">
+            <h2>Splash Screen Generator</h2>
+            <div>
+                <label for="logoUpload">Upload Logo (PNG with transparency recommended):</label>
+                <input type="file" id="logoUpload" accept="image/png, image/jpeg">
+            </div>
+            
+            <div>
+                <label for="backgroundColor">Background Color:</label>
+                <input type="color" id="backgroundColor" value="#000000">
+            </div>
+            
+            <div>
+                <label for="logoSize">Logo Size (% of screen):</label>
+                <input type="range" id="logoSize" min="10" max="70" value="40">
+                <span id="logoSizeValue">40%</span>
+            </div>
+            
+            <button id="generateBtn">Generate Splash Screens</button>
+            
+            <div class="preview">
+                <h3>Preview</h3>
+                <canvas id="previewCanvas" width="390" height="844"></canvas>
+            </div>
+        </div>
+        
+        <div class="output" id="outputSection" style="display: none;">
+            <h2>Generated Splash Screens</h2>
+            <p>The following splash screen images have been generated. Right-click and save each image to your splash directory.</p>
+            
+            <div class="splash-images" id="splashImagesContainer">
+                <!-- Generated splash images will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // iOS device sizes for splash screens
+        const deviceSizes = [
+            { name: 'iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape', width: 932, height: 430 },
+            { name: 'iPhone_15_Pro__iPhone_15__iPhone_14_Pro_landscape', width: 852, height: 393 },
+            { name: 'iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_landscape', width: 926, height: 428 },
+            { name: 'iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape', width: 844, height: 390 },
+            { name: 'iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_landscape', width: 812, height: 375 },
+            { name: 'iPhone_11__iPhone_XR_landscape', width: 896, height: 414 },
+            { name: 'iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape', width: 736, height: 414 },
+            { name: 'iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape', width: 667, height: 375 },
+            { name: 'iPhone_SE__iPhone_5s_4__display_landscape', width: 568, height: 320 }
+        ];
+
+        // DOM elements
+        const logoUpload = document.getElementById('logoUpload');
+        const backgroundColor = document.getElementById('backgroundColor');
+        const logoSize = document.getElementById('logoSize');
+        const logoSizeValue = document.getElementById('logoSizeValue');
+        const generateBtn = document.getElementById('generateBtn');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const outputSection = document.getElementById('outputSection');
+        const splashImagesContainer = document.getElementById('splashImagesContainer');
+
+        // Update logo size value display
+        logoSize.addEventListener('input', () => {
+            logoSizeValue.textContent = `${logoSize.value}%`;
+            updatePreview();
+        });
+
+        // Handle file upload
+        let logoImg = null;
+        logoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    logoImg = new Image();
+                    logoImg.onload = () => updatePreview();
+                    logoImg.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Update preview when color changes
+        backgroundColor.addEventListener('input', updatePreview);
+
+        // Update preview canvas
+        function updatePreview() {
+            const ctx = previewCanvas.getContext('2d');
+            ctx.fillStyle = backgroundColor.value;
+            ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            if (logoImg) {
+                const logoWidth = (previewCanvas.width * parseInt(logoSize.value)) / 100;
+                const aspectRatio = logoImg.height / logoImg.width;
+                const logoHeight = logoWidth * aspectRatio;
+                
+                const x = (previewCanvas.width - logoWidth) / 2;
+                const y = (previewCanvas.height - logoHeight) / 2;
+                
+                ctx.drawImage(logoImg, x, y, logoWidth, logoHeight);
+            }
+        }
+
+        // Generate splash screens
+        generateBtn.addEventListener('click', () => {
+            if (!logoImg) {
+                alert('Please upload a logo image first');
+                return;
+            }
+
+            splashImagesContainer.innerHTML = '';
+            
+            // Generate each splash screen
+            deviceSizes.forEach(device => {
+                const canvas = document.createElement('canvas');
+                canvas.width = device.width;
+                canvas.height = device.height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = backgroundColor.value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                const logoWidth = (Math.min(canvas.width, canvas.height) * parseInt(logoSize.value)) / 100;
+                const aspectRatio = logoImg.height / logoImg.width;
+                const logoHeight = logoWidth * aspectRatio;
+                
+                const x = (canvas.width - logoWidth) / 2;
+                const y = (canvas.height - logoHeight) / 2;
+                
+                ctx.drawImage(logoImg, x, y, logoWidth, logoHeight);
+                
+                // Create splash image element
+                const splashImage = document.createElement('div');
+                splashImage.className = 'splash-image';
+                
+                const title = document.createElement('h3');
+                title.textContent = device.name;
+                
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                img.alt = device.name;
+                
+                const size = document.createElement('p');
+                size.textContent = `${device.width}x${device.height}`;
+                
+                splashImage.appendChild(title);
+                splashImage.appendChild(img);
+                splashImage.appendChild(size);
+                
+                splashImagesContainer.appendChild(splashImage);
+            });
+            
+            outputSection.style.display = 'block';
+        });
+
+        // Initialize preview
+        updatePreview();
+    </script>
+</body>
+</html>

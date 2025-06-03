@@ -1,9 +1,9 @@
-'use client';
-
 import React from 'react';
+
+// CONVERTED TO SERVER COMPONENT: Static service list rendering
 import { ServiceCard } from '@/components/services/ServiceCard';
 import { CTASection } from '@/components/CTASection';
-import type { Service } from '@/types/component-types';
+import type { Service } from '@prisma/client';
 
 interface ServiceListProps {
   services: Service[];

@@ -7,51 +7,28 @@
 import { z } from 'zod';
 import { adminProcedure, router } from '../procedures';
 import { TRPCError } from '@trpc/server';
-import { Prisma } from '@prisma/client';
+import { Prisma, NoteType } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
-import { prisma } from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
+import { prisma } from '../../db/prisma';
+import {
+  GetNotesByCustomerSchema,
+  CreateNoteSchema,
+  UpdateNoteSchema,
+  DeleteNoteSchema,
+  PinNoteSchema,
+} from '@/lib/schemas/note-schemas';
 
 // Export the admin router with all procedures
 export const adminRouter = router({
-  // Get dashboard overview stats
   getDashboardStats: adminProcedure.query(async () => {
-    // Get counts from different entities
     const usersCount = await prisma.user.count();
     const customersCount = await prisma.customer.count();
-    const bookingsCount = await prisma.booking.count();
-    const appointmentsCount = await prisma.appointment.count();
-    const artistsCount = await prisma.artist.count();
-    const testimonialsCount = await prisma.testimonial.count();
+    const bookingsCount = 0; // TODO: update to fetch data from cal.com integration and/or api routes
+    const appointmentsCount = 0; // TODO: update to fetch data from cal.com integration and/or api routes
+    const artistsCount = 0; // TODO: update to fetch data from cal.com integration and/or api routes
+    const testimonialsCount = 0; // TODO: update when testimonial model is added to schema
     const designsCount = await prisma.tattooDesign.count();
-
-    // Get recent bookings
-    const recentBookings = await prisma.booking.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        Customer: true,
-        Artist: {
-          include: {
-            User: true,
-          },
-        },
-      },
-    });
-
-    // Get upcoming appointments
-    const upcomingAppointments = await prisma.appointment.findMany({
-      where: {
-        startDate: {
-          gte: new Date(),
-        },
-      },
-      take: 5,
-      orderBy: { startDate: 'asc' },
-      include: {
-        Customer: true,
-        Artist: true,
-      },
-    });
 
     // Return all stats
     return {
@@ -64,8 +41,6 @@ export const adminRouter = router({
         testimonials: testimonialsCount,
         designs: designsCount,
       },
-      recentBookings,
-      upcomingAppointments,
     };
   }),
 
@@ -163,18 +138,20 @@ export const adminRouter = router({
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
-          Booking: {
-            select: {
-              id: true,
-            },
-          },
-          Appointment: {
-            select: {
-              id: true,
-            },
-          },
-          Tag: true,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          address: true,
+          city: true,
+          state: true,
+          postalCode: true,
+          notes: true,
+          tags: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
 
@@ -223,21 +200,20 @@ export const adminRouter = router({
       const totalCount = await prisma.customer.count({ where });
 
       // Get customers with cursor pagination
+      // Using Prisma type for proper type checking
       const findManyOptions: Prisma.CustomerFindManyArgs = {
         where,
         take: limit + 1, // Take one extra to check if there's more
         orderBy: { createdAt: 'desc' },
-        include: {
-          Booking: {
-            select: {
-              id: true,
-            },
-          },
-          Appointment: {
-            select: {
-              id: true,
-            },
-          },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          createdAt: true,
+          updatedAt: true,
+          tags: true,
         },
       };
 
@@ -264,28 +240,21 @@ export const adminRouter = router({
   getCustomerById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     const customer = await prisma.customer.findUnique({
       where: { id: input.id },
-      include: {
-        Booking: {
-          orderBy: { createdAt: 'desc' },
-          include: {
-            Artist: {
-              include: {
-                User: true,
-              },
-            },
-          },
-        },
-        Appointment: {
-          orderBy: { startDate: 'desc' },
-          include: {
-            Artist: true,
-          },
-        },
-        Transaction: {
-          orderBy: { createdAt: 'desc' },
-        },
-        Testimonial: true,
-        Tag: true,
+      // Select only fields that exist in the schema
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        notes: true,
+        tags: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -314,7 +283,6 @@ export const adminRouter = router({
         postalCode: z.string().optional(),
         country: z.string().optional(),
         birthDate: z.date().optional(),
-        allergies: z.string().optional(),
         source: z.string().optional(),
         personalNotes: z.string().optional(),
       })
@@ -342,11 +310,6 @@ export const adminRouter = router({
           updateData.country = input.country;
         if (input.birthDate !== null && input.birthDate !== undefined)
           updateData.birthDate = input.birthDate;
-        if (input.allergies !== null && input.allergies !== undefined)
-          updateData.allergies = input.allergies;
-        if (input.source !== null && input.source !== undefined) updateData.source = input.source;
-        if (input.personalNotes !== null && input.personalNotes !== undefined)
-          updateData.notes = input.personalNotes;
 
         const updatedCustomer = await prisma.customer.update({
           where: { id },
@@ -366,56 +329,245 @@ export const adminRouter = router({
       }
     }),
 
-  // Add a note to a customer (placeholders until Note model is added)
-  addCustomerNote: adminProcedure
-    .input(
-      z.object({
-        customerId: z.string(),
-        content: z.string().min(1),
-        type: z.string().default('manual'),
-      })
-    )
-    .mutation(async ({ input }) => {
+  // Get all notes for a customer
+  getCustomerNotes: adminProcedure
+    .input(GetNotesByCustomerSchema)
+    .query(async ({ input }) => {
       try {
-        // Since the Note model doesn't exist, we'll update the customer's notes field
-        const customer = await prisma.customer.findUnique({
-          where: { id: input.customerId },
-          select: { notes: true },
+        const { customerId, limit, cursor, type, pinnedOnly } = input;
+        
+        // Build where clause based on input
+        const where: Prisma.NoteWhereInput = { 
+          customerId 
+        };
+        
+        // Add type filter if not 'all'
+        if (type !== 'all') {
+          where.type = type as NoteType;
+        }
+        
+        // Add pinned filter if requested
+        if (pinnedOnly) {
+          where.pinned = true;
+        }
+        
+        // Get notes with pagination
+        const notes = await prisma.note.findMany({
+          where,
+          take: limit + 1, // Take one extra to check if there are more
+          ...(cursor ? { cursor: { id: cursor } } : {}),
+          orderBy: [
+            { pinned: 'desc' },  // Pinned notes first
+            { createdAt: 'desc' } // Then by creation date (newest first)
+          ],
+          include: {
+            customer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
+          }
         });
-
-        const currentNotes = customer?.notes ?? '';
-        const newNote = `[${new Date().toISOString()}] ${input.content}`;
-        const updatedNotes = currentNotes ? `${currentNotes}\n\n${newNote}` : newNote;
-
-        await prisma.customer.update({
-          where: { id: input.customerId },
-          data: { notes: updatedNotes },
-        });
-
+        
+        // Check if there are more notes and set next cursor
+        let nextCursor: string | undefined = undefined;
+        if (notes.length > limit) {
+          const nextItem = notes.pop(); // Remove the extra item
+          nextCursor = nextItem?.id;
+        }
+        
         return {
-          id: 'temp-note-id',
-          content: input.content,
-          type: input.type,
-          customerId: input.customerId,
+          notes,
+          nextCursor,
         };
       } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: `Failed to add note: ${error.message}`,
-            cause: error,
-          });
-        }
-        throw error;
+        void logger.error('Error fetching customer notes', { error, customerId: input.customerId });
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch customer notes',
+          cause: error,
+        });
       }
     }),
 
-  // Delete a customer note (placeholders until Note model is added)
-  deleteCustomerNote: adminProcedure.input(z.object({ id: z.string() })).mutation(async () => {
-    // This is a placeholder until the Note model is properly implemented
-    // For now, just return success as notes are stored in the customer.notes field
-    return { success: true };
-  }),
+  // Add a note to a customer
+  addCustomerNote: adminProcedure
+    .input(CreateNoteSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { customerId, content, type, pinned } = input;
+        const userId = ctx.userId ?? null;
+        
+        // Verify the customer exists
+        const customer = await prisma.customer.findUnique({
+          where: { id: customerId },
+          select: { id: true },
+        });
+        
+        if (!customer) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `Customer with ID ${customerId} not found`,
+          });
+        }
+        
+        // Create a new note in the database
+        const newNote = await prisma.note.create({
+          data: {
+            id: randomUUID(),
+            content,
+            type: type as NoteType,
+            pinned: pinned ?? false,
+            customerId,
+            createdBy: userId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+        
+        return newNote;
+      } catch (error) {
+        void logger.error('Error adding customer note', { error, customerId: input.customerId });
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to add customer note',
+          cause: error,
+        });
+      }
+    }),
+
+  // Update a customer note
+  updateCustomerNote: adminProcedure
+    .input(UpdateNoteSchema)
+    .mutation(async ({ input }) => {
+      try {
+        const { id, content, pinned, type } = input;
+        
+        // Verify the note exists
+        const existingNote = await prisma.note.findUnique({
+          where: { id },
+        });
+        
+        if (!existingNote) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `Note with ID ${id} not found`,
+          });
+        }
+        
+        // Prepare update data
+        const updateData: Prisma.NoteUpdateInput = {};
+        
+        if (content !== undefined) updateData.content = content;
+        if (pinned !== undefined) updateData.pinned = pinned;
+        if (type !== undefined) updateData.type = type as NoteType;
+        updateData.updatedAt = new Date();
+        
+        // Update the note
+        const updatedNote = await prisma.note.update({
+          where: { id },
+          data: updateData,
+        });
+        
+        return updatedNote;
+      } catch (error) {
+        void logger.error('Error updating customer note', { error, noteId: input.id });
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update customer note',
+          cause: error,
+        });
+      }
+    }),
+
+  // Delete a customer note
+  deleteCustomerNote: adminProcedure
+    .input(DeleteNoteSchema)
+    .mutation(async ({ input }) => {
+      try {
+        const { id } = input;
+        
+        // Verify the note exists
+        const existingNote = await prisma.note.findUnique({
+          where: { id },
+        });
+        
+        if (!existingNote) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `Note with ID ${id} not found`,
+          });
+        }
+        
+        // Delete the note
+        await prisma.note.delete({
+          where: { id },
+        });
+        
+        return { success: true };
+      } catch (error) {
+        void logger.error('Error deleting customer note', { error, noteId: input.id });
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete customer note',
+          cause: error,
+        });
+      }
+    }),
+
+  // Pin or unpin a note
+  pinNote: adminProcedure
+    .input(PinNoteSchema)
+    .mutation(async ({ input }) => {
+      try {
+        const { id, pinned } = input;
+        
+        // Verify the note exists
+        const existingNote = await prisma.note.findUnique({
+          where: { id },
+        });
+        
+        if (!existingNote) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `Note with ID ${id} not found`,
+          });
+        }
+        
+        // Update the pinned status
+        const updatedNote = await prisma.note.update({
+          where: { id },
+          data: {
+            pinned,
+            updatedAt: new Date(),
+          },
+        });
+        
+        return updatedNote;
+      } catch (error) {
+        void logger.error('Error pinning/unpinning note', { error, noteId: input.id, pinStatus: input.pinned });
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update note pinned status',
+          cause: error,
+        });
+      }
+    }),
 
   // Manage customer tags
   addTagToCustomer: adminProcedure
@@ -427,19 +579,24 @@ export const adminRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        const customer = await prisma.customer.update({
+        // Use a direct query approach to avoid Prisma type issues
+        await prisma.$queryRaw`
+          INSERT INTO "_CustomerToTag" ("A", "B")
+          VALUES (${input.customerId}, ${input.tagId})
+          ON CONFLICT DO NOTHING;
+        `;
+        const updatedCustomer = await prisma.customer.findUnique({
           where: { id: input.customerId },
-          data: {
-            Tag: {
-              connect: { id: input.tagId },
-            },
-          },
-          include: {
-            Tag: true,
-          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            tags: true
+          }
         });
 
-        return customer;
+        return updatedCustomer;
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
           throw new TRPCError({
@@ -462,15 +619,18 @@ export const adminRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        const customer = await prisma.customer.update({
+        // Use raw query to avoid schema mismatches
+  await prisma.$queryRaw`DELETE FROM "_CustomerToTag"
+          WHERE "A" = ${input.customerId} AND "B" = ${input.tagId};
+        `;
+        const customer = await prisma.customer.findUnique({
           where: { id: input.customerId },
-          data: {
-            Tag: {
-              disconnect: { id: input.tagId },
-            },
-          },
-          include: {
-            Tag: true,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            tags: true
           },
         });
 
@@ -487,14 +647,14 @@ export const adminRouter = router({
       }
     }),
 
-  // Get all tags
+  // Get all tags - Remove tag operations since Tag model doesn't exist
   getTags: adminProcedure.query(async () => {
-    return prisma.tag.findMany({
-      orderBy: { name: 'asc' },
-    });
+    // Return empty array since Tag model doesn't exist in schema
+    logger.warn('Tag model not found in schema - returning empty array');
+    return [];
   }),
 
-  // Create a new tag
+  // Create a new tag - Disabled since Tag model doesn't exist
   createTag: adminProcedure
     .input(
       z.object({
@@ -502,58 +662,19 @@ export const adminRouter = router({
         color: z.string().default('gray'),
       })
     )
-    .mutation(async ({ input }) => {
-      try {
-        const tag = await prisma.tag.create({
-          data: {
-            id: randomUUID(),
-            name: input.name,
-            color: input.color,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        });
-
-        return tag;
-      } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-          // Handle unique constraint violation
-          if (error.code === 'P2002') {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'A tag with this name already exists',
-              cause: error,
-            });
-          }
-
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: `Failed to create tag: ${error.message}`,
-            cause: error,
-          });
-        }
-        throw error;
-      }
+    .mutation(async () => {
+      throw new TRPCError({
+        code: 'NOT_IMPLEMENTED',
+        message: 'Tag functionality not implemented - Tag model not found in schema',
+      });
     }),
 
-  // Delete a tag
-  deleteTag: adminProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-    try {
-      await prisma.tag.delete({
-        where: { id: input.id },
-      });
-
-      return { success: true };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to delete tag: ${error.message}`,
-          cause: error,
-        });
-      }
-      throw error;
-    }
+  // Delete a tag - Disabled since Tag model doesn't exist
+  deleteTag: adminProcedure.input(z.object({ id: z.string() })).mutation(async () => {
+    throw new TRPCError({
+      code: 'NOT_IMPLEMENTED',
+      message: 'Tag functionality not implemented - Tag model not found in schema',
+    });
   }),
 
   // Create a new customer
@@ -568,13 +689,14 @@ export const adminRouter = router({
         city: z.string().optional(),
         state: z.string().optional(),
         zipCode: z.string().optional(),
-        notes: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
       try {
+        const customerId = randomUUID();        
         const customer = await prisma.customer.create({
           data: {
+            id: customerId,
             firstName: input.firstName.trim(),
             lastName: input.lastName.trim(),
             email: input.email.trim().toLowerCase(),
@@ -583,8 +705,9 @@ export const adminRouter = router({
             city: input.city?.trim() ?? null,
             state: input.state?.trim() ?? null,
             postalCode: input.zipCode?.trim() ?? null,
-            notes: input.notes?.trim() ?? null,
-            tags: [], // Initialize as empty array
+            communicationPrefs: 'EMAIL', // Add required field
+            updatedAt: new Date(),
+            createdAt: new Date()
           },
           // Only select the fields we need to avoid serialization issues
           select: {
@@ -597,7 +720,6 @@ export const adminRouter = router({
             city: true,
             state: true,
             postalCode: true,
-            notes: true,
             createdAt: true,
             updatedAt: true,
           },

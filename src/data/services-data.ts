@@ -1,5 +1,17 @@
 import { Palette, Camera, Gem, RefreshCw } from 'lucide-react';
-import { type Service } from '@/types/component-types';
+// Service type for tattoo services data
+type Service = {
+  id: string;
+  title: string;
+  description: string;
+  shortDescription: string;
+  features: string[];
+  icon: React.ComponentType<{ className?: string }>;
+  startingPrice: number;
+  duration: string;
+  category: 'design' | 'session' | 'consultation';
+  popularityScore: number;
+};
 
 /**
  * Shared services data

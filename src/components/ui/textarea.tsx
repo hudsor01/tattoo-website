@@ -1,3 +1,5 @@
+// CONVERTED TO SERVER COMPONENT: Pure HTML textarea element with forwardRef works in Server Components
+
 import * as React from 'react';
 
 import { cn } from '@/utils';

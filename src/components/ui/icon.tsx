@@ -121,7 +121,7 @@ export interface EnhancedIconProps
 export const Icon = forwardRef<SVGSVGElement, SimpleIconProps & { icon: React.ElementType }>(
   ({ icon: IconComponent, size = 'md', className, ...props }, ref) => {
     // Get size class or use custom size
-    const sizeClass = sizeClasses[size as keyof typeof sizeClasses] || '';
+    const sizeClass = sizeClasses[size as keyof typeof sizeClasses] ?? '';
 
     return (
       <IconComponent ref={ref} className={cn(sizeClass, className)} aria-hidden="true" {...props} />
@@ -175,7 +175,7 @@ export const IconEnhanced = forwardRef<HTMLDivElement, EnhancedIconProps>(
         {...props}
       >
         <IconComponent
-          size={sizePixels[size as IconSize] || sizePixels.md}
+          size={sizePixels[size as IconSize] ?? sizePixels.md}
           {...(strokeWidth !== undefined ? { strokeWidth } : {})}
           className="transition-colors duration-[--transition-fast]"
         />

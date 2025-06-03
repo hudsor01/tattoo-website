@@ -1,10 +1,11 @@
 /**
  * Advanced Rate Limiting and Security Middleware
- *
- * Implements multiple rate limiting strategies and security enhancements
- * for different types of requests and user types.
+ * 
+ * This file centralizes all rate limiting functionality using in-memory storage.
+ * For production at scale, consider implementing a distributed cache solution.
  */
 import { NextRequest } from 'next/server';
+import { logger } from "@/lib/logger";
 
 // Rate limit configurations
 const RATE_LIMITS = {
@@ -23,7 +24,7 @@ const RATE_LIMITS = {
   PAGE_VIEW: { requests: 300, window: 60 * 1000 }, // 300 page views per minute
 } as const;
 
-// In-memory store for rate limiting (consider Redis for production at scale)
+// In-memory store for rate limiting
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 // Clean up expired entries periodically
@@ -58,7 +59,7 @@ function getClientIP(request: NextRequest): string {
     return cfConnectingIp;
   }
 
-  // Fallback to connection IP (Note: request.ip may not be available in all environments)
+  // Fallback to connection IP
   return 'unknown';
 }
 
@@ -101,17 +102,66 @@ function getRateLimitConfig(request: NextRequest) {
 
 /**
  * Check if request should be rate limited
+ * 
+ * Uses a token bucket algorithm with in-memory storage.
+ * For distributed applications, consider using a shared cache like Redis or DynamoDB.
  */
-export function checkRateLimit(request: NextRequest): {
+export async function checkRateLimit(request: NextRequest): Promise<{
   allowed: boolean;
   remaining: number;
   resetTime: number;
   limit: number;
-} {
+}> {
   const clientIP = getClientIP(request);
   const config = getRateLimitConfig(request);
-  const key = `${clientIP}:${request.nextUrl.pathname}`;
+  const key = `rate_limit:${clientIP}:${request.nextUrl.pathname}`;
+  const now = Date.now();
 
+  try {
+    // Get or create rate limit entry
+    let entry = rateLimitStore.get(key);
+
+    if (!entry || now > entry.resetTime) {
+      // Create new entry or reset expired one
+      entry = {
+        count: 0,
+        resetTime: now + config.window,
+      };
+    }
+
+    // Increment request count
+    entry.count++;
+    rateLimitStore.set(key, entry);
+
+    const allowed = entry.count <= config.requests;
+    const remaining = Math.max(0, config.requests - entry.count);
+
+    return {
+      allowed,
+      remaining,
+      resetTime: entry.resetTime,
+      limit: config.requests,
+    };
+  } catch (error) {
+    logger.error('Rate limiting error:', error);
+    
+    // In case of failure, allow the request with warning log
+    // This is a fail-open approach to maintain availability
+    return {
+      allowed: true,
+      remaining: config.requests - 1,
+      resetTime: now + config.window,
+      limit: config.requests
+    };
+  }
+}
+
+/**
+ * Simple rate limiter (kept for backward compatibility)
+ */
+export function rateLimit(req: NextRequest, limit: number = 100, windowMs: number = 60000) {
+  const clientIP = getClientIP(req);
+  const key = `${clientIP}:${req.nextUrl.pathname}`;
   const now = Date.now();
 
   // Get or create rate limit entry
@@ -121,7 +171,7 @@ export function checkRateLimit(request: NextRequest): {
     // Create new entry or reset expired one
     entry = {
       count: 0,
-      resetTime: now + config.window,
+      resetTime: now + windowMs,
     };
   }
 
@@ -129,14 +179,84 @@ export function checkRateLimit(request: NextRequest): {
   entry.count++;
   rateLimitStore.set(key, entry);
 
-  const allowed = entry.count <= config.requests;
-  const remaining = Math.max(0, config.requests - entry.count);
+  const isAllowed = entry.count <= limit;
+  const remaining = Math.max(0, limit - entry.count);
 
   return {
-    allowed,
+    success: isAllowed,
     remaining,
     resetTime: entry.resetTime,
-    limit: config.requests,
+    limit,
+  };
+}
+
+/**
+ * Generate response for rate limited requests
+ * 
+ * Can be used with either the legacy rateLimit function or the modern checkRateLimit function
+ */
+export function rateLimitResponse(
+  rateLimitResult: 
+    | ReturnType<typeof rateLimit> 
+    | Awaited<ReturnType<typeof checkRateLimit>>
+) {
+  const headers = new Headers();
+  const isLegacy = 'success' in rateLimitResult;
+  
+  // Handle both legacy and modern rate limit result formats
+  const limit = isLegacy ? rateLimitResult.limit : rateLimitResult.limit;
+  const remaining = isLegacy ? rateLimitResult.remaining : rateLimitResult.remaining;
+  const resetTime = rateLimitResult.resetTime;
+  const allowed = isLegacy ? rateLimitResult.success : rateLimitResult.allowed;
+  
+  headers.set('X-RateLimit-Limit', limit.toString());
+  headers.set('X-RateLimit-Remaining', remaining.toString());
+  headers.set('X-RateLimit-Reset', new Date(resetTime).toISOString());
+
+  if (!allowed) {
+    const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
+    headers.set('Retry-After', retryAfter.toString());
+    
+    return new Response(
+      JSON.stringify({
+        error: 'Rate limit exceeded',
+        message: `Too many requests. Please try again in ${retryAfter} seconds.`,
+        retryAfter,
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          ...Object.fromEntries(headers.entries()),
+        },
+      }
+    );
+  }
+
+  return null;
+}
+
+/**
+ * Generate rate limit headers for client
+ * 
+ * Works with both legacy and modern rate limit result formats
+ */
+export function getRateLimitHeaders(
+  rateLimitResult: 
+    | ReturnType<typeof rateLimit> 
+    | Awaited<ReturnType<typeof checkRateLimit>>
+) {
+  const isLegacy = 'success' in rateLimitResult;
+  const limit = isLegacy ? rateLimitResult.limit : rateLimitResult.limit;
+  const remaining = isLegacy ? rateLimitResult.remaining : rateLimitResult.remaining;
+  const resetTime = rateLimitResult.resetTime;
+  const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
+
+  return {
+    'X-RateLimit-Limit': limit.toString(),
+    'X-RateLimit-Remaining': remaining.toString(),
+    'X-RateLimit-Reset': new Date(resetTime).toISOString(),
+    'Retry-After': retryAfter.toString(),
   };
 }
 
@@ -175,13 +295,13 @@ export function getSecurityHeaders(nonce: string) {
     // Content Security Policy with nonce
     'Content-Security-Policy': [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://js.clerk.com https://*.clerk.ink37tattoos.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com`,
-      `style-src 'self' 'nonce-${nonce}' 'unsafe-inline' https://fonts.googleapis.com https://*.clerk.ink37tattoos.com`,
+      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com`,
+      `style-src 'self' 'nonce-${nonce}' 'unsafe-inline' https://fonts.googleapis.com`,
       "font-src 'self' https://fonts.gstatic.com https://ssl.gstatic.com",
       "img-src 'self' https: data: blob:",
-      "connect-src 'self' https: wss: https://www.google-analytics.com https://analytics.google.com https://*.googleapis.com https://*.gstatic.com https://*.clerk.ink37tattoos.com https://*.supabase.co",
+      "connect-src 'self' https: wss: https://www.google-analytics.com https://analytics.google.com https://*.googleapis.com https://*.gstatic.com https://*.supabase.co",
       "worker-src 'self' blob:",
-      "frame-src 'self' https://challenges.cloudflare.com https://js.clerk.com https://*.clerk.ink37tattoos.com",
+      "frame-src 'self' https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -228,22 +348,8 @@ export function detectThreats(request: NextRequest): {
     }
   }
 
-  // Check for suspicious request frequency from same IP
-  // (This would be enhanced with more sophisticated tracking)
-
   return {
     isSuspicious: threats.length > 0,
     threats,
-  };
-}
-
-/**
- * Generate rate limit headers for client
- */
-export function getRateLimitHeaders(rateLimitResult: ReturnType<typeof checkRateLimit>) {
-  return {
-    'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-    'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-    'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
   };
 }

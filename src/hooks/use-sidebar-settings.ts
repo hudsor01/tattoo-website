@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from "@/lib/logger";
 
 interface SidebarSettings {
   isFixed: boolean;
@@ -26,7 +27,7 @@ export function useSidebarSettings() {
         setSettings({ ...defaultSettings, ...parsed });
       }
     } catch (error) {
-      void console.warn('Failed to load sidebar settings:', error);
+      void void logger.warn('Failed to load sidebar settings:', error);
     }
   }, []);
 
@@ -37,7 +38,7 @@ export function useSidebarSettings() {
     try {
       void localStorage.setItem(SIDEBAR_SETTINGS_KEY, JSON.stringify(updated));
     } catch (error) {
-      void console.warn('Failed to save sidebar settings:', error);
+      void void logger.warn('Failed to save sidebar settings:', error);
     }
   };
 

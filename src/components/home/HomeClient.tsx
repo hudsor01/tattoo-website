@@ -1,9 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { motion } from '@/components/performance/LazyMotion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Images for the carousel - preload all for better performance
 const tattooImages = [
@@ -75,12 +77,16 @@ export default function HomeClient() {
 
   // Disable scrolling on the page
   void React.useEffect(() => {
+    // Only run on client side after hydration
+    if (typeof window === 'undefined') return undefined;
+    
     // Disable scrolling on this page
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     document.documentElement.style.height = '100%';
     document.body.style.height = '100%';
 
+    // Return cleanup function
     return () => {
       // Clean up when component unmounts
       document.documentElement.style.overflow = '';
@@ -92,6 +98,9 @@ export default function HomeClient() {
 
   // Optimized image preloading - only preload first 2 images
   void React.useEffect(() => {
+    // Only run on client side after hydration
+    if (typeof window === 'undefined') return;
+    
     // Preload only the first image (currently shown) and next image
     const preloadImages = tattooImages.slice(0, 2);
     preloadImages.forEach((src) => {
@@ -137,50 +146,54 @@ export default function HomeClient() {
       </nav>
 
       <div className="fixed inset-0 overflow-hidden bg-black">
-        {/* Main container with improved spacing */}
-        <div className="h-full w-full flex flex-col md:flex-row px-6 lg:px-12">
+        {/* Main container with improved spacing using container queries */}
+        <div className="h-full w-full flex flex-col md:flex-row px-6 lg:px-12 container-inline-size">
           {/* Left side - Content with proper spacing from navbar */}
           <div className="md:w-[45%] flex items-center justify-start py-16 md:py-8 pl-4 md:pl-8">
             <div className="w-full md:max-w-2xl">
-              <h1 className="artist-name text-white mb-6">
+              <h1 className="heading-display text-white mb-6">
                 TATTOOS BY
                 <br />
                 <span className="gradient-text">FERNANDO GOVEA</span>
               </h1>
 
-              <p className="paragraph-large mb-10">
+              <p className="paragraph-large mb-10 text-balance">
                 Crafting exceptional custom tattoos in Dallas/Fort Worth
               </p>
 
               {/* Enhanced CTAs with consistent styling */}
               <div className="flex flex-col sm:flex-row gap-6">
-                <Link href="/gallery" passHref>
-                  <motion.a
-                    whileHover={{
-                      y: -4,
-                      boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
+                <motion.div
+                  whileHover={{
+                    y: -4,
+                    boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link
+                    href="/gallery"
+                    className="block px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group backdrop-glass"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-500 opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
+                    <div className="absolute inset-0 bg-linear-to-r from-tattoo-red via-accent-orange to-accent-amber opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
                     <span>See My Work</span>
-                  </motion.a>
-                </Link>
+                  </Link>
+                </motion.div>
 
-                <Link href="/booking" passHref>
-                  <motion.a
-                    whileHover={{
-                      y: -4,
-                      boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
+                <motion.div
+                  whileHover={{
+                    y: -4,
+                    boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link
+                    href="/booking"
+                    className="block px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group backdrop-glass"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-500 opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
+                    <div className="absolute inset-0 bg-linear-to-r from-tattoo-red via-accent-orange to-accent-amber opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
                     <span>Book a Consultation</span>
-                  </motion.a>
-                </Link>
+                  </Link>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -222,12 +235,7 @@ export default function HomeClient() {
                           >
                             {/* Efficient border gradient to reduce repaints */}
                             <div
-                              className="absolute inset-0"
-                              style={{
-                                background: 'linear-gradient(to right, #ef4444, #f97316)',
-                                borderRadius: '0.75rem',
-                                padding: '2px',
-                              }}
+                              className="absolute inset-0 bg-linear-to-r from-[#dc2626] via-[#FF3131] to-[#f97316] rounded-xl p-[2px]"
                             >
                               <div className="absolute inset-[2px] rounded-[calc(0.75rem-2px)] overflow-hidden z-10">
                                 <Image
@@ -237,7 +245,6 @@ export default function HomeClient() {
                                   sizes="(max-width: 768px) 90vw, 50vw"
                                   priority={index === 0}
                                   quality={90}
-                                  className="object-cover"
                                   draggable="false"
                                   style={{
                                     objectFit: 'cover',
@@ -246,7 +253,7 @@ export default function HomeClient() {
                                 />
 
                                 {/* Optimized overlay with opacity reduction */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent z-10"></div>
+                                <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-transparent z-10"></div>
                               </div>
                             </div>
                           </motion.div>
@@ -280,7 +287,7 @@ export default function HomeClient() {
                     }
                     aria-label="Previous image"
                   >
-                    &#10094;
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
 
                   <button
@@ -292,7 +299,7 @@ export default function HomeClient() {
                     }
                     aria-label="Next image"
                   >
-                    &#10095;
+                    <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>

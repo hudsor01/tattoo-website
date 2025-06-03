@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/components/performance/LazyMotion';
 import Footer from '@/components/layouts/Footer';
 import { ServicesHeader } from '@/components/services/ServicesHeader';
 import { ServiceList } from '@/components/services/ServiceList';

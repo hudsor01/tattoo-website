@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
-import type { ServicesHeaderProps } from '@/types/component-types';
+import { useInView } from 'framer-motion';
+import { motion } from '@/components/performance/LazyMotion';
+import type { ServicesHeaderProps } from '@prisma/client';
 
 /**
  * Services Header Component
@@ -57,7 +58,7 @@ export function ServicesHeader({
       </motion.p>
 
       <motion.div
-        className="mt-8 h-1 w-24 mx-auto bg-gradient-to-r from-red-500 via-orange-500 to-amber-500"
+        className="mt-8 h-1 w-24 mx-auto bg-linear-to-r from-red-500 via-orange-500 to-amber-500"
         variants={fadeInUp}
       />
     </motion.div>

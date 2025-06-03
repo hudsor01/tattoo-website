@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils/server';
 import type { Prisma } from '@prisma/client';
-
+import { logger } from "@/lib/logger";
 /**
  * GET /api/admin/customers
  * Get all customers with optional filtering
@@ -43,31 +43,14 @@ export async function GET(request: NextRequest) {
         },
         skip,
         take: limit,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          address: true,
-          city: true,
-          state: true,
-          postalCode: true,
-          notes: true,
-          createdAt: true,
-          updatedAt: true,
-          Appointment: {
+        include: {
+          notes: {
             select: {
-              id: true,
-              startDate: true,
-              status: true,
+              content: true,
+              type: true,
+              createdAt: true,
             },
-            orderBy: {
-              startDate: 'desc',
-            },
-            take: 1,
           },
-          tags: true,
         },
       }),
       prisma.customer.count({ where }),
@@ -79,15 +62,16 @@ export async function GET(request: NextRequest) {
       const name = `${customer.firstName} ${customer.lastName}`.trim();
 
       // Extract tattoo style preference from notes if available
-      const tattooStyle = customer.notes?.includes('tattoo style')
-        ? (customer.notes.split('tattoo style preference:')[1]?.trim() ?? '')
+      const notesContent = customer.notes.map(note => note.content).join(' ');
+      const tattooStyle = notesContent.includes('tattoo style')
+        ? (notesContent.split('tattoo style preference:')[1]?.trim() ?? '')
         : '';
 
       // Determine status based on tags (default to 'new')
       const status = customer.tags.length > 0 ? 'active' : 'new';
 
-      // Determine last contact from appointments
-      const lastContact = customer.Appointment[0]?.startDate ?? null;
+      // Determine last contact from customer data
+      const lastContact = customer.updatedAt;
 
       return {
         id: customer.id,
@@ -102,7 +86,7 @@ export async function GET(request: NextRequest) {
         postalCode: customer.postalCode ?? '',
         status,
         tattooStyle,
-        notes: customer.notes ?? '',
+        notes: notesContent,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         lastContact,
@@ -117,7 +101,7 @@ export async function GET(request: NextRequest) {
       pageCount: Math.ceil(totalCount / limit),
     });
   } catch (error) {
-    void console.error('Error fetching customers:', error);
+    void void logger.error('Error fetching customers:', error);
     return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
   }
 }
@@ -136,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     // Get request body
     const data = await request.json();
-    void console.warn('Creating customer with data:', data);
+    void void logger.warn('Creating customer with data:', data);
 
     // Support both name-based and firstName/lastName-based input
     let firstName: string;
@@ -195,7 +179,11 @@ export async function POST(request: NextRequest) {
       city: data.city?.trim() ?? null,
       state: data.state?.trim() ?? null,
       postalCode: data.postalCode?.trim() ?? null,
-      notes: data.notes?.trim() ?? null,
+      communicationPrefs: {
+        email: true,
+        sms: true,
+        phone: false,
+      },
     };
 
     const customer = await prisma.customer.create({
@@ -216,10 +204,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    void console.warn('Customer created successfully:', customer);
+    void void logger.warn('Customer created successfully:', customer);
     return NextResponse.json(customer, { status: 201 });
   } catch (error) {
-    void console.error('Error creating customer:', error);
+    void void logger.error('Error creating customer:', error);
     return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
   }
 }

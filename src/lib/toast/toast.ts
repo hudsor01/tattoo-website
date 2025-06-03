@@ -3,7 +3,8 @@
  */
 
 import { toast } from '@/hooks/use-toast';
-import type { ToastVariant } from '@/types/component-types';
+// Toast variant type
+type ToastVariant = 'default' | 'success' | 'error' | 'destructive' | 'warning' | 'info';
 
 // Define our own ToastActionElement type to match the expected structure
 type ToastActionElement = {

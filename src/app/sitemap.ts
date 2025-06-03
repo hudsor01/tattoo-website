@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next';
+import { ENV } from '@/lib/utils/env';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://ink37tattoos.com';
+  const baseUrl = typeof ENV.NEXT_PUBLIC_APP_URL === 'string' ? ENV.NEXT_PUBLIC_APP_URL : 'https://ink37tattoos.com';
 
   // Main pages with higher priority
   const mainPages = [
     {
-      url: baseUrl,
+      url: baseUrl as string,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 1,

@@ -4,11 +4,13 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { contactFormSchema } from '@/lib/validation-schemas';
 import { prisma } from '@/lib/db/prisma';
-import { sendEmail } from '@/lib/email/email';
+import { sendEmail, generateSimpleAdminContactEmail, generateSimpleCustomerConfirmation } from '@/lib/email/email-service';
 import { z } from 'zod';
 import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
 import { rateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { getEnvSafe } from '@/lib/utils/env';
 
+import { logger } from "@/lib/logger";
 export const dynamic = 'force-dynamic';
 // Increase the size limit for file uploads
 export const config = {
@@ -73,7 +75,7 @@ async function saveFiles(files: Record<string, File>, submissionId: string) {
 
     return fileUrls;
   } catch (error) {
-    void console.error('Error saving files:', error);
+    void void logger.error('Error saving files:', error);
     throw new Error('Failed to save uploaded files');
   }
 }
@@ -135,35 +137,37 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Send notification email to admin
-    await sendEmail({
-      to: process.env['ADMIN_EMAIL'] ?? 'fennyg83@gmail.com',
-      subject: `New Contact Form Submission: ${validatedData.subject ?? 'Website Inquiry'}`,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${validatedData.name}</p>
-        <p><strong>Email:</strong> ${validatedData.email}</p>
-        <p><strong>Phone:</strong> ${validatedData.phone ?? 'Not provided'}</p>
-        <p><strong>Subject:</strong> ${validatedData.subject ?? 'Website Contact Form'}</p>
-        <p><strong>Service:</strong> ${validatedData.service ?? 'Not specified'}</p>
-        <p><strong>Message:</strong> ${validatedData.message}</p>
-        <p><strong>Attachments:</strong> ${fileUrls.length > 0 ? fileUrls.length : 'None'}</p>
-      `,
-      text: `New Contact Form Submission\n\nName: ${validatedData.name}\nEmail: ${validatedData.email}\nPhone: ${validatedData.phone ?? 'Not provided'}\nSubject: ${validatedData.subject ?? 'Website Contact Form'}\nService: ${validatedData.service ?? 'Not specified'}\nMessage: ${validatedData.message}\nAttachments: ${fileUrls.length > 0 ? fileUrls.length : 'None'}`,
+    // Send notification email to admin using template function
+    const adminEmailData = generateSimpleAdminContactEmail({
+      name: validatedData.name ?? '',
+      email: validatedData.email ?? '',
+      phone: validatedData.phone ?? undefined,
+      subject: validatedData.subject ?? 'Website Contact Form',
+      service: validatedData.service ?? undefined,
+      message: validatedData.message ?? '',
+      submissionId: contactSubmission.id,
+      attachments: fileUrls.length > 0 ? fileUrls.length : undefined
     });
 
-    // Send confirmation email to user
+    await sendEmail({
+      to: getEnvSafe('ADMIN_EMAIL', 'fennyg83@gmail.com'),
+      subject: adminEmailData.subject,
+      html: adminEmailData.html,
+      text: adminEmailData.text
+    });
+
+    // Send confirmation email to user using template function
+    const customerEmailData = generateSimpleCustomerConfirmation({
+      name: validatedData.name ?? '',
+      email: validatedData.email ?? '',
+      message: validatedData.message ?? ''
+    });
+
     await sendEmail({
       to: validatedData.email ?? '',
-      subject: 'Thank you for contacting me about your tattoo',
-      html: `
-        <h2>Thank you for contacting me about your tattoo</h2>
-        <p>Hi ${validatedData.name},</p>
-        <p>Thank you for reaching out about your tattoo. I've received your message and will get back to you as soon as possible.</p>
-        <p>Your message: ${validatedData.message}</p>
-        <p>Best regards,<br>Fernando</p>
-      `,
-      text: `Thank you for contacting me about your tattoo\n\nHi ${validatedData.name},\n\nThank you for reaching out about your tattoo. I've received your message and will get back to you as soon as possible.\n\nYour message: ${validatedData.message}\n\nBest regards,\nFernando`,
+      subject: customerEmailData.subject,
+      html: customerEmailData.html,
+      text: customerEmailData.text
     });
 
     return NextResponse.json({
@@ -173,7 +177,7 @@ export async function POST(request: NextRequest) {
       filesUploaded: fileUrls.length,
     });
   } catch (error) {
-    void console.error('Error processing contact form:', error);
+    void void logger.error('Error processing contact form:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

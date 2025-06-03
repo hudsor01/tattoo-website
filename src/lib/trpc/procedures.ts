@@ -26,7 +26,7 @@ const t = initTRPC.context<TRPCContext>().create({
 export const router = t.router;
 export const middleware = t.middleware;
 
-// Create auth middleware for Clerk
+// Create auth middleware for Better Auth
 const authMiddleware = middleware(async ({ ctx, next }) => {
   if (!ctx.userId) {
     void logger.debug('Auth middleware: No userId found', {
@@ -49,7 +49,7 @@ const authMiddleware = middleware(async ({ ctx, next }) => {
     ctx: {
       ...ctx,
       userId: ctx.userId,
-      user: ctx.user, // Clerk session claims (can be null)
+      user: ctx.user, // Better Auth session user
       userEmail: ctx.userEmail, // User email
       db: ctx.prisma, // Ensure prisma is passed
     },
@@ -83,5 +83,48 @@ export const publicProcedure = t.procedure.use(loggerMiddleware).use(
 // Protected procedure - requires authentication
 export const protectedProcedure = t.procedure.use(loggerMiddleware).use(authMiddleware);
 
-// Admin procedure - now just an alias for protected since all signed-in users are admins
-export const adminProcedure = protectedProcedure;
+// Admin role middleware - checks if the user has admin role
+const adminMiddleware = middleware(async ({ ctx, next }) => {
+  // First ensure user is authenticated
+  if (!ctx.userId || !ctx.user) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You must be logged in to access this resource',
+    });
+  }
+  
+  // Then check if user has admin role
+  // This assumes user object has a role property - adjust based on your auth implementation
+  const hasAdminRole = ctx.user.role === 'admin';
+  
+  if (!hasAdminRole) {
+    void logger.warn('Admin access attempt denied', {
+      userId: ctx.userId,
+      userEmail: ctx.userEmail,
+      action: 'admin_access_denied',
+    });
+    
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'You do not have permission to access this resource',
+    });
+  }
+  
+  void logger.debug('Admin access granted', {
+    userId: ctx.userId,
+    userEmail: ctx.userEmail,
+  });
+  
+  return next({
+    ctx: {
+      ...ctx,
+      isAdmin: true,
+    },
+  });
+});
+
+// Admin procedure - requires admin role
+export const adminProcedure = t.procedure
+  .use(loggerMiddleware)
+  .use(authMiddleware)
+  .use(adminMiddleware);

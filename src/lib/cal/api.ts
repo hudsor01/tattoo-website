@@ -1,28 +1,352 @@
 /**
- * Cal.com API client for server-side integration
+ * Cal.com API Client - Comprehensive Integration
+ * 
+ * Consolidated Cal.com API client supporting both v1 and v2 endpoints
+ * with comprehensive error handling, retry logic, and type safety.
  */
 
-import type { CalBookingPayload } from '@/types/booking-types';
-import type { CalEventType, CalAvailabilityResponse } from '@/types/cal-types';
+import { z } from 'zod';
+import { createHmac, timingSafeEqual } from 'crypto';
+import type { Prisma, CalBooking, CalEventType } from '@prisma/client';
 
-const CAL_API_KEY = process.env['CAL_API_KEY'];
-const CAL_API_URL = 'https://api.cal.com/v1';
+// Cal.com API types using Prisma.GetPayload
+type CalBookingPayload = Prisma.CalBookingGetPayload<{
+  include: {
+    eventType: true;
+    attendees: true;
+  };
+}>;
 
-interface GetCalBookingsOptions {
+type CalAvailabilityResponse = {
+  busy: Array<{
+    start: string;
+    end: string;
+  }>;
+  dateRanges: Array<{
+    start: string;
+    end: string;
+  }>;
+  workingHours: Array<{
+    days: number[];
+    startTime: number;
+    endTime: number;
+  }>;
+};
+
+type GetCalBookingsOptions = {
   limit?: number;
   status?: string;
   eventTypeId?: number;
+  startDate?: string;
+  endDate?: string;
+};
+import { ENV, SERVER_ENV } from '@/lib/utils/env';
+
+// Environment validation
+const envSchema = z.object({
+  CAL_API_KEY: z.string().min(1),
+  CAL_API_URL: z.string().url().default('https://api.cal.com/v2'),
+  CAL_WEBHOOK_SECRET: z.string().optional(),
+});
+
+const env = envSchema.parse({
+  CAL_API_KEY: SERVER_ENV.CAL_API_KEY,
+  CAL_API_URL: SERVER_ENV.CAL_API_URL,
+  CAL_WEBHOOK_SECRET: SERVER_ENV.CAL_WEBHOOK_SECRET,
+});
+
+// Legacy V1 API URL for backward compatibility
+const CAL_API_V1_URL = SERVER_ENV.CAL_API_URL ?? 'https://api.cal.com/v1';
+
+// API Response Types
+export interface CalBookingResponse {
+  id: number;
+  uid: string;
+  title: string;
+  description?: string;
+  start: string;
+  end: string;
+  status: 'accepted' | 'pending' | 'cancelled' | 'rejected';
+  attendees: Array<{
+    id: number;
+    email: string;
+    name: string;
+    timeZone: string;
+  }>;
+  eventType: {
+    id: number;
+    title: string;
+    slug: string;
+    length: number;
+    price: number;
+    currency: string;
+  };
+  payment?: Array<{
+    id: number;
+    success: boolean;
+    amount: number;
+    currency: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CalWebhookEvent {
+  id: string;
+  subscriberUrl: string;
+  active: boolean;
+  triggers: string[];
+  payloadTemplate?: string;
+}
+
+// Custom Error Class
+export class CalApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly details?: string,
+    public readonly endpoint?: string
+  ) {
+    super(message);
+    this.name = 'CalApiError';
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      status: this.status,
+      details: this.details,
+      endpoint: this.endpoint,
+    };
+  }
+}
+
+// Main API Client Class
+export class CalApiClient {
+  private readonly baseUrl: string;
+  private readonly apiKey: string;
+  private readonly retryAttempts = 3;
+  private readonly retryDelay = 1000;
+
+  constructor() {
+    this.baseUrl = env.CAL_API_URL;
+    this.apiKey = env.CAL_API_KEY;
+  }
+
+  private get headers(): Record<string, string> {
+    return {
+      'Authorization': `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json',
+      'cal-api-version': '2024-08-13',
+    };
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    
+    for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            ...this.headers,
+            ...options.headers,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new CalApiError(
+            response.status,
+            `Cal.com API error: ${response.statusText}`,
+            errorText,
+            endpoint
+          );
+        }
+
+        return await response.json() as T;
+      } catch (error) {
+        if (attempt === this.retryAttempts) {
+          throw error;
+        }
+        
+        // Exponential backoff
+        await new Promise(resolve => 
+          setTimeout(resolve, this.retryDelay * Math.pow(2, attempt - 1))
+        );
+      }
+    }
+
+    throw new Error('Max retry attempts exceeded');
+  }
+
+  // V2 Booking Management
+  async getBookings(params: {
+    status?: string;
+    startAfter?: string;
+    endBefore?: string;
+    attendeeEmail?: string;
+    eventTypeIds?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ data: CalBookingResponse[]; pagination: { hasMore: boolean } }> {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    return this.request<{ data: CalBookingResponse[]; pagination: { hasMore: boolean } }>(
+      `/bookings?${searchParams.toString()}`
+    );
+  }
+
+  async getBookingById(id: string | number): Promise<CalBookingResponse> {
+    return this.request<CalBookingResponse>(`/bookings/${id}`);
+  }
+
+  async updateBookingStatus(
+    id: string | number,
+    status: 'accepted' | 'rejected' | 'cancelled',
+    reason?: string
+  ): Promise<CalBookingResponse> {
+    return this.request<CalBookingResponse>(`/bookings/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status,
+        ...(reason && { cancellationReason: reason }),
+      }),
+    });
+  }
+
+  async rescheduleBooking(
+    id: string | number,
+    newSlot: { start: string; end: string }
+  ): Promise<CalBookingResponse> {
+    return this.request<CalBookingResponse>(`/bookings/${id}/reschedule`, {
+      method: 'POST',
+      body: JSON.stringify({
+        startTime: newSlot.start,
+        endTime: newSlot.end,
+      }),
+    });
+  }
+
+  // Event Type Management
+  async getEventTypes(): Promise<{ data: CalEventType[] }> {
+    return this.request<{ data: CalEventType[] }>('/event-types');
+  }
+
+  async getEventType(id: number): Promise<CalEventType> {
+    return this.request<CalEventType>(`/event-types/${id}`);
+  }
+
+  // Webhook Management
+  async createWebhook(
+    eventTypeId: number,
+    subscriberUrl: string,
+    triggers: string[]
+  ): Promise<CalWebhookEvent> {
+    return this.request<CalWebhookEvent>(`/event-types/${eventTypeId}/webhooks`, {
+      method: 'POST',
+      body: JSON.stringify({
+        subscriberUrl,
+        triggers,
+        active: true,
+        payloadTemplate: JSON.stringify({
+          triggerEvent: '{{triggerEvent}}',
+          createdAt: '{{createdAt}}',
+          payload: '{{payload}}',
+        }),
+      }),
+    });
+  }
+
+  async getWebhooks(eventTypeId: number): Promise<{ data: CalWebhookEvent[] }> {
+    return this.request<{ data: CalWebhookEvent[] }>(`/event-types/${eventTypeId}/webhooks`);
+  }
+
+  async deleteWebhook(eventTypeId: number, webhookId: string): Promise<void> {
+    await this.request(`/event-types/${eventTypeId}/webhooks/${webhookId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Analytics and Metrics
+  async getBookingMetrics(params: {
+    startDate: string;
+    endDate: string;
+    eventTypeIds?: number[];
+  }): Promise<{
+    totalBookings: number;
+    confirmedBookings: number;
+    cancelledBookings: number;
+    totalRevenue: number;
+    dailyMetrics: Array<{
+      date: string;
+      bookings: number;
+      revenue: number;
+    }>;
+  }> {
+    const searchParams = new URLSearchParams({
+      startDate: params.startDate,
+      endDate: params.endDate,
+    });
+
+    if (params.eventTypeIds?.length) {
+      searchParams.append('eventTypeIds', params.eventTypeIds.join(','));
+    }
+
+    return this.request(`/analytics/bookings?${searchParams.toString()}`);
+  }
+
+  // Utility Methods
+  createBookingLink(
+    username: string,
+    eventTypeSlug: string,
+    prefill: Record<string, string> = {}
+  ): string {
+    const baseUrl = `https://cal.com/${username}/${eventTypeSlug}`;
+    
+    if (Object.keys(prefill).length === 0) {
+      return baseUrl;
+    }
+
+    const searchParams = new URLSearchParams(prefill);
+    return `${baseUrl}?${searchParams.toString()}`;
+  }
+
+  // Health Check
+  async healthCheck(): Promise<{ status: 'ok' | 'error'; timestamp: string }> {
+    try {
+      await this.request('/ping');
+      return { status: 'ok', timestamp: new Date().toISOString() };
+    } catch {
+      return { status: 'error', timestamp: new Date().toISOString() };
+    }
+  }
 }
 
 /**
- * Get bookings from Cal.com API
+ * LEGACY V1 API FUNCTIONS (for backward compatibility)
+ * These functions use the v1 API and will be deprecated
+ */
+
+/**
+ * Get bookings from Cal.com API v1
+ * @deprecated Use calApi.getBookings() instead
  */
 export async function getCalBookings({
   limit = 100,
   status,
   eventTypeId,
 }: GetCalBookingsOptions = {}): Promise<CalBookingPayload[]> {
-  if (!CAL_API_KEY) {
+  if (!env.CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
 
@@ -31,10 +355,9 @@ export async function getCalBookings({
   if (status) params.append('status', status);
   if (eventTypeId) params.append('eventTypeId', String(eventTypeId));
 
-  const response = await fetch(`${CAL_API_URL}/bookings?${params.toString()}`, {
+  const response = await fetch(`${CAL_API_V1_URL}/bookings?${params.toString()}&apiKey=${env.CAL_API_KEY}`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${CAL_API_KEY}`,
     },
   });
 
@@ -48,17 +371,17 @@ export async function getCalBookings({
 }
 
 /**
- * Get booking by UID from Cal.com API
+ * Get booking by UID from Cal.com API v1
+ * @deprecated Use calApi.getBookingById() instead
  */
 export async function getCalBookingByUid(uid: string): Promise<CalBookingPayload> {
-  if (!CAL_API_KEY) {
+  if (!env.CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
 
-  const response = await fetch(`${CAL_API_URL}/bookings/${uid}`, {
+  const response = await fetch(`${CAL_API_V1_URL}/bookings/${uid}?apiKey=${env.CAL_API_KEY}`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${CAL_API_KEY}`,
     },
   });
 
@@ -67,21 +390,21 @@ export async function getCalBookingByUid(uid: string): Promise<CalBookingPayload
     throw new Error(`Failed to fetch Cal.com booking: ${error}`);
   }
 
-  return await response.json();
+  return response.json();
 }
 
 /**
- * Get available event types from Cal.com API
+ * Get event types from Cal.com API v1
+ * @deprecated Use calApi.getEventTypes() instead
  */
 export async function getCalEventTypes(): Promise<CalEventType[]> {
-  if (!CAL_API_KEY) {
+  if (!env.CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
 
-  const response = await fetch(`${CAL_API_URL}/event-types`, {
+  const response = await fetch(`${CAL_API_V1_URL}/event-types?apiKey=${env.CAL_API_KEY}`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${CAL_API_KEY}`,
     },
   });
 
@@ -95,23 +418,64 @@ export async function getCalEventTypes(): Promise<CalEventType[]> {
 }
 
 /**
- * Update booking status on Cal.com
+ * Get availability from Cal.com API v1
+ * @deprecated Use new calApi methods instead
+ */
+export async function getCalAvailability(
+  username: string,
+  dateFrom: string,
+  dateTo: string,
+  eventTypeId?: number
+): Promise<CalAvailabilityResponse> {
+  if (!env.CAL_API_KEY) {
+    throw new Error('CAL_API_KEY not configured');
+  }
+
+  const params = new URLSearchParams({
+    username,
+    dateFrom,
+    dateTo,
+  });
+
+  if (eventTypeId) {
+    params.append('eventTypeId', String(eventTypeId));
+  }
+
+  const response = await fetch(`${CAL_API_V1_URL}/availability?${params.toString()}&apiKey=${env.CAL_API_KEY}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to fetch Cal.com availability: ${error}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Update a booking status
+ * @deprecated Use calApi.updateBookingStatus() instead
  */
 export async function updateCalBookingStatus(
   uid: string,
   status: 'accepted' | 'rejected' | 'cancelled'
 ): Promise<CalBookingPayload> {
-  if (!CAL_API_KEY) {
+  if (!env.CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
 
-  const response = await fetch(`${CAL_API_URL}/bookings/${uid}`, {
+  const response = await fetch(`${CAL_API_V1_URL}/bookings/${uid}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${CAL_API_KEY}`,
     },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({
+      apiKey: env.CAL_API_KEY,
+      status,
+    }),
   });
 
   if (!response.ok) {
@@ -119,30 +483,28 @@ export async function updateCalBookingStatus(
     throw new Error(`Failed to update Cal.com booking status: ${error}`);
   }
 
-  return await response.json();
+  return response.json();
 }
 
 /**
- * Reschedule a booking on Cal.com
+ * Reschedule a booking
+ * @deprecated Use calApi.rescheduleBooking() instead
  */
 export async function rescheduleCalBooking(
   uid: string,
-  newTime: {
-    start: string;
-    end: string;
-  }
+  newTime: { start: string; end: string }
 ): Promise<CalBookingPayload> {
-  if (!CAL_API_KEY) {
+  if (!env.CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
 
-  const response = await fetch(`${CAL_API_URL}/bookings/${uid}/reschedule`, {
-    method: 'POST',
+  const response = await fetch(`${CAL_API_V1_URL}/bookings/${uid}`, {
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${CAL_API_KEY}`,
     },
     body: JSON.stringify({
+      apiKey: env.CAL_API_KEY,
       startTime: newTime.start,
       endTime: newTime.end,
     }),
@@ -153,62 +515,31 @@ export async function rescheduleCalBooking(
     throw new Error(`Failed to reschedule Cal.com booking: ${error}`);
   }
 
-  return await response.json();
+  return response.json();
 }
 
-/**
- * Get availability slots from Cal.com
- */
-export async function getCalAvailability(
-  eventTypeId: number,
-  startDate: string,
-  endDate: string
-): Promise<CalAvailabilityResponse> {
-  if (!CAL_API_KEY) {
-    throw new Error('CAL_API_KEY not configured');
+// Webhook Signature Verification
+export function verifyWebhookSignature(
+  payload: string,
+  signature: string | null
+): boolean {
+  if (!signature || !env.CAL_WEBHOOK_SECRET) {
+    return false;
   }
 
-  const response = await fetch(
-    `${CAL_API_URL}/event-types/${eventTypeId}/availability?dateFrom=${startDate}&dateTo=${endDate}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${CAL_API_KEY}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to fetch Cal.com availability: ${error}`);
+  try {
+    const expectedSignature = createHmac('sha256', env.CAL_WEBHOOK_SECRET)
+      .update(payload)
+      .digest('hex');
+    
+    return timingSafeEqual(
+      Buffer.from(signature.replace('sha256=', '')),
+      Buffer.from(expectedSignature)
+    );
+  } catch {
+    return false;
   }
-
-  return await response.json();
 }
 
-/**
- * Create a direct Cal.com booking link with predefined fields
- */
-export function createCalBookingLink(
-  eventTypeId: number,
-  prefillData: Record<string, string> = {}
-): string {
-  if (!process.env['NEXT_PUBLIC_CAL_USERNAME']) {
-    throw new Error('NEXT_PUBLIC_CAL_USERNAME not configured');
-  }
-
-  const username = process.env['NEXT_PUBLIC_CAL_USERNAME'];
-  const baseUrl = `https://cal.com/${username}/${eventTypeId}`;
-
-  if (Object.keys(prefillData).length === 0) {
-    return baseUrl;
-  }
-
-  const searchParams = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(prefillData)) {
-    void searchParams.append(key, value);
-  }
-
-  return `${baseUrl}?${searchParams.toString()}`;
-}
+// Export singleton instance
+export const calApi = new CalApiClient();

@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { logger } from "@/lib/logger";
 // Validation schema for Web Vitals data
 const webVitalsSchema = z.object({
   name: z.enum(['CLS', 'FCP', 'INP', 'LCP', 'TTFB']),
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Log poor performance metrics
     if (validatedData.rating === 'poor') {
-      void console.warn('Poor Web Vital detected:', {
+      void void logger.warn('Poor Web Vital detected:', {
         metric: validatedData.name,
         value: validatedData.value,
         url: validatedData.url,
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, id: dataPoint.id });
   } catch (error) {
-    void console.error('Error processing Web Vitals data:', error);
+    void void logger.error('Error processing Web Vitals data:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -131,7 +132,7 @@ export async function GET(request: NextRequest) {
       metric: metric ?? 'all',
     });
   } catch (error) {
-    void console.error('Error retrieving Web Vitals data:', error);
+    void void logger.error('Error retrieving Web Vitals data:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,10 +1,6 @@
-import dynamic from 'next/dynamic';
-import { AdminCustomersLoading } from '@/components/admin/AdminLoadingStates';
-
-const CustomersOptimistic = dynamic(() => import('@/components/admin/CustomersOptimistic'), {
-  loading: () => <AdminCustomersLoading />,
-});
+import React from 'react';
+import { CustomersPageClient } from './client';
 
 export default function CustomersPage() {
-  return <CustomersOptimistic />;
+  return <CustomersPageClient />;
 }

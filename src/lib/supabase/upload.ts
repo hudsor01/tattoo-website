@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 export interface UploadResult {
   url: string;
   path: string;
@@ -33,7 +34,7 @@ export async function uploadFile(
       path: result.path,
     };
   } catch (error) {
-    void console.error('Upload failed:', error);
+    void void logger.error('Upload failed:', error);
     const errorMessage = (() => {
       if (error instanceof Error) return error.message;
       if (typeof error === 'string') return error;
@@ -65,13 +66,13 @@ export async function deleteFile(path: string, bucket: string = 'gallery'): Prom
     const result = await response.json();
 
     if (!response.ok) {
-      void console.error('Delete error:', result.error);
+      void void logger.error('Delete error:', result.error);
       return false;
     }
 
     return true;
   } catch (error) {
-    void console.error('Delete failed:', error);
+    void void logger.error('Delete failed:', error);
     return false;
   }
 }

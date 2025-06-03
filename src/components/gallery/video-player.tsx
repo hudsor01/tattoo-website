@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { trackVideoView } from '@/lib/api';
 import { motion } from 'framer-motion';
+import { logger } from "@/lib/logger";
 
 interface VideoPlayerProps {
   videoId: number;
@@ -45,7 +46,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
 
       // Track view when 5 seconds have been watched
       if (!viewTracked && video.currentTime > 5) {
-        trackVideoView(videoId).catch(console.error);
+        trackVideoView(videoId).catch((err) => logger.error(err));
         setViewTracked(true);
       }
     };
@@ -72,7 +73,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
         setIsPlaying(true);
       })
       .catch((err) => {
-        void console.warn('Auto-play prevented:', err);
+        void void logger.warn('Auto-play prevented:', err);
       });
 
     return () => {
@@ -133,7 +134,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
       void video.pause();
     } else {
       video.play().catch((err) => {
-        void console.error('Failed to play video:', err);
+        void void logger.error('Failed to play video:', err);
         setError('Failed to play video. Please try again.');
       });
     }
@@ -212,7 +213,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-primary border-t-primary/10 rounded-full animate-spin"></div>
         </div>
       )}
 
@@ -235,7 +236,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
       />
 
       {/* Top controls - always visible */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-20">
+      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-linear-to-t from-black/80 to-transparent z-20">
         <h3 className="text-white font-medium truncate">{title}</h3>
         <Button
           size="icon"
@@ -278,7 +279,7 @@ export function VideoPlayer({ videoId, videoUrl, title, onClose }: VideoPlayerPr
           y: showControls || !isPlaying ? 0 : 20,
         }}
         transition={{ duration: 0.2 }}
-        className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent z-20"
+        className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-r from-black/80 to-transparent z-20"
         onClick={(e) => e.stopPropagation()} // Prevent click from bubbling to container
       >
         {/* Progress bar */}

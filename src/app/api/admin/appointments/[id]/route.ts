@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils/server';
-
+import type { Appointment } from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
+import { logger } from "@/lib/logger";
 /**
  * GET /api/admin/appointments/[id]
  * Get a specific appointment by ID
@@ -16,14 +18,24 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
     const id = params.id;
 
-    // Get appointment with customer data
+    // Get appointment from the database
     const appointment = await prisma.appointment.findUnique({
       where: {
         id,
       },
-      include: {
-        Customer: true,
-      },
+      select: {
+      id: true,
+      userId: true,
+      customerId: true,
+      serviceId: true,
+      startTime: true,
+      endTime: true,
+      status: true,
+      notes: true,
+      totalPrice: true,
+      createdAt: true,
+      updatedAt: true
+      }
     });
 
     if (!appointment) {
@@ -31,44 +43,30 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     }
 
     // Format response
-    const formattedAppointment = {
-      id: appointment.id,
-      title: appointment.title,
-      customerId: appointment.customerId,
-      customerName: appointment.Customer
-        ? `${appointment.Customer.firstName} ${appointment.Customer.lastName}`
-        : '',
-      customerEmail: appointment.Customer?.email,
-      customerPhone: appointment.Customer?.phone,
-      startDate: appointment.startDate,
-      endDate: appointment.endDate,
-      status: appointment.status,
-      deposit: appointment.deposit,
-      totalPrice: appointment.totalPrice,
-      designNotes: appointment.designNotes,
-      description: appointment.description,
-      createdAt: appointment.createdAt,
-      updatedAt: appointment.updatedAt,
-      customer: appointment.Customer
-        ? {
-            id: appointment.Customer.id,
-            name: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-            email: appointment.Customer.email,
-            phone: appointment.Customer.phone,
-          }
-        : null,
+    const formattedAppointment: Partial<Appointment> = {
+    id: appointment.id,
+    startTime: appointment.startTime, // use consistent field names
+    endTime: appointment.endTime,
+    status: appointment.status as AppointmentStatus,
+    notes: appointment.notes,
+    totalPrice: appointment.totalPrice,
+    createdAt: appointment.createdAt,
+    updatedAt: appointment.updatedAt,
+    userId: appointment.userId,
+    customerId: appointment.customerId,
+    serviceId: appointment.serviceId,
     };
 
     return NextResponse.json(formattedAppointment);
   } catch (error) {
-    void console.error(`Error fetching appointment ${params.id}:`, error);
+    void void logger.error(`Error fetching appointment ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to fetch appointment' }, { status: 500 });
   }
 }
 
 /**
  * PUT /api/admin/appointments/[id]
- * Update a specific appointment
+ * Update a specific appointment (non-relational fields only)
  */
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -92,55 +90,69 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
     }
 
-    // If changing customer, verify new customer exists
-    if (data.customerId && data.customerId !== existingAppointment.customerId) {
-      const customer = await prisma.customer.findUnique({
-        where: {
-          id: data.customerId,
-        },
-      });
+    // Prepare update data - only allow non-relational fields
+    const updateData: {
+      startTime?: Date | undefined;
+      endTime?: Date | undefined;
+      status?: AppointmentStatus | undefined;
+      notes?: string | undefined;
+      totalPrice?: number | undefined;
+      updatedAt: Date;
+    } = {
+      updatedAt: new Date(),
+    };
 
-      if (!customer) {
-        return NextResponse.json({ error: 'Customer not found' }, { status: 400 });
-      }
+    // Only update allowed fields - only add properties that are actually being updated
+    if (data.startDate !== undefined && data.startDate !== null) {
+      updateData.startTime = new Date(data.startDate);
+    }
+    if (data.endDate !== undefined && data.endDate !== null) {
+      updateData.endTime = new Date(data.endDate);
+    }
+    if (data.status !== undefined && data.status !== null) {
+      updateData.status = data.status as AppointmentStatus;
+    }
+    if (data.notes !== undefined) {
+      updateData.notes = data.notes;
+    }
+    if (data.totalPrice !== undefined && data.totalPrice !== null) {
+      updateData.totalPrice = data.totalPrice;
     }
 
-    // Update appointment
+    // Create a clean update object with only defined values
+    const cleanUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    ) as Parameters<typeof prisma.appointment.update>[0]['data'];
+
+    // Update appointment with only non-relational fields
     const updatedAppointment = await prisma.appointment.update({
       where: {
         id,
       },
-      data: {
-        ...(data.title !== null && { title: data.title }),
-        ...(data.customerId !== null && { customerId: data.customerId }),
-        ...(data.startDate !== null && { startDate: new Date(data.startDate) }),
-        ...(data.endDate !== null && { endDate: new Date(data.endDate) }),
-        ...(data.status !== null && { status: data.status }),
-        ...(data.deposit !== null && { deposit: data.deposit }),
-        ...(data.totalPrice !== null && { totalPrice: data.totalPrice }),
-        ...(data.designNotes !== null && { designNotes: data.designNotes }),
-        ...(data.description !== null && { description: data.description }),
-        updatedAt: new Date(),
-      },
-      include: {
-        Customer: true,
+      data: cleanUpdateData,
+      select: {
+        id: true,
+        userId: true,
+        customerId: true,
+        serviceId: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        notes: true,
+        totalPrice: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
     // Format response
     const formattedAppointment = {
       ...updatedAppointment,
-      customerName: updatedAppointment.Customer
-        ? `${updatedAppointment.Customer.firstName} ${updatedAppointment.Customer.lastName}`
-        : '',
-      customerEmail: updatedAppointment.Customer?.email,
-      customerPhone: updatedAppointment.Customer?.phone,
-      Customer: null, // Don't include full customer in response
     };
 
     return NextResponse.json(formattedAppointment);
   } catch (error) {
-    void console.error(`Error updating appointment ${params.id}:`, error);
+    void void logger.error(`Error updating appointment ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to update appointment' }, { status: 500 });
   }
 }
@@ -181,7 +193,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
       message: 'Appointment deleted successfully',
     });
   } catch (error) {
-    void console.error(`Error deleting appointment ${params.id}:`, error);
+    void void logger.error(`Error deleting appointment ${params.id}:`, error);
     return NextResponse.json({ error: 'Failed to delete appointment' }, { status: 500 });
   }
 }

@@ -1,10 +1,10 @@
-'use client';
-
 import React from 'react';
+
+// CONVERTED TO SERVER COMPONENT: Static service card with CSS animations only
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils/styling';
-import type { Service } from '@/types/component-types';
+import type { Service } from '@prisma/client';
 
 interface ServiceCardProps {
   service: Service;
@@ -21,10 +21,10 @@ export function ServiceCard({ service }: ServiceCardProps) {
   const { id, title, shortDescription, icon: Icon } = service;
 
   return (
-    <div className="group p-6 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-all shadow-lg hover:shadow-xl">
+    <div className="group p-6 rounded-2xl bg-linear-to-br from-zinc-900 to-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-all shadow-lg hover:shadow-xl">
       <div className="flex flex-col space-y-4">
         {/* Icon with animated background */}
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center transition-transform group-hover:scale-110">
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-red-500 to-orange-500 flex items-center justify-center transition-transform group-hover:scale-110">
           {Icon && <Icon className="h-6 w-6 text-white" />}
         </div>
 

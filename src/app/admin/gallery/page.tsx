@@ -1,10 +1,18 @@
-import dynamic from 'next/dynamic';
-import { PageLoading } from '@/components/admin/StandardLoadingStates';
+/**
+ * Admin Gallery Management Page
+ * 
+ * Purpose: Manage gallery images, approve uploads, and organize tattoo portfolio
+ * Rendering: CSR with real-time image management
+ */
 
-const GalleryPageContent = dynamic(() => import('./GalleryPageContent'), {
-  loading: () => <PageLoading text="Loading gallery..." />,
-});
+import { Metadata } from 'next';
+import { GalleryPageClient } from './client';
 
-export default function GalleryPage() {
-  return <GalleryPageContent />;
+export const metadata: Metadata = {
+  title: 'Gallery Management | Admin Dashboard',
+  description: 'Manage gallery images and tattoo portfolio',
+};
+
+export default function AdminGalleryPage() {
+  return <GalleryPageClient />;
 }

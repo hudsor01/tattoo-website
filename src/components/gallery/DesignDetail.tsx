@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { CalendarIcon, ChevronLeft, InfoIcon, RulerIcon, ShareIcon } from 'lucide-react';
 import Image from 'next/image';
+import { ShareDialog } from './share-dialog';
+import { logger } from "@/lib/logger";
 
 interface RelatedDesign {
   id: string;
@@ -26,7 +28,7 @@ interface DesignDetailProps {
 
 export function DesignDetail({ id }: DesignDetailProps) {
   const router = useRouter();
-  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const viewStartTimeRef = useRef<Date | null>(null);
 
   // Fetch the design data
@@ -59,7 +61,8 @@ export function DesignDetail({ id }: DesignDetailProps) {
   // Handle share button click
   const handleShare = () => {
     // Share analytics tracking removed
-
+    
+    // Try native sharing first
     if (navigator.share) {
       void navigator
         .share({
@@ -68,13 +71,13 @@ export function DesignDetail({ id }: DesignDetailProps) {
           url: window.location.href,
         })
         .catch((error) => {
-          void console.error('Error sharing', error);
+          void void logger.error('Error sharing', error);
+          // Fallback to our custom share dialog if native sharing fails
+          setShareDialogOpen(true);
         });
     } else {
-      // Copy link to clipboard if Web Share API not available
-      void navigator.clipboard.writeText(window.location.href);
-      setShowShareModal(true);
-      setTimeout(() => setShowShareModal(false), 3000);
+      // Use our custom share dialog
+      setShareDialogOpen(true);
     }
   };
 
@@ -121,7 +124,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
             <Image
               src={design.fileUrl}
               alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Ink 37, Crowley TX`}
-              className="object-cover"
+              style={{ objectFit: 'cover' }}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
@@ -130,7 +133,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
             <Image
               src={design.thumbnailUrl}
               alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Ink 37, Crowley TX`}
-              className="object-cover"
+              style={{ objectFit: 'cover' }}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
@@ -147,13 +150,8 @@ export function DesignDetail({ id }: DesignDetailProps) {
           <div>
             <div className="flex items-start justify-between">
               <h1 className="text-3xl font-bold">{design?.name}</h1>
-              <Button variant="ghost" size="icon" onClick={handleShare} className="relative">
+              <Button variant="ghost" size="icon" onClick={handleShare}>
                 <ShareIcon className="h-5 w-5" />
-                {showShareModal && (
-                  <div className="absolute bottom-full mb-2 right-0 bg-primary text-primary-foreground px-3 py-1 rounded text-sm whitespace-nowrap">
-                    Link copied!
-                  </div>
-                )}
               </Button>
             </div>
 
@@ -198,7 +196,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
                   {design.Artist.User.image ? (
                     <AvatarImage
                       src={design.Artist.User.image}
-                      alt={`${design.Artist.User.name ?? 'Professional tattoo artist'} - Ink 37 tattoo studio`}
+                      alt={`${design.Artist.User.name ?? 'Professional tattoo artist'} - Ink 37 Tattoos`}
                     />
                   ) : (
                     <AvatarFallback>
@@ -227,6 +225,15 @@ export function DesignDetail({ id }: DesignDetailProps) {
         </div>
       </div>
 
+      {/* Share Dialog */}
+      <ShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        contentType="design"
+        contentId={id}
+        title={design?.name ?? 'Tattoo Design'}
+      />
+
       {/* Related designs section */}
       {relatedDesigns.length > 0 && (
         <div className="pt-8">
@@ -244,7 +251,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
                       <Image
                         src={relatedDesign.thumbnailUrl}
                         alt={`${relatedDesign.designType ?? 'Custom'} tattoo design: ${relatedDesign.name} - Professional tattoo art by Ink 37`}
-                        className="object-cover"
+                        style={{ objectFit: 'cover' }}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
                       />

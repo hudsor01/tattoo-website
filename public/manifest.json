@@ -1,9 +1,12 @@
 {
-  "name": "Ink 37 Tattoo Studio",
+  "name": "Ink 37 Tattoos",
   "short_name": "Ink 37",
   "description": "Professional tattoo artist in Crowley, TX serving Fort Worth, Arlington, Burleson & DFW area. Custom designs, cover-ups, fine line work, traditional tattoos.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#000000",
   "theme_color": "#8B5A2B",
   "orientation": "portrait-primary",
@@ -55,6 +58,41 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/japanese.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Japanese style tattoo design by Ink 37"
+    },
+    {
+      "src": "/images/realism.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Realistic tattoo artwork by Ink 37"
+    },
+    {
+      "src": "/images/traditional.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Traditional tattoo artwork by Ink 37"
     }
   ],
   "shortcuts": [
@@ -73,14 +111,41 @@
       "icons": [{ "src": "/icons/gallery-icon.png", "sizes": "96x96" }]
     },
     {
-      "name": "Client Portal",
-      "short_name": "Portal",
-      "description": "Access your appointments",
-      "url": "/client-portal",
-      "icons": [{ "src": "/icons/portal-icon.png", "sizes": "96x96" }]
+      "name": "About Us",
+      "short_name": "About",
+      "description": "Learn about Ink 37 Custom Tattoo Designs",
+      "url": "/about",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Services",
+      "short_name": "Services",
+      "description": "Explore our tattoo services",
+      "url": "/services",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ],
-  "categories": ["business", "lifestyle", "art"],
+  "categories": ["business", "lifestyle", "art", "photo"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "iarc_rating_id": "",
   "prefer_related_applications": false,
-  "related_applications": []
+  "related_applications": [],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "share_target": {
+    "action": "/gallery",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

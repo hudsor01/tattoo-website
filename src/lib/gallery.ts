@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from '@/lib/api';
-import type { TattooImage, VideoProcess } from '@/types/gallery-types';
+import type { TattooImage, VideoProcess } from '@prisma/client';
 
 // Endpoint URLs
 const ENDPOINTS = {

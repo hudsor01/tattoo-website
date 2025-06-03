@@ -7,48 +7,14 @@
 
 import { TRPCError } from '@trpc/server';
 import { toast } from 'sonner';
+import { logger } from './logger';
+import { ErrorCode } from '@prisma/client';
 
-export enum ErrorCode {
-  // HTTP Status Code Errors
-  BAD_REQUEST = 'BAD_REQUEST',
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  NOT_FOUND = 'NOT_FOUND',
-  METHOD_NOT_ALLOWED = 'METHOD_NOT_ALLOWED',
-  CONFLICT = 'CONFLICT',
-  PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE',
-  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
-  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
-  INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
 
-  // Business Logic Errors
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
-  AUTHORIZATION_ERROR = 'AUTHORIZATION_ERROR',
-  RESOURCE_NOT_FOUND = 'RESOURCE_NOT_FOUND',
-  RESOURCE_ALREADY_EXISTS = 'RESOURCE_ALREADY_EXISTS',
-  INVALID_OPERATION = 'INVALID_OPERATION',
-  DATABASE_ERROR = 'DATABASE_ERROR',
-  EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
 
-  // Payment and Booking Errors
-  PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
-  PAYMENT_FAILED = 'PAYMENT_FAILED',
-  BOOKING_UNAVAILABLE = 'BOOKING_UNAVAILABLE',
-  CALENDAR_ERROR = 'CALENDAR_ERROR',
-
-  // Generic Error
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
-}
-
-// Standardized error response shape
-export interface ApiErrorResponse {
-  code: ErrorCode;
-  message: string;
-  details?: unknown;
-  stack?: string;
-}
+// ApiErrorResponse interface has been moved to @/types/api-types.ts
+// Import it from there when needed
+// Note: The interface in api-types.ts uses string for code, while this file uses ErrorCode enum
 
 export class ApiError extends Error {
   code: ErrorCode;
@@ -200,7 +166,7 @@ export const ApiErrors = {
  * Utility for handling API errors in client-side code
  */
 export function handleApiError(error: unknown, showToast = true): ApiErrorResponse {
-  void console.error('API Error:', error);
+  void logger.error('API Error:', error);
 
   let formattedError: ApiErrorResponse;
 

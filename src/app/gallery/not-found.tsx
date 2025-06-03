@@ -19,14 +19,14 @@ export default function GalleryNotFound() {
             className="border-zinc-700 text-white hover:bg-zinc-800"
           >
             <Link href="/gallery" className="flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
               Back to Gallery
             </Link>
           </Button>
 
           <Button asChild className="bg-red-600 hover:bg-red-700">
             <Link href="/contact" className="flex items-center gap-2">
-              <Images className="w-4 h-4" />
+              <Images className="h-4 w-4" />
               Request Custom Design
             </Link>
           </Button>

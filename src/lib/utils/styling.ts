@@ -1,6 +1,6 @@
-'use client';
-
 import { clsx, type ClassValue } from 'clsx';
+
+// CONVERTED TO SERVER COMPONENT: Pure utility functions for CSS classes
 import { twMerge } from 'tailwind-merge';
 
 /**

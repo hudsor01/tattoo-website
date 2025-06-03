@@ -1,18 +1,28 @@
 /**
- * TRPC Context Creation with Clerk Authentication
+ * TRPC Context Creation with Better Auth Authentication
  *
  * This file handles the creation of context for TRPC procedures.
- * The context includes access to the database via Prisma and user auth via Clerk.
+ * The context includes access to the database via Prisma and user auth via Better Auth.
  *
  * THIS IS A SERVER-SIDE ONLY FILE
  */
 import 'server-only';
 import { NextRequest } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { PrismaClient } from '@prisma/client';
-import type { CustomSessionClaims } from '@/types/clerk-types';
+
+/**
+ * Session user type from Better Auth
+ */
+interface SessionUser {
+  id: string;
+  email: string;
+  name?: string | null;
+  image?: string | null | undefined;
+  role?: string;
+}
 
 /**
  * Base tRPC context interface
@@ -22,7 +32,7 @@ export interface TRPCContext {
   resHeaders?: Headers;
   headers?: Record<string, string>;
   prisma: PrismaClient;
-  user: CustomSessionClaims | null; // Clerk session claims
+  user: SessionUser | null; // Better Auth session user
   userId: string | null;
   userEmail: string | null;
   url?: string;
@@ -34,8 +44,9 @@ export interface TRPCContext {
  */
 export interface AuthenticatedTRPCContext extends TRPCContext {
   userId: string;
-  user: CustomSessionClaims;
+  user: SessionUser;
   userEmail: string;
+  isAdmin?: boolean;
 }
 
 /**
@@ -49,8 +60,9 @@ export async function createTRPCContext({
   resHeaders: Headers;
 }) {
   try {
-    // Get Clerk auth state
-    const { userId, sessionClaims } = await auth();
+    // Get Better Auth session
+    const session = await auth.api.getSession({ req });
+    const user = session?.user ?? null;
 
     // Get request headers
     const requestHeaders = Object.fromEntries(req.headers.entries());
@@ -63,9 +75,9 @@ export async function createTRPCContext({
     void logger.debug('Creating tRPC context', {
       url,
       referer,
-      userId: userId,
-      userEmail: sessionClaims?.email,
-      authError: userId ? null : 'Auth session missing!',
+      userId: user?.id,
+      userEmail: user?.email,
+      authError: user ? null : 'Auth session missing!',
     });
 
     // Return the context with database access and auth
@@ -74,9 +86,9 @@ export async function createTRPCContext({
       resHeaders,
       headers: requestHeaders,
       prisma,
-      user: sessionClaims as CustomSessionClaims | null, // Clerk session claims
-      userId: userId ?? null, // Direct access to user ID
-      userEmail: (sessionClaims as CustomSessionClaims)?.email ?? null, // Direct access to user email
+      user, // Better Auth session user
+      userId: user?.id ?? null, // Direct access to user ID
+      userEmail: user?.email ?? null, // Direct access to user email
       url,
       db: prisma, // Add db alias for compatibility
     };
@@ -104,25 +116,27 @@ export async function createTRPCContext({
 export type Context = TRPCContext;
 
 /**
- * Creates context for React Server Components
- * This is used when calling TRPC procedures from RSCs
+ * Creates context for React Server Components and Server Actions
+ * This is used for direct tRPC procedure calls from the server
+ * without going through the HTTP API layer
  */
 export async function createContextForRSC() {
   try {
-    // Get Clerk auth state for RSC
-    const { userId, sessionClaims } = await auth();
+    // Get Better Auth session for RSC
+    const session = await auth.api.getSession();
+    const user = session?.user ?? null;
 
     void logger.debug('Creating RSC tRPC context', {
-      userId: userId,
-      userEmail: sessionClaims?.email,
-      authError: userId ? null : 'Auth session missing!',
+      userId: user?.id,
+      userEmail: user?.email,
+      authError: user ? null : 'Auth session missing!',
     });
 
     return {
       prisma,
-      user: sessionClaims as CustomSessionClaims | null, // Clerk session claims
-      userId: userId ?? null, // Direct access to user ID
-      userEmail: (sessionClaims as CustomSessionClaims)?.email ?? null, // Direct access to user email
+      user, // Better Auth session user
+      userId: user?.id ?? null, // Direct access to user ID
+      userEmail: user?.email ?? null, // Direct access to user email
       db: prisma, // Add db alias for consistency
     };
   } catch (error) {

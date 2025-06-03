@@ -1,5 +1,21 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { ENV } from '@/lib/env-validation';
+// Cookie types for Supabase middleware
+type CookieOptions = {
+  maxAge?: number;
+  path?: string;
+  domain?: string;
+  secure?: boolean;
+  httpOnly?: boolean;
+  sameSite?: 'strict' | 'lax' | 'none';
+};
+
+type CookiesToSet = {
+  name: string;
+  value: string;
+  options?: CookieOptions;
+};
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -7,21 +23,26 @@ export async function updateSession(request: NextRequest) {
   });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    (ENV.NEXT_PUBLIC_SUPABASE_URL ?? '') as string,
+    (ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '') as string,
     {
       cookies: {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
-          void cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        setAll(cookiesToSet: CookiesToSet) {
+          void cookiesToSet.forEach(({ name, value }: { name: string; value: string }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
             request,
           });
-          void cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
+          void cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options?: CookieOptions }) => {
+            // Handle the case where options is undefined separately
+            if (options === undefined) {
+              supabaseResponse.cookies.set(name, value);
+            } else {
+              supabaseResponse.cookies.set(name, value, options);
+            }
+          });
         },
       },
     }
@@ -31,20 +52,22 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  const {
+  // User variable not currently used due to auth system changes
+  /* const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = */ await supabase.auth.getUser();
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
-  }
+  // Disabled Supabase auth redirects - we're using better-auth instead
+  // if (
+  //   !user &&
+  //   !request.nextUrl.pathname.startsWith('/login') &&
+  //   !request.nextUrl.pathname.startsWith('/auth')
+  // ) {
+  //   // no user, potentially respond by redirecting the user to the login page
+  //   const url = request.nextUrl.clone();
+  //   url.pathname = '/login';
+  //   return NextResponse.redirect(url);
+  // }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:

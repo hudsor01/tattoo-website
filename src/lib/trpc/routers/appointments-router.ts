@@ -1,14 +1,27 @@
+/**
+ * Cal.com-based Appointments Router
+ * 
+ * This router interfaces with Cal.com to manage appointments instead of
+ * maintaining a separate appointment system. It maps Cal.com bookings
+ * to our appointment interfaces for backward compatibility.
+ */
+
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure, adminProcedure } from '../procedures';
-import { prisma } from '@/lib/db/prisma';
-import { AppointmentStatus } from '@/types/enum-types';
-import { randomUUID } from 'node:crypto';
-import { Prisma } from '@prisma/client';
+import { AppointmentStatus } from '@prisma/client';
+import { handleRouterError } from '../utils/router-error-handler';
+import { 
+  getCalBookings, 
+  getCalBookingByUid, 
+  updateCalBookingStatus, 
+  rescheduleCalBooking 
+} from '@/lib/cal/api';
 
 export const appointmentsRouter = router({
   /**
    * Get all appointments with filtering
+   * This now retrieves data from Cal.com and maps it to our appointment interface
    */
   getAll: protectedProcedure
     .input(
@@ -31,90 +44,83 @@ export const appointmentsRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        const where: Prisma.AppointmentWhereInput = {};
-
-        if (input.status) {
-          where.status = input.status;
-        }
-
-        if (input.customerId) {
-          where.customerId = input.customerId;
-        }
-
-        if (input.startDate || input.endDate) {
-          const dateFilter: Prisma.DateTimeFilter = {};
-          if (input.startDate) {
-            dateFilter.gte = input.startDate;
-          }
-          if (input.endDate) {
-            dateFilter.lte = input.endDate;
-          }
-          where.startDate = dateFilter;
-        }
-
-        const appointments = await prisma.appointment.findMany({
-          where,
-          orderBy: {
-            startDate: 'desc',
-          },
-          take: input.limit + 1,
-          ...(input.cursor && { cursor: { id: input.cursor } }),
+        // Get bookings from Cal.com
+        const calBookings = await getCalBookings({
+          limit: input.limit,
+          status: input.status,
         });
 
-        console.warn(`Found ${appointments.length} appointments`);
+        // Find bookings that match our filter criteria
+        const filteredBookings = calBookings.filter(booking => {
+          // Filter by status if provided
+          if (input.status && booking.status !== input.status) {
+            return false;
+          }
 
+          // Filter by customer if provided
+          if (input.customerId && booking.attendees?.[0]?.email) {
+            // We'd need to match by email since Cal.com uses email as identifier
+            // This would require a separate query to match customer ID to email
+            // For now, we'll just skip this filter
+          }
+
+          // Filter by date range if provided
+          if (input.startDate && new Date(booking.startTime) < input.startDate) {
+            return false;
+          }
+          if (input.endDate && new Date(booking.startTime) > input.endDate) {
+            return false;
+          }
+
+          return true;
+        });
+
+        // Handle pagination via cursors
+        let startIndex = 0;
+        if (input.cursor) {
+          const cursorIndex = filteredBookings.findIndex(b => b.uid === input.cursor);
+          if (cursorIndex > -1) {
+            startIndex = cursorIndex + 1;
+          }
+        }
+
+        // Get the page of results
+        const paginatedBookings = filteredBookings.slice(startIndex, startIndex + input.limit + 1);
+        
+        // Set up next cursor
         let nextCursor: string | undefined;
-        if (appointments.length > input.limit) {
-          const nextItem = appointments.pop();
-          nextCursor = nextItem?.id;
+        if (paginatedBookings.length > input.limit) {
+          const nextItem = paginatedBookings.pop();
+          nextCursor = nextItem?.uid;
         }
 
-        // Get customer info for each appointment
-        const customerIds = [...new Set(appointments.map((a) => a.customerId))];
-        const customers = await prisma.customer.findMany({
-          where: { id: { in: customerIds } },
-          select: { id: true, firstName: true, lastName: true, email: true, phone: true },
-        });
-
-        const customerMap = new Map(customers.map((c) => [c.id, c]));
-
-        // Transform the data to match our interface
-        const transformedAppointments = appointments.map((appointment) => {
-          const customer = customerMap.get(appointment.customerId);
-
-          // Calculate duration safely
-          let duration = 120; // default 2 hours
-          try {
-            if (appointment.endDate && appointment.startDate) {
-              duration = Math.round(
-                (appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)
-              );
-              if (duration <= 0) duration = 120;
-            }
-          } catch (error) {
-            console.warn('Error calculating appointment duration:', error);
-          }
-
+        // Transform Cal.com bookings to our appointment interface
+        const transformedAppointments = paginatedBookings.map(booking => {
+          const attendee = booking.attendees?.[0];
+          const startTime = new Date(booking.startTime);
+          const endTime = new Date(booking.endTime);
+          
+          // Calculate duration
+          const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+          
           return {
-            id: appointment.id,
-            customerId: appointment.customerId,
-            clientName: customer
-              ? `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim()
-              : 'Unknown Customer',
-            clientEmail: customer?.email ?? '',
-            clientPhone: customer?.phone ?? '',
-            appointmentDate: appointment.startDate?.toISOString() ?? new Date().toISOString(),
-            duration,
-            status: appointment.status as AppointmentStatus,
-            depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
-            depositAmount: appointment.deposit ?? 0,
-            totalPrice: appointment.totalPrice ?? 0,
-            tattooStyle: appointment.title ?? '', // Use title as tattoo style
-            description: appointment.description ?? '',
-            location: appointment.location ?? '',
-            size: '', // Not in schema, could be derived from description
-            createdAt: appointment.createdAt?.toISOString() ?? new Date().toISOString(),
-            updatedAt: appointment.updatedAt?.toISOString() ?? new Date().toISOString(),
+            id: booking.uid,
+            customerId: attendee?.email ?? '',
+            clientName: attendee?.name ?? 'Unknown',
+            clientEmail: attendee?.email ?? '',
+            clientPhone: '',
+            appointmentDate: startTime.toISOString(),
+            duration: duration > 0 ? duration : 60,
+            status: booking.status as AppointmentStatus,
+            depositPaid: booking.payment?.status === 'COMPLETED',
+            depositAmount: booking.payment?.amount ?? 0,
+            totalPrice: booking.payment?.amount ?? 0,
+            tattooStyle: '',
+            description: booking.description ?? booking.title,
+            location: booking.location ?? '',
+            size: '',
+            createdAt: booking.createdAt,
+            updatedAt: booking.updatedAt,
           };
         });
 
@@ -123,16 +129,20 @@ export const appointmentsRouter = router({
           nextCursor,
         };
       } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error fetching appointments',
-          cause: error,
+        return handleRouterError(error, {
+          operation: 'query',
+          procedureName: 'getAll',
+          routerName: 'appointments',
+          input
         });
       }
     }),
 
   /**
-   * Create a new appointment
+   * Create a new appointment using Cal.com
+   * Note: This is not fully implemented as it would require creating
+   * a Cal.com booking via their API, which is not available here.
+   * Users should book through Cal.com directly.
    */
   create: adminProcedure
     .input(
@@ -149,85 +159,16 @@ export const appointmentsRouter = router({
         location: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      try {
-        // Verify customer exists
-        const customer = await prisma.customer.findUnique({
-          where: { id: input.customerId },
-        });
-
-        if (!customer) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Customer not found',
-          });
-        }
-
-        // Get a default artist if none provided
-        let artistId = input.artistId;
-        if (!artistId) {
-          const defaultArtist = await prisma.artist.findFirst();
-          if (!defaultArtist) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'No artists available',
-            });
-          }
-          artistId = defaultArtist.id;
-        }
-
-        const appointment = await prisma.appointment.create({
-          data: {
-            id: randomUUID(),
-            customerId: input.customerId,
-            artistId: artistId,
-            title: input.title ?? 'Tattoo Appointment',
-            startDate: input.appointmentDate,
-            endDate: new Date(input.appointmentDate.getTime() + input.duration * 60 * 1000),
-            status: input.status,
-            deposit: input.depositAmount,
-            totalPrice: input.totalPrice,
-            description: input.description ?? null,
-            location: input.location ?? null,
-          },
-        });
-
-        return {
-          id: appointment.id,
-          customerId: appointment.customerId,
-          clientName: `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim(),
-          clientEmail: customer.email ?? '',
-          clientPhone: customer.phone ?? '',
-          appointmentDate: appointment.startDate,
-          duration:
-            Math.round(
-              (appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)
-            ) || 120,
-          status: appointment.status,
-          depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
-          depositAmount: appointment.deposit ?? 0,
-          totalPrice: appointment.totalPrice ?? 0,
-          tattooStyle: '',
-          description: appointment.description ?? '',
-          location: appointment.location ?? '',
-          size: '',
-          createdAt: appointment.createdAt,
-          updatedAt: appointment.updatedAt,
-        };
-      } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error creating appointment',
-          cause: error,
-        });
-      }
+    .mutation(async () => {
+      throw new TRPCError({
+        code: 'NOT_IMPLEMENTED',
+        message: 'Direct appointment creation is not supported. Please use Cal.com to create appointments.',
+      });
     }),
 
   /**
    * Update an appointment
+   * This now updates the Cal.com booking
    */
   update: adminProcedure
     .input(
@@ -245,80 +186,70 @@ export const appointmentsRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        const { id, appointmentDate, duration, depositAmount, ...updateData } = input;
-
-        // Build update data object with correct field mapping, filtering out undefined values
-        const data: Prisma.AppointmentUpdateInput = {};
-
-        // Only include defined values
-        if (updateData.title !== undefined) data.title = updateData.title;
-        if (updateData.status !== undefined) data.status = updateData.status;
-        if (updateData.totalPrice !== undefined) data.totalPrice = updateData.totalPrice;
-        if (updateData.description !== undefined) data.description = updateData.description;
-        if (updateData.location !== undefined) data.location = updateData.location;
+        const { id, appointmentDate, duration, status } = input;
+        
+        // Get the booking from Cal.com
+        await getCalBookingByUid(id);
+        
+        // Update status if provided
+        if (status) {
+          const calStatus = status === AppointmentStatus.CANCELLED ? 'cancelled' : 
+                           status === AppointmentStatus.CONFIRMED ? 'accepted' : 'accepted';
+          await updateCalBookingStatus(id, calStatus as 'cancelled' | 'accepted');
+        }
+        
+        // Reschedule if new date is provided
         if (appointmentDate) {
-          data.startDate = appointmentDate;
-          if (duration) {
-            data.endDate = new Date(appointmentDate.getTime() + duration * 60 * 1000);
-          }
+          const endTime = new Date(appointmentDate);
+          endTime.setMinutes(endTime.getMinutes() + (duration ?? 60));
+          
+          await rescheduleCalBooking(id, {
+            start: appointmentDate.toISOString(),
+            end: endTime.toISOString(),
+          });
         }
-        if (depositAmount !== undefined) {
-          data.deposit = depositAmount;
-        }
-
-        const appointment = await prisma.appointment.update({
-          where: { id },
-          data,
-          include: {
-            Customer: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                phone: true,
-              },
-            },
-          },
-        });
-
+        
+        // Get updated booking
+        const updatedBooking = await getCalBookingByUid(id);
+        const attendee = updatedBooking.attendees?.[0];
+        const startTime = new Date(updatedBooking.startTime);
+        const endTime = new Date(updatedBooking.endTime);
+        
+        // Calculate duration
+        const updatedDuration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+        
         return {
-          id: appointment.id,
-          customerId: appointment.customerId,
-          clientName:
-            `${appointment.Customer?.firstName ?? ''} ${appointment.Customer?.lastName ?? ''}`.trim(),
-          clientEmail: appointment.Customer?.email ?? '',
-          clientPhone: appointment.Customer?.phone ?? '',
-          appointmentDate: appointment.startDate,
-          duration:
-            Math.round(
-              (appointment.endDate.getTime() - appointment.startDate.getTime()) / (1000 * 60)
-            ) || 120,
-          status: appointment.status,
-          depositPaid: appointment.deposit ? appointment.deposit > 0 : false,
-          depositAmount: appointment.deposit ?? 0,
-          totalPrice: appointment.totalPrice ?? 0,
+          id: updatedBooking.uid,
+          customerId: attendee?.email ?? '',
+          clientName: attendee?.name ?? 'Unknown',
+          clientEmail: attendee?.email ?? '',
+          clientPhone: '',
+          appointmentDate: startTime.toISOString(),
+          duration: updatedDuration > 0 ? updatedDuration : 60,
+          status: updatedBooking.status as AppointmentStatus,
+          depositPaid: updatedBooking.payment?.status === 'COMPLETED',
+          depositAmount: updatedBooking.payment?.amount ?? 0,
+          totalPrice: updatedBooking.payment?.amount ?? 0,
           tattooStyle: '',
-          description: appointment.description ?? '',
-          location: appointment.location ?? '',
+          description: updatedBooking.description ?? updatedBooking.title,
+          location: updatedBooking.location ?? '',
           size: '',
-          createdAt: appointment.createdAt,
-          updatedAt: appointment.updatedAt,
+          createdAt: updatedBooking.createdAt,
+          updatedAt: updatedBooking.updatedAt,
         };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error updating appointment',
-          cause: error,
+        return handleRouterError(error, {
+          operation: 'mutation',
+          procedureName: 'update',
+          routerName: 'appointments',
+          input
         });
       }
     }),
 
   /**
    * Delete an appointment
+   * This now cancels the Cal.com booking
    */
   delete: adminProcedure
     .input(
@@ -328,16 +259,16 @@ export const appointmentsRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        await prisma.appointment.delete({
-          where: { id: input.id },
-        });
-
+        // Cancel the booking in Cal.com
+        await updateCalBookingStatus(input.id, 'cancelled');
+        
         return { success: true };
       } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error deleting appointment',
-          cause: error,
+        return handleRouterError(error, {
+          operation: 'mutation',
+          procedureName: 'delete',
+          routerName: 'appointments',
+          input
         });
       }
     }),

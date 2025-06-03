@@ -5,8 +5,12 @@
  */
 
 import { prisma, executeStoredProcedure } from './prisma';
-import type { AppointmentCreateInput } from '@/types/booking-types';
+import type { Prisma } from '@prisma/client';
 
+// Appointment create input using Prisma.GetPayload
+type AppointmentCreateInput = Prisma.AppointmentCreateInput;
+
+import { logger } from "@/lib/logger";
 /**
  * Get upcoming appointments for a user (customer or artist)
  */
@@ -51,7 +55,7 @@ export async function getUpcomingAppointments(
       },
     });
   } catch (error) {
-    void console.error('Error getting upcoming appointments:', error);
+    void void logger.error('Error getting upcoming appointments:', error);
     throw error;
   }
 }
@@ -87,7 +91,7 @@ export async function getAppointmentById(appointmentId: string) {
       },
     });
   } catch (error) {
-    void console.error('Error getting appointment details:', error);
+    void void logger.error('Error getting appointment details:', error);
     throw error;
   }
 }
@@ -125,7 +129,7 @@ export async function checkAppointmentAvailability(
     ]);
     return result;
   } catch (error) {
-    void console.error('Error checking appointment availability:', error);
+    void void logger.error('Error checking appointment availability:', error);
     return {
       isAvailable: false,
       conflicts: null,
@@ -147,7 +151,7 @@ export async function scheduleAppointment(params: AppointmentCreateInput) {
       artistId,
       tattooSize = 'medium',
       complexity = 3,
-      location = 'main_studio',
+      location = 'home',
     } = params;
 
     // Call stored procedure for scheduling with business logic
@@ -164,7 +168,7 @@ export async function scheduleAppointment(params: AppointmentCreateInput) {
 
     return result;
   } catch (error) {
-    void console.error('Error scheduling appointment:', error);
+    void void logger.error('Error scheduling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error scheduling appointment',
@@ -188,7 +192,7 @@ export async function rescheduleAppointment(
     ]);
     return result;
   } catch (error) {
-    void console.error('Error rescheduling appointment:', error);
+    void void logger.error('Error rescheduling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error rescheduling appointment',
@@ -212,7 +216,7 @@ export async function cancelAppointment(
     ]);
     return result;
   } catch (error) {
-    void console.error('Error cancelling appointment:', error);
+    void void logger.error('Error cancelling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error applying cancellation policy',
@@ -250,7 +254,7 @@ export async function getAppointmentCountsByStatus(
 
     return counts;
   } catch (error) {
-    void console.error('Error getting appointment counts by status:', error);
+    void void logger.error('Error getting appointment counts by status:', error);
     throw error;
   }
 }

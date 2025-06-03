@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils/server';
 
+import { logger } from "@/lib/logger";
 /**
  * GET /api/admin/clients/[id]
  * Get a specific client
@@ -20,30 +21,17 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
         id: params.id,
       },
       include: {
-        Appointment: {
-          orderBy: {
-            startDate: 'desc',
-          },
-          select: {
-            id: true,
-            title: true,
-            startDate: true,
-            endDate: true,
-            status: true,
-            deposit: true,
-            totalPrice: true,
-          },
-        },
-        Transaction: {
+        notes: {
           orderBy: {
             createdAt: 'desc',
           },
           select: {
             id: true,
-            amount: true,
-            status: true,
+            content: true,
+            type: true,
+            pinned: true,
             createdAt: true,
-            notes: true,
+            createdBy: true,
           },
         },
       },
@@ -55,7 +43,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
     return NextResponse.json(client);
   } catch (error) {
-    void console.error('Error fetching client:', error);
+    void void logger.error('Error fetching client:', error);
     return NextResponse.json({ error: 'Failed to fetch client' }, { status: 500 });
   }
 }
@@ -123,7 +111,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(client);
   } catch (error) {
-    void console.error('Error updating client:', error);
+    void void logger.error('Error updating client:', error);
     return NextResponse.json({ error: 'Failed to update client' }, { status: 500 });
   }
 }
@@ -146,10 +134,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
         id: params.id,
       },
       include: {
-        Appointment: {
-          select: { id: true },
-        },
-        Transaction: {
+        notes: {
           select: { id: true },
         },
       },
@@ -159,12 +144,12 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    // Check if client has appointments or payments
-    if (existingClient.Appointment.length > 0 || existingClient.Transaction.length > 0) {
+    // Check if client has notes
+    if (existingClient.notes.length > 0) {
       return NextResponse.json(
         {
           error:
-            'Cannot delete client with existing appointments or payments. Consider changing their status instead.',
+            'Cannot delete client with existing notes. Please delete the notes first.',
         },
         { status: 400 }
       );
@@ -179,7 +164,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json({ message: 'Client deleted successfully' });
   } catch (error) {
-    void console.error('Error deleting client:', error);
+    void void logger.error('Error deleting client:', error);
     return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
   }
 }

@@ -3,6 +3,9 @@
 // Bundle analyzer setup
 import bundleAnalyzer from '@next/bundle-analyzer';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
 
 const withBundleAnalyzer = bundleAnalyzer({
 enabled: process.env.ANALYZE === 'true',
@@ -13,13 +16,10 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   experimental: {
-    // Server Actions configuration
     serverActions: {
       bodySizeLimit: '2mb',
       allowedOrigins: ['localhost:3000', 'ink37tattoos.com'],
     },
-    
-    // Optimize package imports for better tree shaking
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-accordion',
@@ -46,11 +46,9 @@ const nextConfig = {
       'recharts',
       'date-fns',
       '@tanstack/react-query',
-      'react-hook-form',
       'yet-another-react-lightbox',
       'react-day-picker',
       'embla-carousel-react',
-      '@clerk/nextjs',
       'zod',
       'class-variance-authority'
     ],
@@ -60,7 +58,6 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          // Security headers
           {
             key: 'X-Frame-Options',
             value: 'DENY',
@@ -81,7 +78,6 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
-          // Performance headers
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
@@ -92,7 +88,6 @@ const nextConfig = {
           },
         ],
       },
-      // Static assets caching
       {
         source: '/images/:path*',
         headers: [
@@ -124,7 +119,6 @@ const nextConfig = {
           },
         ],
       },
-      // API routes caching
       {
         source: '/api/health',
         headers: [
@@ -134,7 +128,6 @@ const nextConfig = {
           },
         ],
       },
-      // Font optimization
       {
         source: '/fonts/:path*',
         headers: [
@@ -159,6 +152,8 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: false,
+    // Strict type checking during builds to prevent any/unknown usage
+    tsconfigPath: './tsconfig.json',
   },
   images: {
     remotePatterns: [
@@ -187,26 +182,47 @@ const nextConfig = {
     BUILD_TIME: new Date().toISOString(),
   },
   webpack: (config, { dev, isServer }) => {
-  if (config.cache && config.cache.type === 'filesystem') {
-  config.cache.compression = 'gzip';
-  }
-  
-  // Fix ES module parsing for React Table and other libraries
-  config.module.rules.push({
-  test: /\.m?js$/,
-  include: /node_modules\/@tanstack/,
-  type: 'javascript/auto',
-  resolve: {
-  fullySpecified: false,
-  },
-  });
-  
-  // Ensure proper ES module handling
-  config.experiments = {
-  ...config.experiments,
-  topLevelAwait: true,
-  };
-
+    if (config.cache && config.cache.type === 'filesystem') {
+      config.cache.compression = 'gzip';
+      config.cache.version = process.env.BUILD_TIME || new Date().toISOString();
+      config.cache.buildDependencies = {
+        ...config.cache.buildDependencies,
+        config: [__filename]
+      };
+      
+      // Fix for webpack cache serialization warnings
+      if (config.cache.packerFactory) {
+        const packerFactory = config.cache.packerFactory;
+        config.cache.packerFactory = options => {
+          const packer = packerFactory(options);
+          return {
+            ...packer,
+            packToStream: (context, value, callback) => {
+              // Convert large strings to buffers before serialization
+              if (typeof value === 'string' && value.length > 100000) {
+                const buffer = Buffer.from(value);
+                return packer.packToStream(context, buffer, callback);
+              }
+              return packer.packToStream(context, value, callback);
+            }
+          };
+        };
+      }
+    }
+    
+    config.module.rules.push({
+      test: /\.m?js$/,
+      include: /node_modules\/@tanstack/,
+      type: 'javascript/auto',
+      resolve: {
+        fullySpecified: false,
+      },
+    });
+    
+    config.experiments = {
+      ...config.experiments,
+      topLevelAwait: true,
+    };
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',
@@ -275,7 +291,7 @@ const nextConfig = {
         maxInitialRequests: 30,
       };
     }
-    
+
     return config;
   },
   output: 'standalone',

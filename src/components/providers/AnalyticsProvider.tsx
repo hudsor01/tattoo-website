@@ -4,10 +4,12 @@ import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
 import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { ENV } from '@/lib/utils/env';
 
+import { logger } from "@/lib/logger";
 // Google Analytics tracking
 export function GoogleAnalytics() {
-  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const GA_MEASUREMENT_ID = ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   if (!GA_MEASUREMENT_ID) {
     return null;
@@ -36,7 +38,8 @@ export function GoogleAnalytics() {
 
 // Google Tag Manager
 export function GoogleTagManager() {
-  const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+  // Use getEnvSafe since this is a client component accessing a public env var
+  const GTM_ID = ENV.NEXT_PUBLIC_GTM_ID ?? '';
 
   if (!GTM_ID) {
     return null;
@@ -76,7 +79,7 @@ export function usePageTracking() {
 
   useEffect(() => {
     try {
-      const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+      const GA_MEASUREMENT_ID = ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
       if (
         GA_MEASUREMENT_ID &&
@@ -95,8 +98,8 @@ export function usePageTracking() {
         );
       }
     } catch {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('[Analytics] Failed to track page view for:', pathname);
+      if (ENV.NODE_ENV === 'development') {
+        void logger.warn('[Analytics] Failed to track page view for:', pathname);
       }
     }
   }, [pathname, searchParams]);
@@ -105,7 +108,7 @@ export function usePageTracking() {
 // Track custom events with safe error handling
 export function trackEvent(eventName: string, parameters?: Record<string, unknown>) {
   try {
-    const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    const measurementId = ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID;
     if (
       measurementId &&
       typeof window !== 'undefined' &&
@@ -118,8 +121,8 @@ export function trackEvent(eventName: string, parameters?: Record<string, unknow
       });
     }
   } catch {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Analytics] Failed to track event:', eventName);
+    if (ENV.NODE_ENV === 'development') {
+      void logger.warn('[Analytics] Failed to track event:', eventName);
     }
   }
 }

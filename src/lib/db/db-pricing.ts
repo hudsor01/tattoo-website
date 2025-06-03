@@ -5,8 +5,9 @@
  */
 
 import { executeStoredProcedure } from './prisma';
-import type { PricingBreakdown, StandardPricingData, ArtistRate } from '@/types/payments-types';
+import type { PricingBreakdown, StandardPricingData, ArtistRate } from '@prisma/client';
 
+import { logger } from "@/lib/logger";
 /**
  * Calculate pricing for a tattoo based on size, placement, and complexity
  */
@@ -27,7 +28,7 @@ export async function calculatePricing(
     ]);
     return result;
   } catch (error) {
-    void console.error('Error calculating pricing:', error);
+    void void logger.error('Error calculating pricing:', error);
     throw error;
   }
 }
@@ -46,7 +47,7 @@ export async function calculateAppointmentDuration(
     );
     return result.duration;
   } catch (error) {
-    void console.error('Error calculating appointment duration:', error);
+    void void logger.error('Error calculating appointment duration:', error);
     throw error;
   }
 }
@@ -59,7 +60,7 @@ export async function getArtistRates(artistId?: string): Promise<ArtistRate> {
     const result = await executeStoredProcedure<ArtistRate>('get_artist_rates', [artistId ?? null]);
     return result;
   } catch (error) {
-    void console.error('Error getting artist rates:', error);
+    void void logger.error('Error getting artist rates:', error);
     throw error;
   }
 }
@@ -109,7 +110,7 @@ export async function getStandardPricingData(): Promise<StandardPricingData> {
       baseHourlyRate: 150, // Standard hourly rate
     };
   } catch (error) {
-    void console.error('Error getting standard pricing data:', error);
+    void void logger.error('Error getting standard pricing data:', error);
     throw error;
   }
 }

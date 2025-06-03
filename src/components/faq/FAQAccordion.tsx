@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/components/performance/LazyMotion';
 import {
   Accordion,
   AccordionContent,
@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
-import type { FAQAccordionProps } from '@/types/component-types';
+import type { FAQAccordionProps } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -43,10 +43,10 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
           [index]: isHelpful,
         }));
       } else {
-        void console.error('Failed to submit feedback');
+        void void logger.error('Failed to submit feedback');
       }
     } catch (error) {
-      void console.error('Error submitting feedback:', error);
+      void void logger.error('Error submitting feedback:', error);
     }
   };
 

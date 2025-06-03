@@ -6,7 +6,9 @@
  */
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import { Image as ImageIcon } from 'lucide-react';
 import { prisma } from '@/lib/db/prisma';
+import { logger } from "@/lib/logger";
 import {
   getBuildSafeTattooDesigns,
   getBuildSafeTattooDesign,
@@ -15,6 +17,11 @@ import {
 import { DesignDetail } from '@/components/gallery/DesignDetail';
 import { DesignDetailSkeleton } from '@/components/gallery/DesignDetailSkeleton';
 import type { Metadata } from 'next';
+// Page props type for Next.js dynamic pages
+type PageProps = {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
 
 // Enable static generation with revalidation every 6 hours
 export const revalidate = 21600;
@@ -29,18 +36,14 @@ export async function generateStaticParams() {
     fallback: [], // Empty array allows dynamic generation at runtime
   });
 
-  console.warn(
+  void logger.warn(
     `Generated ${Array.isArray(designs) ? designs.length : 0} static params for gallery`
   );
   return Array.isArray(designs)
-    ? designs.map((design: unknown) => ({
+    ? designs.map((design) => ({
         id: (design as { id: string }).id,
       }))
     : [];
-}
-
-interface PageProps {
-  params: Promise<{ id: string }>;
 }
 
 // Generate metadata for SEO with build-time safety
@@ -63,17 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
     },
     fallback: null,
-  })) as {
-    name: string;
-    description?: string;
-    thumbnailUrl?: string;
-    designType?: string;
-    Artist?: {
-      User?: {
-        name?: string;
-      };
-    };
-  } | null;
+  })) as Partial<GalleryDesign> | null;
 
   if (!design) {
     // Return fallback metadata if design not found or database unavailable
@@ -123,37 +116,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// Import required types
+import type { TattooDesign } from '@prisma/client';
+type GalleryDesign = TattooDesign;
+
 // Server component that fetches real data
 export default async function DesignDetailPage({ params }: PageProps) {
   const { id } = await params;
-  let design;
+  let design: GalleryDesign | null = null;
 
   try {
-    // Fetch the design with all related data
+    // Fetch the design with basic data (relationships don't exist in schema)
     design = await prisma.tattooDesign.findUnique({
       where: { id },
-      include: {
-        Artist: {
-          include: {
-            User: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-                email: true,
-              },
-            },
-          },
-        },
-        Customer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
     });
 
     // If design doesn't exist, return 404
@@ -194,17 +169,23 @@ export default async function DesignDetailPage({ params }: PageProps) {
           notFound();
         }
       } catch (error) {
-        void console.error('Error checking user authorization:', error);
+        void void logger.error('Error checking user authorization:', error);
         notFound();
       }
     }
   } catch (error) {
-    void console.error('Error fetching design:', error);
+    void void logger.error('Error fetching design:', error);
     notFound();
   }
 
   // Get related designs from the same artist
-  const relatedDesigns = await prisma.tattooDesign.findMany({
+  const relatedDesigns: {
+    id: string;
+    name: string;
+    thumbnailUrl: string | null;
+    designType: string | null;
+    createdAt: Date;
+  }[] = await prisma.tattooDesign.findMany({
     where: {
       artistId: design.artistId,
       isApproved: true,
@@ -222,7 +203,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<DesignDetailSkeleton />}>
           <DesignDetail id={id} />
@@ -246,24 +227,13 @@ export default async function DesignDetailPage({ params }: PageProps) {
                       <img
                         src={related.thumbnailUrl}
                         alt={related.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                        style={{ objectFit: 'cover' }}
                         loading="lazy"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <svg
-                          className="w-12 h-12 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
+                      <ImageIcon className="h-12 w-12 text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -311,14 +281,14 @@ export default async function DesignDetailPage({ params }: PageProps) {
               image: design.thumbnailUrl,
               creator: {
                 '@type': 'Person',
-                name: design.Artist?.User?.name,
+                name: design.Artist?.User?.name ?? 'Ink 37 Artist',
               },
               dateCreated: design.createdAt,
               genre: design.designType,
               isPartOf: {
-                '@type': 'WebSite',
-                name: 'Ink 37 Tattoo Gallery',
-                url: 'https://ink37.com',
+                '@type': 'Website',
+                name: 'Ink 37 Tattoos Gallery',
+                url: 'https://ink37tattoos.com',
               },
             }),
           }}

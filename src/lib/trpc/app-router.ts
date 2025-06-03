@@ -7,12 +7,14 @@
  * THIS IS A SERVER-SIDE ONLY FILE
  */
 import 'server-only';
-import { router } from './server';
+import { router } from './procedures';
 
 import { galleryRouter } from './routers/gallery-router';
-import { adminRouter } from './routers/admin-router';
+// Import the modularized admin router
+import { adminMainRouter } from './routers/admin/main-router';
 import { subscriptionRouter } from './routers/subscription-router';
 import { calRouter } from './routers/cal-router';
+import { calAnalyticsRouter } from './routers/cal-analytics-router';
 import { dashboardRouter } from './routers/dashboard-router';
 import { appointmentsRouter } from './routers/appointments-router';
 import { paymentsRouter } from './routers/payments-router';
@@ -26,9 +28,10 @@ import { settingsRouter } from './routers/settings-router';
  */
 export const appRouter = router({
   gallery: galleryRouter,
-  admin: adminRouter,
+  admin: adminMainRouter,
   subscription: subscriptionRouter,
   cal: calRouter,
+  calAnalytics: calAnalyticsRouter,
   dashboard: dashboardRouter,
   appointments: appointmentsRouter,
   payments: paymentsRouter,
