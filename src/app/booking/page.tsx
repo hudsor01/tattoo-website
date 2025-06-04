@@ -89,7 +89,7 @@ export default function BookingPage() {
           <div className="lg:col-span-3">
             <Suspense fallback={<BookingLoadingSkeleton />}>
               <CalAtomsBooking
-                onBookingSuccess={(booking) => {
+                onappointmentsuccess={(booking) => {
                   // Analytics tracking handled in component
                   void logger.info('Booking completed:', booking);
                 }}

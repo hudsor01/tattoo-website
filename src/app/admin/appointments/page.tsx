@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppointmentsPageClient } from './client';
+import AdminAppointmentsPage from './client';
 
 export default function AppointmentsPage() {
-  return <AppointmentsPageClient />;
+  return <AdminAppointmentsPage />;
 }

@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         lastName: true,
         email: true,
         createdAt: true,
-        // Note: No direct Appointment relationship in Customer model
+        // Customer model simplified - no complex relationships
       },
       orderBy: {
         createdAt: 'desc',
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       id: customer.id,
       name: `${customer.firstName} ${customer.lastName}`.trim(),
       email: customer.email,
-      appointmentCount: 0, // Default value as there's no direct Appointment relationship
+      appointmentCount: 0, // Simplified - no appointment tracking
       createdAt: customer.createdAt,
     }));
 

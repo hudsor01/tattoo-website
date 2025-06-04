@@ -47,7 +47,7 @@ import { MetricCardSkeleton, ChartSkeleton, ServiceCardSkeleton } from './Skelet
 interface DailyStat {
   date: string;
   revenue: number;
-  bookings: number;
+  appointments: number;
   views: number;
 }
 
@@ -138,7 +138,7 @@ export function AnalyticsDashboard({
           return {
             name: stat.date ?? 'Unknown',
             revenue: typeof stat.revenue === 'number' ? stat.revenue : 0,
-            bookings: typeof stat.bookings === 'number' ? stat.bookings : 0,
+            appointments: typeof stat.appointments === 'number' ? stat.appointments : 0,
             customers: typeof stat.views === 'number' ? stat.views : 0
           };
         }).filter((item: { name: string; }) => item.name !== 'Unknown'); // Filter out items with missing dates
@@ -214,11 +214,11 @@ export function AnalyticsDashboard({
             
             <MetricCard
               title="Active Accounts"
-              value={dashboardData?.bookingAnalytics?.totalBookings ?? 0}
+              value={dashboardData?.bookingAnalytics?.totalappointments ?? 0}
               icon={<Calendar className="h-5 w-5" />}
               change={-2.1}
               trend="down"
-              description="total bookings"
+              description="total appointments"
             />
             
             <MetricCard
@@ -285,7 +285,7 @@ export function AnalyticsDashboard({
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                       </linearGradient>
-                      <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="colorappointments" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                       </linearGradient>
@@ -327,10 +327,10 @@ export function AnalyticsDashboard({
                     />
                     <Area
                       type="monotone"
-                      dataKey="bookings"
+                      dataKey="appointments"
                       stroke="#8b5cf6"
                       strokeWidth={2}
-                      fill="url(#colorBookings)"
+                      fill="url(#colorappointments)"
                       dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 2 }}
                       activeDot={{ r: 4, stroke: '#8b5cf6', strokeWidth: 2 }}
                     />
@@ -459,9 +459,9 @@ export function AnalyticsDashboard({
         <div className="bg-gray-800 rounded-lg border border-gray-700">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-gray-700 gap-4">
             <div className="flex items-center">
-              <h3 className="text-white text-xl lg:text-2xl font-semibold">Cal.com Bookings</h3>
+              <h3 className="text-white text-xl lg:text-2xl font-semibold">Cal.com appointments</h3>
               <div className="ml-3 px-2.5 py-1 bg-gray-700 rounded-full text-sm text-gray-300">
-                {dashboardData?.bookingAnalytics?.totalBookings ?? 0} total
+                {dashboardData?.bookingAnalytics?.totalappointments ?? 0} total
               </div>
             </div>
             
@@ -488,7 +488,7 @@ export function AnalyticsDashboard({
                     <div>
                       <h4 className="font-medium text-white text-lg">{service.serviceName ?? service.serviceId}</h4>
                       <p className="text-base text-gray-400 mt-1">
-                        {service.views} views • {service.totalBookings} bookings
+                        {service.views} views • {service.totalappointments} appointments
                       </p>
                     </div>
                     <div className="flex items-center gap-4 mt-3 sm:mt-0">
@@ -532,9 +532,9 @@ export function AnalyticsDashboard({
       {/* Status Footer */}
       <div className="pt-6 border-t border-gray-800 flex flex-wrap items-center justify-between text-xs text-gray-500 gap-4">
         <div className="flex flex-wrap items-center gap-4">
-          <p>Total Bookings: {dashboardData?.bookingAnalytics?.totalBookings ?? 0}</p>
-          <p>Confirmed: {dashboardData?.bookingAnalytics?.confirmedBookings ?? 0}</p>
-          <p>Cancelled: {dashboardData?.bookingAnalytics?.cancelledBookings ?? 0}</p>
+          <p>Total appointments: {dashboardData?.bookingAnalytics?.totalappointments ?? 0}</p>
+          <p>Confirmed: {dashboardData?.bookingAnalytics?.confirmedappointments ?? 0}</p>
+          <p>Cancelled: {dashboardData?.bookingAnalytics?.cancelledappointments ?? 0}</p>
           <p>Revenue: ${dashboardData?.bookingAnalytics?.totalRevenue?.toFixed(0) ?? 0}</p>
         </div>
         <div className="text-gray-500 text-xs">

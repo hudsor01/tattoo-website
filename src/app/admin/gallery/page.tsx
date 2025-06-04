@@ -6,13 +6,13 @@
  */
 
 import { Metadata } from 'next';
-import { GalleryPageClient } from './client';
+import AdminGalleryPage from './client';
 
 export const metadata: Metadata = {
   title: 'Gallery Management | Admin Dashboard',
   description: 'Manage gallery images and tattoo portfolio',
 };
 
-export default function AdminGalleryPage() {
-  return <GalleryPageClient />;
+export default function GalleryPage() {
+  return <AdminGalleryPage />;
 }

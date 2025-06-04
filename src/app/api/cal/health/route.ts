@@ -48,10 +48,10 @@ export async function GET() {
         },
       },
       environment: {
-        hasApiKey: !!process.env.CAL_API_KEY,
-        hasClientId: !!process.env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID,
-        hasWebhookSecret: !!process.env.CAL_WEBHOOK_SECRET,
-        apiUrl: process.env.CAL_API_URL ?? 'https://api.cal.com/v2',
+        hasApiKey: !!process.env['CAL_API_KEY'],
+        hasClientId: !!process.env['NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID'],
+        hasWebhookSecret: !!process.env['CAL_WEBHOOK_SECRET'],
+        apiUrl: process.env['CAL_API_URL'] ?? 'https://api.cal.com/v2',
       },
     });
     
@@ -77,10 +77,10 @@ export async function GET() {
           },
         },
         environment: {
-          hasApiKey: !!process.env.CAL_API_KEY,
-          hasClientId: !!process.env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID,
-          hasWebhookSecret: !!process.env.CAL_WEBHOOK_SECRET,
-          apiUrl: process.env.CAL_API_URL ?? 'https://api.cal.com/v2',
+          hasApiKey: !!process.env['CAL_API_KEY'],
+          hasClientId: !!process.env['NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID'],
+          hasWebhookSecret: !!process.env['CAL_WEBHOOK_SECRET'],
+          apiUrl: process.env['CAL_API_URL'] ?? 'https://api.cal.com/v2',
         },
       },
       { status: 503 }

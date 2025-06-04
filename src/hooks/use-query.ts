@@ -124,9 +124,9 @@ export function useGalleryInfiniteQuery({
 }
 
 /**
- * Bookings infinite query hook
+ * appointments infinite query hook
  */
-export function useBookingsInfiniteQuery({
+export function useappointmentsInfiniteQuery({
   status,
   limit = 20,
   enabled = true,

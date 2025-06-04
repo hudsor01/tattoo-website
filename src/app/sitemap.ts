@@ -129,7 +129,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/admin/bookings`,
+      url: `${baseUrl}/admin/appointments`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.3,

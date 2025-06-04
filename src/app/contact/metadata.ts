@@ -3,7 +3,7 @@ import { generatePageMetadata } from '@/lib/seo/seo-config';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Contact | Book Your Tattoo Consultation Today',
-  description: 'Contact our professional tattoo artist in Dallas/Fort Worth, Texas for consultations, custom designs, and bookings. Serving Dallas-Fort Worth area with expert tattoo services and personalized artwork.',
+  description: 'Contact our professional tattoo artist in Dallas/Fort Worth, Texas for consultations, custom designs, and appointments. Serving Dallas-Fort Worth area with expert tattoo services and personalized artwork.',
   keywords: [
     'contact tattoo artist Crowley TX',
     'tattoo consultation DFW',

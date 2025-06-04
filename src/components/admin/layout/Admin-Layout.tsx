@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import type { AdminPageHeaderProps, AdminPageStructureProps } from '@prisma/client';
+import type { AdminPageHeaderProps, AdminPageStructureProps } from '@/lib/prisma-types';
 
 // Types moved to @/types/component-types:
 // AdminPageHeaderProps, AdminPageStructureProps

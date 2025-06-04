@@ -16,19 +16,15 @@ import './booking.css';
 import Footer from '@/components/layouts/Footer';
 import { useState } from 'react';
 import { CalBookingUnified } from '@/components/booking/cal-booking';
-import type { Prisma, CalEventType } from '@prisma/client';
-
-// Cal service type using Prisma.GetPayload
-type CalService = Prisma.CalEventTypeGetPayload<{
-  select: {
-    id: true;
-    title: true;
-    slug: true;
-    description: true;
-    duration: true;
-    price: true;
-  };
-}>;
+// Cal service type - simplified for booking
+interface CalService {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  duration: number;
+  price?: number;
+}
 
 export default function BookingClient() {
   const [showContact, setShowContact] = useState(false);
@@ -115,7 +111,7 @@ export default function BookingClient() {
 
                 <div className="mt-6 pt-6 border-t border-white/20">
                   <p className="text-sm text-white/40 text-center">
-                    For all bookings, we prefer using the booking system above as it handles
+                    For all appointments, we prefer using the booking system above as it handles
                     scheduling and deposits automatically.
                   </p>
                 </div>

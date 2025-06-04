@@ -73,7 +73,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return getFallbackGalleryMetadata(id);
   }
 
-  const artistName = design.Artist?.User?.name ?? 'Ink 37 Artist';
+  const artistName = design.artistName ?? 'Ink 37 Artist';
   const title = `${design.name} by ${artistName} | Ink 37 Tattoo Gallery`;
   const description =
     design.description ??
@@ -139,39 +139,9 @@ export default async function DesignDetailPage({ params }: PageProps) {
     // Check if design is approved for public viewing
     // Only approved designs or designs viewed by authorized users should be visible
     if (!design.isApproved) {
-      // Check user authentication and authorization
-      const { createClient } = await import('@/lib/supabase/server');
-      const supabase = await createClient();
-
-      try {
-        const {
-          data: { user },
-          error: authError,
-        } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-          // Not authenticated - can't view unapproved design
-          notFound();
-        }
-
-        // Check if user is admin or the design owner
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-        const isAdmin = profile?.role === 'admin' || profile?.role === 'artist';
-        const isOwner = design.Customer?.email === user.email;
-
-        if (!isAdmin && !isOwner) {
-          // User is not authorized to view this unapproved design
-          notFound();
-        }
-      } catch (error) {
-        void void logger.error('Error checking user authorization:', error);
-        notFound();
-      }
+      // For now, unapproved designs are not shown to regular users
+      // TODO: Implement Better Auth user checking
+      notFound();
     }
   } catch (error) {
     void void logger.error('Error fetching design:', error);
@@ -213,7 +183,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
         {relatedDesigns.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">
-              More from {design.Artist?.User?.name}
+              More from {design.artistName}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {relatedDesigns.map((related) => (
@@ -281,7 +251,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
               image: design.thumbnailUrl,
               creator: {
                 '@type': 'Person',
-                name: design.Artist?.User?.name ?? 'Ink 37 Artist',
+                name: design.artistName ?? 'Ink 37 Artist',
               },
               dateCreated: design.createdAt,
               genre: design.designType,

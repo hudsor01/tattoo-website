@@ -8,21 +8,21 @@ import { Button } from "@/components/ui/button";
 import { ShareDialog } from "./share-dialog";
 import { CalendarIcon, Share } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { GalleryDesignDto } from "@/types/gallery-types";
+import type { TattooDesign } from "@prisma/client";
 
 type Card = {
   id: string;
   content: JSX.Element | React.ReactNode | string;
   className: string;
   thumbnail: string;
-  designData: GalleryDesignDto;
+  designData: TattooDesign;
 };
 
-export const AceternityLayoutGrid = ({ designs }: { designs: GalleryDesignDto[] }) => {
+export const AceternityLayoutGrid = ({ designs }: { designs: TattooDesign[] }) => {
   const [selected, setSelected] = useState<Card | null>(null);
   const [lastSelected, setLastSelected] = useState<Card | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [sharingDesign, setSharingDesign] = useState<GalleryDesignDto | null>(null);
+  const [sharingDesign, setSharingDesign] = useState<TattooDesign | null>(null);
   const router = useRouter();
 
   // Convert designs to cards format

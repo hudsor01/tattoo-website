@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { User, UserRole } from "@prisma/client";
+import { User } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 // Protected routes that require authentication
@@ -83,7 +83,7 @@ export async function middleware(request: NextRequest) {
 
     if (isAdminRoute) {
       const user = session.user as User;
-      if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPERADMIN) {
+      if (user.role !== 'admin') {
         const unauthorizedUrl = new URL("/unauthorized", request.url);
         return NextResponse.redirect(unauthorizedUrl);
       }

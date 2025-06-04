@@ -58,11 +58,6 @@ const navigationData = {
       icon: LayoutDashboard,
     },
     {
-      title: 'Bookings',
-      url: '/admin/bookings',
-      icon: Calendar,
-    },
-    {
       title: 'Appointments',
       url: '/admin/appointments',
       icon: Calendar,

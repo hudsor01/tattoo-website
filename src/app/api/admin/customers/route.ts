@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils/server';
 import type { Prisma } from '@prisma/client';
 import { logger } from "@/lib/logger";
+
 /**
  * GET /api/admin/customers
  * Get all customers with optional filtering
@@ -43,66 +44,41 @@ export async function GET(request: NextRequest) {
         },
         skip,
         take: limit,
-        include: {
-          notes: {
-            select: {
-              content: true,
-              type: true,
-              createdAt: true,
-            },
-          },
-        },
       }),
-      prisma.customer.count({ where }),
+      prisma.customer.count({
+        where,
+      }),
     ]);
 
-    // Format response to maintain compatibility
-    const formattedCustomers = customers.map((customer) => {
-      // Combine first and last name to maintain client compatibility
-      const name = `${customer.firstName} ${customer.lastName}`.trim();
+    // Format response data
+    const formattedCustomers = customers.map((customer) => ({
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+      createdAt: customer.createdAt,
+      updatedAt: customer.updatedAt,
+    }));
 
-      // Extract tattoo style preference from notes if available
-      const notesContent = customer.notes.map(note => note.content).join(' ');
-      const tattooStyle = notesContent.includes('tattoo style')
-        ? (notesContent.split('tattoo style preference:')[1]?.trim() ?? '')
-        : '';
-
-      // Determine status based on tags (default to 'new')
-      const status = customer.tags.length > 0 ? 'active' : 'new';
-
-      // Determine last contact from customer data
-      const lastContact = customer.updatedAt;
-
-      return {
-        id: customer.id,
-        name,
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
-        phone: customer.phone ?? '',
-        address: customer.address ?? '',
-        city: customer.city ?? '',
-        state: customer.state ?? '',
-        postalCode: customer.postalCode ?? '',
-        status,
-        tattooStyle,
-        notes: notesContent,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt,
-        lastContact,
-      };
-    });
+    const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      clients: formattedCustomers,
-      total: totalCount,
-      page,
-      limit,
-      pageCount: Math.ceil(totalCount / limit),
+      customers: formattedCustomers,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
     });
   } catch (error) {
-    void void logger.error('Error fetching customers:', error);
-    return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
+    void logger.error('Error fetching customers:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch customers' },
+      { status: 500 }
+    );
   }
 }
 
@@ -118,96 +94,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Get request body
-    const data = await request.json();
-    void void logger.warn('Creating customer with data:', data);
+    const body = await request.json();
+    const { firstName, lastName, email, phone, address, city, state, postalCode } = body;
 
-    // Support both name-based and firstName/lastName-based input
-    let firstName: string;
-    let lastName: string;
-
-    if (data.firstName && data.lastName) {
-      // New format: separate firstName and lastName
-      firstName = data.firstName.trim();
-      lastName = data.lastName.trim();
-    } else if (data.name) {
-      // Legacy format: combined name
-      if (data.name.includes(' ')) {
-        const nameParts = data.name.trim().split(' ');
-        firstName = nameParts[0];
-        lastName = nameParts.slice(1).join(' ');
-      } else {
-        firstName = data.name.trim();
-        lastName = '';
-      }
-    } else {
-      return NextResponse.json({ error: 'First name and last name are required' }, { status: 400 });
+    // Basic validation
+    if (!firstName || !lastName) {
+      return NextResponse.json(
+        { error: 'First name and last name are required' },
+        { status: 400 }
+      );
     }
 
-    // Validate required fields
-    if (!firstName || !data.email) {
-      return NextResponse.json({ error: 'First name and email are required' }, { status: 400 });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
-    }
-
-    // Check if customer with this email already exists
-    const existingCustomer = await prisma.customer.findUnique({
-      where: {
-        email: data.email.toLowerCase().trim(),
+    // Create customer
+    const customer = await prisma.customer.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        phone,
+        address,
+        city,
+        state,
+        postalCode,
       },
     });
 
-    if (existingCustomer) {
+    return NextResponse.json(customer, { status: 201 });
+  } catch (error) {
+    void logger.error('Error creating customer:', error);
+    
+    // Handle unique constraint errors
+    if (error instanceof Error && 'code' in error && error.code === 'P2002') {
       return NextResponse.json(
         { error: 'A customer with this email already exists' },
         { status: 409 }
       );
     }
-
-    // Create new customer with all supported fields
-    const customerData: Prisma.CustomerCreateInput = {
-      firstName,
-      lastName,
-      email: data.email.toLowerCase().trim(),
-      phone: data.phone?.trim() ?? null,
-      address: data.address?.trim() ?? null,
-      city: data.city?.trim() ?? null,
-      state: data.state?.trim() ?? null,
-      postalCode: data.postalCode?.trim() ?? null,
-      communicationPrefs: {
-        email: true,
-        sms: true,
-        phone: false,
-      },
-    };
-
-    const customer = await prisma.customer.create({
-      data: customerData,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        address: true,
-        city: true,
-        state: true,
-        postalCode: true,
-        notes: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    void void logger.warn('Customer created successfully:', customer);
-    return NextResponse.json(customer, { status: 201 });
-  } catch (error) {
-    void void logger.error('Error creating customer:', error);
-    return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
+    
+    return NextResponse.json(
+      { error: 'Failed to create customer' },
+      { status: 500 }
+    );
   }
 }

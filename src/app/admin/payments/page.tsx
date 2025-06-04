@@ -1,6 +1,6 @@
 import React from 'react';
-import { PaymentsPageClient } from './client';
+import AdminPaymentsPage from './client';
 
 export default function PaymentsPage() {
-  return <PaymentsPageClient />;
+  return <AdminPaymentsPage />;
 }

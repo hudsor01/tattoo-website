@@ -34,10 +34,10 @@ export interface DateRange {
   endDate: Date;
 }
 
-export interface WeeklyBookingsData {
+export interface WeeklyappointmentsData {
   day: string;
   date: string;
-  bookings: number;
+  appointments: number;
 }
 
 export interface ServiceDistributionData {
@@ -50,7 +50,7 @@ export interface ServiceDistributionData {
 export interface AdminRevenueData {
   month: string;
   revenue: number;
-  bookings: number;
+  appointments: number;
 }
 
 export interface AdminServiceData {
@@ -62,12 +62,12 @@ export interface AdminServiceData {
 
 export interface AdminTimeSlotData {
   time: string;
-  bookings: number;
+  appointments: number;
 }
 
 export interface AdminDayData {
   day: string;
-  bookings: number;
+  appointments: number;
 }
 
 export interface AdminRevenueChartProps {

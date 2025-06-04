@@ -1,4 +1,4 @@
-import { PlusCircle, UserPlus, Calendar, Upload, Zap } from 'lucide-react';
+import { UserPlus, Calendar, Upload, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -70,18 +70,11 @@ export default function QuickActions() {
             icon={<UserPlus className="h-5 w-5" />}
           />
           <QuickAction
-            title="New Booking"
-            description="Create new booking entry"
-            href="/admin/bookings"
-            color="green"
-            icon={<Calendar className="h-5 w-5" />}
-          />
-          <QuickAction
             title="New Appointment"
             description="Schedule a new client session"
             href="/admin/appointments"
-            color="purple"
-            icon={<PlusCircle className="h-5 w-5" />}
+            color="green"
+            icon={<Calendar className="h-5 w-5" />}
           />
           <QuickAction
             title="Upload Image"

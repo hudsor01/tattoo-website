@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from '@/lib/api';
-import type { TattooImage, VideoProcess } from '@prisma/client';
+import type { TattooDesign } from '@prisma/client';
 
 // Endpoint URLs
 const ENDPOINTS = {
@@ -15,15 +15,15 @@ const ENDPOINTS = {
 /**
  * Fetch all tattoo images from the gallery
  */
-export async function fetchTattooImages(): Promise<TattooImage[]> {
-  return api.get<TattooImage[]>(ENDPOINTS.TATTOOS);
+export async function fetchTattooImages(): Promise<TattooDesign[]> {
+  return api.get<TattooDesign[]>(ENDPOINTS.TATTOOS);
 }
 
 /**
  * Fetch all video processes
  */
-export async function fetchVideoProcesses(): Promise<VideoProcess[]> {
-  return api.get<VideoProcess[]>(ENDPOINTS.VIDEOS);
+export async function fetchVideoProcesses(): Promise<TattooDesign[]> {
+  return api.get<TattooDesign[]>(ENDPOINTS.VIDEOS);
 }
 
 /**

@@ -5,19 +5,79 @@
 
 import { prisma as db } from '@/lib/db/prisma';
 import { logger } from "@/lib/logger";
-import type { 
-  CalBookingFunnel,
-  CalServiceAnalytics
-} from '@prisma/client';
 
-import {
-  CalAnalyticsEventType,
-  CalBookingStage,
-  type BookingAnalyticsData,
-  type BookingFunnelMetrics,
-  type ServicePerformance,
-  type BookingEventProperties
-} from '@prisma/client';
+// Define missing enums locally
+export enum CalAnalyticsEventType {
+  PAGE_VIEW = 'PAGE_VIEW',
+  SERVICE_SELECT = 'SERVICE_SELECT',
+  DATE_SELECT = 'DATE_SELECT',
+  FORM_SUBMIT = 'FORM_SUBMIT',
+  PAYMENT_START = 'PAYMENT_START',
+  BOOKING_COMPLETE = 'BOOKING_COMPLETE',
+  BOOKING_CANCEL = 'BOOKING_CANCEL',
+  ERROR = 'ERROR'
+}
+
+export enum Calappointmentstage {
+  SERVICE_SELECTION = 'SERVICE_SELECTION',
+  DATE_SELECTION = 'DATE_SELECTION',
+  DETAILS_ENTRY = 'DETAILS_ENTRY',
+  PAYMENT = 'PAYMENT',
+  CONFIRMATION = 'CONFIRMATION'
+}
+
+// Define missing types locally
+export interface BookingEventProperties {
+  userAgent?: string;
+  deviceType?: string;
+  referrer?: string;
+  url?: string;
+  [key: string]: unknown;
+}
+
+export interface BookingAnalyticsData {
+  period: {
+    startDate: Date;
+    endDate: Date;
+  };
+  totalappointments: number;
+  completedappointments: number;
+  cancelledappointments: number;
+  abandonedappointments: number;
+  revenue: number;
+  conversionRate: number;
+  averageBookingValue: number;
+  funnel: BookingFunnelMetrics;
+  serviceBreakdown: ServicePerformance[];
+  timeSeriesData: unknown[];
+}
+
+export interface BookingFunnelMetrics {
+  pageViews: number;
+  appointmentstarted: number;
+  timeSlotSelected: number;
+  formCompleted: number;
+  paymentStarted: number;
+  bookingConfirmed: number;
+  conversionRates: {
+    viewToStart: number;
+    startToSlot: number;
+    slotToForm: number;
+    formToPayment: number;
+    paymentToConfirm: number;
+    overallConversion: number;
+  };
+}
+
+export interface ServicePerformance {
+  serviceId: string;
+  serviceName: string;
+  totalappointments: number;
+  completedappointments: number;
+  revenue: number;
+  conversionRate: number;
+  popularTimeSlots: unknown[];
+}
 
 // Analytics Event Data Interface
 export interface CalAnalyticsEventData {
@@ -38,16 +98,16 @@ export interface CalAnalyticsEventData {
 // Realtime Metrics Interface
 interface RealtimeMetrics {
   activeUsers: number;
-  bookingsInProgress: number;
-  bookingsToday: number;
+  appointmentsInProgress: number;
+  appointmentsToday: number;
   revenueToday: number;
   conversionRate: number;
   averageSessionDuration: number;
   topPerformingService?: string;
   lastUpdated: Date;
-  activeBookingSessions?: number;
-  bookingsCompleted?: number;
-  bookingsCancelled?: number;
+  activeappointmentsessions?: number;
+  appointmentsCompleted?: number;
+  appointmentsCancelled?: number;
   peakConcurrentUsers?: number;
   totalRevenue?: number;
 }
@@ -55,6 +115,48 @@ interface RealtimeMetrics {
 // Session Data Interface  
 interface SessionData {
   timeSpent?: number | null;
+}
+
+// Define Prisma model types locally
+interface CalBookingFunnel {
+  id: string;
+  sessionId: string;
+  step: string;
+  stepOrder: number;
+  serviceId: string | null;
+  userId: string | null;
+  completed: boolean;
+  abandoned: boolean;
+  timeSpent: number | null;
+  errorMessage: string | null;
+  timestamp: Date;
+}
+
+interface CalServiceAnalytics {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  eventType: string;
+  date: Date;
+  count: number;
+  totalRevenue: number | null;
+  avgBookingTime: number | null;
+  conversionRate: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Payment {
+  id: string;
+  bookingId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  paymentMethod: string | null;
+  stripeId: string | null;
+  metadata: unknown;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class CalAnalyticsService {
@@ -87,7 +189,7 @@ export class CalAnalyticsService {
    */
   static async trackFunnelProgress(
     sessionId: string,
-    stage: CalBookingStage,
+    stage: Calappointmentstage,
     data: {
       selectedServiceId?: string;
       selectedEventTypeId?: number;
@@ -101,13 +203,13 @@ export class CalAnalyticsService {
     }
   ): Promise<void> {
     try {
-      // Map CalBookingStage to step order
+      // Map Calappointmentstage to step order
       const stepOrder = {
-        [CalBookingStage.SERVICE_SELECTION]: 1,
-        [CalBookingStage.DATE_SELECTION]: 2,
-        [CalBookingStage.DETAILS_ENTRY]: 3,
-        [CalBookingStage.PAYMENT]: 4,
-        [CalBookingStage.CONFIRMATION]: 5,
+        [Calappointmentstage.SERVICE_SELECTION]: 1,
+        [Calappointmentstage.DATE_SELECTION]: 2,
+        [Calappointmentstage.DETAILS_ENTRY]: 3,
+        [Calappointmentstage.PAYMENT]: 4,
+        [Calappointmentstage.CONFIRMATION]: 5,
       }[stage] ?? 0;
 
       await db.calBookingFunnel.create({
@@ -117,7 +219,7 @@ export class CalAnalyticsService {
           stepOrder,
           serviceId: data.selectedServiceId,
           userId: undefined, // Would need to get from session/context
-          completed: stage === CalBookingStage.CONFIRMATION,
+          completed: stage === Calappointmentstage.CONFIRMATION,
           abandoned: false,
           timeSpent: data.timeSpent,
         },
@@ -144,7 +246,7 @@ export class CalAnalyticsService {
         await db.calBookingFunnel.create({
           data: {
             sessionId,
-            step: CalBookingStage.CONFIRMATION,
+            step: Calappointmentstage.CONFIRMATION,
             stepOrder: 5,
             completed: true,
             abandoned: false,
@@ -396,7 +498,7 @@ export class CalAnalyticsService {
         select: { amount: true },
       });
 
-      const revenue = payments.reduce((sum, payment) => sum + payment.amount, 0);
+      const revenue = payments.reduce((sum: number, payment: Payment) => sum + payment.amount, 0);
 
       // Get funnel metrics
       const funnel = await this.getFunnelMetrics(dateRange);
@@ -409,10 +511,10 @@ export class CalAnalyticsService {
           startDate: dateRange.from,
           endDate: dateRange.to,
         },
-        totalBookings: totalSessions,
-        completedBookings,
-        cancelledBookings: abandonedSessions,
-        abandonedBookings: abandonedSessions,
+        totalappointments: totalSessions,
+        completedappointments: completedBookings,
+        cancelledappointments: abandonedSessions,
+        abandonedappointments: abandonedSessions,
         revenue,
         conversionRate,
         averageBookingValue,
@@ -455,22 +557,22 @@ export class CalAnalyticsService {
 
       // Map to funnel steps
       const pageViews = stageMetrics[CalAnalyticsEventType.PAGE_VIEW]?.total ?? 0;
-      const bookingStarted = stageMetrics[CalBookingStage.SERVICE_SELECTION]?.total ?? 0;
-      const timeSlotSelected = stageMetrics[CalBookingStage.DATE_SELECTION]?.total ?? 0;
-      const formCompleted = stageMetrics[CalBookingStage.DETAILS_ENTRY]?.total ?? 0;
-      const paymentStarted = stageMetrics[CalBookingStage.PAYMENT]?.total ?? 0;
-      const bookingConfirmed = stageMetrics[CalBookingStage.CONFIRMATION]?.total ?? 0;
+      const appointmentstarted = stageMetrics[Calappointmentstage.SERVICE_SELECTION]?.total ?? 0;
+      const timeSlotSelected = stageMetrics[Calappointmentstage.DATE_SELECTION]?.total ?? 0;
+      const formCompleted = stageMetrics[Calappointmentstage.DETAILS_ENTRY]?.total ?? 0;
+      const paymentStarted = stageMetrics[Calappointmentstage.PAYMENT]?.total ?? 0;
+      const bookingConfirmed = stageMetrics[Calappointmentstage.CONFIRMATION]?.total ?? 0;
 
       return {
         pageViews,
-        bookingStarted,
+        appointmentstarted,
         timeSlotSelected,
         formCompleted,
         paymentStarted,
         bookingConfirmed,
         conversionRates: {
-          viewToStart: pageViews > 0 ? (bookingStarted / pageViews) * 100 : 0,
-          startToSlot: bookingStarted > 0 ? (timeSlotSelected / bookingStarted) * 100 : 0,
+          viewToStart: pageViews > 0 ? (appointmentstarted / pageViews) * 100 : 0,
+          startToSlot: appointmentstarted > 0 ? (timeSlotSelected / appointmentstarted) * 100 : 0,
           slotToForm: timeSlotSelected > 0 ? (formCompleted / timeSlotSelected) * 100 : 0,
           formToPayment: formCompleted > 0 ? (paymentStarted / formCompleted) * 100 : 0,
           paymentToConfirm: paymentStarted > 0 ? (bookingConfirmed / paymentStarted) * 100 : 0,
@@ -506,27 +608,27 @@ export class CalAnalyticsService {
         acc[serviceId] ??= {
           serviceId,
           serviceName: analytics.serviceName,
-          totalBookings: 0,
-          completedBookings: 0,
+          totalappointments: 0,
+          completedappointments: 0,
           revenue: 0,
           conversionRate: 0,
           popularTimeSlots: []
         };
         
-        acc[serviceId].totalBookings += analytics.count;
+        acc[serviceId].totalappointments += analytics.count;
         acc[serviceId].revenue += analytics.totalRevenue ?? 0;
         
         return acc;
       }, {} as Record<string, ServicePerformance>);
 
       // Calculate final metrics
-      return Object.values(serviceMetrics).map(metrics => {
-        const completedBookings = Math.round(metrics.totalBookings * 0.8); // Estimate from total bookings
+      return Object.values(serviceMetrics).map((metrics: ServicePerformance) => {
+        const completedappointments = Math.round(metrics.totalappointments * 0.8); // Estimate from total appointments
         return {
           ...metrics,
-          completedBookings,
-          conversionRate: metrics.totalBookings > 0 ? 
-            (completedBookings / metrics.totalBookings) * 100 : 0,
+          completedappointments,
+          conversionRate: metrics.totalappointments > 0 ? 
+            (completedappointments / metrics.totalappointments) * 100 : 0,
           popularTimeSlots: []  // Would be populated from actual time slot analysis
         };
       });
@@ -549,16 +651,16 @@ export class CalAnalyticsService {
 
       return {
         activeUsers: latest.liveVisitors,
-        bookingsInProgress: latest.pendingBookings,
-        bookingsToday: latest.todayBookings,
+        appointmentsInProgress: latest.pendingBookings,
+        appointmentsToday: latest.todayBookings,
         revenueToday: latest.todayRevenue,
         conversionRate: latest.conversionRate,
         averageSessionDuration: latest.avgResponseTime,
         topPerformingService: latest.topServiceId ?? undefined,
         lastUpdated: latest.timestamp,
-        activeBookingSessions: latest.activeSessions,
-        bookingsCompleted: latest.confirmedBookings,
-        bookingsCancelled: latest.cancelledBookings,
+        activeappointmentsessions: latest.activeSessions,
+        appointmentsCompleted: latest.confirmedBookings,
+        appointmentsCancelled: latest.cancelledBookings,
         peakConcurrentUsers: latest.liveVisitors, // Simplified
         totalRevenue: latest.todayRevenue,
       };
@@ -615,7 +717,7 @@ export async function trackServiceSelection(sessionId: string, serviceId: string
     properties: getAnalyticsProperties(),
   });
   
-  await CalAnalyticsService.trackFunnelProgress(sessionId, CalBookingStage.SERVICE_SELECTION, {
+  await CalAnalyticsService.trackFunnelProgress(sessionId, Calappointmentstage.SERVICE_SELECTION, {
     selectedServiceId: serviceId,
     completedSteps: 1,
   });

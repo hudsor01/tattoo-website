@@ -17,7 +17,7 @@ export function CustomTooltip({ active, payload, label }: ChartTooltipProps) {
             <p className="text-gray-300">
               {entry.dataKey === 'revenue' ? '$' : ''}{entry.value.toLocaleString()}
               {entry.dataKey === 'revenue' ? ' Revenue' : 
-               entry.dataKey === 'bookings' ? ' Bookings' : ' Customers'}
+               entry.dataKey === 'appointments' ? ' appointments' : ' Customers'}
             </p>
           </div>
         ))}
@@ -36,7 +36,7 @@ export function CustomLegend() {
       </div>
       <div className="flex items-center gap-2">
         <div className="h-2 w-2 rounded-full bg-purple-500" />
-        <span className="text-xs text-gray-400">Bookings</span>
+        <span className="text-xs text-gray-400">appointments</span>
       </div>
       <div className="flex items-center gap-2">
         <div className="h-2 w-2 rounded-full bg-emerald-500" />

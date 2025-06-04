@@ -6,7 +6,7 @@
  */
 import { cache } from 'react';
 import { prisma } from '@/lib/db/prisma';
-import type { TattooDesign, Artist, User } from '@prisma/client';
+import type { TattooDesign, User } from '@prisma/client';
 
 // Cache duration constants (in seconds)
 export const ISR_REVALIDATE = {
@@ -16,12 +16,8 @@ export const ISR_REVALIDATE = {
   FEATURED_DESIGNS: 7200, // 2 hours - featured/homepage designs
 } as const;
 
-// Type definitions for optimized queries
-type GalleryDesign = TattooDesign & {
-  Artist?: Artist & {
-    User?: Pick<User, 'name' | 'image'>;
-  };
-};
+// Type definitions for optimized queries  
+type GalleryDesign = TattooDesign;
 
 type GalleryListResponse = {
   designs: GalleryDesign[];
@@ -68,17 +64,6 @@ export const getGalleryDesigns = cache(
           isApproved: true,
           createdAt: true,
           updatedAt: true,
-          Artist: {
-            select: {
-              id: true,
-              User: {
-                select: {
-                  name: true,
-                  image: true,
-                },
-              },
-            },
-          },
         },
       }),
     ]);
@@ -109,28 +94,7 @@ export const getGalleryDesigns = cache(
 export const getDesignById = cache(async (id: string): Promise<GalleryDesign | null> => {
   return prisma.tattooDesign.findUnique({
     where: { id },
-    include: {
-      Artist: {
-        include: {
-          User: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-              email: true,
-            },
-          },
-        },
-      },
-      Customer: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
-    },
+    // No includes needed for simplified schema
   }) as Promise<GalleryDesign | null>;
 });
 
@@ -169,15 +133,6 @@ export const getRelatedDesigns = cache(
         thumbnailUrl: true,
         designType: true,
         createdAt: true,
-        Artist: {
-          select: {
-            User: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
       },
     }) as Promise<GalleryDesign[]>;
   }
@@ -204,16 +159,6 @@ export const getFeaturedDesigns = cache(async (limit = 8): Promise<GalleryDesign
       thumbnailUrl: true,
       designType: true,
       createdAt: true,
-      Artist: {
-        select: {
-          User: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        },
-      },
     },
   }) as Promise<GalleryDesign[]>;
 });

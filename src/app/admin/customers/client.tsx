@@ -25,7 +25,7 @@ const mockCustomers = [
     name: 'John Doe',
     email: 'john.doe@example.com',
     phone: '+1 555-0123',
-    totalBookings: 5,
+    totalappointments: 5,
     totalSpent: 2250,
     lastVisit: '2024-06-10',
     status: 'active',
@@ -35,7 +35,7 @@ const mockCustomers = [
     name: 'Jane Smith',
     email: 'jane.smith@example.com',
     phone: '+1 555-0124',
-    totalBookings: 3,
+    totalappointments: 3,
     totalSpent: 750,
     lastVisit: '2024-06-05',
     status: 'active',
@@ -45,7 +45,7 @@ const mockCustomers = [
     name: 'Robert Johnson',
     email: 'robert.j@example.com',
     phone: '+1 555-0125',
-    totalBookings: 1,
+    totalappointments: 1,
     totalSpent: 100,
     lastVisit: '2024-05-20',
     status: 'inactive',
@@ -190,7 +190,7 @@ export function CustomersPageClient() {
                   <TableRow>
                     <TableHead>Customer</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Total Bookings</TableHead>
+                    <TableHead>Total appointments</TableHead>
                     <TableHead>Total Spent</TableHead>
                     <TableHead>Last Visit</TableHead>
                     <TableHead>Status</TableHead>
@@ -213,7 +213,7 @@ export function CustomersPageClient() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{customer.totalBookings}</TableCell>
+                      <TableCell>{customer.totalappointments}</TableCell>
                       <TableCell>${customer.totalSpent}</TableCell>
                       <TableCell>{customer.lastVisit}</TableCell>
                       <TableCell>

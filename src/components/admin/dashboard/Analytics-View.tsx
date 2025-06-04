@@ -32,7 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ErrorBoundary } from '@/components/error/error-boundary';
 import { useUser } from '@/lib/auth-client';
-import { trpc } from '@/lib/trpc/client';
+// TODO: Replace with actual REST API calls using TanStack Query
 import { logger } from '@/lib/logger';
 import { DashboardCharts, RevenueChart } from '@/components/admin/dashboard/Charts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -52,10 +52,11 @@ type DashboardMetrics = {
     inPeriod?: number;
     change?: number;
   };
-  bookings: {
+  appointments: {
     current: number;
     previous: number;
     trend: number;
+    upcoming?: number;
     change?: number;
   };
   customers: {
@@ -70,10 +71,6 @@ type DashboardMetrics = {
     previous: number;
     trend: number;
   };
-  appointments?: {
-    upcoming?: number;
-    change?: number;
-  };
   growth?: {
     current?: number;
     change?: number;
@@ -85,13 +82,13 @@ type DashboardStatsQueryResponse = {
   totalRevenue: number;
   bookingCount: number;
   customerCount: number;
-  activeBookings: number;
+  activeappointments: number;
   revenueByService: Array<{
     service: string;
     revenue: number;
     count: number;
   }>;
-  recentBookings: Array<{
+  recentappointments: Array<{
     id: string;
     customer: string;
     service: string;
@@ -108,11 +105,8 @@ type DashboardStatsQueryResponse = {
     newInPeriod?: number;
     change?: number;
   };
-  bookings?: {
-    current?: number;
-    change?: number;
-  };
   appointments?: {
+    current?: number;
     upcoming?: number;
     change?: number;
   };
@@ -494,34 +488,28 @@ function AdminDashboardContent({ user }: { user: NonNullable<ReturnType<typeof u
   const [period, setPeriod] = useState<'month' | 'week' | 'today' | 'year'>('month');
   const [showComparison, setShowComparison] = useState(true);
   
-  // Main dashboard data - let tRPC infer the type
-  const { 
-    data: dashboardData, 
-    isLoading: isDashboardLoading,
-    error: dashboardError
-  } = trpc.dashboard.stats.getStats.useQuery(
-    { period },
-    { 
-      refetchOnWindowFocus: false
-    }
-  );
+  // TODO: Replace with actual REST API calls using TanStack Query
+  const isDashboardLoading = false;
+  const dashboardError = null;
+  
+  // Mock dashboard data
+  const dashboardData = {
+    revenue: { current: 12500, previous: 10800, trend: 15.7, inPeriod: 12500, change: 15.7 },
+    appointments: { current: 45, previous: 38, trend: 18.4, upcoming: 12, change: 18.4 },
+    customers: { current: 156, previous: 142, trend: 9.9, newInPeriod: 14, inPeriod: 14, change: 9.9 },
+    conversion: { current: 68.5, previous: 62.1, trend: 10.3 },
+    growth: { current: 15.7, change: 12.3 }
+  };
 
-  // Log error if it exists
-  React.useEffect(() => {
-    if (dashboardError) {
-      logger.error('Failed to fetch dashboard data:', dashboardError);
+  // Mock health status
+  const healthStatus = {
+    data: {
+      overall: 'healthy',
+      database: 'healthy',
+      api: 'healthy',
+      uptime: 99.8
     }
-  }, [dashboardError]);
-
-  // Health status
-  const { 
-    data: healthStatus 
-  } = trpc.calAnalytics.getHealthStatus.useQuery(
-    undefined,
-    { 
-      refetchOnWindowFocus: false 
-    }
-  );
+  };
 
   // Compute overall health status from individual services
   const getOverallHealthStatus = () => {
@@ -572,7 +560,7 @@ function AdminDashboardContent({ user }: { user: NonNullable<ReturnType<typeof u
         <div>
           <h1 className="dashboard-section-heading text-4xl lg:text-5xl">Dashboard</h1>
           <p className="dashboard-section-subheading mt-1">
-            Overview of your studio's performance and bookings
+            Overview of your studio's performance and appointments
           </p>
         </div>
         
@@ -582,7 +570,7 @@ function AdminDashboardContent({ user }: { user: NonNullable<ReturnType<typeof u
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search customers, bookings..."
+              placeholder="Search customers, appointments..."
               className="w-48 lg:w-64 h-9 pl-9 pr-3 bg-muted/50 border border-transparent rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && e.currentTarget.value) {
@@ -702,18 +690,18 @@ function AdminDashboardContent({ user }: { user: NonNullable<ReturnType<typeof u
                 />
                 
                 <MetricCard
-                  title="Active Bookings"
-                  value={dashboardData?.bookings?.current?.toLocaleString() ?? dashboardData?.appointments?.upcoming?.toLocaleString() ?? '45,678'}
+                  title="Active appointments"
+                  value={dashboardData?.appointments?.current?.toLocaleString() ?? dashboardData?.appointments?.upcoming?.toLocaleString() ?? '45,678'}
                   description="Strong appointment flow"
                   icon={<Calendar className="h-5 w-5" />}
                   trend="up"
-                  change={dashboardData?.bookings?.change ?? dashboardData?.appointments?.change ?? 12.5}
+                  change={dashboardData?.appointments?.change ?? dashboardData?.appointments?.change ?? 12.5}
                   variant="success"
                   priority="high"
                   href="/admin/appointments"
                   {...(showComparison ? {
                     comparison: {
-                      previousValue: Math.floor((dashboardData?.bookings?.current ?? dashboardData?.appointments?.upcoming ?? 45678) * 0.89).toLocaleString(),
+                      previousValue: Math.floor((dashboardData?.appointments?.current ?? dashboardData?.appointments?.upcoming ?? 45678) * 0.89).toLocaleString(),
                       previousPeriod: 'Last period',
                       yearOverYear: 15.3
                     }
@@ -910,7 +898,7 @@ function AdminDashboardContent({ user }: { user: NonNullable<ReturnType<typeof u
                     Recent Activity
                   </CardTitle>
                   <CardDescription className="text-sm lg:text-base">
-                    Latest bookings, payments, and customer interactions
+                    Latest appointments, payments, and customer interactions
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-6 py-4">

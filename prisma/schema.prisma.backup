@@ -126,6 +126,7 @@ model Customer {
   calBookings  CalBooking[]
   payments     Payment[]
   tattooDesigns TattooDesign[]
+  allergies    String?
   
   @@index([email])
   @@index([phone])
@@ -186,13 +187,13 @@ model Payment {
   id                String        @id @default(uuid())
   
   // Cal.com Integration
-  calPaymentId      String?       @unique // Cal.com payment ID
-  calBookingId      Int?          // Reference to Cal.com booking
+  calPaymentId      String?       @unique
+  calBookingId      Int?
   
   // Local References
-  bookingId         String?       // Reference to CalBooking.id
-  appointmentId     String?       // Reference to Appointment.id
-  customerId        String?       // Reference to Customer.id
+  bookingId         String?
+  appointmentId     String?
+  customerId        String?
   
   // Payment Details
   amount            Float         // Total payment amount
@@ -202,9 +203,9 @@ model Payment {
   status            PaymentStatus @default(PENDING)
   
   // Transaction Details
-  transactionId     String?       // External transaction ID (Stripe, etc.)
-  receiptUrl        String?       // URL to payment receipt
-  invoiceId         String?       // Invoice reference if applicable
+  transactionId     String?
+  receiptUrl        String?
+  invoiceId         String?
   
   // Customer Information (denormalized for historical accuracy)
   customerEmail     String
@@ -212,23 +213,23 @@ model Payment {
   customerPhone     String?
   
   // Service Information
-  serviceName       String?       // Name of the service paid for
-  serviceId         String?       // Reference to service/event type
-  description       String?       // Payment description
+  serviceName       String?
+  serviceId         String?
+  description       String?
   
   // Refund Information
-  refundedAmount    Float?        // Amount refunded if any
-  refundedAt        DateTime?     // When refund was processed
-  refundReason      String?       // Reason for refund
-  
+  refundedAmount    Float?
+  refundedAt        DateTime?
+  refundReason      String?
+
   // Processing Information
-  processedAt       DateTime?     // When payment was successfully processed
-  failedAt          DateTime?     // When payment failed (if applicable)
-  failureReason     String?       // Reason for payment failure
+  processedAt       DateTime?
+  failedAt          DateTime?
+  failureReason     String?
   
   // Metadata
-  metadata          Json?         // Additional payment metadata
-  notes             String?       @db.Text // Internal notes
+  metadata          Json?
+  notes             String?       @db.Text
   
   // Timestamps
   createdAt         DateTime      @default(now())
@@ -257,7 +258,7 @@ model CalBooking {
   id              String   @id @default(uuid())
   calBookingId    Int      @unique
   calBookingUid   String   @unique
-  uid             String   @unique // Cal.com booking UID for compatibility
+  uid             String   @unique
   title           String
   description     String?
   startTime       DateTime
@@ -302,10 +303,9 @@ model CalBooking {
   rescheduledAt   DateTime?
   completedAt     DateTime?
   noShowAt        DateTime?
-  // Additional fields expected by the code
   location        String?
   organizer       Json?
-  payment         Json? // For payment information structure
+  payment         Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   syncedAt        DateTime @default(now())
@@ -452,51 +452,9 @@ model CalMetricsSnapshot {
   confirmedBookings   Int      @default(0)
   cancelledBookings   Int      @default(0)
   pendingBookings     Int      @default(0)
-  noShoenum CalBookingStatus {
-PENDING
-ACCEPTED
-CONFIRMED
-CANCELLED
-REJECTED
-NO_SHOW
-COMPLETED
-}
-
-enum TattooSize {
-SMALL
-MEDIUM
-LARGE
-EXTRA_LARGE
-FULL_SLEEVE
-HALF_SLEEVE
-BACK_PIECE
-CUSTOM
-}
-
-enum TattooStyle {
-TRADITIONAL
-NEO_TRADITIONAL
-REALISM
-WATERCOLOR
-BLACKWORK
-TRIBAL
-JAPANESE
-MINIMALIST
-GEOMETRIC
-PORTRAIT
-SCRIPT
-COVER_UP
-CUSTOM
-}
-
-enum BookingSource {
-WEBSITE
-PHONE
-EMAIL
-SOCIAL
-WALK_IN
-REFERRAL
-}oat    @default(0)
+  noShowBookings      Int      @default(0)
+  totalRevenue        Float    @default(0)
+  confirmedRevenue    Float    @default(0)
   averageBookingValue Float    @default(0)
   websiteVisitors     Int      @default(0)
   bookingPageViews    Int      @default(0)
@@ -587,10 +545,7 @@ enum NoteType {
 
 enum UserRole {
   USER
-  CUSTOMER
-  ARTIST
   ADMIN
-  SUPERADMIN
 }
 
 enum CalBookingStatus {
@@ -966,4 +921,39 @@ model SettingsBackup {
   @@index([createdBy])
   @@index([createdAt])
   @@map("settings_backups")
+}
+enum TattooSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+  FULL_SLEEVE
+  HALF_SLEEVE
+  BACK_PIECE
+  CUSTOM
+}
+
+enum TattooStyle {
+  TRADITIONAL
+  NEO_TRADITIONAL
+  REALISM
+  WATERCOLOR
+  BLACKWORK
+  TRIBAL
+  JAPANESE
+  MINIMALIST
+  GEOMETRIC
+  PORTRAIT
+  SCRIPT
+  COVER_UP
+  CUSTOM
+}
+
+enum BookingSource {
+  WEBSITE
+  PHONE
+  EMAIL
+  SOCIAL
+  WALK_IN
+  REFERRAL
 }

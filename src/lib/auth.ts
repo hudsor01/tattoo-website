@@ -19,7 +19,7 @@ provider: "postgresql"
 plugins: [
 admin({
 defaultRole: "user",
-adminRoles: ["admin", "superadmin"],
+adminRoles: ["admin"],
 })
 ],
 

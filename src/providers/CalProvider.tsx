@@ -11,6 +11,19 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from "@/lib/logger";
+
+// Cal.com window interface extension
+declare global {
+  interface Window {
+    Cal?: {
+      (action: string, options?: any): void;
+      ns?: {
+        [key: string]: (action: string, options?: any) => void;
+      };
+    };
+  }
+}
+
 // Cal.com types - self-contained for this provider
 type CalContextType = {
   isInitialized: boolean;

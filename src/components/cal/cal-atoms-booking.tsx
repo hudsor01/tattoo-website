@@ -108,7 +108,7 @@ const TATTOO_SERVICES: CalService[] = [
 interface CalAtomsBookingProps {
   selectedServiceId?: string;
   onServiceChange?: (service: CalService) => void;
-  onBookingSuccess?: (booking: unknown) => void;
+  onappointmentsuccess?: (booking: unknown) => void;
   onBookingError?: (error: unknown) => void;
   className?: string;
   showServiceSelector?: boolean;
@@ -118,7 +118,7 @@ interface CalAtomsBookingProps {
 export function CalAtomsBooking({
   selectedServiceId,
   onServiceChange,
-  onBookingSuccess,
+  onappointmentsuccess,
   onBookingError,
   className,
   showServiceSelector = true,
@@ -127,7 +127,7 @@ export function CalAtomsBooking({
   const [selectedService, setSelectedService] = useState<CalService | null>(
     selectedServiceId ? TATTOO_SERVICES.find(s => s.id === selectedServiceId) ?? TATTOO_SERVICES[0] : TATTOO_SERVICES[0]
   );
-  const [bookingState, setBookingState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [appointmentstate, setappointmentstate] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [sessionId] = useState(() => `booking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   
@@ -149,8 +149,8 @@ export function CalAtomsBooking({
   }, [onServiceChange]);
 
   // Handle successful booking
-  const handleBookingSuccess = useCallback(async (bookingData: unknown) => {
-    setBookingState('success');
+  const handleappointmentsuccess = useCallback(async (bookingData: unknown) => {
+    setappointmentstate('success');
     
     try {
       // Track successful booking
@@ -172,15 +172,15 @@ export function CalAtomsBooking({
         variant: 'default',
       });
 
-      onBookingSuccess?.(bookingData);
+      onappointmentsuccess?.(bookingData);
     } catch {
       // Error tracking booking success
     }
-  }, [selectedService, sessionId, toast, onBookingSuccess]);
+  }, [selectedService, sessionId, toast, onappointmentsuccess]);
 
   // Handle booking error
   const handleBookingError = useCallback(async (errorData: unknown) => {
-    setBookingState('error');
+    setappointmentstate('error');
     setError((errorData as { message?: string }).message ?? 'An error occurred during booking');
     
     try {
@@ -213,7 +213,7 @@ export function CalAtomsBooking({
   const bookerProps: BookerProps = {
     eventSlug: selectedService?.eventTypeSlug ?? '',
     username,
-    onBookingSuccessful: handleBookingSuccess,
+    onappointmentsuccessful: handleappointmentsuccess,
     onBookingFailed: handleBookingError,
     theme: 'dark',
     brandColor: '#8B4513',
@@ -299,7 +299,7 @@ export function CalAtomsBooking({
       )}
 
       {/* Success Display */}
-      {bookingState === 'success' && (
+      {appointmentstate === 'success' && (
         <Alert className="border-green-200 bg-green-50">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">

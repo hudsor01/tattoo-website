@@ -243,10 +243,6 @@ export function useDesign(id: string): UseDesignResult {
   };
 }
 
-// ==============================
-// Infinite Loading Gallery Hook
-// ==============================
-
 /**
  * Hook for infinite loading gallery with filtering, sorting, and search
  * Used by ModernGallery and the main gallery page

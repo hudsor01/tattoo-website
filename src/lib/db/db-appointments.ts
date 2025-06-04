@@ -4,7 +4,7 @@
  * Unified functions for appointment-related operations using Prisma
  */
 
-import { prisma, executeStoredProcedure } from './prisma';
+import { prisma } from './prisma';
 import type { Prisma } from '@prisma/client';
 
 // Appointment create input using Prisma.GetPayload
@@ -21,18 +21,18 @@ export async function getUpcomingAppointments(
 ) {
   try {
     const now = new Date();
-    const whereClause = userType === 'customer' ? { customerId: userId } : { artistId: userId };
+    const whereClause = userType === 'customer' ? { customerId: userId } : { userId: userId };
 
     return await prisma.appointment.findMany({
       where: {
         ...whereClause,
-        startDate: { gte: now },
-        status: { notIn: ['cancelled', 'completed', 'no_show'] },
+        startTime: { gte: now },
+        status: { notIn: ['CANCELLED', 'COMPLETED', 'NO_SHOW'] },
       },
-      orderBy: { startDate: 'asc' },
+      orderBy: { startTime: 'asc' },
       take: limit,
       include: {
-        Customer: {
+        customer: {
           select: {
             firstName: true,
             lastName: true,
@@ -40,22 +40,16 @@ export async function getUpcomingAppointments(
             phone: true,
           },
         },
-        Artist: {
+        user: {
           select: {
-            id: true,
-            specialty: true,
-            User: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
+            name: true,
+            email: true,
           },
         },
       },
     });
   } catch (error) {
-    void void logger.error('Error getting upcoming appointments:', error);
+    logger.error('Error getting upcoming appointments:', error);
     throw error;
   }
 }
@@ -68,7 +62,7 @@ export async function getAppointmentById(appointmentId: string) {
     return await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        Customer: {
+        customer: {
           select: {
             firstName: true,
             lastName: true,
@@ -76,22 +70,16 @@ export async function getAppointmentById(appointmentId: string) {
             phone: true,
           },
         },
-        Artist: {
+        user: {
           select: {
-            id: true,
-            specialty: true,
-            User: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
+            name: true,
+            email: true,
           },
         },
       },
     });
   } catch (error) {
-    void void logger.error('Error getting appointment details:', error);
+    logger.error('Error getting appointment details:', error);
     throw error;
   }
 }
@@ -108,28 +96,38 @@ export async function checkAppointmentAvailability(
   complexity?: string
 ) {
   try {
-    // If endTime is not provided but size is, we'll let the database function calculate it
-    if (!endTime && size) {
-      const result = await executeStoredProcedure('check_appointment_availability', [
-        artistId,
-        startTime,
-        null,
-        appointmentId,
-        size,
-        complexity ?? '3',
-      ]);
-      return result;
-    }
-
-    const result = await executeStoredProcedure('check_appointment_availability', [
-      artistId,
-      startTime,
-      endTime,
-      appointmentId,
-    ]);
-    return result;
+    // Calculate endTime if not provided
+    const calculatedEndTime = endTime || new Date(startTime.getTime() + (2 * 60 * 60 * 1000)); // Default 2 hours
+    
+    // Check for conflicting appointments using Prisma
+    const conflicts = await prisma.appointment.findMany({
+      where: {
+        userId: artistId,
+        id: appointmentId ? { not: appointmentId } : undefined,
+        OR: [
+          {
+            startTime: { lte: startTime },
+            endTime: { gt: startTime }
+          },
+          {
+            startTime: { lt: calculatedEndTime },
+            endTime: { gte: calculatedEndTime }
+          },
+          {
+            startTime: { gte: startTime },
+            endTime: { lte: calculatedEndTime }
+          }
+        ]
+      }
+    });
+    
+    return {
+      isAvailable: conflicts.length === 0,
+      conflicts: conflicts.length > 0 ? conflicts : null,
+      error: null
+    };
   } catch (error) {
-    void void logger.error('Error checking appointment availability:', error);
+    logger.error('Error checking appointment availability:', error);
     return {
       isAvailable: false,
       conflicts: null,
@@ -143,32 +141,33 @@ export async function checkAppointmentAvailability(
  */
 export async function scheduleAppointment(params: AppointmentCreateInput) {
   try {
-    const {
-      title,
-      description = '',
-      startDate,
-      customerId,
-      artistId,
-      tattooSize = 'medium',
-      complexity = 3,
-      location = 'home',
-    } = params;
+    // Create appointment using proper Prisma fields
+    const appointment = await prisma.appointment.create({
+      data: params,
+      include: {
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
 
-    // Call stored procedure for scheduling with business logic
-    const result = await executeStoredProcedure('schedule_appointment', [
-      title,
-      description,
-      startDate,
-      customerId,
-      artistId,
-      tattooSize,
-      complexity,
-      location,
-    ]);
-
-    return result;
+    return {
+      success: true,
+      appointment,
+    };
   } catch (error) {
-    void void logger.error('Error scheduling appointment:', error);
+    logger.error('Error scheduling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error scheduling appointment',
@@ -181,18 +180,59 @@ export async function scheduleAppointment(params: AppointmentCreateInput) {
  */
 export async function rescheduleAppointment(
   appointmentId: string,
-  newStartDate: Date,
+  newStartTime: Date,
   reason?: string
 ) {
   try {
-    const result = await executeStoredProcedure('reschedule_appointment', [
-      appointmentId,
-      newStartDate,
-      reason ?? null,
-    ]);
-    return result;
+    // Get the existing appointment to calculate duration
+    const existingAppointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId }
+    });
+    
+    if (!existingAppointment) {
+      return {
+        success: false,
+        error: 'Appointment not found'
+      };
+    }
+    
+    // Calculate duration from existing appointment
+    const duration = existingAppointment.endTime.getTime() - existingAppointment.startTime.getTime();
+    const newEndTime = new Date(newStartTime.getTime() + duration);
+    
+    // Update the appointment
+    const updatedAppointment = await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: {
+        startTime: newStartTime,
+        endTime: newEndTime,
+        notes: reason ? `${existingAppointment.notes || ''} - Rescheduled: ${reason}` : existingAppointment.notes,
+        updatedAt: new Date()
+      },
+      include: {
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      }
+    });
+    
+    return {
+      success: true,
+      appointment: updatedAppointment
+    };
   } catch (error) {
-    void void logger.error('Error rescheduling appointment:', error);
+    logger.error('Error rescheduling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error rescheduling appointment',
@@ -209,14 +249,43 @@ export async function cancelAppointment(
   reasonCode: string = 'customer_request'
 ) {
   try {
-    const result = await executeStoredProcedure('enforce_cancellation_policy', [
-      appointmentId,
-      cancellationDate,
-      reasonCode,
-    ]);
-    return result;
+    // Update appointment status to cancelled
+    const cancelledAppointment = await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: {
+        status: 'CANCELLED',
+        notes: `Cancelled on ${cancellationDate.toISOString()} - Reason: ${reasonCode}`,
+        updatedAt: new Date()
+      },
+      include: {
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      }
+    });
+    
+    return {
+      success: true,
+      appointment: cancelledAppointment,
+      cancellationPolicy: {
+        applied: true,
+        reason: reasonCode,
+        date: cancellationDate
+      }
+    };
   } catch (error) {
-    void void logger.error('Error cancelling appointment:', error);
+    logger.error('Error cancelling appointment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error applying cancellation policy',
@@ -236,9 +305,9 @@ export async function getAppointmentCountsByStatus(
     // Get all appointments within date range
     const appointments = await prisma.appointment.findMany({
       where: {
-        ...(artistId ? { artistId } : {}),
-        startDate: { gte: startDate },
-        endDate: { lte: endDate },
+        ...(artistId ? { userId: artistId } : {}),
+        startTime: { gte: startDate },
+        endTime: { lte: endDate },
       },
       select: {
         status: true,
@@ -247,14 +316,14 @@ export async function getAppointmentCountsByStatus(
 
     // Count by status
     const counts: Record<string, number> = {};
-    void appointments.forEach((appointment) => {
+    appointments.forEach((appointment) => {
       const status = appointment.status;
       counts[status] = (counts[status] ?? 0) + 1;
     });
 
     return counts;
   } catch (error) {
-    void void logger.error('Error getting appointment counts by status:', error);
+    logger.error('Error getting appointment counts by status:', error);
     throw error;
   }
 }

@@ -33,27 +33,27 @@ const syncOptionsSchema = z.object({
 export interface DashboardMetrics {
   dailyStats: any;
   totalRevenue: any;
-  totalBookings: string;
+  totalappointments: string;
   conversionRate: any;
   overview: {
-    totalBookings: number;
-    confirmedBookings: number;
-    cancelledBookings: number;
-    pendingBookings: number;
+    totalappointments: number;
+    confirmedappointments: number;
+    cancelledappointments: number;
+    pendingappointments: number;
     conversionRate: number;
     totalRevenue: number;
     averageBookingValue: number;
     customerCount: number;
   };
   todayMetrics: {
-    todayBookings: number;
+    todayappointments: number;
     todayRevenue: number;
     todayConversions: number;
     liveVisitors: number;
   };
   trends: Array<{
     date: string;
-    bookings: number;
+    appointments: number;
     revenue: number;
     conversions: number;
   }>;
@@ -64,7 +64,7 @@ export interface DashboardMetrics {
     revenue: number;
     conversionRate: number;
   }>;
-  recentBookings: Array<{
+  recentappointments: Array<{
     id: string;
     title: string;
     attendeeName: string;
@@ -72,7 +72,7 @@ export interface DashboardMetrics {
     status: string;
     revenue: number;
   }>;
-  upcomingBookings: Array<{
+  upcomingappointments: Array<{
     id: string;
     title: string;
     attendeeName: string;
@@ -84,7 +84,7 @@ export interface DashboardMetrics {
 export interface BookingAnalytics {
   funnelMetrics: {
     pageViews: number;
-    bookingStarted: number;
+    appointmentstarted: number;
     timeSlotSelected: number;
     formCompleted: number;
     paymentStarted: number;
@@ -98,7 +98,7 @@ export interface BookingAnalytics {
   servicePerformance: Array<{
     serviceId: string;
     serviceName: string;
-    totalBookings: number;
+    totalappointments: number;
     revenue: number;
     avgRating: number;
     popularTimeSlots: string[];
@@ -115,7 +115,7 @@ export class CalAnalyticsService {
   }
 
   // Data Synchronization
-  async syncCalBookings(options: z.infer<typeof syncOptionsSchema> = {}): Promise<{
+  async syncCalappointments(options: z.infer<typeof syncOptionsSchema> = {}): Promise<{
     processed: number;
     updated: number;
     created: number;
@@ -125,7 +125,7 @@ export class CalAnalyticsService {
     const { batchSize, forceFullSync } = validatedOptions;
 
     // Get last sync timestamp
-    const lastSync = forceFullSync ? null : await this.getLastSyncTimestamp('bookings');
+    const lastSync = forceFullSync ? null : await this.getLastSyncTimestamp('appointments');
     const startAfter = lastSync?.toISOString();
 
     let processed = 0;
@@ -137,21 +137,21 @@ export class CalAnalyticsService {
 
     while (hasMore) {
       try {
-        const response = await calApi.getBookings({
+        const response = await calApi.getappointments({
           limit: batchSize,
           offset,
           ...(startAfter && { startAfter }),
         });
 
-        const bookings = response.data;
+        const appointments = response.data;
         hasMore = response.pagination.hasMore;
 
-        for (const booking of bookings) {
+        for (const booking of appointments) {
           try {
             const result = await this.upsertBooking(booking);
             if (result.created) {
               created++;
-              // Publish real-time update for new bookings
+              // Publish real-time update for new appointments
               await this.publishNewBookingEvent(booking);
             } else {
               updated++;
@@ -166,7 +166,7 @@ export class CalAnalyticsService {
         offset += batchSize;
 
         // Update sync state
-        await this.updateSyncState('bookings', {
+        await this.updateSyncState('appointments', {
           lastSyncAt: new Date(),
           recordsProcessed: processed,
           recordsError: errors,
@@ -174,9 +174,9 @@ export class CalAnalyticsService {
         });
 
       } catch (error) {
-        void logger.error('Error fetching bookings from Cal.com:', error);
+        void logger.error('Error fetching appointments from Cal.com:', error);
         hasMore = false;
-        await this.updateSyncState('bookings', {
+        await this.updateSyncState('appointments', {
           lastRunStatus: 'ERROR',
           lastRunError: error instanceof Error ? error.message : 'Unknown error',
         });
@@ -262,15 +262,15 @@ export class CalAnalyticsService {
       todayMetrics,
       trends,
       topServices,
-      recentBookings,
-      upcomingBookings,
+      recentappointments,
+      upcomingappointments,
     ] = await Promise.all([
       this.getOverviewMetrics(startDate, endDate),
       this.getTodayMetrics(),
       this.getBookingTrends(startDate, endDate),
       this.getTopServices(startDate, endDate),
-      this.getRecentBookings(),
-      this.getUpcomingBookings(),
+      this.getRecentappointments(),
+      this.getUpcomingappointments(),
     ]);
 
     return {
@@ -278,17 +278,17 @@ export class CalAnalyticsService {
       todayMetrics,
       trends,
       topServices,
-      recentBookings,
-      upcomingBookings,
+      recentappointments,
+      upcomingappointments,
     };
   }
 
   private async getOverviewMetrics(startDate: Date, endDate: Date) {
     const [
-      totalBookings,
-      confirmedBookings,
-      cancelledBookings,
-      pendingBookings,
+      totalappointments,
+      confirmedappointments,
+      cancelledappointments,
+      pendingappointments,
       revenueData,
       customerCount,
     ] = await Promise.all([
@@ -326,13 +326,13 @@ export class CalAnalyticsService {
 
     const totalRevenue = revenueData._sum.paymentAmount ?? 0;
     const averageBookingValue = revenueData._avg.paymentAmount ?? 0;
-    const conversionRate = totalBookings > 0 ? (confirmedBookings / totalBookings) * 100 : 0;
+    const conversionRate = totalappointments > 0 ? (confirmedappointments / totalappointments) * 100 : 0;
 
     return {
-      totalBookings,
-      confirmedBookings,
-      cancelledBookings,
-      pendingBookings,
+      totalappointments,
+      confirmedappointments,
+      cancelledappointments,
+      pendingappointments,
       conversionRate,
       totalRevenue,
       averageBookingValue,
@@ -344,7 +344,7 @@ export class CalAnalyticsService {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    const [todayBookings, todayRevenueData] = await Promise.all([
+    const [todayappointments, todayRevenueData] = await Promise.all([
       this.db.calBooking.count({
         where: { createdAt: { gte: startOfDay } },
       }),
@@ -358,25 +358,25 @@ export class CalAnalyticsService {
     ]);
 
     return {
-      todayBookings,
+      todayappointments,
       todayRevenue: todayRevenueData._sum.paymentAmount ?? 0,
-      todayConversions: todayBookings, // Simplified - could be more sophisticated
+      todayConversions: todayappointments, // Simplified - could be more sophisticated
       liveVisitors: 0, // Would need to implement visitor tracking
     };
   }
 
   private async getBookingTrends(startDate: Date, endDate: Date) {
     // Get daily aggregated data
-    const dailyBookings = await this.db.$queryRaw<Array<{
+    const dailyappointments = await this.db.$queryRaw<Array<{
       date: string;
-      bookings: bigint;
+      appointments: bigint;
       revenue: number;
     }>>`
       SELECT 
         DATE(created_at) as date,
-        COUNT(*) as bookings,
+        COUNT(*) as appointments,
         COALESCE(SUM(payment_amount), 0) as revenue
-      FROM cal_bookings 
+      FROM cal_appointments 
       WHERE created_at >= ${startDate} 
         AND created_at <= ${endDate}
         AND payment_status = 'COMPLETED'
@@ -384,11 +384,11 @@ export class CalAnalyticsService {
       ORDER BY date ASC
     `;
 
-    return dailyBookings.map(day => ({
+    return dailyappointments.map(day => ({
       date: day.date,
-      bookings: Number(day.bookings),
+      appointments: Number(day.appointments),
       revenue: Number(day.revenue),
-      conversions: Number(day.bookings), // Simplified
+      conversions: Number(day.appointments), // Simplified
     }));
   }
 
@@ -411,8 +411,8 @@ export class CalAnalyticsService {
     }));
   }
 
-  private async getRecentBookings() {
-    const recentBookings = await this.db.calBooking.findMany({
+  private async getRecentappointments() {
+    const recentappointments = await this.db.calBooking.findMany({
       where: {
         createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
       },
@@ -428,7 +428,7 @@ export class CalAnalyticsService {
       },
     });
 
-    return recentBookings.map(booking => ({
+    return recentappointments.map(booking => ({
       id: booking.id,
       title: booking.title,
       attendeeName: booking.attendeeName,
@@ -438,8 +438,8 @@ export class CalAnalyticsService {
     }));
   }
 
-  private async getUpcomingBookings() {
-    const upcomingBookings = await this.db.calBooking.findMany({
+  private async getUpcomingappointments() {
+    const upcomingappointments = await this.db.calBooking.findMany({
       where: {
         startTime: { gte: new Date() },
         status: { in: ['ACCEPTED', 'CONFIRMED'] },
@@ -455,7 +455,7 @@ export class CalAnalyticsService {
       },
     });
 
-    return upcomingBookings.map(booking => ({
+    return upcomingappointments.map(booking => ({
       id: booking.id,
       title: booking.title,
       attendeeName: booking.attendeeName,
@@ -485,9 +485,9 @@ export class CalAnalyticsService {
     const event: MetricsUpdateEvent = {
       type: 'metrics-update',
       metrics: {
-        todayBookings: todayMetrics.todayBookings,
+        todayappointments: todayMetrics.todayappointments,
         todayRevenue: todayMetrics.todayRevenue,
-        pendingBookings: 0, // Would need to calculate
+        pendingappointments: 0, // Would need to calculate
         liveVisitors: 0, // Would need visitor tracking
       },
       timestamp: new Date().toISOString(),
@@ -559,7 +559,7 @@ export class CalAnalyticsService {
 
       // Check sync status
       const syncState = await this.db.calSyncState.findUnique({
-        where: { syncType: 'bookings' },
+        where: { syncType: 'appointments' },
       });
 
       return {

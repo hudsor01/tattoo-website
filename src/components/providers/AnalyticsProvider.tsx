@@ -148,7 +148,7 @@ export const trackBusinessEvent = {
   },
 
   // Booking interaction
-  bookingStarted: () => {
+  appointmentstarted: () => {
     trackEvent('booking_started', {
       event_category: 'conversion',
       value: 1,

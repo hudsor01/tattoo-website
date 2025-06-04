@@ -1,6 +1,6 @@
 /**
  * Booking-related constants
- * Consolidated from VirtualizedBookingsList components
+ * Consolidated from VirtualizedappointmentsList components
  */
 
 export const BOOKING_STATUS_COLORS = {
@@ -12,7 +12,7 @@ export const BOOKING_STATUS_COLORS = {
   'no-show': 'bg-gray-100 text-gray-800 border-gray-200',
 } as const;
 
-export type BookingStatus = keyof typeof BOOKING_STATUS_COLORS;
+export type appointmentstatus = keyof typeof BOOKING_STATUS_COLORS;
 
 export const BOOKING_STATUS_OPTIONS = [
   { value: 'all', label: 'All Statuses' },
@@ -36,6 +36,6 @@ export const BOOKING_SORT_OPTIONS = [
  * @param status - Booking status
  * @returns CSS classes for styling the status badge
  */
-export function getBookingStatusClasses(status: string): string {
-  return BOOKING_STATUS_COLORS[status as BookingStatus] || 'bg-gray-100 text-gray-800';
+export function getappointmentstatusClasses(status: string): string {
+  return BOOKING_STATUS_COLORS[status as appointmentstatus] || 'bg-gray-100 text-gray-800';
 }

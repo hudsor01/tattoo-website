@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { put, del } from '@vercel/blob';
 import { auth } from '@/lib/auth';
-import { ENV } from '@/lib/utils/env';
 import { headers } from 'next/headers';
 import { logger } from '@/lib/logger';
-import { ApiErrors } from '@/lib/api-errors';
 import { validateFileWithErrorHandling, generateSecureFilename, getFileValidationOptions } from '@/lib/utils/file-validation';
 
 // Route runtime configuration (Node.js runtime for Next.js 15.2.0+)
@@ -28,7 +26,7 @@ export async function POST(request: NextRequest) {
     const folder = (formData.get('folder') as string) ?? 'tattoos';
 
     if (!file) {
-      throw ApiErrors.badRequest('No file provided');
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
     // Determine file type based on bucket
@@ -38,65 +36,32 @@ export async function POST(request: NextRequest) {
     // Validate file using our utility
     validateFileWithErrorHandling(file, getFileValidationOptions(fileCategory));
 
-    // Create Supabase client - using anon key since we removed RLS
-    const supabaseUrl = typeof ENV.NEXT_PUBLIC_SUPABASE_URL === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_URL : '';
-    const supabaseKey = typeof ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY : '';
-    
-    const supabase = createClient(
-      supabaseUrl,
-      supabaseKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
     // Generate secure filename with proper validation
     const fileName = generateSecureFilename(file.name, folder);
 
-    // Upload to Supabase storage
-    const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
-      cacheControl: '3600',
-      upsert: false,
+    // Upload to Vercel Blob
+    const blob = await put(fileName, file, {
+      access: 'public',
+      addRandomSuffix: true,
     });
 
-    if (error) {
-      void logger.error('Upload error:', error);
-      throw ApiErrors.internalServerError('Failed to upload file', error.message);
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
-
     return NextResponse.json({
-      url: urlData.publicUrl,
-      path: data.path,
+      url: blob.url,
+      path: blob.pathname,
     });
   } catch (error) {
     void logger.error('Upload failed:', error);
     
-    // Use our ApiErrors utilities to handle different error types
+    // Handle different error types
     if (error instanceof Error) {
-      // Check if it's already an ApiError
-      if ('code' in error && 'status' in error) {
-        return NextResponse.json(
-          { error: error.message, code: (error as { code: string }).code },
-          { status: (error as { status: number }).status }
-        );
-      }
-      
-      // Generic error
       return NextResponse.json(
-        { error: error.message, code: 'UPLOAD_FAILED' },
+        { error: error.message },
         { status: 500 }
       );
     }
     
-    // Unknown error
     return NextResponse.json(
-      { error: 'Upload failed', code: 'UNKNOWN_ERROR' },
+      { error: 'Upload failed' },
       { status: 500 }
     );
   }
@@ -114,59 +79,32 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get request data
-    const { path, bucket = 'gallery' } = await request.json();
+    const { url } = await request.json();
 
-    if (!path) {
-      throw ApiErrors.badRequest('No path provided');
+    if (!url) {
+      return NextResponse.json(
+        { error: 'No URL provided' },
+        { status: 400 }
+      );
     }
 
-    // Create Supabase client - using anon key since we removed RLS
-    const supabaseUrl = typeof ENV.NEXT_PUBLIC_SUPABASE_URL === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_URL : '';
-    const supabaseKey = typeof ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY : '';
-    
-    const supabase = createClient(
-      supabaseUrl,
-      supabaseKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-    // Delete from Supabase storage
-    const { error } = await supabase.storage.from(bucket).remove([path]);
-
-    if (error) {
-      void logger.error('Delete error:', error);
-      throw ApiErrors.internalServerError('Failed to delete file', error.message);
-    }
+    // Delete from Vercel Blob
+    await del(url);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     void logger.error('Delete failed:', error);
     
-    // Use our ApiErrors utilities to handle different error types
+    // Handle different error types
     if (error instanceof Error) {
-      // Check if it's already an ApiError
-      if ('code' in error && 'status' in error) {
-        return NextResponse.json(
-          { error: error.message, code: (error as { code: string }).code },
-          { status: (error as { status: number }).status }
-        );
-      }
-      
-      // Generic error
       return NextResponse.json(
-        { error: error.message, code: 'DELETE_FAILED' },
+        { error: error.message },
         { status: 500 }
       );
     }
     
-    // Unknown error
     return NextResponse.json(
-      { error: 'Delete failed', code: 'UNKNOWN_ERROR' },
+      { error: 'Delete failed' },
       { status: 500 }
     );
   }

@@ -27,15 +27,34 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TrendingUp, Loader2 } from 'lucide-react';
-import { trpc } from '@/lib/trpc/client';
 import { LoadingUI } from '@/components/admin/layout/Loading';
-import type { 
-  AdminRevenueChartProps, 
-  AdminRevenueData, 
-  AdminServiceData, 
-  AdminTimeSlotData, 
-  AdminDayData 
-} from '@prisma/client';
+
+// Chart data types
+interface AdminRevenueChartProps {
+  timeRange: string;
+}
+
+interface AdminRevenueData {
+  month: string;
+  revenue: number;
+  appointments: number;
+}
+
+interface AdminServiceData {
+  name: string;
+  value: number;
+  color?: string;
+}
+
+interface AdminTimeSlotData {
+  time: string;
+  appointments: number;
+}
+
+interface AdminDayData {
+  day: string;
+  appointments: number;
+}
 
 // Color palette for charts
 const CHART_COLORS = [
@@ -75,14 +94,15 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
 export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
   const [_animationKey, setAnimationKey] = React.useState(0);
 
-  // Fetch revenue data from API
-  const {
-    data: revenueStats,
-    isLoading,
-    error,
-  } = trpc.dashboard.stats.getStats.useQuery({
-    period: timeRange === '1y' ? 'year' : timeRange === '90d' ? 'month' : 'month',
-  });
+  // TODO: Replace with actual REST API call using TanStack Query
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  
+  // Mock revenue stats
+  const revenueStats = {
+    revenue: { total: 1200, change: 15.2 },
+    appointments: { inPeriod: 8, change: 12.5 }
+  };
 
   // Process data for chart
   const revenueData: AdminRevenueData[] = React.useMemo(() => {
@@ -100,19 +120,19 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
       
       // Create a basic dataset using the current period's data
       const revenue = revenueStats.revenue?.total || 0;
-      const bookings = revenueStats.appointments?.inPeriod || 0;
+      const appointments = revenueStats.appointments?.inPeriod || 0;
       
-      // If there is zero revenue but we have bookings, create some sample data 
+      // If there is zero revenue but we have appointments, create some sample data 
       // to demonstrate the chart functionality
-      if (revenue === 0 && bookings > 0) {
+      if (revenue === 0 && appointments > 0) {
         // Use booking count to estimate revenue - $150 per booking as placeholder
-        const estimatedRevenue = bookings * 150;
+        const estimatedRevenue = appointments * 150;
         
         return [
           {
             month: currentMonth,
             revenue: estimatedRevenue,
-            bookings: bookings
+            appointments: appointments
           }
         ];
       }
@@ -122,7 +142,7 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
         {
           month: currentMonth,
           revenue: revenue,
-          bookings: bookings
+          appointments: appointments
         }
       ];
     } catch (error) {
@@ -132,11 +152,11 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
         {
           month: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
           revenue: 1200,
-          bookings: 8
+          appointments: 8
         }
       ];
     }
-  }, [revenueStats, timeRange]);
+  }, [revenueStats]);
 
   // Calculate growth percentage directly in the badge display
   React.useEffect(() => {
@@ -233,8 +253,8 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
                   />
                   <Bar
                     type="monotone"
-                    dataKey="bookings"
-                    name="Bookings"
+                    dataKey="appointments"
+                    name="appointments"
                     fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   />
@@ -260,22 +280,19 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
 
 // Service Breakdown Chart
 export function ServiceBreakdownChart() {
-  const { data, isLoading, isError } = trpc.calAnalytics.getServiceBreakdown.useQuery(
-    undefined,
-    { refetchOnWindowFocus: false }
-  );
+  // TODO: Replace with actual REST API call using TanStack Query
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isError, setIsError] = React.useState(false);
 
-  // Process chart data with error handling
+  // Mock service data
   const chartData: AdminServiceData[] = React.useMemo(() => {
-    try {
-      // Return actual data if available
-      return data?.services ?? [];
-    } catch (error) {
-      console.error('Error processing service data:', error);
-      // Return empty array in case of error
-      return [];
-    }
-  }, [data]);
+    return [
+      { name: 'Traditional', value: 35, color: '#ef4444' },
+      { name: 'Realism', value: 25, color: '#3b82f6' },
+      { name: 'Japanese', value: 20, color: '#10b981' },
+      { name: 'Custom Design', value: 20, color: '#f59e0b' },
+    ];
+  }, []);
 
   const containerMotionProps = {
     initial: { opacity: 0, y: 10 },
@@ -373,28 +390,34 @@ export function ServiceBreakdownChart() {
 
 // Booking Times Chart
 export function BookingTimesChart() {
-  const { data, isLoading, isError } = trpc.calAnalytics.getBookingTimes.useQuery(
-    undefined,
-    { refetchOnWindowFocus: false }
-  );
+  // TODO: Replace with actual REST API call using TanStack Query
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isError, setIsError] = React.useState(false);
 
   const timeData: AdminTimeSlotData[] = React.useMemo(() => {
-    try {
-      return data?.timeSlots ?? [];
-    } catch (error) {
-      console.error('Error processing time slot data:', error);
-      return [];
-    }
-  }, [data]);
+    return [
+      { time: '9 AM', appointments: 3 },
+      { time: '10 AM', appointments: 5 },
+      { time: '11 AM', appointments: 7 },
+      { time: '12 PM', appointments: 4 },
+      { time: '1 PM', appointments: 2 },
+      { time: '2 PM', appointments: 6 },
+      { time: '3 PM', appointments: 8 },
+      { time: '4 PM', appointments: 5 },
+    ];
+  }, []);
 
   const dayData: AdminDayData[] = React.useMemo(() => {
-    try {
-      return data?.days ?? [];
-    } catch (error) {
-      console.error('Error processing day data:', error);
-      return [];
-    }
-  }, [data]);
+    return [
+      { day: 'Mon', appointments: 12 },
+      { day: 'Tue', appointments: 15 },
+      { day: 'Wed', appointments: 18 },
+      { day: 'Thu', appointments: 20 },
+      { day: 'Fri', appointments: 25 },
+      { day: 'Sat', appointments: 30 },
+      { day: 'Sun', appointments: 8 },
+    ];
+  }, []);
 
   const [showDays, setShowDays] = React.useState(false);
 
@@ -460,8 +483,8 @@ export function BookingTimesChart() {
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar
-                    dataKey="bookings"
-                    name={showDays ? 'Bookings by Day' : 'Bookings by Time'}
+                    dataKey="appointments"
+                    name={showDays ? 'appointments by Day' : 'appointments by Time'}
                     fill={showDays ? '#8b5cf6' : '#3b82f6'}
                     radius={[4, 4, 0, 0]}
                   />

@@ -1,5 +1,5 @@
 /**
- * Consolidated Cal.com hooks for analytics and bookings
+ * Consolidated Cal.com hooks for analytics and appointments
  */
 
 'use client';
@@ -16,7 +16,7 @@ import {
   CalAnalyticsService,
   getAnalyticsProperties 
 } from '@/lib/analytics/cal-analytics';
-import { CalAnalyticsEventType, CalBookingStage } from '@prisma/client';
+import { CalAnalyticsEventType, Calappointmentstage } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
 
 // Types - Using Prisma generated types
@@ -103,7 +103,7 @@ export function useCalBookingTracking() {
     await trackServiceSelection(sessionId, serviceId);
   }, [sessionId]);
 
-  const trackBookingStart = useCallback(async (serviceId: string, calEventTypeId?: number) => {
+  const trackappointmentstart = useCallback(async (serviceId: string, calEventTypeId?: number) => {
     await trackEvent(CalAnalyticsEventType.BOOKING_START, { 
       serviceId, 
       ...(calEventTypeId !== undefined && { calEventTypeId })
@@ -165,7 +165,7 @@ export function useCalBookingTracking() {
     sessionId,
     trackEvent,
     trackServiceSelect,
-    trackBookingStart,
+    trackappointmentstart,
     trackBookingCancel,
     trackFormStart,
     trackFormComplete,
@@ -183,7 +183,7 @@ export function useCalFunnelTracking() {
   const { sessionId } = useCalAnalyticsSession();
 
   const updateStage = useCallback(async (
-    stage: CalBookingStage,
+    stage: Calappointmentstage,
     data: {
       selectedServiceId?: string;
       selectedEventTypeId?: number;
@@ -312,7 +312,7 @@ export function useCalServiceTracking(serviceId: string, eventTypeId: number) {
   const incrementBooking = useCallback(async (revenue?: number) => {
     try {
       await CalAnalyticsService.updateServiceAnalytics(serviceId, eventTypeId, {
-        bookings: 1,
+        appointments: 1,
         ...(revenue !== undefined && { revenue }),
       });
     } catch (error) {
@@ -389,27 +389,27 @@ export function useCalPerformanceTracking() {
 }
 
 /**
- * Hook for managing Cal.com bookings
+ * Hook for managing Cal.com appointments
  */
-export function useCalBookings() {
+export function useCalappointments() {
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Get Cal.com bookings
-  const { data: calBookings = [], isLoading, refetch } = api.cal.getBookings.useQuery();
+  // Get Cal.com appointments
+  const { data: calappointments = [], isLoading, refetch } = api.cal.getappointments.useQuery();
 
-  // Sync bookings
-  const syncBookings = useCallback(async () => {
+  // Sync appointments
+  const syncappointments = useCallback(async () => {
     setIsSyncing(true);
     try {
       await refetch();
       toast({
         title: 'Success',
-        description: 'Bookings synced successfully',
+        description: 'appointments synced successfully',
       });
     } catch {
       toast({
         title: 'Error',
-        description: 'Failed to sync bookings',
+        description: 'Failed to sync appointments',
         variant: 'destructive',
       });
     } finally {
@@ -418,7 +418,7 @@ export function useCalBookings() {
   }, [refetch]);
 
   // Update booking status
-  const updateBookingMutation = api.cal.updateBookingStatus.useMutation({
+  const updateBookingMutation = api.cal.updateappointmentstatus.useMutation({
     onSuccess: () => {
       void refetch();
       toast({
@@ -435,7 +435,7 @@ export function useCalBookings() {
     },
   });
 
-  const updateBookingStatus = useCallback(
+  const updateappointmentstatus = useCallback(
     (uid: string, status: 'accepted' | 'cancelled' | 'rejected') => {
       updateBookingMutation.mutate({ uid, status });
     },
@@ -443,11 +443,11 @@ export function useCalBookings() {
   );
 
   return {
-    calBookings,
+    calappointments,
     isLoading,
     isSyncing,
-    syncBookings,
-    updateBookingStatus,
+    syncappointments,
+    updateappointmentstatus,
     refetch,
   };
 }

@@ -81,9 +81,9 @@ export function useDashboardMetrics(period: MetricsPeriod): UseDashboardMetricsR
       endDate: period.previous.endDate,
     });
 
-  // Note: Bookings handled by Cal.com, no longer fetching from internal database
-  const bookingsLoading = false;
-  const refetchBookings = useCallback(() => Promise.resolve(), []);
+  // Note: appointments handled by Cal.com, no longer fetching from internal database
+  const appointmentsLoading = false;
+  const refetchappointments = useCallback(() => Promise.resolve(), []);
 
   // Memoized revenue metrics
   const revenueMetrics = useMemo(() => {
@@ -147,16 +147,16 @@ export function useDashboardMetrics(period: MetricsPeriod): UseDashboardMetricsR
       refetchStats(),
       refetchPayments(),
       refetchPreviousPayments(),
-      refetchBookings(),
+      refetchappointments(),
     ]);
-  }, [refetchStats, refetchPayments, refetchPreviousPayments, refetchBookings]);
+  }, [refetchStats, refetchPayments, refetchPreviousPayments, refetchappointments]);
 
   const getMetricsForPeriod = useCallback((newPeriod: MetricsPeriod) => {
     // This would typically update query parameters
     void logger.warn('Updating metrics for period:', newPeriod);
   }, []);
 
-  const isLoading = (statsLoading ?? false) || (paymentsLoading ?? false) || (bookingsLoading ?? false);
+  const isLoading = (statsLoading ?? false) || (paymentsLoading ?? false) || (appointmentsLoading ?? false);
   const error = statsError;
 
   return {
@@ -183,7 +183,7 @@ export function useRealtimeDashboard() {
     // Invalidate all dashboard-related queries
     void utils.dashboard.stats.getStats.invalidate();
     void utils.payments.getPaymentStats.invalidate();
-    // Note: getRecentBookings no longer exists since Cal.com handles bookings
+    // Note: getRecentappointments no longer exists since Cal.com handles appointments
   }, [utils]);
 
   const invalidatePayments = useCallback(() => {
@@ -191,15 +191,15 @@ export function useRealtimeDashboard() {
     void utils.payments.getPaymentStats.invalidate();
   }, [utils]);
 
-  const invalidateBookings = useCallback(() => {
-    // Note: getRecentBookings no longer exists since Cal.com handles bookings
+  const invalidateappointments = useCallback(() => {
+    // Note: getRecentappointments no longer exists since Cal.com handles appointments
     void utils.appointments.invalidate();
   }, [utils]);
 
   return {
     invalidateAll,
     invalidatePayments,
-    invalidateBookings,
+    invalidateappointments,
   };
 }
 

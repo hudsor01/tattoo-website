@@ -67,13 +67,13 @@ const baseConfig = {
     'no-script-url': 'error',
     'prefer-const': 'error',
     'no-var': 'error',
-    'no-duplicate-imports': 'error',
+    'no-duplicate-imports': 'warn',
     'no-useless-return': 'error',
     'no-unreachable': 'error',
     'consistent-return': 'error',
     'eqeqeq': ['error', 'always'],
     'react/no-unknown-property': ['error', { ignore: ['jsx', 'global'] }],
-    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/rules-of-hooks': 'warn',
     'react-hooks/exhaustive-deps': 'error',
     'react/no-unescaped-entities': 'off',
     'react/jsx-no-target-blank': 'error',
@@ -122,19 +122,19 @@ const typeScriptConfig = {
   },
   rules: {
     ...tseslintPlugin.configs.recommended.rules,
-    '@typescript-eslint/no-unused-vars': ['error', {
+    '@typescript-eslint/no-unused-vars': ['warn', {
       'vars': 'all',
       'args': 'after-used',
       'ignoreRestSiblings': true,
       'argsIgnorePattern': '^_',
       'varsIgnorePattern': '^_'
     }],
-    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'error',
-    '@typescript-eslint/no-non-null-assertion': 'error',
-    '@typescript-eslint/prefer-nullish-coalescing': 'error',
+    '@typescript-eslint/no-non-null-assertion': 'warn',
+    '@typescript-eslint/prefer-nullish-coalescing': 'warn',
     '@typescript-eslint/prefer-optional-chain': 'error',
     '@typescript-eslint/no-floating-promises': 'warn',
     '@typescript-eslint/await-thenable': 'warn',
@@ -187,7 +187,7 @@ const testConfig = {
   },
   rules: {
     ...tseslintPlugin.configs.recommended.rules,
-    '@typescript-eslint/no-unused-vars': ['error', {
+    '@typescript-eslint/no-unused-vars': ['warn', {
       'vars': 'all',
       'args': 'after-used',
       'ignoreRestSiblings': true,

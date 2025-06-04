@@ -54,11 +54,8 @@ export function useUser() {
     isLoading: isPending,
     isSignedIn: !!session?.user,
     error,
-    // Role-based checks
-    isAdmin: session?.user?.role === 'admin' || session?.user?.role === 'superadmin',
-    isArtist: ['artist', 'admin', 'superadmin'].includes(session?.user?.role ?? ''),
-    canManageUsers: ['admin', 'superadmin'].includes(session?.user?.role ?? ''),
-    canImpersonate: session?.user?.role === 'superadmin',
+    // Simplified role check - only admin/not-admin
+    isAdmin: session?.user?.role === 'admin',
   };
 }
 
@@ -68,14 +65,9 @@ export function useIsAdmin() {
   return isAdmin;
 }
 
-export function useIsArtist() {
-  const { isArtist } = useUser();
-  return isArtist;
-}
-
 // Simple auth state hook
 export function useAuthState() {
-  const { user, session, isLoading, isSignedIn, error, isAdmin, isArtist } = useUser();
+  const { user, session, isLoading, isSignedIn, error, isAdmin } = useUser();
   
   return {
     user,
@@ -83,24 +75,22 @@ export function useAuthState() {
     isLoading,
     isSignedIn,
     isAdmin,
-    isArtist,
     error,
     requireAuth: () => isSignedIn && !isLoading,
     requireAdmin: () => isAdmin && !isLoading,
-    requireArtist: () => isArtist && !isLoading,
   };
 }
 
-// Admin permissions hook
+// Admin permissions hook - simplified to admin only
 export function useAdminPermissions() {
-  const { user, isAdmin } = useUser();
+  const { isAdmin } = useUser();
   
   return {
     canCreateUsers: isAdmin,
     canBanUsers: isAdmin,
     canViewAllUsers: isAdmin,
-    canManageRoles: user?.role === 'superadmin',
-    canImpersonate: user?.role === 'superadmin',
-    canDeleteUsers: user?.role === 'superadmin',
+    canManageRoles: isAdmin,
+    canImpersonate: isAdmin,
+    canDeleteUsers: isAdmin,
   };
 }

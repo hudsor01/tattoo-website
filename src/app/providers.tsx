@@ -11,14 +11,13 @@
  */
 'use client';
 
-import { TrpcClientProvider } from '@/components/providers/TRPCProvider';
+import { QueryProvider } from '@/providers/QueryProvider';
 import { CalProvider } from '@/providers/CalProvider';
 import { CalErrorBoundary } from '@/components/CalErrorBoundary';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { AnalyticsProvider } from '@/components/providers/AnalyticsProvider';
 import { LazyMotionProvider } from '@/components/performance/LazyMotion';
-import { PWAManager } from '@/components/pwa/PWAManager';
 import { ErrorBoundary } from '@/components/error/error-boundary';
 import { logger } from "@/lib/logger";
 
@@ -33,7 +32,7 @@ interface ProvidersProps {
  *
  * Includes:
  * - Better Auth for authentication (direct integration)
- * - tRPC for API calls
+ * - TanStack Query for API calls
  * - Cal.com for booking functionality
  * - Theme management
  * - Toast notifications
@@ -66,7 +65,7 @@ export default function Providers({ children, cookies, headers }: ProvidersProps
           // Could send to error tracking service here
         }}
       >
-        <TrpcClientProvider cookies={cookies ?? {}} headers={headers ?? {}}>
+        <QueryProvider>
           <ThemeProvider 
             attribute="class" 
             defaultTheme="dark" 
@@ -91,13 +90,12 @@ export default function Providers({ children, cookies, headers }: ProvidersProps
                     }}
                   />
                   <AnalyticsProvider />
-                  <PWAManager />
                   {children}
                 </LazyMotionProvider>
               </CalProvider>
             </CalErrorBoundary>
           </ThemeProvider>
-        </TrpcClientProvider>
+        </QueryProvider>
       </ErrorBoundary>
     </>
   );

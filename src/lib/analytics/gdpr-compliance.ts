@@ -5,8 +5,31 @@
 
 import { z } from 'zod';
 import { securityConfig } from './config';
-import { DataSubjectRequestType, RequestStatus } from '@/types/gdpr-types';
-// ProcessedAnalyticsEvent type defined locally where needed
+// GDPR types now inline since analytics will be removed
+enum DataSubjectRequestType {
+ACCESS = 'access',
+RECTIFICATION = 'rectification',
+ERASURE = 'erasure',
+PORTABILITY = 'portability',
+RESTRICTION = 'restriction',
+OBJECTION = 'objection',
+}
+
+enum RequestStatus {
+PENDING = 'pending',
+IN_PROGRESS = 'in_progress',
+COMPLETED = 'completed',
+REJECTED = 'rejected',
+}
+
+interface ProcessedAnalyticsEvent {
+context: {
+ipAddress?: string;
+userId?: string;
+sessionId?: string;
+};
+properties?: Record<string, any>;
+}
 
 export const DataSubjectRequestSchema = z.object({
   id: z.string(),

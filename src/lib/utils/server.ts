@@ -7,11 +7,11 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { auth } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import { type User, UserRole } from '@prisma/client';
+import { type User } from '@prisma/client';
 
 // Helper function to check if user is admin
 function isAdmin(user: User): boolean {
-  return user.role === UserRole.ADMIN || user.role === UserRole.SUPERADMIN;
+  return user.role === 'admin';
 }
 
 import { logger } from "@/lib/logger";

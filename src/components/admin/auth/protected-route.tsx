@@ -8,7 +8,6 @@ interface ProtectedRouteProps {
   children: ReactNode;
   requireAuth?: boolean;
   requireAdmin?: boolean;
-  requireArtist?: boolean;
   fallback?: ReactNode;
   loadingComponent?: ReactNode;
 }
@@ -26,11 +25,10 @@ export function ProtectedRoute({
   children,
   requireAuth = false,
   requireAdmin = false,
-  requireArtist = false,
   fallback = null,
   loadingComponent,
 }: ProtectedRouteProps) {
-  const { isLoading, isSignedIn, isAdmin, isArtist } = useAuthState();
+  const { isLoading, isSignedIn, isAdmin } = useAuthState();
 
   // Memoize loading component to prevent recreation
   const LoadingComponent = useMemo(() => {
@@ -44,10 +42,9 @@ export function ProtectedRoute({
   // Move useMemo before conditional returns to fix hook rule
   const hasRequiredPermission = useMemo(() => {
     if (requireAdmin) return isAdmin;
-    if (requireArtist) return isArtist;
     if (requireAuth) return isSignedIn;
     return true; // No requirements
-  }, [requireAdmin, requireArtist, requireAuth, isAdmin, isArtist, isSignedIn]);
+  }, [requireAdmin, requireAuth, isAdmin, isSignedIn]);
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -80,22 +77,6 @@ export function AdminOnly({
   );
 }
 
-/**
- * Convenience component for artist-level content
- */
-export function ArtistOnly({ 
-  children, 
-  fallback = null 
-}: { 
-  children: ReactNode; 
-  fallback?: ReactNode; 
-}) {
-  return (
-    <ProtectedRoute requireArtist fallback={fallback}>
-      {children}
-    </ProtectedRoute>
-  );
-}
 
 /**
  * Convenience component for authenticated content

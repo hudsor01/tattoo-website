@@ -33,7 +33,7 @@ type CalAvailabilityResponse = {
   }>;
 };
 
-type GetCalBookingsOptions = {
+type GetCalappointmentsOptions = {
   limit?: number;
   status?: string;
   eventTypeId?: number;
@@ -185,7 +185,7 @@ export class CalApiClient {
   }
 
   // V2 Booking Management
-  async getBookings(params: {
+  async getappointments(params: {
     status?: string;
     startAfter?: string;
     endBefore?: string;
@@ -202,20 +202,20 @@ export class CalApiClient {
     });
 
     return this.request<{ data: CalBookingResponse[]; pagination: { hasMore: boolean } }>(
-      `/bookings?${searchParams.toString()}`
+      `/appointments?${searchParams.toString()}`
     );
   }
 
   async getBookingById(id: string | number): Promise<CalBookingResponse> {
-    return this.request<CalBookingResponse>(`/bookings/${id}`);
+    return this.request<CalBookingResponse>(`/appointments/${id}`);
   }
 
-  async updateBookingStatus(
+  async updateappointmentstatus(
     id: string | number,
     status: 'accepted' | 'rejected' | 'cancelled',
     reason?: string
   ): Promise<CalBookingResponse> {
-    return this.request<CalBookingResponse>(`/bookings/${id}`, {
+    return this.request<CalBookingResponse>(`/appointments/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
         status,
@@ -228,7 +228,7 @@ export class CalApiClient {
     id: string | number,
     newSlot: { start: string; end: string }
   ): Promise<CalBookingResponse> {
-    return this.request<CalBookingResponse>(`/bookings/${id}/reschedule`, {
+    return this.request<CalBookingResponse>(`/appointments/${id}/reschedule`, {
       method: 'POST',
       body: JSON.stringify({
         startTime: newSlot.start,
@@ -283,13 +283,13 @@ export class CalApiClient {
     endDate: string;
     eventTypeIds?: number[];
   }): Promise<{
-    totalBookings: number;
-    confirmedBookings: number;
-    cancelledBookings: number;
+    totalappointments: number;
+    confirmedappointments: number;
+    cancelledappointments: number;
     totalRevenue: number;
     dailyMetrics: Array<{
       date: string;
-      bookings: number;
+      appointments: number;
       revenue: number;
     }>;
   }> {
@@ -302,7 +302,7 @@ export class CalApiClient {
       searchParams.append('eventTypeIds', params.eventTypeIds.join(','));
     }
 
-    return this.request(`/analytics/bookings?${searchParams.toString()}`);
+    return this.request(`/analytics/appointments?${searchParams.toString()}`);
   }
 
   // Utility Methods
@@ -338,14 +338,14 @@ export class CalApiClient {
  */
 
 /**
- * Get bookings from Cal.com API v1
- * @deprecated Use calApi.getBookings() instead
+ * Get appointments from Cal.com API v1
+ * @deprecated Use calApi.getappointments() instead
  */
-export async function getCalBookings({
+export async function getCalappointments({
   limit = 100,
   status,
   eventTypeId,
-}: GetCalBookingsOptions = {}): Promise<CalBookingPayload[]> {
+}: GetCalappointmentsOptions = {}): Promise<CalBookingPayload[]> {
   if (!env.CAL_API_KEY) {
     throw new Error('CAL_API_KEY not configured');
   }
@@ -355,7 +355,7 @@ export async function getCalBookings({
   if (status) params.append('status', status);
   if (eventTypeId) params.append('eventTypeId', String(eventTypeId));
 
-  const response = await fetch(`${CAL_API_V1_URL}/bookings?${params.toString()}&apiKey=${env.CAL_API_KEY}`, {
+  const response = await fetch(`${CAL_API_V1_URL}/appointments?${params.toString()}&apiKey=${env.CAL_API_KEY}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -363,11 +363,11 @@ export async function getCalBookings({
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to fetch Cal.com bookings: ${error}`);
+    throw new Error(`Failed to fetch Cal.com appointments: ${error}`);
   }
 
   const data = await response.json();
-  return data.bookings ?? [];
+  return data.appointments ?? [];
 }
 
 /**
@@ -379,7 +379,7 @@ export async function getCalBookingByUid(uid: string): Promise<CalBookingPayload
     throw new Error('CAL_API_KEY not configured');
   }
 
-  const response = await fetch(`${CAL_API_V1_URL}/bookings/${uid}?apiKey=${env.CAL_API_KEY}`, {
+  const response = await fetch(`${CAL_API_V1_URL}/appointments/${uid}?apiKey=${env.CAL_API_KEY}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -457,9 +457,9 @@ export async function getCalAvailability(
 
 /**
  * Update a booking status
- * @deprecated Use calApi.updateBookingStatus() instead
+ * @deprecated Use calApi.updateappointmentstatus() instead
  */
-export async function updateCalBookingStatus(
+export async function updateCalappointmentstatus(
   uid: string,
   status: 'accepted' | 'rejected' | 'cancelled'
 ): Promise<CalBookingPayload> {
@@ -467,7 +467,7 @@ export async function updateCalBookingStatus(
     throw new Error('CAL_API_KEY not configured');
   }
 
-  const response = await fetch(`${CAL_API_V1_URL}/bookings/${uid}`, {
+  const response = await fetch(`${CAL_API_V1_URL}/appointments/${uid}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -498,7 +498,7 @@ export async function rescheduleCalBooking(
     throw new Error('CAL_API_KEY not configured');
   }
 
-  const response = await fetch(`${CAL_API_V1_URL}/bookings/${uid}`, {
+  const response = await fetch(`${CAL_API_V1_URL}/appointments/${uid}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

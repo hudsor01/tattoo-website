@@ -5,7 +5,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import type { MetricCardProps } from '@prisma/client';
+// Comparison data interface
+interface ComparisonData {
+  previousValue: string;
+  previousPeriod: string;
+  yearOverYear: number;
+}
+
+// Metric card props interface
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  change?: number;
+  trend?: 'up' | 'down' | 'neutral';
+  icon?: React.ReactNode;
+  description?: string;
+  href?: string;
+  variant?: 'default' | 'revenue' | 'customers' | 'appointments' | 'critical' | 'success' | 'metallic';
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  comparison?: string | ComparisonData;
+  showProgress?: boolean;
+}
 
 export default function MetricCard({
   title,
@@ -103,13 +123,13 @@ export default function MetricCard({
           )}
           {comparison && (
             <div className="flex flex-col gap-1 mt-3 pt-3 border-t border-border/40">
-              {comparison.previousValue && (
+              {typeof comparison === 'object' && comparison.previousValue && (
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Previous:</span>
                   <span className="font-medium">{comparison.previousValue}</span>
                 </div>
               )}
-              {comparison.yearOverYear !== undefined && (
+              {typeof comparison === 'object' && comparison.yearOverYear !== undefined && (
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">YoY:</span>
                   <span className={cn(
@@ -118,8 +138,8 @@ export default function MetricCard({
                     comparison.yearOverYear < 0 ? "text-red-600 dark:text-red-400" : 
                     "text-muted-foreground"
                   )}>
-                    {comparison.yearOverYear > 0 && '+'}
-                    {comparison.yearOverYear}%
+                    {typeof comparison === 'object' && comparison.yearOverYear > 0 && '+'}
+                    {typeof comparison === 'object' && comparison.yearOverYear}%
                   </span>
                 </div>
               )}

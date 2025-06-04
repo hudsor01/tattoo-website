@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { trpc } from '@/lib/trpc/client';
-import type { GalleryDesign } from '@prisma/client';
+import { useGallery, useDesignById } from './use-gallery-api';
+import type { TattooDesign } from '@prisma/client';
 
 function preloadImage(url: string): void {
   if (typeof window === 'undefined') return;
@@ -11,7 +11,7 @@ function preloadImage(url: string): void {
   img.src = url;
 }
 
-function calculateRelevanceScore(design: GalleryDesign, referenceDesign: GalleryDesign): number {
+function calculateRelevanceScore(design: TattooDesign, referenceDesign: TattooDesign): number {
   let score = 0;
   
   if (design.designType === referenceDesign.designType) {
@@ -21,9 +21,6 @@ function calculateRelevanceScore(design: GalleryDesign, referenceDesign: Gallery
   if (design.artistId === referenceDesign.artistId) {
     score += 5;
   }
-  
-  // Note: GalleryDesign type doesn't have tags property
-  // If tags are needed, they should be added to the type definition
   
   const designDate = design.createdAt instanceof Date ? design.createdAt : new Date(design.createdAt);
   const refDate = referenceDesign.createdAt instanceof Date ? 
@@ -43,7 +40,7 @@ export function useDesign(
     prefetchRelated?: boolean;
     preloadImages?: boolean;
     staleTime?: number;
-    onSuccess?: (design: GalleryDesign) => void;
+    onSuccess?: (design: TattooDesign) => void;
     onError?: (error: unknown) => void;
   } = {}
 ) {
@@ -56,7 +53,6 @@ export function useDesign(
   } = options;
   
   const previousIdRef = useRef<string | null>(null);
-  const utils = trpc.useUtils();
   const isValidId = typeof designId === 'string' && designId.trim().length > 0;
   
   const { 
@@ -69,18 +65,7 @@ export function useDesign(
     dataUpdatedAt,
     isRefetching,
     isSuccess
-  } = trpc.gallery.getDesignById.useQuery(
-    { id: isValidId ? designId : '' },
-    { 
-      enabled: isValidId,
-      staleTime: staleTime,
-      refetchOnWindowFocus: false,
-      retry: (failureCount, error) => {
-        if (error?.message?.includes('not found')) return false;
-        return failureCount < 2;
-      }
-    }
-  );
+  } = useDesignById(isValidId ? designId : null);
   
   // Handle onSuccess callback
   useEffect(() => {
@@ -107,20 +92,7 @@ export function useDesign(
     }
   }, [preloadImages, design?.fileUrl, design?.thumbnailUrl]);
   
-  useEffect(() => {
-    async function prefetchRelatedDesigns() {
-      if (isValidId && prefetchRelated && designId !== previousIdRef.current && design?.designType) {
-        await utils.gallery.getPublicDesigns.prefetch({
-          designType: design.designType,
-          limit: 4
-        });
-        
-        previousIdRef.current = designId;
-      }
-    }
-    
-    void prefetchRelatedDesigns();
-  }, [designId, isValidId, prefetchRelated, design?.designType, utils.gallery.getPublicDesigns]);
+  // Note: Prefetching removed in favor of simpler TanStack Query caching
   
   const normalizedDesign = useMemo(() => {
     if (!design) return null;
@@ -132,7 +104,7 @@ export function useDesign(
       designType: design.designType ?? 'other',
       createdAt: design.createdAt instanceof Date ? design.createdAt : new Date(design.createdAt),
       updatedAt: design.updatedAt instanceof Date ? design.updatedAt : new Date(design.updatedAt)
-    } as GalleryDesign;
+    } as TattooDesign;
   }, [design]);
 
   return {
@@ -153,13 +125,13 @@ export function useDesign(
 }
 
 export function useRelatedDesigns(
-  mainDesign: GalleryDesign | null,
+  mainDesign: TattooDesign | null,
   options: {
     limit?: number;
     strategy?: 'strict' | 'flexible' | 'hybrid';
     preloadImages?: boolean;
     fallbackToRecent?: boolean;
-    onSuccess?: (designs: GalleryDesign[]) => void;
+    onSuccess?: (designs: TattooDesign[]) => void;
   } = {}
 ) {
   const {
@@ -170,31 +142,18 @@ export function useRelatedDesigns(
     onSuccess
   } = options;
   
-  const utils = trpc.useUtils();
-  
   const designType = mainDesign?.designType;
   
   const [useFallback, setUseFallback] = useState(false);
   
-  const primaryQuery = trpc.gallery.getPublicDesigns.useQuery(
-    {
-      designType: designType ?? undefined,
-      limit: limit + 1
-    },
-    { 
-      enabled: !!designType && !useFallback,
-      staleTime: 3 * 60 * 1000
-    }
-  );
+  const primaryQuery = useGallery({
+    designType: designType ?? undefined,
+    limit: limit + 1
+  });
   
-  const fallbackQuery = trpc.gallery.getPublicDesigns.useQuery(
-    {
-      limit: limit + 1
-    },
-    { 
-      enabled: useFallback && fallbackToRecent
-    }
-  );
+  const fallbackQuery = useGallery({
+    limit: limit + 1
+  });
   
   // Handle primary query success and fallback logic
   useEffect(() => {
@@ -204,7 +163,7 @@ export function useRelatedDesigns(
         setUseFallback(true);
       } else if (data?.designs && onSuccess) {
         const filteredDesigns = data.designs
-          .filter((d: GalleryDesign) => d.id !== mainDesign?.id)
+          .filter((d: TattooDesign) => d.id !== mainDesign?.id)
           .slice(0, limit);
         onSuccess(filteredDesigns);
       }
@@ -216,7 +175,7 @@ export function useRelatedDesigns(
     const data = fallbackQuery.data;
     if (fallbackQuery.isSuccess && data?.designs && onSuccess) {
       const filteredDesigns = data.designs
-        .filter((d: GalleryDesign) => d.id !== mainDesign?.id)
+        .filter((d: TattooDesign) => d.id !== mainDesign?.id)
         .slice(0, limit);
       onSuccess(filteredDesigns);
     }
@@ -228,10 +187,10 @@ export function useRelatedDesigns(
     if (!sourceData?.designs || !mainDesign) return [];
     
     const filtered = sourceData.designs
-      .filter((design: GalleryDesign) => design.id !== mainDesign.id);
+      .filter((design: TattooDesign) => design.id !== mainDesign.id);
     
     if (strategy === 'hybrid') {
-      filtered.sort((a: GalleryDesign, b: GalleryDesign) => {
+      filtered.sort((a: TattooDesign, b: TattooDesign) => {
         const scoreA = calculateRelevanceScore(a, mainDesign);
         const scoreB = calculateRelevanceScore(b, mainDesign);
         return scoreB - scoreA;
@@ -243,7 +202,7 @@ export function useRelatedDesigns(
   
   useEffect(() => {
     if (preloadImages && relatedDesigns.length > 0) {
-      relatedDesigns.forEach((design: GalleryDesign, index: number) => {
+      relatedDesigns.forEach((design: TattooDesign, index: number) => {
         if (design.fileUrl) {
           setTimeout(() => {
             preloadImage(design.fileUrl!);
@@ -253,11 +212,7 @@ export function useRelatedDesigns(
     }
   }, [relatedDesigns, preloadImages]);
   
-  useEffect(() => {
-    relatedDesigns.forEach((design: GalleryDesign) => {
-      void utils.gallery.getDesignById.prefetch({ id: design.id });
-    });
-  }, [relatedDesigns, utils.gallery.getDesignById]);
+  // Note: Removed prefetching in favor of TanStack Query's built-in caching
 
   return {
     relatedDesigns,
@@ -279,7 +234,7 @@ export function useDesignBatch(
     batchSize?: number;
     preloadImages?: boolean;
     staleTime?: number;
-    onSuccess?: (designs: (GalleryDesign | null)[]) => void;
+    onSuccess?: (designs: (TattooDesign | null)[]) => void;
     onError?: (errors: unknown[]) => void;
   } = {}
 ) {
@@ -314,16 +269,15 @@ export function useDesignBatch(
   }, [validIds, batchSize]);
   
   const batchStates = batches.map((batchIds, index) => {
-    const batchResults = batchIds.map(id => 
-      trpc.gallery.getDesignById.useQuery(
-        { id },
-        { 
-          staleTime,
-          refetchOnWindowFocus: false,
-          retry: 1
-        }
-      )
-    );
+    const batchResults = batchIds.map(id => {
+      const query = useDesignById(id);
+      return {
+        isLoading: query.isLoading,
+        isError: query.isError,
+        error: query.error,
+        data: query.data
+      };
+    });
     
     const isLoading = batchResults.some(result => result.isLoading);
     const isError = batchResults.some(result => result.isError);
@@ -346,7 +300,7 @@ export function useDesignBatch(
   }, [batchStates, preloadImages]);
   
   const allDesigns = useMemo(() => {
-    const designMap = new Map<string, GalleryDesign | null>();
+    const designMap = new Map<string, TattooDesign | null>();
     
     batchStates.forEach(batch => {
       batch.designs.forEach((design) => {
