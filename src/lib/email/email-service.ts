@@ -8,7 +8,15 @@
 
 import { Resend } from 'resend';
 import { ENV, getEnvSafe } from '@/lib/utils/env';
-import type { ContactFormData } from '@prisma/client';
+// Define local type instead of importing from Prisma
+interface ContactFormData {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+  subject?: string;
+  contactId?: string;
+}
 
 import { logger } from "@/lib/logger";
 // Lazy initialize Resend only when needed
@@ -61,7 +69,7 @@ export async function sendEmail({
  * Generate an email for admin notification of a new contact form submission
  */
 export function generateAdminContactEmail(data: ContactFormData) {
-  const subject = `New Website Contact: ${data.subject}`;
+  const subject = `New Website Contact: ${data.subject ?? 'Website Inquiry'}`;
 
   // Build the HTML content
   const html = `

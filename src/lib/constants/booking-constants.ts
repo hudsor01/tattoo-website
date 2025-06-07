@@ -37,5 +37,5 @@ export const BOOKING_SORT_OPTIONS = [
  * @returns CSS classes for styling the status badge
  */
 export function getappointmentstatusClasses(status: string): string {
-  return BOOKING_STATUS_COLORS[status as appointmentstatus] || 'bg-gray-100 text-gray-800';
+  return BOOKING_STATUS_COLORS[status as appointmentstatus] ?? 'bg-gray-100 text-gray-800';
 }

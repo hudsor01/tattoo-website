@@ -20,19 +20,16 @@ type ApiResponse<T = unknown> = {
 };
 
 type ErrorResponse = {
+  success: boolean;
   error: string;
   message: string;
   statusCode: number;
   timestamp: string;
   path?: string;
   details?: unknown;
+  validationErrors?: Record<string, string[]>;
 };
 
-type ValidationError = {
-  field: string;
-  message: string;
-  code?: string;
-};
 
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -40,6 +37,8 @@ type RequestOptions = {
   body?: unknown;
   timeout?: number;
   validateResponse?: boolean;
+  signal?: AbortSignal;
+  cache?: RequestCache;
 };
 
 type FilterParams = {
@@ -108,13 +107,24 @@ async function validateResponse<T>(response: Response, schema?: z.ZodType<T>): P
     try {
       return schema.parse(data);
     } catch (error) {
-      void void logger.error('Response validation error:', error);
+      void logger.error('Response validation error:', error);
+      
+      const validationErrors: Record<string, string[]> = {};
+      if (error instanceof z.ZodError) {
+        error.errors.forEach(err => {
+          const path = err.path.join('.');
+          validationErrors[path] ??= [];
+          validationErrors[path].push(err.message);
+        });
+      }
+      
       throw new ApiError('Invalid response data', response.status, response.statusText, {
         success: false,
         error: 'Validation failed',
         message: 'Invalid response data',
-        validationErrors: error as ValidationError[],
-        data,
+        statusCode: response.status,
+        timestamp: new Date().toISOString(),
+        validationErrors,
       });
     }
   }
@@ -335,13 +345,13 @@ export async function trackVideoView(
 /**
  * Share content on social media platforms
  * @param contentType Type of content (tattoo, video)
- * @param contentId Content identifier
+ * @param contentId Content identifier (string or number)
  * @param platform Platform to share on
  * @returns Object containing success status and share URL
  */
 export async function shareContent(
   contentType: 'tattoo' | 'video',
-  contentId: number,
+  contentId: string | number,
   platform: 'facebook' | 'twitter' | 'instagram' | 'pinterest' | 'email' | 'linkedin'
 ): Promise<{ success: boolean; shareUrl: string }> {
   try {

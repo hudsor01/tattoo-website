@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useCalContext, useCalBooking } from '@/providers/CalProvider';
+import React, { useEffect, useCallback } from 'react';
+import { useCalAtoms } from '@/providers/CalProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 
 export function CalProviderTest() {
-  const { isInitialized, error, mode, retryInitialization } = useCalContext();
-  const { debugCalStatus, createBookingLink, openBookingPopup } = useCalBooking();
+  const { isReady, isConfigured, error } = useCalAtoms();
+
+  const debugCalStatus = useCallback(() => {
+    console.warn('Cal.com Status:', { isReady, isConfigured, error });
+  }, [isReady, isConfigured, error]);
 
   useEffect(() => {
     // Log debug status on mount
@@ -16,49 +19,63 @@ export function CalProviderTest() {
   }, [debugCalStatus]);
 
   const getStatusIcon = () => {
-    switch (mode) {
-      case 'embed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'error':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      case 'loading':
-        return <Clock className="h-5 w-5 text-yellow-500" />;
-      default:
-        return <AlertTriangle className="h-5 w-5 text-orange-500" />;
+    if (error) {
+      return <XCircle className="h-5 w-5 text-red-500" />;
     }
+    if (!isReady) {
+      return <Clock className="h-5 w-5 text-yellow-500" />;
+    }
+    if (isConfigured) {
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    }
+    return <AlertTriangle className="h-5 w-5 text-orange-500" />;
   };
 
-  const testBookingLink = createBookingLink('consultation');
+  const getStatusText = () => {
+    if (error) return 'Error';
+    if (!isReady) return 'Loading';
+    if (isConfigured) return 'Ready';
+    return 'Not Configured';
+  };
 
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {getStatusIcon()}
-          Cal.com Provider Test
+          Cal.com Atoms Test
         </CardTitle>
         <CardDescription>
-          Testing Cal.com integration status
+          Testing Cal.com Atoms integration status
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Initialized:</span>
-            <span className={`text-sm ${isInitialized ? 'text-green-500' : 'text-red-500'}`}>
-              {isInitialized ? 'Yes' : 'No'}
+            <span className="text-sm font-medium">Status:</span>
+            <span className={`text-sm ${isConfigured ? 'text-green-500' : 'text-red-500'}`}>
+              {getStatusText()}
             </span>
           </div>
           
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Mode:</span>
-            <span className="text-sm capitalize">{mode}</span>
+            <span className="text-sm font-medium">Ready:</span>
+            <span className={`text-sm ${isReady ? 'text-green-500' : 'text-yellow-500'}`}>
+              {isReady ? 'Yes' : 'Loading...'}
+            </span>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">Configured:</span>
+            <span className={`text-sm ${isConfigured ? 'text-green-500' : 'text-orange-500'}`}>
+              {isConfigured ? 'Yes' : 'No'}
+            </span>
           </div>
           
           {error && (
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium">Error:</span>
-              <span className="text-xs text-red-400 break-words">{error}</span>
+              <span className="text-xs text-red-400 break-words">{error.message}</span>
             </div>
           )}
         </div>
@@ -74,29 +91,18 @@ export function CalProviderTest() {
           </Button>
           
           <Button 
-            onClick={() => openBookingPopup('consultation')} 
+            disabled={!isConfigured}
             variant="default" 
             size="sm"
             className="w-full"
           >
-            Test Booking Popup
+            {isConfigured ? 'Cal.com Atoms Ready' : 'Not Configured'}
           </Button>
-          
-          {error && (
-            <Button 
-              onClick={retryInitialization} 
-              variant="secondary" 
-              size="sm"
-              className="w-full"
-            >
-              Retry Initialization
-            </Button>
-          )}
         </div>
 
         <div className="pt-2 border-t">
           <p className="text-xs text-gray-500">
-            Test Link: {testBookingLink.substring(0, 50)}...
+            Cal.com Atoms integration for booking system
           </p>
         </div>
       </CardContent>

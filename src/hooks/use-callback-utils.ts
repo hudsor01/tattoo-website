@@ -620,8 +620,10 @@ export function useDeferredCallback<T extends (...args: AnyParams) => unknown>(
         } else {
           // Handle synchronous execution
           if (queueRef.current.length > 0) {
-            const nextArgs = queueRef.current.shift() ?? [];
-            executeDeferred(nextArgs, executionPriority);
+            const nextArgs = queueRef.current.shift();
+            if (nextArgs) {
+              executeDeferred(nextArgs, executionPriority);
+            }
           } else {
             isPendingRef.current = false;
           }

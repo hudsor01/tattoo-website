@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { Prisma, BookingStatus } from '@prisma/client';
+import type { User } from '@/lib/prisma-types';
 
 // GET /api/bookings - Get bookings (admin only)
 export async function GET(request: NextRequest) {
@@ -10,23 +12,23 @@ export async function GET(request: NextRequest) {
       headers: await headers()
     });
 
-    if (!session?.user || (session.user as any).role !== 'admin') {
+    if (!session?.user || (session.user as User).role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = parseInt(searchParams.get('limit') ?? '20');
     const cursor = searchParams.get('cursor');
     const status = searchParams.get('status');
 
     // Build where clause
-    const where: any = {};
+    const where: Prisma.BookingWhereInput = {};
     if (status && status !== 'all') {
-      where.status = status.toUpperCase();
+      where.status = status.toUpperCase() as BookingStatus;
     }
 
     // Get bookings with pagination
-    const queryOptions: any = {
+    const queryOptions: Prisma.BookingFindManyArgs = {
       where,
       take: limit + 1,
       orderBy: { createdAt: 'desc' },
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
     let nextCursor: string | null = null;
     if (bookings.length > limit) {
       const nextItem = bookings.pop();
-      nextCursor = nextItem!.id;
+      nextCursor = nextItem?.id ?? null;
     }
 
     const totalCount = await prisma.booking.count({ where });
@@ -107,9 +109,9 @@ export async function POST(request: NextRequest) {
       customer = await prisma.customer.create({
         data: {
           firstName,
-          lastName: lastNameParts.join(' ') || '',
+          lastName: lastNameParts.join(' ') ?? '',
           email,
-          phone: phone || null,
+          phone: phone ?? null,
         }
       });
     }
@@ -117,16 +119,17 @@ export async function POST(request: NextRequest) {
     // Create booking
     const booking = await prisma.booking.create({
       data: {
-        customerId: customer?.id || null,
-        name,
+        customerId: customer?.id ?? null,
+        firstName: name.split(' ')[0] ?? name,
+        lastName: name.split(' ').slice(1).join(' ') ?? '',
         email,
-        phone: phone || null,
+        phone: phone ?? null,
         tattooType,
-        size: size || null,
-        placement: placement || null,
-        description: description || null,
+        size: size ?? null,
+        placement: placement ?? null,
+        description: description ?? null,
         preferredDate: new Date(preferredDate),
-        preferredTime: preferredTime || null,
+        preferredTime: preferredTime ?? null,
         status: 'PENDING',
         source: 'website',
       },

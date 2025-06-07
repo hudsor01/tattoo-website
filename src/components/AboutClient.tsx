@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
-import Footer from '@/components/layouts/Footer';
+import { Footer } from '@/components/layouts/Footer';
 
 // Animation variants - matching gallery's animations
 const fadeInUp = {
@@ -48,7 +48,7 @@ const staggerContainer = {
 export default function AboutClient() {
   return (
     <>
-      <main className="min-h-screen bg-linear-to-b from-black to-zinc-900 text-white">
+      <main className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white">
         <div className="w-full max-w-none px-6 py-16 pt-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -56,20 +56,20 @@ export default function AboutClient() {
             transition={{ duration: 0.5 }}
           >
             <motion.div
-              className="text-center mb-16"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-100px' }}
-              variants={fadeInUp}
+            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={fadeInUp}
             >
-              <h1 className="heading-large gradient-text-muted mb-4">About Ink 37</h1>
-              <p className="paragraph-medium max-w-2xl mx-auto">
-                Discover the story behind our dream and the passion that drives our art
-              </p>
-              <motion.div
-                className="mt-8 h-1 w-24 mx-auto bg-linear-to-r from-red-500 via-orange-500 to-amber-500"
-                variants={fadeInUp}
-              />
+            <h1 className="heading-large text-white mb-4">About Ink 37</h1>
+            <p className="paragraph-medium max-w-2xl mx-auto">
+            Discover the story behind our dream and the passion that drives our art
+            </p>
+            <motion.div
+            className="mt-8 h-1 w-24 mx-auto bg-fernando-gradient"
+            variants={fadeInUp}
+            />
             </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -91,9 +91,9 @@ export default function AboutClient() {
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   quality={90}
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 <div className="absolute bottom-6 left-6 p-4 bg-black/40 backdrop-blur-sm rounded-lg max-w-xs">
-                  <p className="text-lg font-bold text-white">Fernando Govea</p>
+                  <p className="text-lg font-bold bg-gradient-to-r from-[#E63A35] to-[#FF6800] bg-clip-text text-transparent">Fernando Govea</p>
                   <p className="text-white/80 text-sm">Tattoo Artist & Local Business Owner</p>
                 </div>
               </motion.div>
@@ -129,9 +129,9 @@ export default function AboutClient() {
 
                 <motion.div className="pt-6 flex justify-center" variants={fadeInUp}>
                   <Button
-                    asChild
-                    variant="default"
-                    className="bg-linear-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 shadow-lg group"
+                  asChild
+                  variant="default"
+                  className="bg-fernando-gradient hover:opacity-90 shadow-lg group"
                   >
                     <Link href="/booking" className="flex items-center">
                       Book a Consultation
@@ -151,7 +151,7 @@ export default function AboutClient() {
                 viewport={{ once: true, margin: '-100px' }}
                 variants={fadeInUp}
               >
-                <h2 className="text-3xl font-bold mb-4 bg-linear-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold mb-4">
                   My Local Business Values
                 </h2>
                 <p className="text-white/70 max-w-2xl mx-auto">
@@ -205,7 +205,7 @@ export default function AboutClient() {
               viewport={{ once: true, margin: '-50px' }}
               variants={fadeInUp}
             >
-              <div className="bg-linear-to-br from-tattoo-black to-tattoo-black/90 rounded-2xl border border-tattoo-red/20 shadow-xl p-8 md:p-12">
+              <div className="bg-gradient-to-br from-black to-black/90 rounded-2xl border border-fernando-red/20 shadow-xl p-8 md:p-12">
                 <div className="max-w-3xl mx-auto text-center">
                   <motion.h2
                     className="text-2xl md:text-3xl font-bold text-white mb-4"
@@ -226,7 +226,7 @@ export default function AboutClient() {
                       <Button
                         size="lg"
                         asChild
-                        className="bg-linear-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group"
+                        className="bg-fernando-gradient hover:opacity-90 group"
                       >
                         <Link href="/booking" className="inline-flex items-center">
                           Book a Consultation
@@ -240,14 +240,14 @@ export default function AboutClient() {
                         variant="outline"
                         size="lg"
                         asChild
-                        className="relative border-2 border-red-500 bg-linear-to-r from-var(--color-red-500)/10 via-var(--color-orange-500)/10 to-var(--color-amber-500)/10 text-white hover:bg-linear-to-r hover:from-var(--color-red-500)/20 hover:via-var(--color-orange-500)/20 hover:to-var(--color-amber-500)/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
+                        className="relative border-2 border-fernando-red bg-fernando-gradient/10 text-white hover:bg-fernando-gradient/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
                       >
                         <Link href="/gallery" className="inline-flex items-center relative z-10">
-                          <span className="bg-linear-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
-                            View My Gallery
+                          <span className="bg-fernando-gradient bg-clip-text text-transparent font-semibold">
+                          View My Gallery
                           </span>
-                          <ChevronRight className="ml-2 h-4 w-4 text-amber-400 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-linear-to-r from-var(--color-red-500)/5 via-var(--color-orange-500)/5 to-var(--color-amber-500)/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                          <ChevronRight className="ml-2 h-4 w-4 text-[#FF6800] transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-orange-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
                         </Link>
                       </Button>
                     </motion.div>

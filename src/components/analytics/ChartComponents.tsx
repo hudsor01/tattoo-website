@@ -1,21 +1,31 @@
 'use client';
 
 import React from 'react';
-import type { ChartTooltipProps } from '@prisma/client';
+// Chart tooltip props interface
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    color: string;
+    dataKey: string;
+    value: number;
+    name?: string;
+  }>;
+  label?: string;
+}
 
 export function CustomTooltip({ active, payload, label }: ChartTooltipProps) {
   if (active && payload?.length) {
     return (
       <div className="bg-gray-900 border border-gray-700 p-3 rounded-md shadow-lg">
         <p className="font-medium text-white text-sm mb-2">{label}</p>
-        {payload.map((entry, index) => (
+        {payload.map((entry: { color?: string; dataKey?: string; value?: number; name?: string }, index: number) => (
           <div key={index} className="flex items-center gap-2 text-xs">
             <div 
               className="h-2 w-2 rounded-full" 
               style={{ backgroundColor: entry.color }}
             />
             <p className="text-gray-300">
-              {entry.dataKey === 'revenue' ? '$' : ''}{entry.value.toLocaleString()}
+              {entry.dataKey === 'revenue' ? '$' : ''}{entry.value?.toLocaleString() ?? '0'}
               {entry.dataKey === 'revenue' ? ' Revenue' : 
                entry.dataKey === 'appointments' ? ' appointments' : ' Customers'}
             </p>

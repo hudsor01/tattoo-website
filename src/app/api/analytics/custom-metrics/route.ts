@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       '30d': now - 30 * 24 * 60 * 60 * 1000,
     };
 
-    const timeFilter = timeFilters[timeframe as keyof typeof timeFilters] || timeFilters['24h'];
+    const timeFilter = timeFilters[timeframe as keyof typeof timeFilters] ?? timeFilters['24h'];
 
     let filteredData = customMetrics.filter((item) => item.timestamp >= timeFilter);
 

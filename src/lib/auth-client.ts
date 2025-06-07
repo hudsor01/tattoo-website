@@ -4,12 +4,30 @@ import { createAuthClient } from "better-auth/react";
 import { adminClient } from "better-auth/client/plugins";
 
 // Create auth client exactly as per Better Auth documentation
+// Determine the correct base URL for different environments
+function getBaseURL() {
+  // Client-side: use current origin
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  // Server-side: determine based on environment
+  // Vercel production
+  if (process.env['VERCEL_ENV'] === 'production') {
+    return "https://ink37tattoos.com";
+  }
+  
+  // Vercel preview/development
+  if (process.env['VERCEL_URL']) {
+    return `https://${process.env['VERCEL_URL']}`;
+  }
+  
+  // Local development
+  return "http://localhost:3000";
+}
+
 export const authClient = createAuthClient({
-  baseURL: typeof window !== 'undefined' 
-    ? window.location.origin 
-    : (process.env.NODE_ENV === "production" 
-      ? "https://ink37tattoos.com" 
-      : "http://localhost:3000"),
+  baseURL: getBaseURL(),
   plugins: [
     adminClient()
   ],

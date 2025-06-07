@@ -1,6 +1,9 @@
+import 'server-only';
+
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { prisma } from "./db/prisma";
 
 export const auth = betterAuth({
@@ -20,26 +23,24 @@ plugins: [
 admin({
 defaultRole: "user",
 adminRoles: ["admin"],
-})
+}),
+nextCookies() // Must be last plugin as per Better Auth docs
 ],
 
-// Auto-assign admin role to specific emails
+// Auto-assign admin role to specific emails using Better Auth hooks
 hooks: {
-user: {
-created: async ({ user }) => {
-const adminEmails = [
-"ink37tattoos@gmail.com",
-"fennyg83@gmail.com"
-];
-
-if (user.email && adminEmails.includes(user.email.toLowerCase())) {
-await prisma.user.update({
-where: { id: user.id },
-data: { role: "admin" }
-});
-}
-},
-},
+  after: async (ctx: any) => {
+    if (ctx.user?.email) {
+      const adminEmails = ['fennyg83@gmail.com', 'ink37tattoos@gmail.com'];
+      if (adminEmails.includes(ctx.user.email) && ctx.user.role !== 'admin') {
+        // Update user role to admin
+        await prisma.user.update({
+          where: { id: ctx.user.id },
+          data: { role: 'admin' },
+        });
+      }
+    }
+  },
 },
   
   emailAndPassword: {
@@ -61,6 +62,10 @@ data: { role: "admin" }
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60 // Cache for 5 minutes
+    }
   },
   
   user: {
@@ -86,6 +91,19 @@ data: { role: "admin" }
   baseURL: process.env.NODE_ENV === "production" 
     ? "https://ink37tattoos.com" 
     : "http://localhost:3000",
+    
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+    cookies: {
+      session_token: {
+        attributes: {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax"
+        }
+      }
+    }
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;

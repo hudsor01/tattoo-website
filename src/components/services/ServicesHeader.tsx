@@ -3,14 +3,12 @@
 import React, { useRef } from 'react';
 import { useInView } from 'framer-motion';
 import { motion } from '@/components/performance/LazyMotion';
-import type { ServicesHeaderProps } from '@prisma/client';
 
-/**
- * Services Header Component
- *
- * Displays the header section for the services page with animated title and description.
- * Updated to match gallery page design system.
- */
+interface ServicesHeaderProps {
+  title?: string;
+  description?: string;
+}
+
 export function ServicesHeader({
   title = 'Tattoo Services',
   description = 'From custom designs to portrait work, I offer a range of specialized tattooing services to bring your vision to life. Each service is delivered with meticulous attention to detail and artistic excellence.',

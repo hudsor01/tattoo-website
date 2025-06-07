@@ -6,7 +6,7 @@
  */
 import { cache } from 'react';
 import { prisma } from '@/lib/db/prisma';
-import type { TattooDesign, User } from '@prisma/client';
+import type { TattooDesign } from '@prisma/client';
 
 // Cache duration constants (in seconds)
 export const ISR_REVALIDATE = {
@@ -35,12 +35,11 @@ export const getGalleryDesigns = cache(
     limit?: number;
     cursor?: string;
     designType?: string;
-    isApproved?: boolean;
   }): Promise<GalleryListResponse> => {
-    const { limit = 20, cursor, designType, isApproved = true } = options;
+    const { limit = 20, cursor, designType } = options;
 
     // Build where clause
-    const where: { isApproved: boolean; designType?: string } = { isApproved };
+    const where: { designType?: string } = {};
     if (designType) {
       where.designType = designType;
     }
@@ -105,7 +104,6 @@ export const getDesignTypes = cache(async (): Promise<string[]> => {
   const designs = await prisma.tattooDesign.findMany({
     where: {
       designType: { not: null },
-      isApproved: true,
     },
     select: { designType: true },
     distinct: ['designType'],
@@ -122,7 +120,6 @@ export const getRelatedDesigns = cache(
     return prisma.tattooDesign.findMany({
       where: {
         artistId,
-        isApproved: true,
         id: { not: excludeId },
       },
       take: limit,
@@ -144,7 +141,6 @@ export const getRelatedDesigns = cache(
 export const getFeaturedDesigns = cache(async (limit = 8): Promise<GalleryDesign[]> => {
   return prisma.tattooDesign.findMany({
     where: {
-      isApproved: true,
       // You can add additional criteria for "featured" designs
       // e.g., isFeatured: true, or high rating, etc.
     },
@@ -186,7 +182,6 @@ export async function preloadGalleryData() {
  */
 export async function getTopDesignPaths(limit = 100): Promise<{ id: string }[]> {
   const designs = await prisma.tattooDesign.findMany({
-    where: { isApproved: true },
     select: { id: true },
     take: limit,
     orderBy: [{ createdAt: 'desc' }],

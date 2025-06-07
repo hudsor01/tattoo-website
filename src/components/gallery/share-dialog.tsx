@@ -15,12 +15,32 @@ import { shareContent } from '@/lib/api';
 import { Facebook, Twitter, Instagram, Mail, Copy, Check, Loader2, Linkedin } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import type {
-  SharePlatform,
-  ShareDialogProps,
-  ShareMetadata,
-  ShareButton,
-} from '@prisma/client';
+// Define share types locally since they're not in the database schema
+type SharePlatform = 'facebook' | 'twitter' | 'instagram' | 'email' | 'copy' | 'linkedin';
+
+interface ShareDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  contentType: 'tattoo' | 'video';
+  contentId: string;
+  title: string;
+  imageUrl?: string;
+  description?: string;
+}
+
+interface ShareMetadata {
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  image?: string;
+  url: string;
+}
+
+interface ShareButton {
+  name: SharePlatform;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
 
 export function ShareDialog({
   open,
@@ -37,7 +57,27 @@ export function ShareDialog({
     setIsLoading((prev) => ({ ...prev, [platform]: true }));
 
     try {
-      const result = await shareContent(contentType, contentId, platform);
+      // Handle copy platform separately since it's not in the API
+      if (platform === 'copy') {
+        const url = `${window.location.origin}/gallery/${contentId}`;
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        setIsLoading((prev) => ({ ...prev, [platform]: false }));
+        return;
+      }
+
+      // Only call shareContent for supported platforms
+      const supportedPlatforms = ['facebook', 'twitter', 'instagram', 'email', 'linkedin'] as const;
+      if (!supportedPlatforms.includes(platform as typeof supportedPlatforms[number])) {
+        return;
+      }
+      
+      const result = await shareContent(
+        contentType, 
+        contentId, 
+        platform as 'facebook' | 'twitter' | 'instagram' | 'email' | 'linkedin'
+      );
       setShareUrl(result.shareUrl);
 
       // Open the share URL in a new window for social platforms
@@ -53,7 +93,7 @@ export function ShareDialog({
         description: `Content shared on ${platform}`,
       });
     } catch (error) {
-      void void logger.error('Share error:', error);
+      void logger.error('Share error:', error);
       toast({
         title: 'Share failed',
         description: 'Could not share content. Please try again.',
@@ -74,7 +114,7 @@ export function ShareDialog({
         description: 'Link copied to clipboard successfully',
       });
     } catch (err) {
-      void void logger.error('Failed to copy:', err);
+      void logger.error('Failed to copy:', err);
       toast({
         title: 'Copy failed',
         description: 'Could not copy to clipboard. Please try manually.',
@@ -84,29 +124,26 @@ export function ShareDialog({
   };
 
   // Generate a preview URL for the content
-  const previewUrl = `https://ink37tattoos.com.com/${contentType}s/${contentId}`;
+  const previewUrl = `${window.location.origin}/gallery/${contentId}`;
 
   // Generate metadata for sharing
   const shareMetadata: ShareMetadata = {
     title: title,
-    description: `Check out this amazing ${contentType} on Tattoo Gallery`,
+    description: `Check out this amazing ${contentType} design by Fernando Govea at Ink 37 Tattoos`,
     url: previewUrl,
-    image:
-      contentType === 'tattoo'
-        ? `https://ink37tattoos.com/api/tattoos/${contentId}/image`
-        : `https://ink37tattoos.com/api/videos/${contentId}/thumbnail`,
+    image: `/images/${contentId}`, // Use direct image path for file-based gallery
   };
 
   const shareButtons: ShareButton[] = [
-    { name: 'facebook', icon: Facebook, color: 'bg-[#1877F2] hover:bg-[#0E65D9]' },
-    { name: 'twitter', icon: Twitter, color: 'bg-[#1DA1F2] hover:bg-[#0C90E1]' },
-    { name: 'linkedin', icon: Linkedin, color: 'bg-[#0A66C2] hover:bg-[#004182]' },
+    { name: 'facebook' as SharePlatform, icon: Facebook, color: 'bg-[#1877F2] hover:bg-[#0E65D9]' },
+    { name: 'twitter' as SharePlatform, icon: Twitter, color: 'bg-[#1DA1F2] hover:bg-[#0C90E1]' },
+    { name: 'linkedin' as SharePlatform, icon: Linkedin, color: 'bg-[#0A66C2] hover:bg-[#004182]' },
     {
-      name: 'instagram',
+      name: 'instagram' as SharePlatform,
       icon: Instagram,
-      color: 'bg-linear-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90',
+      color: 'bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90',
     },
-    { name: 'email', icon: Mail, color: 'bg-gray-600 hover:bg-gray-700' },
+    { name: 'email' as SharePlatform, icon: Mail, color: 'bg-gray-600 hover:bg-gray-700' },
   ];
 
   return (
@@ -154,7 +191,7 @@ export function ShareDialog({
               <Button
                 key={button.name}
                 className={`${button.color} text-white`}
-                onClick={() => void handleShare(button.name)}
+                onClick={() => void handleShare(button.name as SharePlatform)}
                 disabled={isLoading[button.name]}
               >
                 {isLoading[button.name] ? (

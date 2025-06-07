@@ -1,18 +1,20 @@
 /**
  * Appointment Database Functions
  *
- * Unified functions for appointment-related operations using Prisma
+ * Unified functions for appointment-related operations using Booking model
+ * Note: The appointment model has been replaced with the Booking model in the simplified schema
  */
 
 import { prisma } from './prisma';
-import type { Prisma } from '@prisma/client';
-
-// Appointment create input using Prisma.GetPayload
-type AppointmentCreateInput = Prisma.AppointmentCreateInput;
-
+import type { Prisma, BookingStatus } from '@prisma/client';
 import { logger } from "@/lib/logger";
+
+// Type aliases for backward compatibility
+type BookingCreateInput = Prisma.BookingCreateInput;
+type AppointmentCreateInput = BookingCreateInput;
+
 /**
- * Get upcoming appointments for a user (customer or artist)
+ * Get upcoming appointments for a user (customer)
  */
 export async function getUpcomingAppointments(
   userId: string,
@@ -21,15 +23,15 @@ export async function getUpcomingAppointments(
 ) {
   try {
     const now = new Date();
-    const whereClause = userType === 'customer' ? { customerId: userId } : { userId: userId };
+    const whereClause = userType === 'customer' ? { customerId: userId } : { customerId: userId };
 
-    return await prisma.appointment.findMany({
+    return await prisma.booking.findMany({
       where: {
         ...whereClause,
-        startTime: { gte: now },
-        status: { notIn: ['CANCELLED', 'COMPLETED', 'NO_SHOW'] },
+        preferredDate: { gte: now },
+        status: { notIn: ['CANCELLED', 'COMPLETED'] },
       },
-      orderBy: { startTime: 'asc' },
+      orderBy: { preferredDate: 'asc' },
       take: limit,
       include: {
         customer: {
@@ -38,12 +40,6 @@ export async function getUpcomingAppointments(
             lastName: true,
             email: true,
             phone: true,
-          },
-        },
-        user: {
-          select: {
-            name: true,
-            email: true,
           },
         },
       },
@@ -59,7 +55,7 @@ export async function getUpcomingAppointments(
  */
 export async function getAppointmentById(appointmentId: string) {
   try {
-    return await prisma.appointment.findUnique({
+    return await prisma.booking.findUnique({
       where: { id: appointmentId },
       include: {
         customer: {
@@ -68,12 +64,6 @@ export async function getAppointmentById(appointmentId: string) {
             lastName: true,
             email: true,
             phone: true,
-          },
-        },
-        user: {
-          select: {
-            name: true,
-            email: true,
           },
         },
       },
@@ -86,38 +76,33 @@ export async function getAppointmentById(appointmentId: string) {
 
 /**
  * Check if an appointment time slot is available
+ * Simplified version using preferredDate
  */
 export async function checkAppointmentAvailability(
   artistId: string,
   startTime: Date,
-  endTime: Date | null = null,
+  _endTime: Date | null = null,
   appointmentId: string | null = null,
-  size?: string,
-  complexity?: string
+  _size?: string,
+  _complexity?: string
 ) {
   try {
-    // Calculate endTime if not provided
-    const calculatedEndTime = endTime || new Date(startTime.getTime() + (2 * 60 * 60 * 1000)); // Default 2 hours
+    // For simplified booking model, check if the preferred date conflicts
+    const sameDay = new Date(startTime);
+    sameDay.setHours(0, 0, 0, 0);
+    const nextDay = new Date(sameDay);
+    nextDay.setDate(nextDay.getDate() + 1);
     
-    // Check for conflicting appointments using Prisma
-    const conflicts = await prisma.appointment.findMany({
+    // Check for conflicting bookings on the same day
+    const conflicts = await prisma.booking.findMany({
       where: {
-        userId: artistId,
+        customerId: artistId, // Note: using customerId as artist reference
         id: appointmentId ? { not: appointmentId } : undefined,
-        OR: [
-          {
-            startTime: { lte: startTime },
-            endTime: { gt: startTime }
-          },
-          {
-            startTime: { lt: calculatedEndTime },
-            endTime: { gte: calculatedEndTime }
-          },
-          {
-            startTime: { gte: startTime },
-            endTime: { lte: calculatedEndTime }
-          }
-        ]
+        preferredDate: {
+          gte: sameDay,
+          lt: nextDay,
+        },
+        status: { notIn: ['CANCELLED'] },
       }
     });
     
@@ -141,8 +126,8 @@ export async function checkAppointmentAvailability(
  */
 export async function scheduleAppointment(params: AppointmentCreateInput) {
   try {
-    // Create appointment using proper Prisma fields
-    const appointment = await prisma.appointment.create({
+    // Create booking using proper Prisma fields
+    const booking = await prisma.booking.create({
       data: params,
       include: {
         customer: {
@@ -153,18 +138,12 @@ export async function scheduleAppointment(params: AppointmentCreateInput) {
             phone: true,
           },
         },
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
       },
     });
 
     return {
       success: true,
-      appointment,
+      appointment: booking,
     };
   } catch (error) {
     logger.error('Error scheduling appointment:', error);
@@ -184,29 +163,24 @@ export async function rescheduleAppointment(
   reason?: string
 ) {
   try {
-    // Get the existing appointment to calculate duration
-    const existingAppointment = await prisma.appointment.findUnique({
+    // Get the existing booking
+    const existingBooking = await prisma.booking.findUnique({
       where: { id: appointmentId }
     });
     
-    if (!existingAppointment) {
+    if (!existingBooking) {
       return {
         success: false,
-        error: 'Appointment not found'
+        error: 'Booking not found'
       };
     }
     
-    // Calculate duration from existing appointment
-    const duration = existingAppointment.endTime.getTime() - existingAppointment.startTime.getTime();
-    const newEndTime = new Date(newStartTime.getTime() + duration);
-    
-    // Update the appointment
-    const updatedAppointment = await prisma.appointment.update({
+    // Update the booking with new preferred date
+    const updatedBooking = await prisma.booking.update({
       where: { id: appointmentId },
       data: {
-        startTime: newStartTime,
-        endTime: newEndTime,
-        notes: reason ? `${existingAppointment.notes || ''} - Rescheduled: ${reason}` : existingAppointment.notes,
+        preferredDate: newStartTime,
+        notes: reason ? `${existingBooking.notes ?? ''} - Rescheduled: ${reason}` : existingBooking.notes,
         updatedAt: new Date()
       },
       include: {
@@ -218,18 +192,12 @@ export async function rescheduleAppointment(
             phone: true,
           },
         },
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
       }
     });
     
     return {
       success: true,
-      appointment: updatedAppointment
+      appointment: updatedBooking
     };
   } catch (error) {
     logger.error('Error rescheduling appointment:', error);
@@ -249,11 +217,11 @@ export async function cancelAppointment(
   reasonCode: string = 'customer_request'
 ) {
   try {
-    // Update appointment status to cancelled
-    const cancelledAppointment = await prisma.appointment.update({
+    // Update booking status to cancelled
+    const cancelledBooking = await prisma.booking.update({
       where: { id: appointmentId },
       data: {
-        status: 'CANCELLED',
+        status: 'CANCELLED' as BookingStatus,
         notes: `Cancelled on ${cancellationDate.toISOString()} - Reason: ${reasonCode}`,
         updatedAt: new Date()
       },
@@ -266,18 +234,12 @@ export async function cancelAppointment(
             phone: true,
           },
         },
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
       }
     });
     
     return {
       success: true,
-      appointment: cancelledAppointment,
+      appointment: cancelledBooking,
       cancellationPolicy: {
         applied: true,
         reason: reasonCode,
@@ -302,12 +264,14 @@ export async function getAppointmentCountsByStatus(
   endDate: Date = new Date()
 ) {
   try {
-    // Get all appointments within date range
-    const appointments = await prisma.appointment.findMany({
+    // Get all bookings within date range
+    const bookings = await prisma.booking.findMany({
       where: {
-        ...(artistId ? { userId: artistId } : {}),
-        startTime: { gte: startDate },
-        endTime: { lte: endDate },
+        ...(artistId ? { customerId: artistId } : {}),
+        preferredDate: { 
+          gte: startDate,
+          lte: endDate 
+        },
       },
       select: {
         status: true,
@@ -316,8 +280,8 @@ export async function getAppointmentCountsByStatus(
 
     // Count by status
     const counts: Record<string, number> = {};
-    appointments.forEach((appointment) => {
-      const status = appointment.status;
+    bookings.forEach((booking) => {
+      const status = booking.status;
       counts[status] = (counts[status] ?? 0) + 1;
     });
 

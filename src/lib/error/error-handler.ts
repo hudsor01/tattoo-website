@@ -1,11 +1,48 @@
 'use client';
 
 import { logger } from '@/lib/logger';
-import { TRPCClientError } from '@trpc/client';
 import { ZodError } from 'zod';
 import { toast } from '@/hooks/use-toast';
-import { ErrorContext } from 'better-auth/react';
-import { ErrorCategory, ErrorSeverity } from '@prisma/client';
+
+// Define error types locally
+export enum ErrorCategory {
+  VALIDATION = 'VALIDATION',
+  AUTHENTICATION = 'AUTHENTICATION', 
+  AUTHORIZATION = 'AUTHORIZATION',
+  NOT_FOUND = 'NOT_FOUND',
+  NETWORK = 'NETWORK',
+  SERVER = 'SERVER',
+  CLIENT = 'CLIENT',
+  UNKNOWN = 'UNKNOWN'
+}
+
+export enum ErrorSeverity {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
+}
+
+// Error context interface
+interface ErrorContext {
+  displayToUser?: boolean;
+  severity?: ErrorSeverity;
+  component?: string;
+  action?: string;
+  userId?: string;
+  additionalData?: Record<string, unknown>;
+  response?: Response;
+  request?: unknown;
+  error?: unknown;
+}
+
+// API Error interface for type-safe error handling
+interface APIError extends Error {
+  name: 'APIError';
+  status?: number;
+  statusText?: string;
+  data?: unknown;
+}
 
 /**
  * Determine if an error should be displayed to the user
@@ -224,9 +261,10 @@ function extractErrorMessage(error: unknown): string {
     return `Validation failed with ${issues.length} issues`;
   }
 
-  // Handle TRPC client errors
-  if (error instanceof TRPCClientError) {
-    return error.message ?? 'API request failed';
+  // Handle API client errors
+  if (error && typeof error === 'object' && 'name' in error && error.name === 'APIError') {
+    const apiError = error as APIError;
+    return apiError.message ?? 'API request failed';
   }
 
   // Handle objects with message property
@@ -261,35 +299,29 @@ function categorizeError(error: unknown): ErrorCategory {
     return ErrorCategory.VALIDATION;
   }
 
-  // Handle TRPC client errors
-  if (error instanceof TRPCClientError) {
-    const statusCode =
-      'data' in error &&
-      typeof error.data === 'object' &&
-      error.data &&
-      'httpStatus' in error.data &&
-      typeof error.data.httpStatus === 'number'
-        ? error.data.httpStatus
-        : null;
+  // Handle API client errors  
+  if (error && typeof error === 'object' && 'name' in error && error.name === 'APIError') {
+    const apiError = error as APIError;
+    const statusCode = apiError.status;
 
     if (
       statusCode === 401 ||
       statusCode === 403 ||
-      error.message.includes('unauthorized') ||
-      error.message.includes('authentication')
+      apiError.message.includes('unauthorized') ||
+      apiError.message.includes('authentication')
     ) {
       return ErrorCategory.AUTHENTICATION;
     }
 
     if (
       statusCode === 403 ||
-      error.message.includes('forbidden') ||
-      error.message.includes('permission')
+      apiError.message.includes('forbidden') ||
+      apiError.message.includes('permission')
     ) {
       return ErrorCategory.AUTHORIZATION;
     }
 
-    if (statusCode === 404 || error.message.includes('not found')) {
+    if (statusCode === 404 || apiError.message.includes('not found')) {
       return ErrorCategory.NOT_FOUND;
     }
 

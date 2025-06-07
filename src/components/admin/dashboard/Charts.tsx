@@ -19,6 +19,7 @@ import {
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useDashboardMetrics, useServiceDistribution, useBookingTimeAnalysis } from '@/hooks/use-admin-api';
 import {
   Select,
   SelectContent,
@@ -27,7 +28,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TrendingUp, Loader2 } from 'lucide-react';
-import { LoadingUI } from '@/components/admin/layout/Loading';
 
 // Chart data types
 interface AdminRevenueChartProps {
@@ -94,69 +94,45 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
 export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
   const [_animationKey, setAnimationKey] = React.useState(0);
 
-  // TODO: Replace with actual REST API call using TanStack Query
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  
-  // Mock revenue stats
-  const revenueStats = {
-    revenue: { total: 1200, change: 15.2 },
-    appointments: { inPeriod: 8, change: 12.5 }
-  };
+  // Fetch dashboard metrics using TanStack Query
+  const { data: metrics, error, isLoading } = useDashboardMetrics({
+    // Convert timeRange string to date parameters if needed
+    // For now, let the API handle the default date range
+  });
 
   // Process data for chart
   const revenueData: AdminRevenueData[] = React.useMemo(() => {
     try {
-      if (!revenueStats) {
+      if (!metrics?.monthlyRevenue) {
         return []; // Return empty array if no data
       }
       
-      // Prepare a default data structure even if we don't have time series data yet
-      // This ensures the chart always shows something meaningful
-      
-      // Get the current date for labeling
-      const now = new Date();
-      const currentMonth = now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      
-      // Create a basic dataset using the current period's data
-      const revenue = revenueStats.revenue?.total || 0;
-      const appointments = revenueStats.appointments?.inPeriod || 0;
-      
-      // If there is zero revenue but we have appointments, create some sample data 
-      // to demonstrate the chart functionality
-      if (revenue === 0 && appointments > 0) {
-        // Use booking count to estimate revenue - $150 per booking as placeholder
-        const estimatedRevenue = appointments * 150;
-        
-        return [
-          {
-            month: currentMonth,
-            revenue: estimatedRevenue,
-            appointments: appointments
-          }
-        ];
-      }
-      
-      // Return real data if available
-      return [
-        {
-          month: currentMonth,
-          revenue: revenue,
-          appointments: appointments
-        }
-      ];
+      return metrics.monthlyRevenue.map(item => ({
+        month: item.month,
+        revenue: item.revenue,
+        appointments: item.bookings
+      }));
     } catch (error) {
       console.error('Error processing revenue data:', error);
-      // Return sample data instead of empty array to avoid the error state
-      return [
-        {
-          month: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          revenue: 1200,
-          appointments: 8
-        }
-      ];
+      return [];
     }
-  }, [revenueStats]);
+  }, [metrics]);
+
+  // Calculate stats from metrics
+  const revenueStats = React.useMemo(() => {
+    if (!metrics) return null;
+    
+    return {
+      revenue: { 
+        total: metrics.totalRevenue, 
+        change: metrics.revenueGrowth 
+      },
+      appointments: { 
+        inPeriod: metrics.totalBookings, 
+        change: metrics.bookingGrowth 
+      }
+    };
+  }, [metrics]);
 
   // Calculate growth percentage directly in the badge display
   React.useEffect(() => {
@@ -174,7 +150,7 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
           <div className="text-center mb-4">
             <p className="text-muted-foreground mb-2">Unable to load revenue data at this time</p>
             <p className="text-xs text-muted-foreground">
-              This may occur if the Cal.com integration is still being set up or if there are no completed transactions yet.
+              {error.message || 'There may be an issue with the analytics service.'}
             </p>
           </div>
           <button 
@@ -183,6 +159,23 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
           >
             Refresh Data
           </button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>Revenue Overview</CardTitle>
+          <CardDescription>Monthly revenue with booking correlation</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center h-64 p-6">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-2" />
+            <p className="text-muted-foreground">Loading revenue data...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -213,11 +206,7 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-          <div className="h-64">
-          <LoadingUI type="card" />
-          </div>
-          ) : revenueData.length ? (
+          {revenueData.length ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -280,25 +269,50 @@ export function RevenueChart({ timeRange }: AdminRevenueChartProps) {
 
 // Service Breakdown Chart
 export function ServiceBreakdownChart() {
-  // TODO: Replace with actual REST API call using TanStack Query
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isError, setIsError] = React.useState(false);
+  // Fetch service distribution using TanStack Query
+  const { data: serviceData, error, isLoading } = useServiceDistribution();
 
-  // Mock service data
+  // Process data for chart
   const chartData: AdminServiceData[] = React.useMemo(() => {
-    return [
-      { name: 'Traditional', value: 35, color: '#ef4444' },
-      { name: 'Realism', value: 25, color: '#3b82f6' },
-      { name: 'Japanese', value: 20, color: '#10b981' },
-      { name: 'Custom Design', value: 20, color: '#f59e0b' },
-    ];
-  }, []);
+    if (!serviceData?.services) {
+      return [];
+    }
+    
+    return serviceData.services.map(service => ({
+      name: service.name,
+      value: service.percentage,
+      color: service.color
+    }));
+  }, [serviceData]);
+
+  const isError = !!error;
 
   const containerMotionProps = {
     initial: { opacity: 0, y: 10 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.5, delay: 0.1 }
   };
+
+  if (isLoading) {
+    return (
+      <motion.div {...containerMotionProps}>
+        <Card className="overflow-hidden h-full flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle>Service Breakdown</CardTitle>
+              <CardDescription>Distribution of services by revenue</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-2" />
+              <p className="text-muted-foreground">Loading service data...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div {...containerMotionProps}>
@@ -319,9 +333,7 @@ export function ServiceBreakdownChart() {
           </Select>
         </CardHeader>
         <CardContent className="flex-grow">
-          {isLoading ? (
-          <LoadingUI type="card" />
-          ) : isError ? (
+          {isError ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-muted-foreground">Failed to load service data</p>
             </div>
@@ -345,7 +357,7 @@ export function ServiceBreakdownChart() {
                       dataKey="value"
                     >
                       {chartData.map((entry, index) => (
-                        <Cell key={entry.name} fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]} />
+                        <Cell key={entry.name} fill={entry.color ?? CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
@@ -370,7 +382,7 @@ export function ServiceBreakdownChart() {
                         <div className="flex items-center">
                           <div
                             className="w-3 h-3 rounded-full mr-2"
-                            style={{ backgroundColor: service.color || CHART_COLORS[index % CHART_COLORS.length] }}
+                            style={{ backgroundColor: service.color ?? CHART_COLORS[index % CHART_COLORS.length] }}
                           />
                           <span className="text-sm">{service.name}</span>
                         </div>
@@ -390,34 +402,33 @@ export function ServiceBreakdownChart() {
 
 // Booking Times Chart
 export function BookingTimesChart() {
-  // TODO: Replace with actual REST API call using TanStack Query
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isError, setIsError] = React.useState(false);
+  // Fetch booking time analysis using TanStack Query
+  const { data: bookingTimeData, error, isLoading } = useBookingTimeAnalysis();
 
+  // Process data for chart
   const timeData: AdminTimeSlotData[] = React.useMemo(() => {
-    return [
-      { time: '9 AM', appointments: 3 },
-      { time: '10 AM', appointments: 5 },
-      { time: '11 AM', appointments: 7 },
-      { time: '12 PM', appointments: 4 },
-      { time: '1 PM', appointments: 2 },
-      { time: '2 PM', appointments: 6 },
-      { time: '3 PM', appointments: 8 },
-      { time: '4 PM', appointments: 5 },
-    ];
-  }, []);
+    if (!bookingTimeData?.hourlyDistribution) {
+      return [];
+    }
+    
+    return bookingTimeData.hourlyDistribution.map(slot => ({
+      time: slot.label,
+      appointments: slot.count
+    }));
+  }, [bookingTimeData]);
 
   const dayData: AdminDayData[] = React.useMemo(() => {
-    return [
-      { day: 'Mon', appointments: 12 },
-      { day: 'Tue', appointments: 15 },
-      { day: 'Wed', appointments: 18 },
-      { day: 'Thu', appointments: 20 },
-      { day: 'Fri', appointments: 25 },
-      { day: 'Sat', appointments: 30 },
-      { day: 'Sun', appointments: 8 },
-    ];
-  }, []);
+    if (!bookingTimeData?.dailyDistribution) {
+      return [];
+    }
+    
+    return bookingTimeData.dailyDistribution.map(day => ({
+      day: day.day,
+      appointments: day.count
+    }));
+  }, [bookingTimeData]);
+
+  const isError = !!error;
 
   const [showDays, setShowDays] = React.useState(false);
 
@@ -426,6 +437,27 @@ export function BookingTimesChart() {
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.5, delay: 0.2 }
   };
+
+  if (isLoading) {
+    return (
+      <motion.div {...motionProps}>
+        <Card className="overflow-hidden h-full flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle>Booking Patterns</CardTitle>
+              <CardDescription>Popular booking times</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-2" />
+              <p className="text-muted-foreground">Loading booking data...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div {...motionProps}>
@@ -451,9 +483,7 @@ export function BookingTimesChart() {
           </Select>
         </CardHeader>
         <CardContent className="flex-grow">
-        {isLoading ? (
-        <LoadingUI type="card" />
-        ) : isError ? (
+        {isError ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-muted-foreground">Failed to load booking data</p>
             </div>
@@ -573,38 +603,21 @@ export function DashboardCharts({ timeRange: externalTimeRange }: { timeRange: '
   };
   
   const [timeRange, setTimeRange] = React.useState(getInternalTimeRange(externalTimeRange));
-  const [isLoading, setIsLoading] = React.useState(true);
 
   // Update internal timeRange when external prop changes
   React.useEffect(() => {
     setTimeRange(getInternalTimeRange(externalTimeRange));
   }, [externalTimeRange]);
   
-  // Simulate loading state to ensure smooth transitions
-  React.useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    
-    return () => clearTimeout(timer);
-  }, [timeRange]);
-  
   return (
     <ChartContainer timeRange={timeRange} setTimeRange={setTimeRange}>
-      {isLoading ? (
-      <div className="h-[280px] w-full">
-      <LoadingUI type="page" variant="admin" />
-      </div>
-      ) : (
-        <div className="space-y-6">
-          <RevenueChart timeRange={timeRange} />
-          <div className="grid lg:grid-cols-2 gap-6">
-            <ServiceBreakdownChart />
-            <BookingTimesChart />
-          </div>
+      <div className="space-y-6">
+        <RevenueChart timeRange={timeRange} />
+        <div className="grid lg:grid-cols-2 gap-6">
+          <ServiceBreakdownChart />
+          <BookingTimesChart />
         </div>
-      )}
+      </div>
     </ChartContainer>
   );
 }

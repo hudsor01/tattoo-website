@@ -8,7 +8,6 @@
 
 // Remove unused web-vitals import
 // import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
-import { ENV, SERVER_ENV } from '@/lib/utils/env';
 
 import { logger } from "@/lib/logger";
 // Temporary type definitions - currently unused until web-vitals is installed
@@ -60,10 +59,7 @@ interface PerformanceConfig {
   sampleRate: number; // 0.0 to 1.0
 }
 
-const nodeEnv =
-  typeof ENV === 'object' && 'NODE_ENV' in ENV && ENV.NODE_ENV
-    ? ENV.NODE_ENV
-    : (typeof window !== 'undefined' ? 'development' : SERVER_ENV.NODE_ENV ?? 'development');
+const nodeEnv = process.env.NODE_ENV ?? 'development';
 
 const defaultConfig: PerformanceConfig = {
   enableConsoleLogging: nodeEnv === 'development',
@@ -195,11 +191,11 @@ export function initWebVitals(config: Partial<PerformanceConfig> = {}) {
   Object.assign(defaultConfig, config);
 
   try {
-    // TODO: Uncomment when web-vitals package is installed
-    // Core Web Vitals
-    // onCLS(handleMetric);
-    // onINP(handleMetric); // INP replaced FID in web-vitals v3
-    // onLCP(handleMetric);
+    // Web Vitals monitoring currently disabled - requires web-vitals package installation
+    // Core Web Vitals tracking would be implemented here:
+    // - onCLS(handleMetric) for Cumulative Layout Shift
+    // - onINP(handleMetric) for Interaction to Next Paint
+    // - onLCP(handleMetric) for Largest Contentful Paint
 
     // Additional metrics
     // onFCP(handleMetric);

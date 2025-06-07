@@ -11,10 +11,22 @@
  */
 
 import { logger } from "@/lib/logger";
-import {
-  CalServiceCategory,
-  MeetingType
-} from '@prisma/client';
+// Define local types instead of importing from Prisma
+enum CalServiceCategory {
+  CONSULTATION = 'CONSULTATION',
+  TATTOO = 'TATTOO',
+  SPECIALTY = 'SPECIALTY',
+  DESIGN = 'DESIGN',
+  SESSION = 'SESSION',
+  TOUCH_UP = 'TOUCH_UP'
+}
+
+enum MeetingType {
+  IN_PERSON = 'IN_PERSON',
+  ONLINE = 'ONLINE',
+  VIDEO_CALL = 'VIDEO_CALL',
+  PHONE_CALL = 'PHONE_CALL'
+}
 
 // Cal.com configuration types
 interface CalProviderConfig {
@@ -126,7 +138,7 @@ export function getCalProviderConfig(): CalProviderConfig | null {
     baseUrl: getEnvVarOrDefault('CAL_API_URL', 'https://api.cal.com/v2'),
     embedUrl: getEnvVarOrDefault('CAL_EMBED_URL', 'https://cal.com'),
     clientId,
-    refreshUrl: getEnvVar('CAL_REFRESH_URL') ?? 'https://api.cal.com/v2/oauth/refresh',
+    refreshUrl: getEnvVar('CAL_REFRESH_URL') ?? '/api/refresh',
     accessToken: getEnvVar('CAL_ACCESS_TOKEN'),
     organizationId: getEnvVar('CAL_ORGANIZATION_ID'),
     apiUrl: getEnvVar('CAL_API_URL') ?? 'https://api.cal.com/v2',

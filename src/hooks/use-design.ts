@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGallery, useDesignById } from './use-gallery-api';
 import type { TattooDesign } from '@prisma/client';
 
@@ -37,22 +37,16 @@ function calculateRelevanceScore(design: TattooDesign, referenceDesign: TattooDe
 export function useDesign(
   designId: string | null,
   options: {
-    prefetchRelated?: boolean;
     preloadImages?: boolean;
-    staleTime?: number;
     onSuccess?: (design: TattooDesign) => void;
     onError?: (error: unknown) => void;
   } = {}
 ) {
   const {
-    prefetchRelated = true,
     preloadImages = true,
-    staleTime = 5 * 60 * 1000,
     onSuccess,
     onError
   } = options;
-  
-  const previousIdRef = useRef<string | null>(null);
   const isValidId = typeof designId === 'string' && designId.trim().length > 0;
   
   const { 
@@ -205,7 +199,7 @@ export function useRelatedDesigns(
       relatedDesigns.forEach((design: TattooDesign, index: number) => {
         if (design.fileUrl) {
           setTimeout(() => {
-            preloadImage(design.fileUrl!);
+            preloadImage(design.fileUrl);
           }, index * 150);
         }
       });
@@ -233,7 +227,6 @@ export function useDesignBatch(
   options: {
     batchSize?: number;
     preloadImages?: boolean;
-    staleTime?: number;
     onSuccess?: (designs: (TattooDesign | null)[]) => void;
     onError?: (errors: unknown[]) => void;
   } = {}
@@ -241,7 +234,6 @@ export function useDesignBatch(
   const {
     batchSize = 5,
     preloadImages = true,
-    staleTime = 2 * 60 * 1000,
     onSuccess,
     onError
   } = options;
@@ -268,38 +260,36 @@ export function useDesignBatch(
     return result;
   }, [validIds, batchSize]);
   
+  // Use a single query to fetch all designs instead of multiple hooks
+  const { data: allDesigns, isLoading, isError, error } = useGallery();
+  
   const batchStates = batches.map((batchIds, index) => {
-    const batchResults = batchIds.map(id => {
-      const query = useDesignById(id);
-      return {
-        isLoading: query.isLoading,
-        isError: query.isError,
-        error: query.error,
-        data: query.data
-      };
+    const batchDesigns = batchIds.map(id => {
+      return allDesigns?.designs?.find((design: TattooDesign) => design.id === id) ?? null;
     });
     
-    const isLoading = batchResults.some(result => result.isLoading);
-    const isError = batchResults.some(result => result.isError);
-    const errors = batchResults.map(result => result.error).filter(Boolean);
-    const designs = batchResults.map(result => result.data ?? null);
-    
-    return { batchId: index, designs, isLoading, isError, errors };
+    return { 
+      batchId: index, 
+      designs: batchDesigns, 
+      isLoading, 
+      isError, 
+      errors: error ? [error] : [] 
+    };
   });
   
   useEffect(() => {
     if (!preloadImages) return;
     
-    const allDesigns = batchStates.flatMap(batch => batch.designs.filter(Boolean));
+    const preloadDesigns = batchStates.flatMap(batch => batch.designs.filter(Boolean));
     
-    allDesigns.forEach(design => {
+    preloadDesigns.forEach(design => {
       if (design?.fileUrl) {
         preloadImage(design.fileUrl);
       }
     });
   }, [batchStates, preloadImages]);
   
-  const allDesigns = useMemo(() => {
+  const allDesignsMap = useMemo(() => {
     const designMap = new Map<string, TattooDesign | null>();
     
     batchStates.forEach(batch => {
@@ -316,9 +306,9 @@ export function useDesignBatch(
   useEffect(() => {
     const isComplete = batchStates.every(batch => !batch.isLoading);
     if (isComplete && onSuccess) {
-      onSuccess(allDesigns);
+      onSuccess(allDesignsMap);
     }
-  }, [allDesigns, batchStates, onSuccess]);
+  }, [allDesignsMap, batchStates, onSuccess]);
   
   useEffect(() => {
     const hasErrors = batchStates.some(batch => batch.isError);
@@ -329,14 +319,14 @@ export function useDesignBatch(
   }, [batchStates, onError]);
 
   return {
-    designs: allDesigns,
+    designs: allDesignsMap,
     isLoading: batchStates.some(batch => batch.isLoading),
     isError: batchStates.some(batch => batch.isError),
     errors: batchStates.flatMap(batch => batch.errors),
-    loadedCount: allDesigns.filter(Boolean).length,
+    loadedCount: allDesignsMap.filter(Boolean).length,
     totalRequested: validIds.length,
-    progress: validIds.length ? Math.round((allDesigns.filter(Boolean).length / validIds.length) * 100) : 0,
-    isPartiallyLoaded: allDesigns.some(Boolean) && batchStates.some(batch => batch.isLoading),
+    progress: validIds.length ? Math.round((allDesignsMap.filter(Boolean).length / validIds.length) * 100) : 0,
+    isPartiallyLoaded: allDesignsMap.some(Boolean) && batchStates.some(batch => batch.isLoading),
     batches: batchStates.length
   };
 }

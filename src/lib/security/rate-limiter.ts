@@ -299,7 +299,7 @@ export function getSecurityHeaders(nonce: string) {
       `style-src 'self' 'nonce-${nonce}' 'unsafe-inline' https://fonts.googleapis.com`,
       "font-src 'self' https://fonts.gstatic.com https://ssl.gstatic.com",
       "img-src 'self' https: data: blob:",
-      "connect-src 'self' https: wss: https://www.google-analytics.com https://analytics.google.com https://*.googleapis.com https://*.gstatic.com https://*.supabase.co",
+      "connect-src 'self' https: wss: https://www.google-analytics.com https://analytics.google.com https://*.googleapis.com https://*.gstatic.com",
       "worker-src 'self' blob:",
       "frame-src 'self' https://challenges.cloudflare.com",
       "object-src 'none'",

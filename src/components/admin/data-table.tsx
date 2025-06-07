@@ -37,34 +37,43 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-// Data table types
-interface RecordObject {
+// Generic record type that extends Prisma models
+interface RecordObject extends Record<string, unknown> {
   id: string;
-  [key: string]: any;
 }
 
-interface AdminDataTableColumn {
+interface CellProps<T extends RecordObject = RecordObject> {
+  row: {
+    original: T;
+  };
+  getValue: () => unknown;
+}
+
+interface AdminDataTableColumn<T extends RecordObject = RecordObject> {
   id: string;
   key: string;
   label: string;
   header?: string | React.ReactNode;
   accessorKey?: string;
-  cell?: (props: any) => React.ReactNode;
+  cell?: (props: CellProps<T>) => React.ReactNode;
   sortable?: boolean;
   searchable?: boolean;
   width?: string;
+  enableSorting?: boolean;
+  enableHiding?: boolean;
+  meta?: Record<string, unknown>;
 }
 
-interface AdminDataTableAction {
+interface AdminDataTableAction<T extends RecordObject = RecordObject> {
   label: string;
-  onClick: (record: RecordObject) => void;
+  onClick: (record: T) => void;
   variant?: 'default' | 'destructive' | 'outline';
   icon?: React.ReactNode;
 }
 
 interface DataTableProps<T extends RecordObject> {
   data: T[];
-  columns: AdminDataTableColumn[];
+  columns: AdminDataTableColumn<T>[];
   loading?: boolean;
   searchPlaceholder?: string;
   actions?: AdminDataTableAction[];
@@ -73,6 +82,8 @@ interface DataTableProps<T extends RecordObject> {
   enableColumnVisibility?: boolean;
   pageSize?: number;
   className?: string;
+  onRefresh?: () => void;
+  onAdd?: () => void;
 }
 
 export function DataTable<T extends RecordObject>({
@@ -146,13 +157,15 @@ export function DataTable<T extends RecordObject>({
                       onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
                       className="h-8 px-2 lg:px-3"
                     >
-                      {col.header as string}
+                      {col.header}
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   ) : (
-                    <span className="font-medium">{col.header as string}</span>
+                    <span className="font-medium">{col.header}</span>
                   )
-              : col.header,
+              : typeof col.header === 'object' && col.header !== null
+              ? () => col.header as React.ReactNode
+              : () => col.label,
           cell:
             col.cell ??
             (({ getValue }) => {
@@ -173,7 +186,7 @@ export function DataTable<T extends RecordObject>({
                 return new Date(value).toLocaleDateString();
               }
 
-              return <div className={col.meta?.className}>{String(value)}</div>;
+              return <div className={(col.meta as Record<string, unknown>)?.['className'] as string}>{String(value)}</div>;
             }),
           ...(col.enableSorting !== undefined && { enableSorting: col.enableSorting }),
           ...(col.enableHiding !== undefined && { enableHiding: col.enableHiding }),

@@ -7,12 +7,12 @@ import { LazyMotion, domAnimation, m as motion } from 'framer-motion';
  * Lazy Motion Provider - loads only necessary motion features
  * Reduces bundle size by ~30KB for framer-motion
  * 
- * NOTE: Currently not in strict mode to allow gradual migration
- * from motion.div to m.div components across the codebase.
+ * NOTE: Explicitly set strict={false} to allow both 'motion' and 'm' 
+ * components to work together during migration period.
  */
 export function LazyMotionProvider({ children }: { children: React.ReactNode }) {
   return (
-    <LazyMotion features={domAnimation}>
+    <LazyMotion features={domAnimation} strict={false}>
       {children}
     </LazyMotion>
   );

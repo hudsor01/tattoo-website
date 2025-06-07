@@ -3,7 +3,6 @@
  * Handles encryption, access control, and security validation
  */
 
-import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'crypto';
 import { logger } from "@/lib/logger";
 
 export interface SecurityConfig {
@@ -37,7 +36,7 @@ export class SecurityUtils {
 
   constructor(config: SecurityConfig = {}) {
     this.config = {
-      encryptionKey: config.encryptionKey ?? process.env.ANALYTICS_ENCRYPTION_KEY ?? this.generateKey(),
+      encryptionKey: config.encryptionKey ?? process.env['ANALYTICS_ENCRYPTION_KEY'] ?? this.generateKey(),
       algorithm: config.algorithm ?? 'aes-256-gcm',
       ivLength: config.ivLength ?? 16,
       hashAlgorithm: config.hashAlgorithm ?? 'sha256',
@@ -48,54 +47,89 @@ export class SecurityUtils {
    * Generate a secure encryption key
    */
   private generateKey(): string {
-    return randomBytes(32).toString('hex');
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
   /**
-   * Encrypt sensitive data
+   * Encrypt sensitive data using Web Crypto API
    */
-  encrypt(data: string): { encrypted: string; iv: string; tag: string } {
-    const iv = randomBytes(this.config.ivLength);
-    const cipher = createCipheriv(this.config.algorithm, Buffer.from(this.config.encryptionKey, 'hex'), iv);
+  async encrypt(data: string): Promise<{ encrypted: string; iv: string }> {
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data);
     
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
+    const iv = new Uint8Array(this.config.ivLength);
+    crypto.getRandomValues(iv);
     
-    const tag = cipher.getAuthTag();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      Buffer.from(this.config.encryptionKey, 'hex'),
+      { name: 'AES-GCM' },
+      false,
+      ['encrypt']
+    );
+    
+    const encrypted = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      dataBuffer
+    );
     
     return {
-      encrypted,
-      iv: iv.toString('hex'),
-      tag: tag.toString('hex')
+      encrypted: Array.from(new Uint8Array(encrypted), byte => byte.toString(16).padStart(2, '0')).join(''),
+      iv: Array.from(iv, byte => byte.toString(16).padStart(2, '0')).join('')
     };
   }
 
   /**
-   * Decrypt sensitive data
+   * Decrypt sensitive data using Web Crypto API
    */
-  decrypt(encryptedData: { encrypted: string; iv: string; tag: string }): string {
-    const decipher = createDecipheriv(
-      this.config.algorithm,
+  async decrypt(encryptedData: { encrypted: string; iv: string }): Promise<string> {
+    const key = await crypto.subtle.importKey(
+      'raw',
       Buffer.from(this.config.encryptionKey, 'hex'),
-      Buffer.from(encryptedData.iv, 'hex')
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
     );
     
-    decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
+    const ivMatches = encryptedData.iv.match(/.{2}/g);
+    const encryptedMatches = encryptedData.encrypted.match(/.{2}/g);
     
-    let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
+    if (!ivMatches || !encryptedMatches) {
+      throw new Error('Invalid encrypted data format');
+    }
     
-    return decrypted;
+    const iv = new Uint8Array(ivMatches.map(byte => parseInt(byte, 16)));
+    const encrypted = new Uint8Array(encryptedMatches.map(byte => parseInt(byte, 16)));
+    
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      encrypted
+    );
+    
+    const decoder = new TextDecoder();
+    return decoder.decode(decrypted);
   }
 
   /**
-   * Hash sensitive data (one-way)
+   * Hash sensitive data (one-way) using Web Crypto API
    */
-  hash(data: string, salt?: string): string {
-    const actualSalt = salt ?? randomBytes(16).toString('hex');
-    const hash = createHash(this.config.hashAlgorithm);
-    hash.update(data + actualSalt);
-    return hash.digest('hex');
+  async hash(data: string, salt?: string): Promise<string> {
+    const actualSalt = salt ?? this.generateRandomString(16);
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data + actualSalt);
+    
+    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+    return Array.from(new Uint8Array(hashBuffer), byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+  
+  private generateRandomString(length: number): string {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -130,11 +164,11 @@ export class SecurityUtils {
     const payload = {
       userId,
       exp: Date.now() + (expiresIn * 1000),
-      nonce: randomBytes(16).toString('hex')
+      nonce: this.generateRandomString(16)
     };
     
     const tokenData = JSON.stringify(payload);
-    return Buffer.from(tokenData).toString('base64');
+    return btoa(tokenData);
   }
 
   /**
@@ -142,7 +176,7 @@ export class SecurityUtils {
    */
   validateToken(token: string): { userId: string; exp: number } | null {
     try {
-      const tokenData = Buffer.from(token, 'base64').toString('utf8');
+      const tokenData = atob(token);
       const payload = JSON.parse(tokenData);
       
       if (payload.exp < Date.now()) {
@@ -228,7 +262,7 @@ export class SecurityUtils {
    * Generate secure random ID
    */
   generateSecureId(length: number = 32): string {
-    return randomBytes(length / 2).toString('hex');
+    return this.generateRandomString(length / 2);
   }
 }
 
@@ -245,6 +279,6 @@ export const SECURITY_CONSTANTS = {
   ALLOWED_DOMAINS: [
     'localhost',
     '127.0.0.1',
-    process.env.DOMAIN_NAME ?? 'tattoo-website.com'
+    process.env['DOMAIN_NAME'] ?? 'tattoo-website.com'
   ]
 } as const;

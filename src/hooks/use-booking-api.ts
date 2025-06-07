@@ -50,7 +50,7 @@ async function createBooking(data: CreateBookingData): Promise<Booking> {
   
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error || 'Failed to create booking');
+    throw new Error(error.error ?? 'Failed to create booking');
   }
   
   return response.json();
@@ -64,8 +64,8 @@ export function useCreateBooking() {
     mutationFn: createBooking,
     onSuccess: () => {
       // Invalidate admin queries to show new booking
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },
   });
 }

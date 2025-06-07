@@ -28,7 +28,7 @@ ipAddress?: string;
 userId?: string;
 sessionId?: string;
 };
-properties?: Record<string, any>;
+properties?: Record<string, string | number | boolean | null>;
 }
 
 export const DataSubjectRequestSchema = z.object({

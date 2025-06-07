@@ -38,14 +38,14 @@ const Button = React.forwardRef<
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
   }
->(function Button(
-  {
+>(function Button(props, ref) {
+  const {
     className,
     variant,
     size,
     asChild = false,
-    ...props
-  }, ref) {
+    ...otherProps
+  } = props;
   const Comp = asChild ? Slot : 'button';
 
   return (
@@ -53,9 +53,11 @@ const Button = React.forwardRef<
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       ref={ref}
-      {...props}
+      {...otherProps}
     />
   );
 });
+
+Button.displayName = "Button";
 
 export { Button, buttonVariants };

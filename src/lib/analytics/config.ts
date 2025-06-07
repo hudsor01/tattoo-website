@@ -41,9 +41,24 @@ export const analyticsConfig: AnalyticsConfig = {
   maxRetries: parseInt(process.env['ANALYTICS_MAX_RETRIES'] ?? '3'),
   retryDelay: parseInt(process.env['ANALYTICS_RETRY_DELAY'] ?? '1000'), // 1 second
   
-  // Feature flags
-  enableBatching: process.env['ANALYTICS_ENABLE_BATCHING'] !== 'false', // enabled by default
-  enableErrorLogging: process.env['ANALYTICS_ENABLE_ERROR_LOGGING'] !== 'false', // enabled by default
+  // Feature flags  
+  enableBatchProcessing: process.env['ANALYTICS_ENABLE_BATCHING'] !== 'false', // enabled by default
+  enableErrorReporting: process.env['ANALYTICS_ENABLE_ERROR_LOGGING'] !== 'false', // enabled by default
+  
+  // Additional required properties
+  enableDebugMode: process.env['NODE_ENV'] === 'development',
+  enableDataRetention: true,
+  dataRetentionDays: 90,
+  enableRealTimeMetrics: true,
+  realTimeUpdateInterval: 5000,
+  enableCaching: true,
+  cacheExpiration: 300000, // 5 minutes
+  enableRateLimiting: true,
+  rateLimitWindow: 900000, // 15 minutes
+  rateLimitMaxRequests: 100,
+  enableCompression: true,
+  enableDataValidation: true,
+  enablePerformanceMonitoring: true,
 };
 
 // Development overrides
@@ -51,7 +66,7 @@ if (isDevelopment) {
   // Smaller batches and faster flushing for development
   analyticsConfig.batchSize = 3;
   analyticsConfig.flushInterval = 2000; // 2 seconds
-  analyticsConfig.enableErrorLogging = true;
+  analyticsConfig.enableErrorReporting = true;
 }
 
 // Production optimizations
@@ -162,7 +177,7 @@ if (isDevelopment) {
   void logger.warn('Analytics Configuration:', {
     batchSize: analyticsConfig.batchSize,
     flushInterval: analyticsConfig.flushInterval,
-    enableBatching: analyticsConfig.enableBatching,
+    enableBatchProcessing: analyticsConfig.enableBatchProcessing,
     maxRetries: analyticsConfig.maxRetries,
   });
   

@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
 import HomeClient from '@/components/home/HomeClient';
+import { ClientOnly } from '@/components/ClientOnly';
 
-// Enable Partial Prerendering (PPR) for optimal performance
-export const experimental_ppr = true;
+// PPR removed - unstable beta feature
 
-// Force static generation with revalidation every 4 hours
-export const dynamic = 'force-static';
-export const revalidate = 14400;
+// Use static rendering for better performance
+export const dynamic = 'auto';
 
 export const metadata: Metadata = {
   title: 'Ink 37 | Custom Tattoos in Dallas/Fort Worth by Fernando Govea',
@@ -127,7 +126,15 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClient />
+      <ClientOnly fallback={
+        <div className="fixed inset-0 overflow-hidden bg-black">
+          <div className="h-full w-full flex items-center justify-center">
+            <div className="text-white text-2xl">Loading...</div>
+          </div>
+        </div>
+      }>
+        <HomeClient />
+      </ClientOnly>
     </>
   );
 }

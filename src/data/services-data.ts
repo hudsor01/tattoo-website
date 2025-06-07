@@ -1,16 +1,23 @@
 import { Palette, Camera, Gem, RefreshCw } from 'lucide-react';
 // Service type for tattoo services data
-type Service = {
+export type Service = {
   id: string;
   title: string;
   description: string;
   shortDescription: string;
   features: string[];
   icon: React.ComponentType<{ className?: string }>;
-  startingPrice: number;
-  duration: string;
-  category: 'design' | 'session' | 'consultation';
-  popularityScore: number;
+  startingPrice?: number;
+  duration?: string;
+  category?: 'design' | 'session' | 'consultation';
+  popularityScore?: number;
+  process?: string[];
+  detailedProcess?: Array<{
+    title: string;
+    description: string;
+  }>;
+  image?: string;
+  color?: string;
 };
 
 /**

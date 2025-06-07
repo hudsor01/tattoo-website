@@ -2,7 +2,8 @@
 
 import React from 'react';
 import ContactForm from '@/components/contact/ContactForm';
-import { motion } from '@/components/performance/LazyMotion';
+import GoogleMapInteractive from '@/components/contact/GoogleMapInteractive';
+import { motion } from 'framer-motion';
 import { Mail, Instagram, MapPin, Clock, ChevronRight, Phone, Info, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -68,12 +69,12 @@ export default function ContactClient() {
           viewport={{ once: true, margin: '-100px' }}
           variants={fadeInUp}
         >
-          <h1 className="heading-large gradient-text-muted mb-4">Get In Touch</h1>
+          <h1 className="heading-large text-white mb-4">Get In Touch</h1>
           <p className="paragraph-medium max-w-2xl mx-auto mb-6">
             Have questions? Ready to schedule a consultation? Reach out today.
           </p>
           <motion.div
-            className="h-1 w-24 mx-auto bg-linear-to-r from-red-500 via-orange-500 to-amber-500"
+            className="h-1 w-24 mx-auto bg-fernando-gradient"
             variants={fadeInUp}
           />
         </motion.div>
@@ -88,8 +89,8 @@ export default function ContactClient() {
           >
             <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8 h-full flex flex-col">
               <h2 className="heading-small mb-6 flex items-center text-white">
-              <Phone className="mr-3 text-tattoo-red" size={24} />
-              Send Me a Message
+                <Phone className="mr-3 text-[#E63A35]" size={24} />
+                Send Me a Message
               </h2>
 
               <p className="paragraph-small mb-6">
@@ -104,21 +105,14 @@ export default function ContactClient() {
               {/* Map Section */}
               <div className="mt-10 flex-grow flex flex-col">
                 <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                <MapPin className="mr-2 text-tattoo-red" size={20} />
-                Dallas/Fort Worth Service Area
+                  <MapPin className="mr-2 text-[#E63A35]" size={20} />
+                  Dallas/Fort Worth Service Area
                 </h3>
-                <div className="rounded-lg overflow-hidden border border-white/10 flex-grow min-h-[400px]">
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d429075.96657545672d-97.203498202113393d32.811402816939152m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.13m3!1m2!1s0x864c19f77b45974b%3A0xb9ec9ba4f647678f!2sDallas-Fort%20Worth%20Metroplex%2C%20TX!5e0!3m2!1sen!2sus!4v1714578896054!5m2!1sen!2sus"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen={false}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Dallas-Fort Worth Metroplex Map"
-                  />
-                </div>
+                <GoogleMapInteractive 
+                  className="border border-white/10 flex-grow"
+                  height="400px"
+                  showControls={true}
+                />
               </div>
             </div>
           </motion.div>
@@ -132,8 +126,8 @@ export default function ContactClient() {
           >
             <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8 h-full flex flex-col">
               <h2 className="heading-small mb-6 flex items-center text-white">
-              <Info className="mr-3 text-tattoo-red" size={24} />
-              Contact Information
+                <Info className="mr-3 text-[#E63A35]" size={24} />
+                Contact Information
               </h2>
 
               <div className="space-y-6">
@@ -144,7 +138,7 @@ export default function ContactClient() {
                     {/* Email */}
                     <motion.a
                       href="mailto:fennyg83@gmail.com"
-                      className="w-16 h-16 rounded-full bg-linear-to-r from-red-500/20 to-orange-500/20 flex items-center justify-center text-red-400 hover:text-white transition-colors border border-red-500/30 hover:border-red-400"
+                      className="w-16 h-16 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-fernando-red hover:text-white transition-colors border border-fernando-red/30 hover:border-fernando-orange"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       title="Send Email"
@@ -157,7 +151,7 @@ export default function ContactClient() {
                       href="https://instagram.com/fennyg83"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-16 h-16 rounded-full bg-linear-to-tr from-purple-600/20 via-pink-500/20 to-orange-400/20 flex items-center justify-center text-pink-400 hover:text-white transition-colors border border-pink-500/30 hover:border-pink-400"
+                      className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600/20 via-pink-500/20 to-orange-400/20 flex items-center justify-center text-pink-400 hover:text-white transition-colors border border-pink-500/30 hover:border-pink-400"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       title="Follow on Instagram"
@@ -170,7 +164,7 @@ export default function ContactClient() {
                       href="https://tiktok.com/@fennyg83"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-16 h-16 rounded-full bg-linear-to-r from-black/40 to-red-500/20 flex items-center justify-center text-white hover:text-red-400 transition-colors border border-white/20 hover:border-red-400"
+                      className="w-16 h-16 rounded-full bg-gradient-to-r from-black/40 to-red-500/20 flex items-center justify-center text-white hover:text-red-400 transition-colors border border-white/20 hover:border-red-400"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       title="Follow on TikTok"
@@ -182,7 +176,7 @@ export default function ContactClient() {
 
                 {/* Working Hours */}
                 <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-tattoo-red/20 flex items-center justify-center text-tattoo-red mr-4">
+                  <div className="w-10 h-10 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-[#E63A35] mr-4">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -196,7 +190,7 @@ export default function ContactClient() {
 
                 {/* Location */}
                 <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-tattoo-red/20 flex items-center justify-center text-tattoo-red mr-4">
+                  <div className="w-10 h-10 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-[#E63A35] mr-4">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
@@ -213,7 +207,7 @@ export default function ContactClient() {
               <motion.div className="mt-8 mb-6" variants={fadeInUp}>
                 <Button
                   asChild
-                  className="w-full bg-linear-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 hover:scale-105 transition-all duration-300 group"
+                  className="w-full bg-fernando-gradient hover:opacity-90 transition-all duration-300 group"
                 >
                   <Link href="/booking" className="flex items-center justify-center">
                     Book a Consultation
@@ -225,8 +219,8 @@ export default function ContactClient() {
               {/* FAQ Section */}
               <div className="mt-6">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <HelpCircle className="mr-2 text-tattoo-red" size={20} />
-                Quick FAQs
+                  <HelpCircle className="mr-2 text-[#E63A35]" size={20} />
+                  Quick FAQs
                 </h3>
 
                 <motion.div
@@ -238,13 +232,13 @@ export default function ContactClient() {
                   {faqItems.map((faq) => (
                     <motion.div
                       key={faq.question}
-                      className="bg-black/30 border border-white/10 rounded-lg p-6 hover:border-red-500/30 transition-colors"
+                      className="bg-black/30 border border-white/10 rounded-lg p-6 hover:border-fernando-red/30 transition-colors"
                       variants={fadeInUp}
                       whileHover={{ y: -2 }}
                       transition={{ duration: 0.3 }}
                     >
                       <h4 className="font-medium text-white mb-3 text-base flex items-center">
-                        <span className="w-7 h-7 rounded-full bg-linear-to-r from-red-500/20 to-orange-500/20 flex items-center justify-center text-red-400 mr-3 text-sm font-semibold">
+                        <span className="w-7 h-7 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-red-400 mr-3 text-sm font-semibold">
                           Q
                         </span>
                         {faq.question}
@@ -272,7 +266,7 @@ export default function ContactClient() {
           viewport={{ once: true, margin: '-50px' }}
           variants={fadeInUp}
         >
-          <div className="bg-linear-to-br from-tattoo-black to-tattoo-black/90 rounded-2xl border border-tattoo-red/20 shadow-xl p-8 md:p-12">
+          <div className="bg-gradient-to-br from-black to-black/90 rounded-2xl border border-fernando-red/20 shadow-xl p-8 md:p-12">
             <div className="max-w-3xl mx-auto text-center">
               <motion.h2
                 className="text-2xl md:text-3xl font-bold text-white mb-4"
@@ -293,7 +287,7 @@ export default function ContactClient() {
                   <Button
                     size="lg"
                     asChild
-                    className="bg-linear-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group"
+                    className="bg-fernando-gradient hover:opacity-90 group"
                   >
                     <Link href="/booking" className="inline-flex items-center">
                       Book a Consultation
@@ -307,14 +301,14 @@ export default function ContactClient() {
                     variant="outline"
                     size="lg"
                     asChild
-                    className="relative border-2 border-red-500 bg-linear-to-r from-var(--color-red-500)/10 via-var(--color-orange-500)/10 to-var(--color-amber-500)/10 text-white hover:bg-linear-to-r hover:from-var(--color-red-500)/20 hover:via-var(--color-orange-500)/20 hover:to-var(--color-amber-500)/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
+                    className="relative border-2 border-fernando-red bg-fernando-gradient/10 text-white hover:bg-fernando-gradient/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
                   >
                     <Link href="/gallery" className="inline-flex items-center relative z-10">
-                      <span className="bg-linear-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
+                      <span className="bg-fernando-gradient bg-clip-text text-transparent font-semibold">
                         View My Gallery
                       </span>
-                      <ChevronRight className="ml-2 h-4 w-4 text-amber-400 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
-                      <div className="absolute inset-0 bg-linear-to-r from-red-500/5 via-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                      <ChevronRight className="ml-2 h-4 w-4 text-[#FF6800] transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-fernando-gradient/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
                     </Link>
                   </Button>
                 </motion.div>

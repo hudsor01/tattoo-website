@@ -5,20 +5,24 @@
  * 
  * This file provides unified hooks for data fetching, including:
  * - Infinite queries
- * - TRPC integration
+ * - API integration
  * - Specialized domain queries
  */
 
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc/client-provider';
-import { AppointmentStatus } from '@prisma/client';
-import type { TRPCError } from '@trpc/server';
+// Import proper types from Prisma
+import type { BookingStatus } from '@prisma/client';
+type AppointmentStatus = BookingStatus;
 
-// GENERIC INFINITE QUERY HOOKS
+// Add missing type imports
+interface TRPCError extends Error {
+  code?: string;
+  data?: unknown;
+}
 
 
 interface UseTRPCInfiniteQueryProps<T> {
-  queryKey: string[];
+  queryKey: (string | Record<string, unknown>)[];
   queryFn: (params: { pageParam?: number }) => Promise<{
     data: T[];
     nextCursor?: number | null;
@@ -111,40 +115,56 @@ export function useGalleryInfiniteQuery({
   limit?: number;
   enabled?: boolean;
 } = {}) {
-  return trpc.gallery.getPublicDesigns.useInfiniteQuery(
-    {
-      limit,
-      designType,
+  return useTRPCInfiniteQuery({
+    queryKey: ['gallery', 'publicDesigns', { designType, limit }],
+    queryFn: async ({ pageParam = 0 }) => {
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        cursor: pageParam.toString(),
+        ...(designType && { designType }),
+      });
+      
+      const response = await fetch(`/api/gallery/public-designs?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch gallery designs');
+      }
+      
+      return await response.json();
     },
-    {
-      enabled,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+    enabled,
+  });
 }
 
 /**
- * appointments infinite query hook
+ * Appointments infinite query hook
  */
-export function useappointmentsInfiniteQuery({
+export function useAppointmentsInfiniteQuery({
   status,
   limit = 20,
   enabled = true,
 }: {
-  status?: string;
+  status?: AppointmentStatus;
   limit?: number;
   enabled?: boolean;
 } = {}) {
-  return trpc.appointments.getAll.useInfiniteQuery(
-    {
-      limit,
-      status: status as AppointmentStatus | undefined,
+  return useTRPCInfiniteQuery({
+    queryKey: ['appointments', 'getAll', { status, limit }],
+    queryFn: async ({ pageParam = 0 }) => {
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        cursor: pageParam.toString(),
+        ...(status && { status }),
+      });
+      
+      const response = await fetch(`/api/appointments?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch appointments');
+      }
+      
+      return await response.json();
     },
-    {
-      enabled,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+    enabled,
+  });
 }
 
 /**
@@ -159,14 +179,22 @@ export function useCustomersInfiniteQuery({
   limit?: number;
   enabled?: boolean;
 } = {}) {
-  return trpc.admin.customers.useInfiniteQuery(
-    {
-      limit,
-      searchTerm,
+  return useTRPCInfiniteQuery({
+    queryKey: ['admin', 'customers', { searchTerm, limit }],
+    queryFn: async ({ pageParam = 0 }) => {
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        cursor: pageParam.toString(),
+        ...(searchTerm && { searchTerm }),
+      });
+      
+      const response = await fetch(`/api/admin/customers?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch customers');
+      }
+      
+      return await response.json();
     },
-    {
-      enabled,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+    enabled,
+  });
 }

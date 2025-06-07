@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDesign } from '@/hooks/use-gallery';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,14 +12,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, ChevronLeft, InfoIcon, RulerIcon, ShareIcon } from 'lucide-react';
 import Image from 'next/image';
 import { ShareDialog } from './share-dialog';
-import { logger } from "@/lib/logger";
-
-interface RelatedDesign {
-  id: string;
-  name: string;
-  thumbnailUrl?: string;
-  designType?: string;
-}
+import { BookingModal } from '@/components/booking/BookingModal';
 
 interface DesignDetailProps {
   id: string;
@@ -29,29 +21,20 @@ interface DesignDetailProps {
 export function DesignDetail({ id }: DesignDetailProps) {
   const router = useRouter();
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const viewStartTimeRef = useRef<Date | null>(null);
 
-  // Fetch the design data
   const { design, isLoading } = useDesign(id);
 
-  // Get related designs (popular designs in the same category)
-  // Note: Popular designs feature removed with analytics
-  const popularDesigns: RelatedDesign[] = [];
-
-  // Initialize view tracking (analytics removed)
+  // Initialize view tracking
   useEffect(() => {
     if (design && !isLoading) {
-      // Record view start time for potential future analytics
       viewStartTimeRef.current = new Date();
     }
 
-    // Cleanup on unmount
-    return () => {
-      if (viewStartTimeRef.current && design) {
-        // View duration tracking removed with analytics
-      }
-    };
+    // Cleanup on unmount - no action needed
   }, [design, isLoading, id]);
+
 
   // Handle back navigation
   const handleBack = () => {
@@ -60,7 +43,6 @@ export function DesignDetail({ id }: DesignDetailProps) {
 
   // Handle share button click
   const handleShare = () => {
-    // Share analytics tracking removed
     
     // Try native sharing first
     if (navigator.share) {
@@ -71,7 +53,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
           url: window.location.href,
         })
         .catch((error) => {
-          void void logger.error('Error sharing', error);
+          console.error('Error sharing:', error);
           // Fallback to our custom share dialog if native sharing fails
           setShareDialogOpen(true);
         });
@@ -83,10 +65,8 @@ export function DesignDetail({ id }: DesignDetailProps) {
 
   // Handle booking click
   const handleBooking = () => {
-    // Booking analytics tracking removed
-
-    // Navigate to booking page
-    void router.push(`/booking?designId=${id}`);
+    // Open booking modal instead of navigating
+    setBookingModalOpen(true);
   };
 
   // We shouldn't hit this but just in case
@@ -104,9 +84,6 @@ export function DesignDetail({ id }: DesignDetailProps) {
       </div>
     );
   }
-
-  // Filter related designs to exclude current design
-  const relatedDesigns = popularDesigns?.filter((d: { id: string }) => d.id !== id) || [];
 
   return (
     <div className="space-y-8">
@@ -188,27 +165,18 @@ export function DesignDetail({ id }: DesignDetailProps) {
             )}
           </div>
 
-          {design?.Artist?.User && (
+          {design?.artistName && (
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Artist</p>
-              <Link href={`/Artists/${design.Artist.id}`} className="flex items-center gap-3 group">
+              <Link href={`/artists/${design.artistId}`} className="flex items-center gap-3 group">
                 <Avatar className="h-10 w-10">
-                  {design.Artist.User.image ? (
-                    <AvatarImage
-                      src={design.Artist.User.image}
-                      alt={`${design.Artist.User.name ?? 'Professional tattoo artist'} - Ink 37 Tattoos`}
-                    />
-                  ) : (
-                    <AvatarFallback>
-                      {design.Artist.User.name
-                        ? design.Artist.User.name.charAt(0).toUpperCase()
-                        : 'A'}
+                  <AvatarFallback>
+                    {design.artistName.charAt(0).toUpperCase()}
                     </AvatarFallback>
-                  )}
                 </Avatar>
                 <div>
                   <p className="font-medium group-hover:text-primary transition-colors">
-                    {design.Artist.User.name}
+                    {design.artistName}
                   </p>
                   <p className="text-sm text-muted-foreground">Tattoo Artist</p>
                 </div>
@@ -229,54 +197,32 @@ export function DesignDetail({ id }: DesignDetailProps) {
       <ShareDialog
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
-        contentType="design"
+        contentType="tattoo"
         contentId={id}
         title={design?.name ?? 'Tattoo Design'}
       />
 
-      {/* Related designs section */}
-      {relatedDesigns.length > 0 && (
-        <div className="pt-8">
-          <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {relatedDesigns.map((relatedDesign: RelatedDesign) => (
-              <Link
-                href={`/gallery/${relatedDesign.id}`}
-                key={relatedDesign.id}
-                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-              >
-                <Card className="overflow-hidden h-full transition-all hover:shadow-md hover:translate-y-[-2px]">
-                  <div className="relative h-48 bg-muted/20">
-                    {relatedDesign.thumbnailUrl ? (
-                      <Image
-                        src={relatedDesign.thumbnailUrl}
-                        alt={`${relatedDesign.designType ?? 'Custom'} tattoo design: ${relatedDesign.name} - Professional tattoo art by Ink 37`}
-                        style={{ objectFit: 'cover' }}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted">
-                        <InfoIcon className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="space-y-1">
-                      <h3 className="font-medium line-clamp-1">{relatedDesign.name}</h3>
-                      {relatedDesign.designType && (
-                        <Badge variant="secondary" className="text-xs">
-                          {relatedDesign.designType}
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+      {/* Booking Modal */}
+      <BookingModal
+        open={bookingModalOpen}
+        onOpenChange={setBookingModalOpen}
+        designId={id}
+        designName={design?.name}
+      />
+
+      {/* Back to Gallery CTA */}
+      <div className="pt-8 border-t border-border">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Explore more of our work</p>
+          <Button variant="outline" asChild>
+            <Link href="/gallery">
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Back to Gallery
+            </Link>
+          </Button>
         </div>
-      )}
+      </div>
+
     </div>
   );
 }

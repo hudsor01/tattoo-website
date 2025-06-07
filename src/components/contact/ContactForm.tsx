@@ -7,12 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { submitContactAction } from '@/lib/actions/contact-actions';
+import type { ContactFormState } from '@/lib/prisma-types';
 import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
-import type { ContactFormState } from '@prisma/client';
 
 // Initial state for React 19 useActionState
 const initialState: ContactFormState = {
   status: 'idle',
+  success: false,
 };
 
 // Submit button component using React 19 useFormStatus
@@ -55,7 +56,7 @@ function SuccessMessage({ onReset }: { onReset: () => void }) {
       <Button
         onClick={onReset}
         variant="outline"
-        className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-400"
+        className="border-fernando-red/30 text-fernando-red hover:bg-fernando-gradient/10 hover:border-fernando-orange"
       >
         Send Another Message
       </Button>
@@ -90,7 +91,7 @@ export default function ContactForm() {
       {/* Name Field */}
       <div className="space-y-2">
         <Label htmlFor={nameId} className="text-white font-medium">
-          Full Name <span className="text-red-400">*</span>
+          Full Name <span className="text-fernando-red">*</span>
         </Label>
         <Input
           id={nameId}
@@ -101,7 +102,7 @@ export default function ContactForm() {
           aria-describedby={state.errors?.['name'] ? `${nameId}-error` : undefined}
         />
         {state.errors?.['name'] && (
-          <p id={`${nameId}-error`} className="text-red-400 text-sm" role="alert">
+          <p id={`${nameId}-error`} className="text-fernando-red text-sm" role="alert">
             {state.errors['name']?.[0] ?? 'Name is required'}
           </p>
         )}
@@ -110,7 +111,7 @@ export default function ContactForm() {
       {/* Email Field */}
       <div className="space-y-2">
         <Label htmlFor={emailId} className="text-white font-medium">
-          Email Address <span className="text-red-400">*</span>
+          Email Address <span className="text-fernando-red">*</span>
         </Label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
@@ -125,7 +126,7 @@ export default function ContactForm() {
           />
         </div>
         {state.errors?.['email'] && (
-          <p id={`${emailId}-error`} className="text-red-400 text-sm" role="alert">
+          <p id={`${emailId}-error`} className="text-fernando-red text-sm" role="alert">
             {state.errors['email']?.[0] ?? 'Valid email is required'}
           </p>
         )}
@@ -134,7 +135,7 @@ export default function ContactForm() {
       {/* Subject Field */}
       <div className="space-y-2">
         <Label htmlFor={subjectId} className="text-white font-medium">
-          Subject <span className="text-red-400">*</span>
+          Subject <span className="text-fernando-red">*</span>
         </Label>
         <Input
           id={subjectId}
@@ -145,7 +146,7 @@ export default function ContactForm() {
           aria-describedby={state.errors?.['subject'] ? `${subjectId}-error` : undefined}
         />
         {state.errors?.['subject'] && (
-          <p id={`${subjectId}-error`} className="text-red-400 text-sm" role="alert">
+          <p id={`${subjectId}-error`} className="text-fernando-red text-sm" role="alert">
             {state.errors['subject']?.[0] ?? 'Subject is required'}
           </p>
         )}
@@ -154,7 +155,7 @@ export default function ContactForm() {
       {/* Message Field */}
       <div className="space-y-2">
         <Label htmlFor={messageId} className="text-white font-medium">
-          Message <span className="text-red-400">*</span>
+          Message <span className="text-fernando-red">*</span>
         </Label>
         <Textarea
           id={messageId}
@@ -167,7 +168,7 @@ export default function ContactForm() {
           aria-describedby={state.errors?.['message'] ? `${messageId}-error` : undefined}
         />
         {state.errors?.['message'] && (
-          <p id={`${messageId}-error`} className="text-red-400 text-sm" role="alert">
+          <p id={`${messageId}-error`} className="text-fernando-red text-sm" role="alert">
             {state.errors['message']?.[0] ?? 'Message is required'}
           </p>
         )}
@@ -178,10 +179,10 @@ export default function ContactForm() {
 
       {/* Error Display */}
       {state.status === 'error' && state.message && (
-        <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
+        <div className="bg-fernando-gradient/20 border border-fernando-red/30 rounded-lg p-4">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-            <div className="text-red-400 text-sm">
+            <AlertCircle className="w-5 h-5 text-fernando-red flex-shrink-0" />
+            <div className="text-fernando-red text-sm">
               <p>{state.message}</p>
               {state.rateLimitInfo && (
                 <p className="mt-1 text-xs">
@@ -205,7 +206,7 @@ export default function ContactForm() {
           You can also reach me directly at:{' '}
           <a
             href="mailto:fennyg83@gmail.com"
-            className="text-red-400 hover:text-red-300 transition-colors"
+            className="text-fernando-red hover:text-red-300 transition-colors"
           >
             fennyg83@gmail.com
           </a>

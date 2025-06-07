@@ -1,19 +1,21 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import Script from 'next/script';
 import { ENV } from '@/lib/utils/env';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import { seoConfig, generateBusinessStructuredData } from '@/lib/seo/seo-config';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
+import { ClientOnly } from '@/components/ClientOnly';
 
 import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(typeof seoConfig.siteUrl === 'string' ? seoConfig.siteUrl : 'https://ink37tattoos.com'),
-  title: seoConfig.defaultTitle,
-  description: seoConfig.defaultDescription,
+  title: {
+    default: seoConfig.defaultTitle,
+    template: '%s | Ink 37 Tattoos'
+  },
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -29,8 +31,6 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: typeof seoConfig.siteUrl === 'string' ? seoConfig.siteUrl : 'https://ink37tattoos.com',
-    title: seoConfig.defaultTitle,
-    description: seoConfig.defaultDescription,
     siteName: seoConfig.businessName,
     images: [
       {
@@ -81,11 +81,6 @@ type RootLayoutProps = {
 };
 
 export default async function RootLayout({ children }: RootLayoutProps) {
-  const cookieStore = await cookies();
-  const cookieEntries = Object.fromEntries(
-    cookieStore.getAll().map((cookie) => [cookie.name, cookie.value])
-  );
-
   return (
     <html
       lang="en"
@@ -128,9 +123,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link rel="canonical" href="https://ink37tattoos.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://qrcweallqlcgwiwzhqpb.supabase.co" />
       </head>
-      <body className="font-inter bg-black text-white antialiased">
+      <body className={`${inter.variable} ${montserrat.variable} ${pacifico.variable} ${satisfy.variable} font-sans bg-black text-white antialiased`}>
         {/* Google Analytics */}
         {typeof ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID === 'string' && ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>
@@ -140,10 +134,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             />
             <Script id="google-analytics" strategy="afterInteractive">
               {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
+                if (typeof window !== 'undefined') {
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
+                }
               `}
             </Script>
           </>
@@ -158,17 +154,17 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         {/* PWA Service Worker Registration */}
         <Script
           id="register-service-worker"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js', { scope: '/' })
                     .then(function(registration) {
-                      void logger.warn('ServiceWorker registration successful with scope: ', registration.scope);
+                      // Service worker registered successfully
                     })
                     .catch(function(error) {
-                      void logger.error('ServiceWorker registration failed: ', error);
+                      // Service worker registration failed silently
                     });
                 });
               }
@@ -176,11 +172,16 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           }}
         />
         
-        {/* Providers system */}
-        <Providers cookies={cookieEntries}>
-          <NavigationSystem />
-          {children}
-        </Providers>
+        {/* Next.js App Router root element for React hydration */}
+        <div id="__next">
+          {/* Providers system */}
+          <Providers>
+            <ClientOnly>
+              <NavigationSystem />
+            </ClientOnly>
+            {children}
+          </Providers>
+        </div>
       </body>
     </html>
   );

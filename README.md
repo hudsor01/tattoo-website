@@ -15,7 +15,7 @@ Professional tattoo artist website with booking system and portfolio management.
 ## Tech Stack
 
 - Next.js 15 with TypeScript
-- Prisma + Supabase database
+- Prisma + PostgreSQL database
 - Better Auth authentication
 - Tailwind CSS styling
 - tRPC for type-safe APIs

@@ -2,28 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { Prisma } from '@prisma/client';
 
-// GET /api/gallery - Get all approved designs for public gallery
+// GET /api/gallery - Get all designs for gallery
 export async function GET(request: NextRequest) {
+  // Cache for 5 minutes, revalidate every hour
+  const response = NextResponse.next();
+  response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = parseInt(searchParams.get('limit') ?? '20');
     const cursor = searchParams.get('cursor');
     const designType = searchParams.get('designType');
 
     // Build where clause
-    const where: any = {
-      isApproved: true,
-    };
+    const where: Prisma.TattooDesignWhereInput = {};
 
     if (designType) {
       where.designType = designType;
     }
 
     // Get designs with pagination
-    const queryOptions: any = {
+    const queryOptions: Prisma.TattooDesignFindManyArgs = {
       where,
-      take: limit + 1, // Get one extra to check if there are more
+      take: limit + 1,
       orderBy: { createdAt: 'desc' },
     };
 
@@ -38,17 +40,21 @@ export async function GET(request: NextRequest) {
     let nextCursor: string | null = null;
     if (designs.length > limit) {
       const nextItem = designs.pop();
-      nextCursor = nextItem!.id;
+      nextCursor = nextItem?.id ?? null;
     }
 
     // Get total count for pagination info
     const totalCount = await prisma.tattooDesign.count({ where });
 
-    return NextResponse.json({
+    const result = NextResponse.json({
       designs,
       nextCursor,
       totalCount,
     });
+    
+    // Set cache headers for static data
+    result.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+    return result;
   } catch (error) {
     console.error('Gallery API error:', error);
     return NextResponse.json(
@@ -83,12 +89,12 @@ export async function POST(request: NextRequest) {
     const design = await prisma.tattooDesign.create({
       data: {
         name,
-        description: description || null,
+        description: description ?? null,
         fileUrl,
-        thumbnailUrl: fileUrl, // Use same URL for thumbnail initially
-        designType: designType || null,
-        size: size || null,
-        isApproved: false, // Require admin approval
+        thumbnailUrl: fileUrl,
+        designType: designType ?? null,
+        size: size ?? null,
+        isApproved: false,
         artistId: 'fernando-govea',
         artistName: 'Fernando Govea',
       },

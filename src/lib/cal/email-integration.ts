@@ -5,7 +5,16 @@
  * Email templates are currently disabled
  */
 
-import type { CalBookingPayload } from '@prisma/client';
+// Define local type instead of importing from Prisma
+interface CalBookingPayload {
+  id: string;
+  uid: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  attendees: Array<{ email: string; name: string }>;
+}
 
 import { logger } from "@/lib/logger";
 /**

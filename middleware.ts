@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { User } from "@prisma/client";
+import { getSessionCookie } from "better-auth/cookies";
 import { logger } from "@/lib/logger";
 
 // Protected routes that require authentication
@@ -8,10 +7,7 @@ const protectedRoutes = [
   "/admin",
 ];
 
-// Admin-only routes
-const adminRoutes = [
-  "/admin",
-];
+// Note: Admin role checking is now handled in page components
 
 // Static asset patterns that should be served directly
 const staticAssetPatterns = [
@@ -66,33 +62,21 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Get session using Better Auth
-    const session = await auth.api.getSession({
-      headers: request.headers
-    });
+    // Use Better Auth recommended approach for middleware
+    const sessionCookie = getSessionCookie(request);
 
-    // If no session for protected route, allow the component to handle auth
-    if (!session) {
-      return NextResponse.next();
+    // If no session cookie for protected route, let page component handle auth
+    // This follows Better Auth best practices for middleware
+    if (!sessionCookie) {
+      void logger.info('No session cookie found for protected route:', pathname);
     }
 
-    // Check admin routes
-    const isAdminRoute = adminRoutes.some(route => 
-      pathname.startsWith(route)
-    );
-
-    if (isAdminRoute) {
-      const user = session.user as User;
-      if (user.role !== 'admin') {
-        const unauthorizedUrl = new URL("/unauthorized", request.url);
-        return NextResponse.redirect(unauthorizedUrl);
-      }
-    }
-
+    // Always continue to page component for detailed auth checks
+    // Page components will handle redirects based on session and role
     return NextResponse.next();
     
   } catch (error) {
-    void logger.error('Middleware auth error:', error);
+    void logger.error('Middleware error:', error);
     return NextResponse.next();
   }
 }

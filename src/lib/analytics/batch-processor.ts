@@ -4,6 +4,8 @@
  */
 
 import { logger } from "@/lib/logger";
+import { CalAnalyticsEventType, CalAnalyticsService } from './cal-analytics';
+import { safeAnalyticsOperation } from './retry-wrapper';
 // Local types for analytics processing
 interface ProcessedAnalyticsEvent {
 sessionId: string;
@@ -16,7 +18,7 @@ userAgent?: string;
 serviceId?: string;
 bookingId?: string;
 calEventTypeId?: number;
-properties?: Record<string, any>;
+properties?: Record<string, string | number | boolean | null>;
 duration?: number;
 }
 
@@ -42,8 +44,6 @@ flushInterval: 5000,
 maxRetries: 3,
 retryDelay: 1000,
 };
-import { safeAnalyticsOperation } from './retry-wrapper';
-import { CalAnalyticsService } from './cal-analytics';
 
 export class AnalyticsBatchProcessor {
   private queue: ProcessedAnalyticsEvent[] = [];
@@ -87,7 +87,7 @@ export class AnalyticsBatchProcessor {
         // Convert to the format expected by CalAnalyticsService
         const eventData = {
           sessionId: event.sessionId,
-          eventType: event.eventType,
+          eventType: event.eventType as CalAnalyticsEventType,
           ipAddress: event.context.ipAddress,
           ...(event.context.userId && { userId: event.context.userId }),
           ...(event.context.userAgent && { userAgent: event.context.userAgent }),
@@ -149,7 +149,7 @@ export class AnalyticsBatchProcessor {
           const promises = batch.events.map(event => {
             const eventData = {
               sessionId: event.sessionId,
-              eventType: event.eventType,
+              eventType: event.eventType as CalAnalyticsEventType,
               ipAddress: event.context.ipAddress,
               ...(event.context.userId && { userId: event.context.userId }),
               ...(event.context.userAgent && { userAgent: event.context.userAgent }),

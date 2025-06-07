@@ -3,28 +3,26 @@
  * 
  * Provides standardized authentication functions for API routes.
  */
-import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { ApiErrors } from '@/lib/api-errors';
 import { User } from '@prisma/client';
-import type { ApiError } from '@prisma/client';
+// Define ApiError locally
+interface ApiError {
+  code: string;
+  message: string;
+  statusCode: number;
+}
 
 /**
  * Get the current session from a Next.js API route
  */
-export async function getSessionFromRequest(_request: NextRequest) {
+export async function getSessionFromRequest(request: NextRequest) {
   try {
-    const headersList = await headers();
-    // Convert ReadonlyHeaders to Headers for auth API compatibility
-    const headersObj = new Headers();
-    headersList.forEach((value, key) => {
-      headersObj.set(key, value);
-    });
-    
+    // Use request headers directly to get session
     return await auth.api.getSession({
-      headers: headersObj
+      headers: request.headers
     });
   } catch (error) {
     void logger.error('Error getting session from request:', error);

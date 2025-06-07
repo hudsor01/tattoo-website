@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { ENV } from '@/lib/utils/env';
-// Health check types for API response
 type HealthCheckResult = {
   status: 'pass' | 'fail' | 'warn';
   responseTime?: number;
@@ -77,22 +75,13 @@ function checkMemory(): HealthCheckResult {
 
 async function checkExternalServices(): Promise<HealthCheckResult> {
   try {
-    // Check Supabase connection
-    const supabaseUrl = typeof ENV.NEXT_PUBLIC_SUPABASE_URL === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_URL : '';
-    const supabaseKey = typeof ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'string' ? ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY : '';
+    // Check database connection via Prisma
+    await prisma.$queryRaw`SELECT 1`;
     
-    const supabaseCheck = await fetch(`${supabaseUrl}/rest/v1/`, {
-      method: 'HEAD',
-      headers: {
-        apikey: supabaseKey,
-      },
-    });
-
     return {
-      status: supabaseCheck.ok ? 'pass' : 'warn',
+      status: 'pass',
       details: {
-        supabase: supabaseCheck.ok ? 'connected' : 'disconnected',
-        statusCode: supabaseCheck.status,
+        database: 'connected via Prisma',
       },
     };
   } catch {

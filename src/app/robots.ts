@@ -12,7 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/api/',
           '/admin/',
-          '/client-portal/',
           '/auth/',
           '/account/',
           '/_next/',
@@ -31,13 +30,13 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/client-portal/'],
+        disallow: ['/api/', '/admin/'],
         crawlDelay: 0,
       },
       {
         userAgent: 'Bingbot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/client-portal/'],
+        disallow: ['/api/', '/admin/'],
         crawlDelay: 1,
       },
     ],

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import type { CTASectionProps } from '@prisma/client';
+import type { CTASectionProps } from '@/lib/prisma-types';
 
 /**
  * CTA Section Component
@@ -39,7 +39,7 @@ export function CTASection({
             asChild
             className="bg-linear-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group"
           >
-            <Link href={primaryButtonLink} className="inline-flex items-center">
+            <Link href={primaryButtonLink ?? '#'} className="inline-flex items-center">
               {primaryButtonText}
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
@@ -51,7 +51,7 @@ export function CTASection({
               asChild
               className="relative border-2 border-red-500 bg-linear-to-r from-var(--color-red-500)/10 via-var(--color-orange-500)/10 to-var(--color-amber-500)/10 text-white hover:from-var(--color-red-500)/20 hover:via-var(--color-orange-500)/20 hover:to-var(--color-amber-500)/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
             >
-              <Link href={secondaryButtonLink} className="inline-flex items-center relative z-10">
+              <Link href={secondaryButtonLink ?? '#'} className="inline-flex items-center relative z-10">
                 <span className="bg-linear-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
                   {secondaryButtonText}
                 </span>

@@ -1,8 +1,9 @@
 /**
  * Gallery Design Detail Page
  *
- * Real implementation that fetches tattoo design data directly from the database
- * using Prisma and displays detailed information about a specific design.
+ * Displays detailed information about tattoo designs and reference images.
+ * This includes both completed tattoo work and customer reference images
+ * uploaded through contact forms for consultation purposes.
  */
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
@@ -17,7 +18,8 @@ import {
 import { DesignDetail } from '@/components/gallery/DesignDetail';
 import { DesignDetailSkeleton } from '@/components/gallery/DesignDetailSkeleton';
 import type { Metadata } from 'next';
-// Page props type for Next.js dynamic pages
+
+
 type PageProps = {
   params: { id: string };
   searchParams?: { [key: string]: string | string[] | undefined };
@@ -26,10 +28,10 @@ type PageProps = {
 // Enable static generation with revalidation every 6 hours
 export const revalidate = 21600;
 
-// Generate static paths for all approved designs with build-time safety
+// Generate static paths for all designs with build-time safety
 export async function generateStaticParams() {
   const designs = await getBuildSafeTattooDesigns({
-    where: { isApproved: true },
+    where: {},
     select: { id: true },
     take: 100,
     orderBy: { createdAt: 'desc' },
@@ -48,7 +50,7 @@ export async function generateStaticParams() {
 
 // Generate metadata for SEO with build-time safety
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { id } = params;
   const design = (await getBuildSafeTattooDesign(id, {
     select: {
       name: true,
@@ -69,7 +71,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   })) as Partial<GalleryDesign> | null;
 
   if (!design) {
-    // Return fallback metadata if design not found or database unavailable
     return getFallbackGalleryMetadata(id);
   }
 
@@ -120,13 +121,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 import type { TattooDesign } from '@prisma/client';
 type GalleryDesign = TattooDesign;
 
-// Server component that fetches real data
+// Server component that fetches design data
 export default async function DesignDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id } = params;
   let design: GalleryDesign | null = null;
 
   try {
-    // Fetch the design with basic data (relationships don't exist in schema)
+    // Fetch the design with basic data
     design = await prisma.tattooDesign.findUnique({
       where: { id },
     });
@@ -135,16 +136,8 @@ export default async function DesignDetailPage({ params }: PageProps) {
     if (!design) {
       notFound();
     }
-
-    // Check if design is approved for public viewing
-    // Only approved designs or designs viewed by authorized users should be visible
-    if (!design.isApproved) {
-      // For now, unapproved designs are not shown to regular users
-      // TODO: Implement Better Auth user checking
-      notFound();
-    }
   } catch (error) {
-    void void logger.error('Error fetching design:', error);
+    void logger.error('Error fetching design:', error);
     notFound();
   }
 
@@ -158,8 +151,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
   }[] = await prisma.tattooDesign.findMany({
     where: {
       artistId: design.artistId,
-      isApproved: true,
-      id: { not: design.id }, // Exclude current design
+      id: { not: design.id },
     },
     take: 6,
     orderBy: { createdAt: 'desc' },
@@ -183,7 +175,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
         {relatedDesigns.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">
-              More from {design.artistName}
+              More from this collection
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {relatedDesigns.map((related) => (

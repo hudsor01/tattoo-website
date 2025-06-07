@@ -30,13 +30,6 @@
       "command": "uvx",
       "args": ["mcp-server-fetch"]
     },
-    "supabase": {
-      "command": "node",
-      "args": ["scripts/start-supabase-mcp.js"],
-      "options": {
-        "readOnly": true
-      }
-    },
     "puppeteer": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-puppeteer"]

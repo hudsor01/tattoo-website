@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-cal-client-id': process.env['NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID'] ?? '',
-        'x-cal-secret-key': process.env['CAL_OAUTH_CLIENT_SECRET'] ?? '',
+        'x-cal-client-id': process.env['CAL_CLIENT_ID'] ?? '',
+        'x-cal-secret-key': process.env['X_CAL_SECRET_KEY'] ?? '',
       },
       body: JSON.stringify({ refreshToken }),
     });

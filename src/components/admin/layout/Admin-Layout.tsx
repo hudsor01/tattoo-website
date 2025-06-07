@@ -2,7 +2,23 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import type { AdminPageHeaderProps, AdminPageStructureProps } from '@/lib/prisma-types';
+// Admin layout types
+interface AdminPageHeaderProps {
+  title: string;
+  description?: string;
+  badge?: {
+    text: string;
+    variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  };
+  actions?: React.ReactNode;
+}
+
+interface AdminPageStructureProps {
+  header: AdminPageHeaderProps;
+  children: React.ReactNode;
+  className?: string;
+  sidebar?: React.ReactNode;
+}
 
 // Types moved to @/types/component-types:
 // AdminPageHeaderProps, AdminPageStructureProps

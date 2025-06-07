@@ -155,10 +155,8 @@ export function createAnalyticsError(
   message: string,
   retryable: boolean = true
 ): AnalyticsError {
-  return {
-    code,
-    message,
-    timestamp: new Date(),
-    retryable,
-  };
+  const error = new Error(message) as AnalyticsError;
+  error.code = code;
+  error.retryable = retryable;
+  return error;
 }

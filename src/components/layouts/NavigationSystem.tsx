@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
-import HomeNavbar from './HomeNavbar';
 
 export default function NavigationSystem() {
   const pathname = usePathname();
@@ -17,9 +16,9 @@ export default function NavigationSystem() {
     return null;
   }
 
-  // Home page uses special navigation
+  // Home page uses navigation from HomeClient component - no navigation needed here
   if (pathname === '/') {
-    return <HomeNavbar />;
+    return null;
   }
 
   // All other pages use standard navigation

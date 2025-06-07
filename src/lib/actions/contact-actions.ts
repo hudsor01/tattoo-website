@@ -9,13 +9,7 @@ import { ENV } from '@/lib/utils/env';
 import { checkRateLimit } from '@/lib/security/rate-limiter';
 import { headers } from 'next/headers';
 import { NextRequest } from 'next/server';
-// Contact form state type for server actions
-type ContactFormState = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string[]>;
-  data?: Record<string, unknown>;
-};
+import type { ContactFormState } from '@/lib/prisma-types';
 
 import { logger } from "@/lib/logger";
 /**
@@ -48,6 +42,7 @@ export async function submitContactAction(
     if (!validationResult.success) {
       return {
         status: 'error',
+        success: false,
         message: 'Please check your form data and try again.',
         errors: validationResult.error.flatten().fieldErrors,
       };
@@ -57,12 +52,11 @@ export async function submitContactAction(
 
     // Implement server-side rate limiting
     // Create a fake NextRequest to use with checkRateLimit
-    const headersList = headers();
-    // Headers are accessed synchronously in Next.js App Router
-    // Using optional chaining to safely access headers in case it's a Promise
-    const userAgent = headersList?.get?.('user-agent') ?? '';
-    const xForwardedFor = headersList?.get?.('x-forwarded-for') ?? '';
-    const host = headersList?.get?.('host') ?? '';
+    const headersList = await headers();
+    // Extract header values safely
+    const userAgent = headersList.get('user-agent') ?? '';
+    const xForwardedFor = headersList.get('x-forwarded-for') ?? '';
+    const host = headersList.get('host') ?? '';
     
     // Create a proper request object with the required properties for rate limiting
     const request: NextRequest = {
@@ -80,16 +74,17 @@ export async function submitContactAction(
 
     // If rate limit exceeded, return error response with additional rate limit information
     if (!rateLimitResult.allowed) {
-      const resetTime = new Date(rateLimitResult.resetTime);
       const timeRemaining = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
       
       return {
         status: 'error',
+        success: false,
         message: `Rate limit exceeded. You can try again in ${timeRemaining} seconds.`,
         rateLimitInfo: {
           limit: rateLimitResult.limit,
           remaining: rateLimitResult.remaining,
-          resetTime: resetTime.toISOString(),
+          reset: rateLimitResult.resetTime,
+          retryAfter: timeRemaining,
           timeRemaining: timeRemaining
         }
       };
@@ -100,18 +95,9 @@ export async function submitContactAction(
       data: sanitizeForPrisma({
         name: validatedData.name ?? '',
         email: validatedData.email ?? '',
-        phone: validatedData.phone ?? '',
+        phone: validatedData.phone ?? null,
         message: validatedData.message ?? '',
-        subject: validatedData.subject ?? 'Website Contact Form',
-        service: validatedData.service ?? '',
-        referralSource: validatedData.referralSource ?? '',
-        preferredTime: validatedData.preferredTime ?? '',
-        budget: validatedData.budget ?? '',
-        hasReference: validatedData.hasReference ?? false,
-        referenceImages: [], // File uploads would need separate handling in Server Actions
-        status: 'new',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        status: 'NEW',
       }),
     });
 
@@ -137,7 +123,7 @@ export async function submitContactAction(
       
       const adminEmail = generateAdminContactEmail(adminEmailData);
       await sendEmail({
-        to: (ENV['ARTIST_EMAIL'] ?? 'fennyg83@gmail.com') as string,
+        to: 'fennyg83@gmail.com',
         subject: adminEmail.subject,
         html: adminEmail.html,
         text: adminEmail.text,
@@ -168,15 +154,16 @@ export async function submitContactAction(
 
     return {
       status: 'success',
+      success: true,
       message:
         'Your message has been sent successfully! I will get back to you within 24-48 hours.',
-      submissionId: contactSubmission.id.toString(),
     };
   } catch (error) {
     void logger.error('Contact form submission error:', error);
 
     return {
       status: 'error',
+      success: false,
       message:
         'Sorry, there was an error sending your message. Please try again or contact me directly.',
     };

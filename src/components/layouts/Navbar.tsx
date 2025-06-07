@@ -8,16 +8,19 @@ import { motion } from '@/components/performance/LazyMotion';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 
-import type { NavigationLink } from '@prisma/client';
+// Define navigation link type locally
+interface NavigationLink {
+  href: string;
+  label: string;
+  isButton?: boolean;
+}
 
-// Navigation links for main site
+// Navigation links for main site - reordered per user request
 const navigationLinks: NavigationLink[] = [
-  { href: '/', label: 'Home' },
-  { href: '/services', label: 'Services' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
-  { href: '/booking', label: 'Book Now', isButton: true },
+{ href: '/about', label: 'About' },
+{ href: '/gallery', label: 'Gallery' },
+{ href: '/services', label: 'Services' },
+{ href: '/contact', label: 'Contact' },
 ];
 
 export function Navbar() {
@@ -56,7 +59,7 @@ export function Navbar() {
   return (
     <>
       {/* Spacer div to prevent content from being hidden under navbar */}
-      <div className="nav-spacer"></div>
+      <div className="nav-spacer h-20 sm:h-24 md:h-28 lg:h-32"></div>
 
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -66,51 +69,55 @@ export function Navbar() {
         }`}
       >
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex justify-between items-center">
-            {/* Brand/Logo Space */}
-            <Link href="/" className="relative z-20">
-              <div className="font-satisfy text-lg sm:text-2xl text-red-500">
-                Ink 37 Tattoos
-              </div>
+          <div className="flex items-center justify-between">
+            {/* Brand/Logo */}
+            <Link href="/" className="relative z-20 flex-shrink-0">
+            <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-16 sm:h-20 md:h-24 w-auto"
+            />
             </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-              {navigationLinks.map((link) =>
-                link.isButton ? (
-                  <Button
-                    key={link.href}
-                    asChild
-                    variant="default"
-                    className="bg-red-500 hover:bg-red-600 text-white ml-2 text-sm lg:text-base"
-                    size="sm"
-                  >
-                    <Link href={link.href}>{link.label}</Link>
-                  </Button>
-                ) : (
-                  <Button
-                    key={link.href}
-                    asChild
-                    variant="ghost"
-                    className={`text-white hover:text-white/80 text-sm lg:text-base ${
-                      pathname === link.href ? 'bg-white/10' : ''
-                    }`}
-                    size="sm"
-                  >
-                    <Link href={link.href}>{link.label}</Link>
-                  </Button>
-                )
-              )}
+            {/* Desktop Navigation - Centered */}
+            <nav className="hidden md:flex items-center justify-center flex-1 space-x-3 lg:space-x-4">
+            {navigationLinks.map((link) => (
+            <Button
+            key={link.href}
+            asChild
+            variant="ghost"
+            className={`text-white hover:text-white hover:bg-white/10 text-sm lg:text-base transition-all duration-300 ${
+            pathname === link.href 
+            ? 'bg-fernando-gradient hover:opacity-90' 
+            : ''
+            }`}
+            size="sm"
+            >
+            <Link href={link.href}>{link.label}</Link>
+            </Button>
+            ))}
             </nav>
-
+            
+            {/* Book Now Button - Right side */}
+            <div className="hidden md:block flex-shrink-0">
+            <Button
+            asChild
+            variant="default"
+            className="bg-fernando-gradient hover:opacity-90 text-white text-sm lg:text-base"
+            size="sm"
+            >
+            <Link href="/booking">Book Now</Link>
+            </Button>
+            </div>
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 text-white focus:outline-none"
+              className="md:hidden p-2 text-white focus:outline-none flex-shrink-0"
               onClick={toggleMobileMenu}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
+
+
           </div>
         </div>
 
@@ -125,20 +132,29 @@ export function Navbar() {
               className="md:hidden bg-black/95 backdrop-blur-md shadow-lg"
             >
               <nav className="container mx-auto px-4 py-4 flex flex-col space-y-3">
-                {navigationLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`text-white py-2 px-4 rounded-md ${
-                    pathname === link.href ? 'bg-red-500/20 font-medium' : 'hover:bg-white/5'
-                    } ${link.isButton ? 'bg-red-500 text-center' : ''}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-            </motion.div>
+              {navigationLinks.map((link) => (
+              <Link
+              key={link.href}
+              href={link.href}
+              className={`text-white py-2 px-4 rounded-md transition-all duration-300 ${
+              pathname === link.href
+              ? 'bg-fernando-gradient font-medium'
+              : 'hover:bg-white/5'
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+              >
+              {link.label}
+              </Link>
+              ))}
+              {/* Book Now button in mobile menu */}
+              <Link
+              href="/booking"
+              className="text-white py-2 px-4 rounded-md bg-fernando-gradient text-center font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+              >
+              Book Now
+              </Link>
+              </nav>            </motion.div>
           )}
         </AnimatePresence>
       </header>

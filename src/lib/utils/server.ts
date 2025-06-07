@@ -3,6 +3,8 @@
  * Do not import this file in client components
  */
 
+import 'server-only';
+
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { auth } from '@/lib/auth';

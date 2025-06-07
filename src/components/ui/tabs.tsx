@@ -7,37 +7,36 @@ import { cn } from '@/utils';
 const Tabs = TabsPrimitive.Root;
 
 const TabsList = React.forwardRef<
-  React.ComponentRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+React.ComponentRef<typeof TabsPrimitive.List>,
+React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      'inline-flex items-center justify-center rounded-lg bg-black/50 p-1.5 border border-white/10 shadow-lg',
-      className
-    )}
-    {...props}
-  />
+<TabsPrimitive.List
+ref={ref}
+className={cn(
+'inline-flex items-center justify-center rounded-lg bg-black/50 p-1.5 border border-white/10 shadow-lg backdrop-blur-sm',
+className
+)}
+{...props}
+/>
 ));
 TabsList.displayName = TabsPrimitive.List.displayName;
 
 const TabsTrigger = React.forwardRef<
-  React.ComponentRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+React.ComponentRef<typeof TabsPrimitive.Trigger>,
+React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-5 py-3 text-sm font-medium relative transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-      'data-[state=inactive]:text-white/80 data-[state=inactive]:hover:bg-white/5 data-[state=inactive]:hover:text-white data-[state=inactive]:hover:glow-red',
-      'data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:glow-red',
-      className
-    )}
-    {...props}
-  >
-    {children}
-    {/* Removed the animated underline */}
-  </TabsPrimitive.Trigger>
+<TabsPrimitive.Trigger
+ref={ref}
+className={cn(
+'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-5 py-3 text-sm font-medium relative transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+'data-[state=inactive]:text-white/80 data-[state=inactive]:hover:bg-white/10 data-[state=inactive]:hover:text-white',
+'data-[state=active]:bg-fernando-gradient data-[state=active]:text-white data-[state=active]:shadow-lg',
+className
+)}
+{...props}
+>
+{children}
+</TabsPrimitive.Trigger>
 ));
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 

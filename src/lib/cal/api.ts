@@ -6,16 +6,36 @@
  */
 
 import { z } from 'zod';
-import { createHmac, timingSafeEqual } from 'crypto';
-import type { Prisma, CalBooking, CalEventType } from '@prisma/client';
+// Cal.com API types (local definitions since not in Prisma schema)
+type CalBooking = {
+  id: string;
+  uid: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  attendees: Array<{
+    email: string;
+    name: string;
+  }>;
+};
 
-// Cal.com API types using Prisma.GetPayload
-type CalBookingPayload = Prisma.CalBookingGetPayload<{
-  include: {
-    eventType: true;
-    attendees: true;
-  };
-}>;
+type CalEventType = {
+  id: number;
+  title: string;
+  slug: string;
+  description?: string;
+  length: number;
+  price?: number;
+};
+
+type CalBookingPayload = CalBooking & {
+  eventType: CalEventType;
+  attendees: Array<{
+    email: string;
+    name: string;
+  }>;
+};
 
 type CalAvailabilityResponse = {
   busy: Array<{
@@ -40,23 +60,21 @@ type GetCalappointmentsOptions = {
   startDate?: string;
   endDate?: string;
 };
-import { ENV, SERVER_ENV } from '@/lib/utils/env';
-
 // Environment validation
 const envSchema = z.object({
-  CAL_API_KEY: z.string().min(1),
+  CAL_API_KEY: z.string().min(1).optional(),
   CAL_API_URL: z.string().url().default('https://api.cal.com/v2'),
   CAL_WEBHOOK_SECRET: z.string().optional(),
 });
 
 const env = envSchema.parse({
-  CAL_API_KEY: SERVER_ENV.CAL_API_KEY,
-  CAL_API_URL: SERVER_ENV.CAL_API_URL,
-  CAL_WEBHOOK_SECRET: SERVER_ENV.CAL_WEBHOOK_SECRET,
-});
+  CAL_API_KEY: process.env['CAL_API_KEY'],
+  CAL_API_URL: process.env['CAL_API_URL'] ?? 'https://api.cal.com/v2',
+  CAL_WEBHOOK_SECRET: process.env['CAL_WEBHOOK_SECRET'],
+} as z.infer<typeof envSchema>);
 
 // Legacy V1 API URL for backward compatibility
-const CAL_API_V1_URL = SERVER_ENV.CAL_API_URL ?? 'https://api.cal.com/v1';
+const CAL_API_V1_URL = process.env['CAL_API_URL'] ?? 'https://api.cal.com/v1';
 
 // API Response Types
 export interface CalBookingResponse {
@@ -131,7 +149,7 @@ export class CalApiClient {
 
   constructor() {
     this.baseUrl = env.CAL_API_URL;
-    this.apiKey = env.CAL_API_KEY;
+    this.apiKey = env.CAL_API_KEY ?? '';
   }
 
   private get headers(): Record<string, string> {
@@ -351,7 +369,7 @@ export async function getCalappointments({
   }
 
   const params = new URLSearchParams();
-  void params.append('limit', String(limit));
+  params.append('limit', String(limit));
   if (status) params.append('status', status);
   if (eventTypeId) params.append('eventTypeId', String(eventTypeId));
 
@@ -519,23 +537,37 @@ export async function rescheduleCalBooking(
 }
 
 // Webhook Signature Verification
-export function verifyWebhookSignature(
+export async function verifyWebhookSignature(
   payload: string,
   signature: string | null
-): boolean {
+): Promise<boolean> {
   if (!signature || !env.CAL_WEBHOOK_SECRET) {
     return false;
   }
 
   try {
-    const expectedSignature = createHmac('sha256', env.CAL_WEBHOOK_SECRET)
-      .update(payload)
-      .digest('hex');
-    
-    return timingSafeEqual(
-      Buffer.from(signature.replace('sha256=', '')),
-      Buffer.from(expectedSignature)
+    // Use Web Crypto API for browser/edge runtime compatibility
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(env.CAL_WEBHOOK_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
     );
+    
+    const signatureBuffer = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(payload)
+    );
+    
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    const providedSignature = signature.replace('sha256=', '');
+    return expectedSignature === providedSignature;
   } catch {
     return false;
   }

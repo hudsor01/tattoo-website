@@ -8,20 +8,31 @@ import {
   type FileWithPath,
   type FileRejection,
   type FileError,
-  type DropEvent,
 } from 'react-dropzone';
 import { useCallback, useRef, useState, useContext, createContext } from 'react';
 // Dropzone types
 type DropzoneFile = FileWithPath & {
   preview?: string;
   id?: string;
+  errors?: { message: string }[];
 };
 
 type DropzoneContextType = {
   files: DropzoneFile[];
+  setFiles: React.Dispatch<React.SetStateAction<DropzoneFile[]>>;
   addFiles: (files: File[]) => void;
   removeFile: (fileId: string) => void;
   clearFiles: () => void;
+  onUpload: () => void;
+  loading: boolean;
+  successes: string[];
+  errors: { name: string; message: string }[];
+  maxFileSize: number;
+  maxFiles: number;
+  isSuccess: boolean;
+  inputRef: React.RefObject<HTMLInputElement>;
+  isDragActive: boolean;
+  isDragReject: boolean;
 };
 
 type CustomDropzoneProps = {
@@ -34,6 +45,7 @@ type CustomDropzoneProps = {
   multiple?: boolean;
   disabled?: boolean;
   className?: string;
+  children?: React.ReactNode;
 };
 
 export const formatBytes = (
@@ -82,7 +94,7 @@ const Dropzone = ({ className, children, ...restProps }: CustomDropzoneProps) =>
 
       // Call external onDrop if provided
       if (restProps.onDrop) {
-        restProps.onDrop(acceptedFiles, fileRejections, new Event('drop') as DropEvent);
+        restProps.onDrop(acceptedFiles);
       }
     },
     [restProps]
@@ -97,6 +109,23 @@ const Dropzone = ({ className, children, ...restProps }: CustomDropzoneProps) =>
   const contextValue = {
     files,
     setFiles,
+    addFiles: (newFiles: File[]) => {
+      const dropzoneFiles = newFiles.map(file => 
+        Object.assign(file, {
+          preview: URL.createObjectURL(file),
+          errors: [],
+        }) as DropzoneFile
+      );
+      setFiles(prev => [...prev, ...dropzoneFiles]);
+    },
+    removeFile: (fileId: string) => {
+      setFiles(prev => prev.filter(file => file.name !== fileId));
+    },
+    clearFiles: () => {
+      setFiles([]);
+      setErrors([]);
+      setSuccesses([]);
+    },
     onUpload: () => {},
     loading: false,
     successes,
@@ -110,7 +139,7 @@ const Dropzone = ({ className, children, ...restProps }: CustomDropzoneProps) =>
   };
 
   return (
-    <DropzoneContext.Provider value={contextValue}>
+    <DropzoneContext.Provider value={contextValue as DropzoneContextType}>
       <div
         {...getRootProps({
           className: cn(
@@ -193,7 +222,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
               <p title={file.name} className="text-sm text-white truncate max-w-full">
                 {file.name}
               </p>
-              {file.errors.length > 0 ? (
+              {file.errors && file.errors.length > 0 ? (
                 <p className="text-xs text-red-400">
                   {file.errors
                     .map((e) =>
@@ -238,7 +267,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
           <Button
             variant="outline"
             onClick={onUpload}
-            disabled={files.some((file) => file.errors.length !== 0) || loading}
+            disabled={files.some((file) => file.errors && file.errors.length !== 0) || loading}
             className="border-white/20 text-white hover:bg-white/10"
           >
             {loading ? (
@@ -275,7 +304,10 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
         <p className="text-xs text-white/60">
           Drag and drop or{' '}
           <a
-            onClick={() => inputRef.current?.click()}
+            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+              e.preventDefault();
+              inputRef.current?.click();
+            }}
             className="underline cursor-pointer transition hover:text-white"
           >
             select {maxFiles === 1 ? `file` : 'files'}

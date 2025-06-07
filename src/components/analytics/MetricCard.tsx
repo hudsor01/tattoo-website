@@ -5,7 +5,20 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MetricCardProps } from '@prisma/client';
+// MetricCard props interface
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  icon?: React.ReactNode;
+  change?: {
+    value: number;
+    period: string;
+  };
+  trend?: 'up' | 'down' | 'neutral';
+  className?: string;
+  variant?: 'default' | 'accent' | 'success' | 'warning' | 'danger';
+  description?: string;
+}
 
 export function MetricCard({ 
   title, 
@@ -48,8 +61,8 @@ export function MetricCard({
                 {trend === 'up' && <ArrowUpRight className="h-3 w-3" />}
                 {trend === 'down' && <ArrowDownRight className="h-3 w-3" />}
                 {trend === 'neutral' && <TrendingUp className="h-3 w-3" />}
-                {change > 0 && trend !== 'down' && '+'}
-                {change}%
+                {change.value > 0 && trend !== 'down' && '+'}
+                {change.value}%
               </Badge>
             </div>
             

@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
 import AboutClient from '@/components/AboutClient';
+import { metadata } from './metadata';
 
 // Force static generation
 export const dynamic = 'force-static';
 export const revalidate = 86400; // 24 hours
 
-export const metadata: Metadata = {
-  title: 'About Us | Ink 37 Tattoos',
-  description:
-    'Learn about Ink 37 Tattoos, a custom tattoo artist\'s dream in Dallas/Fort Worth. Meet Fernando Govea, a passionate artist with over 10 years of experience.',
-};
+// Export metadata from metadata.ts file
+export { metadata };
 
 /**
  * About Page - Server Component that wraps the client component

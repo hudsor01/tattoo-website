@@ -13,10 +13,6 @@ const clientEnvSchema = z.object({
   // App URL
   NEXT_PUBLIC_APP_URL: z.string().optional(),
 
-  // Database (Supabase)
-  NEXT_PUBLIC_SUPABASE_URL: z.string().min(1, 'NEXT_PUBLIC_SUPABASE_URL is required'),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'NEXT_PUBLIC_SUPABASE_ANON_KEY is required'),
-
   // Authentication (Better Auth)
   NEXT_PUBLIC_AUTH_SECRET: z.string().optional(),
   NEXT_PUBLIC_AUTH_URL: z.string().default('/api/auth'),
@@ -44,8 +40,6 @@ const serverEnvSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DIRECT_URL: z.string().min(1, 'DIRECT_URL is required'),
   
-  // Supabase
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   
   // Authentication
   AUTH_SECRET: z.string().min(1, 'AUTH_SECRET is required'),
@@ -86,8 +80,6 @@ const serverEnvSchema = z.object({
 function validateClientEnv() {
   const clientEnv = {
     NEXT_PUBLIC_APP_URL: process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://ink37tattoos.com',
-    NEXT_PUBLIC_SUPABASE_URL: process.env['NEXT_PUBLIC_SUPABASE_URL'],
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'],
     NEXT_PUBLIC_AUTH_SECRET: process.env['NEXT_PUBLIC_AUTH_SECRET'],
     NEXT_PUBLIC_AUTH_URL: process.env['NEXT_PUBLIC_AUTH_URL'],
     NEXT_PUBLIC_CAL_USERNAME: process.env['NEXT_PUBLIC_CAL_USERNAME'],
@@ -110,7 +102,7 @@ function validateClientEnv() {
       throw new Error('Invalid client environment variables');
     }
 
-    // In development, we still need to return the environment variables even if they're not valid
+    // In development, we allow invalid environment variables to pass through
     return clientEnv as z.infer<typeof clientEnvSchema>;
   }
 
@@ -128,9 +120,6 @@ function validateServerEnv() {
     // Database
     DATABASE_URL: process.env['DATABASE_URL'],
     DIRECT_URL: process.env['DIRECT_URL'],
-    
-    // Supabase
-    SUPABASE_SERVICE_ROLE_KEY: process.env['SUPABASE_SERVICE_ROLE_KEY'],
     
     // Authentication
     AUTH_SECRET: process.env['AUTH_SECRET'],
@@ -180,7 +169,7 @@ function validateServerEnv() {
       throw new Error('Invalid server environment variables');
     }
 
-    // In development, we still need to return the environment variables even if they're not valid
+    // In development, we allow invalid environment variables to pass through
     return serverEnv as z.infer<typeof serverEnvSchema>;
   }
 

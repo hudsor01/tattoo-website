@@ -215,6 +215,8 @@ export default [
       '**/dist/**',
       '**/coverage/**',
       '**/backup/**',
+      '**/playwright-report/**',
+      '**/test-results/**',
     ],
   },
   ...nextRules.map(config => ({

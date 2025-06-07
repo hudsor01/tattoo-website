@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
     }
 
     // In production, you might want to:
-    // 1. Store in database (Supabase, PostgreSQL, etc.)
-    // 2. Send to monitoring service (DataDog, New Relic, etc.)
+    // 1. Store in database
+    // 2. Send to monitoring service
     // 3. Trigger alerts for poor performance
 
     // Example database storage:
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
       '30d': now - 30 * 24 * 60 * 60 * 1000,
     };
 
-    const timeFilter = timeFilters[timeframe as keyof typeof timeFilters] || timeFilters['24h'];
+    const timeFilter = timeFilters[timeframe as keyof typeof timeFilters] ?? timeFilters['24h'];
 
     let filteredData = performanceData.filter((item) => item.timestamp >= timeFilter);
 

@@ -175,6 +175,7 @@ model Booking {
   
   // Relationships
   customer        Customer? @relation(fields: [customerId], references: [id])
+  payments        Payment[]
   
   @@index([email])
   @@index([status])
@@ -243,7 +244,7 @@ model CalAnalyticsEvent {
   eventName     String
   userId        String?
   serviceId     String?
-  bookingId     String?
+  bookingId     Int?
   properties    Json?
   userAgent     String?
   ipAddress     String?
@@ -251,11 +252,14 @@ model CalAnalyticsEvent {
   url           String?
   duration      Int?
   timestamp     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
   @@index([sessionId])
   @@index([eventType])
-  @@index([timestamp])
   @@index([userId])
+  @@index([serviceId])
+  @@index([timestamp])
   @@map("cal_analytics_event")
 }
 
@@ -336,8 +340,12 @@ model Payment {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   
+  // Relationships
+  booking       Booking?    @relation(fields: [bookingId], references: [id])
+  
   @@index([status])
   @@index([createdAt])
+  @@index([bookingId])
   @@map("payment")
 }
 

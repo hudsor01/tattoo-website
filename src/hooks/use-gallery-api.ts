@@ -131,7 +131,12 @@ export function useGallery(params: {
 export function useDesignById(id: string | null) {
   return useQuery({
     queryKey: ['design', id],
-    queryFn: () => fetchDesignById(id!),
+    queryFn: () => {
+      if (!id) {
+        throw new Error('Design ID is required');
+      }
+      return fetchDesignById(id);
+    },
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -144,7 +149,7 @@ export function useCreateDesign() {
     mutationFn: createDesign,
     onSuccess: () => {
       // Invalidate and refetch gallery queries
-      queryClient.invalidateQueries({ queryKey: ['gallery'] });
+      void queryClient.invalidateQueries({ queryKey: ['gallery'] });
     },
   });
 }
@@ -160,7 +165,7 @@ export function useUpdateDesign() {
       queryClient.setQueryData(['design', updatedDesign.id], updatedDesign);
       
       // Invalidate gallery queries to refresh lists
-      queryClient.invalidateQueries({ queryKey: ['gallery'] });
+      void queryClient.invalidateQueries({ queryKey: ['gallery'] });
     },
   });
 }
@@ -175,7 +180,7 @@ export function useDeleteDesign() {
       queryClient.removeQueries({ queryKey: ['design', deletedId] });
       
       // Invalidate gallery queries to refresh lists
-      queryClient.invalidateQueries({ queryKey: ['gallery'] });
+      void queryClient.invalidateQueries({ queryKey: ['gallery'] });
     },
   });
 }

@@ -4,6 +4,8 @@
  * This file ensures that there's only a single Prisma Client instance in the app,
  * even during hot reloading in development.
  */
+import 'server-only';
+
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../logger';
 

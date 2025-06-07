@@ -20,20 +20,6 @@ export async function GET(
       );
     }
 
-    // Check if design is approved or if user is authenticated
-    if (!design.isApproved) {
-      const session = await auth.api.getSession({
-        headers: await headers()
-      });
-
-      if (!session?.user) {
-        return NextResponse.json(
-          { error: 'Design not found' },
-          { status: 404 }
-        );
-      }
-    }
-
     return NextResponse.json(design);
   } catch (error) {
     console.error('Get design error:', error);
@@ -61,7 +47,16 @@ export async function PUT(
     const body = await request.json();
     const { name, description, fileUrl, designType, size, isApproved } = body;
 
-    const updateData: any = {
+    const updateData: Partial<{
+      name: string;
+      description: string | null;
+      fileUrl: string;
+      thumbnailUrl: string;
+      designType: string | null;
+      size: string | null;
+      isApproved: boolean;
+      updatedAt: Date;
+    }> = {
       updatedAt: new Date(),
     };
 

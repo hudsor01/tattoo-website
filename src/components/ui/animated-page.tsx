@@ -3,13 +3,37 @@
 import { AnimatePresence } from 'framer-motion';
 import { motion } from '@/components/performance/LazyMotion';
 import { type ReactNode } from 'react';
-import {
-  type AnimatedPageProps,
-  type FadeInProps,
-  type SlideInProps,
-  type StaggerContainerProps,
-  type ScaleOnHoverProps
-} from '@prisma/client';
+
+// Define component prop types locally
+interface AnimatedPageProps {
+  children: ReactNode;
+  className?: string;
+}
+
+interface FadeInProps {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}
+
+interface SlideInProps {
+  children: ReactNode;
+  direction?: 'left' | 'right' | 'up' | 'down';
+  delay?: number;
+  className?: string;
+}
+
+interface StaggerContainerProps {
+  children: ReactNode;
+  staggerDelay?: number;
+  className?: string;
+}
+
+interface ScaleOnHoverProps {
+  children: ReactNode;
+  scale?: number;
+  className?: string;
+}
 
 const pageVariants = {
   initial: {

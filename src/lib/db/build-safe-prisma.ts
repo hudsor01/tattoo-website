@@ -68,7 +68,7 @@ export async function getBuildSafeTattooDesigns(
   } = {}
 ) {
   const {
-    where = { isApproved: true },
+    where = {},
     select = { id: true },
     take = 100,
     orderBy = { createdAt: 'desc' },

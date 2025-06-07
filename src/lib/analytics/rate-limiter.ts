@@ -3,7 +3,6 @@
  * Implements sliding window rate limiting with IP-based tracking
  */
 
-import { TRPCError } from '@trpc/server';
 import { rateLimitConfig } from './config';
 import type { NextRequest } from 'next/server';
 
@@ -98,14 +97,7 @@ class AnalyticsRateLimiter {
       const rateLimit = this.checkRateLimit(identifier);
       
       if (!rateLimit.allowed) {
-        throw new TRPCError({
-          code: 'TOO_MANY_REQUESTS',
-          message: `Rate limit exceeded. Try again in ${Math.ceil((rateLimit.resetTime - Date.now()) / 1000)} seconds`,
-          cause: {
-            resetTime: rateLimit.resetTime,
-            remaining: rateLimit.remaining,
-          },
-        });
+        throw new Error(`Rate limit exceeded. Try again in ${Math.ceil((rateLimit.resetTime - Date.now()) / 1000)} seconds`);
       }
 
       // Add rate limit info to context

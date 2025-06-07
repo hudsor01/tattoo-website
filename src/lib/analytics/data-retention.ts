@@ -12,7 +12,7 @@
  */
 
 import { dataRetentionConfig } from './config';
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 
 import { logger } from "@/lib/logger";
 export interface RetentionPolicy {
@@ -116,7 +116,6 @@ class DataRetentionManager {
           });
         },
         {
-          scheduled: true,
           timezone: 'UTC',
         }
       );
@@ -149,7 +148,7 @@ class DataRetentionManager {
 
     try {
       // Import the Prisma client
-      const { prisma } = await import('../db/prisma');
+      const { prisma: _prisma } = await import('../db/prisma');
       
       // Process each policy
       for (const policy of this.retentionPolicies) {
@@ -185,14 +184,22 @@ class DataRetentionManager {
           const totalDeleted = results.reduce((sum, r) => sum + r.deletedRecords, 0);
           const executionTime = Date.now() - startTime;
           
-          await prisma.analyticsCleanupLog.create({
-            data: {
-              totalPoliciesRun: results.length,
-              totalRecordsDeleted: totalDeleted,
-              executionTimeMs: executionTime,
-              status: 'SUCCESS',
-              details: JSON.stringify(results),
-            },
+          // Store cleanup metrics for monitoring
+          void logger.info('Data retention cleanup metrics:', {
+            timestamp: new Date().toISOString(),
+            totalPoliciesRun: results.length,
+            totalRecordsDeleted: totalDeleted,
+            executionTimeMs: executionTime,
+            status: 'SUCCESS',
+            successfulPolicies: results.filter(r => r.success).length,
+            failedPolicies: results.filter(r => !r.success).length,
+            details: results.map(r => ({
+              policy: r.policy,
+              deletedRecords: r.deletedRecords,
+              success: r.success,
+              executionTime: r.executionTime,
+              ...(r.error && { error: r.error }),
+            })),
           });
         } catch (error) {
           // Non-blocking error - just log it
@@ -257,16 +264,16 @@ class DataRetentionManager {
     const formattedCutoffDate = cutoffDate.toISOString();
     let totalDeleted = 0;
     let continueDeleting = true;
-    const chunkSize = dataRetentionConfig.chunkSize || 1000;
+    const chunkSize = dataRetentionConfig.chunkSize ?? 1000;
     
     try {
       // Import the Prisma client 
-      const { prisma } = await import('../db/prisma');
+      const { prisma: _prisma } = await import('../db/prisma');
       
       // Use a while loop with batched deletes to handle large datasets efficiently
       while (continueDeleting) {
         // Get the IDs of records to delete in this batch
-        const recordsToDelete = await prisma.$queryRaw<Array<{ id: string }>>`
+        const recordsToDelete = await _prisma.$queryRaw<Array<{ id: string }>>`
           SELECT id FROM "${policy.table}"
           WHERE "${policy.dateColumn}" < ${formattedCutoffDate}
           ORDER BY "${policy.dateColumn}" ASC
@@ -279,14 +286,14 @@ class DataRetentionManager {
         }
         
         // Extract IDs for the deletion
-        const ids = recordsToDelete.map(record => record.id);
+        const ids = recordsToDelete.map((record: { id: string }) => record.id);
         
         // Delete the batch - using parameterized queries for safety
         // Using a more secure approach to handle the IN clause
-        const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+        const placeholders = ids.map((_: string, i: number) => `$${i + 1}`).join(',');
         const query = `DELETE FROM "${policy.table}" WHERE "id" IN (${placeholders})`;
         
-        const result = await prisma.$executeRawUnsafe(query, ...ids);
+        const result = await _prisma.$executeRawUnsafe(query, ...ids);
         
         totalDeleted += result;
         
@@ -313,7 +320,7 @@ class DataRetentionManager {
    */
   public getRetentionStats(): RetentionStats {
     const lastCleanupRun = this.cleanupResults.length > 0 
-      ? new Date(Math.max(...this.cleanupResults.map(r => new Date(r.executionTime || 0).getTime())))
+      ? new Date(Math.max(...this.cleanupResults.map(r => new Date(r.executionTime ?? 0).getTime())))
       : null;
 
     return {
@@ -450,9 +457,9 @@ class DataRetentionManager {
 
         estimates.push({
           policy: policy.name,
-          estimatedDeletions: Number(estimatedDeletions[0]?.count || 0),
+          estimatedDeletions: Number(estimatedDeletions[0]?.count ?? 0),
           cutoffDate,
-          tableSize: Number(tableSize[0]?.count || 0),
+          tableSize: Number(tableSize[0]?.count ?? 0),
         });
       } catch (error) {
         void logger.error(`Error estimating cleanup impact for ${policy.name}:`, error);
@@ -481,11 +488,11 @@ class DataRetentionManager {
    */
   public stop(): void {
     if (this.cleanupJob) {
-      this.cleanupJob.stop();
+      void this.cleanupJob.stop();
       this.cleanupJob = null;
       // Log shutdown only when verbose logging is enabled
       if (dataRetentionConfig.verboseLogging) {
-        void logger.info('Data retention manager: cleanup job stopped');
+        logger.info('Data retention manager: cleanup job stopped');
       }
     }
   }

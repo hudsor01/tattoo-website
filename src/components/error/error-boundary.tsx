@@ -9,8 +9,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 // Define ErrorBoundaryState locally
 interface ErrorBoundaryState {
-hasError: boolean;
-error?: Error;
+  hasError: boolean;
+  error?: Error | null;
+  errorInfo?: ErrorInfo | null;
+  eventId?: string | null;
 }
 
 // Props for the error boundary wrapper
@@ -239,7 +241,7 @@ export function AdminErrorBoundary({ children }: { children: ReactNode }) {
         </div>
       }
       onError={(error, errorInfo) => {
-        void logger.error('Admin Error:', error, errorInfo);
+        void logger.error('Admin Error:', { error, errorInfo });
         // In production, send to admin error tracking
       }}
     >
@@ -267,7 +269,7 @@ export function GalleryErrorBoundary({ children }: { children: ReactNode }) {
         </div>
       }
       onError={(error, errorInfo) => {
-        void logger.error('Gallery Error:', error, errorInfo);
+        void logger.error('Gallery Error:', { error, errorInfo });
         // Track gallery-specific errors
       }}
     >
@@ -295,7 +297,7 @@ export function PaymentErrorBoundary({ children }: { children: ReactNode }) {
         </div>
       }
       onError={(error, errorInfo) => {
-        void logger.error('Payment Error:', error, errorInfo);
+        void logger.error('Payment Error:', { error, errorInfo });
         // Critical: Send payment errors to monitoring immediately
       }}
     >
@@ -531,7 +533,7 @@ export function createErrorBoundary(variant: ErrorHandlerProps['variant']) {
     return (
       <ErrorBoundary
         onError={(error, errorInfo) => {
-          void logger.error(`${variant} Error:`, error, errorInfo);
+          void logger.error(`${variant} Error:`, { error, errorInfo });
         }}
       >
         {children}

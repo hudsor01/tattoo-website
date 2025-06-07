@@ -16,7 +16,7 @@ import { Prisma } from '@prisma/client';
 // ESSENTIAL TYPES (Only models that exist in current schema)
 // ============================================================================
 
-// Core Entity Types (simplified schema)
+// Core Entity Types (only types that exist in current schema)
 export type { 
   User,
   Session,
@@ -27,6 +27,14 @@ export type {
   Booking,
   TattooDesign,
   Contact,
+  Payment,
+  CalAnalyticsEvent,
+  CalBookingFunnel,
+  CalServiceAnalytics,
+  CalRealtimeMetrics,
+  BookingStatus,
+  ContactStatus,
+  PaymentStatus,
 } from '@prisma/client';
 
 // ============================================================================
@@ -85,16 +93,25 @@ export type ContactCreateInput = Prisma.ContactCreateInput;
 // ============================================================================
 
 // Contact form data
-export type ContactFormData = Pick<
-  ContactCreateInput,
-  'name' | 'email' | 'message'
->;
+export type ContactFormData = {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+};
 
 // Booking form data
-export type BookingFormData = Pick<
-  BookingCreateInput,
-  'name' | 'email' | 'phone' | 'tattooType' | 'size' | 'placement' | 'description' | 'preferredDate'
->;
+export type BookingFormData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  tattooType: string;
+  size?: string;
+  placement?: string;
+  description?: string;
+  preferredDate: Date;
+};
 
 // Customer form data  
 export type CustomerFormData = Pick<
@@ -106,7 +123,7 @@ export type CustomerFormData = Pick<
 // API RESPONSE TYPES
 // ============================================================================
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = Record<string, unknown>> {
   success: boolean;
   data?: T;
   error?: string;
@@ -129,6 +146,23 @@ export interface GalleryResponse {
   totalCount: number;
 }
 
+// Gallery File System Types
+export interface GalleryFile {
+  id: string;
+  type: 'image' | 'video';
+  src: string;
+  name: string;
+  description: string;
+  designType: string;
+  size: string;
+}
+
+export interface GalleryFilesResponse {
+  success: boolean;
+  files: GalleryFile[];
+  total: number;
+}
+
 // Customer search response
 export interface CustomerSearchResponse {
   customers: (CustomerBasic & { appointmentCount: number })[];
@@ -139,9 +173,192 @@ export interface CustomerSearchResponse {
 // STATUS AND ENUM TYPES (Simple string literals)
 // ============================================================================
 
-export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 export type UserRole = 'user' | 'admin';
 export type DesignType = 'traditional' | 'realism' | 'japanese' | 'geometric' | 'other';
+
+// ============================================================================
+// MISSING TYPES FOR LEGACY COMPONENTS
+// ============================================================================
+
+// FAQ types (for components that reference non-existent FAQ models)
+export interface FAQItemType {
+  id: string;
+  question: string;
+  answer: string;
+  category?: string;
+  tags?: string[];
+}
+
+export interface FAQSearchProps {
+  onSearch: (query: string) => void;
+  placeholder?: string;
+}
+
+export interface FAQCategory {
+  id: string;
+  name: string;
+  slug: string;
+  title: string;
+  icon?: string;
+  items: FAQItemType[];
+}
+
+export interface AllFAQItem {
+  category: string;
+  id: string;
+  item: FAQItemType;
+}
+
+// Cal.com integration types (legacy) - Updated to match config
+export interface CalService {
+  id: string;
+  name: string;
+  title: string;
+  slug: string;
+  description: string;
+  duration: number;
+  price: number;
+  currency: string;
+  calEventTypeId: number;
+  eventTypeSlug: string;
+  bufferTime?: number;
+  maxAdvanceBooking?: number;
+  requiresApproval: boolean;
+  features: string[];
+  category: string;
+  isActive: boolean;
+}
+
+export interface CalEventType {
+  id: number;
+  title: string;
+  slug: string;
+  description?: string;
+  length: number;
+  price?: number;
+}
+
+export interface CalBooking {
+  id: string;
+  uid: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  attendees: Array<{
+    email: string;
+    name: string;
+  }>;
+}
+
+export interface CalBookingPayload {
+  id: string;
+  uid: string;
+  eventTypeId: number;
+  userId: number;
+  startTime: string;
+  endTime: string;
+  title: string;
+  description?: string;
+  location?: string;
+  paid: boolean;
+  payment?: Array<{
+    id: number;
+    success: boolean;
+    paymentOption: string;
+  }>;
+}
+
+// Component prop types
+export interface CTASectionProps {
+  title?: string;
+  description?: string;
+  primaryButtonText?: string;
+  primaryButtonLink?: string;
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
+  customClassName?: string;
+  variant?: 'default' | 'gradient' | 'minimal';
+  className?: string;
+}
+
+// Form state types
+export interface ContactFormState {
+  status: 'idle' | 'pending' | 'success' | 'error';
+  message?: string;
+  success: boolean;
+  errors?: {
+    name?: string[];
+    email?: string[];
+    phone?: string[];
+    subject?: string[];
+    message?: string[];
+  };
+  rateLimitInfo?: {
+    remaining: number;
+    reset: number;
+    limit: number;
+    retryAfter: number;
+    timeRemaining: number;
+  };
+}
+
+// Pricing types
+export interface PricingBreakdown {
+  basePrice: number;
+  additionalCharges: Array<{
+    description: string;
+    amount: number;
+  }>;
+  total: number;
+}
+
+export interface StandardPricingData {
+  hourlyRate: number;
+  minimumCharge: number;
+  consultationFee: number;
+}
+
+export interface ArtistRate {
+  artistId: string;
+  hourlyRate: number;
+  minimumCharge: number;
+  specialtyRates: Record<string, number>;
+}
+
+// API Error types
+export interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+  statusCode?: number;
+}
+
+// Request options for API calls
+export interface RequestOptions {
+  signal?: AbortSignal;
+  cache?: RequestCache;
+  timeout?: number;
+  retries?: number;
+}
+
+// Error response type
+export interface ErrorResponse {
+  error: string;
+  message?: string;
+  statusCode?: number;
+  details?: Record<string, unknown>;
+  validationErrors?: Record<string, string[]>;
+}
+
+// Analytics error type
+export interface AnalyticsError {
+  code: string;
+  message: string;
+  timestamp: number;
+  stack?: string;
+  context?: Record<string, unknown>;
+}
 
 // ============================================================================
 // UTILITY TYPES

@@ -1,0 +1,43 @@
+{
+    "servers": {
+        "desktop-commander": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@wonderwhy-er/desktop-commander"
+            ]
+        },
+        "puppeteer": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+        },
+        "sequential-thinking": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+        },
+        "memory": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-memory"]
+        },
+        "server-macos": {
+        "command": "npx",
+        "args": ["-y", "@mcp-get-community/server-macos"]
+        },
+        "mcp-server-aidd": {
+        "command": "uvx",
+        "args": ["mcp-server-aidd"]
+        },
+        "sentry": {
+        "command": "uvx",
+        "args": [
+            "mcp-server-sentry",
+            "--auth-token",
+            "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"
+        ]
+        },
+        "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"]
+        }
+    }
+}
