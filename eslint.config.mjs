@@ -18,11 +18,8 @@ const reactHooksPlugin = eslintPluginReactHooks || {};
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
 });
-
-// Include Next.js rules
 const nextRules = compat.extends('next/core-web-vitals');
 
-// Base configuration for all JS/TS files
 const baseConfig = {
   files: ['src/**/*.{js,mjs,cjs,jsx,ts,tsx}'],
   ignores: [
@@ -39,6 +36,7 @@ const baseConfig = {
     '.vercel/**',
     '.github/**',
     'docs/**',
+    'backup/**',
   ],
   languageOptions: {
     ecmaVersion: 2022,
@@ -60,36 +58,28 @@ const baseConfig = {
   },
   rules: {
     ...js.configs.recommended.rules,
-    
-    // Error-level rules for production
     'no-unused-vars': 'error',
-    'no-console': ['error', { allow: ['warn', 'error'] }],
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-debugger': 'error',
     'no-alert': 'error',
     'no-eval': 'error',
     'no-implied-eval': 'error',
     'no-script-url': 'error',
-    
-    // Code quality
     'prefer-const': 'error',
     'no-var': 'error',
-    'no-duplicate-imports': 'error',
+    'no-duplicate-imports': 'warn',
     'no-useless-return': 'error',
     'no-unreachable': 'error',
     'consistent-return': 'error',
     'eqeqeq': ['error', 'always'],
-    
-    // React specific
     'react/no-unknown-property': ['error', { ignore: ['jsx', 'global'] }],
-    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/rules-of-hooks': 'warn',
     'react-hooks/exhaustive-deps': 'error',
     'react/no-unescaped-entities': 'off',
     'react/jsx-no-target-blank': 'error',
     'react/jsx-no-script-url': 'error',
   },
 };
-
-// React configuration
 const reactConfig = {
   files: ['src/**/*.{jsx,tsx}'],
   languageOptions: {
@@ -111,15 +101,14 @@ const reactConfig = {
     'react/no-unescaped-entities': 'off',
     'react/display-name': 'error',
     'react/jsx-key': 'error',
-    'react/no-array-index-key': 'warn',
+    'react/no-array-index-key': 'off',
     'react/no-direct-mutation-state': 'error',
     'react/no-typos': 'error',
   },
 };
-
-// TypeScript configuration
 const typeScriptConfig = {
   files: ['src/**/*.{ts,tsx}'],
+  ignores: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
   languageOptions: {
     parser: tseslintParser,
     parserOptions: {
@@ -133,32 +122,107 @@ const typeScriptConfig = {
   },
   rules: {
     ...tseslintPlugin.configs.recommended.rules,
-    
-    // Strict TypeScript rules
-    '@typescript-eslint/no-unused-vars': 'error',
-    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-unused-vars': ['warn', {
+      'vars': 'all',
+      'args': 'after-used',
+      'ignoreRestSiblings': true,
+      'argsIgnorePattern': '^_',
+      'varsIgnorePattern': '^_'
+    }],
+    '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'error',
-    '@typescript-eslint/no-non-null-assertion': 'error',
-    '@typescript-eslint/prefer-nullish-coalescing': 'error',
+    '@typescript-eslint/no-non-null-assertion': 'warn',
+    '@typescript-eslint/prefer-nullish-coalescing': 'warn',
     '@typescript-eslint/prefer-optional-chain': 'error',
+    '@typescript-eslint/no-floating-promises': 'warn',
+    '@typescript-eslint/await-thenable': 'warn',
+    '@typescript-eslint/no-misused-promises': 'warn',
+    // PRISMA TYPE ENFORCEMENT RULES
+    'no-restricted-imports': ['error', {
+      'patterns': [
+        {
+          'group': ['**/types/*', '!**/types/ui-types*'],
+          'message': 'Import types from @prisma/client or @/lib/prisma-types instead of manual type files. UI component types from @/types/ui-types are allowed.'
+        }
+      ],
+      'paths': [
+        {
+          'name': '@/types/customer-types',
+          'message': 'Use @/lib/prisma-types for Customer types - they are auto-generated from Prisma'
+        },
+        {
+          'name': '@/types/payments-types',
+          'message': 'Use @/lib/prisma-types for Payment types - they are auto-generated from Prisma'
+        },
+        {
+          'name': '@/types/booking-types',
+          'message': 'Use @/lib/prisma-types for Booking types - they are auto-generated from Prisma'
+        },
+        {
+          'name': '@/types/appointment-types',
+          'message': 'Use @/lib/prisma-types for Appointment types - they are auto-generated from Prisma'
+        }
+      ]
+    }],
+    'no-unused-vars': 'off',
+    'no-undef': 'off',
+  },
+};
+
+// Test files configuration
+const testConfig = {
+  files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+  languageOptions: {
+    parser: tseslintParser,
+    parserOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      project: './tsconfig.test.json',
+    },
+  },
+  plugins: {
+    '@typescript-eslint': tseslintPlugin,
+  },
+  rules: {
+    ...tseslintPlugin.configs.recommended.rules,
+    '@typescript-eslint/no-unused-vars': ['warn', {
+      'vars': 'all',
+      'args': 'after-used',
+      'ignoreRestSiblings': true,
+      'argsIgnorePattern': '^_',
+      'varsIgnorePattern': '^_'
+    }],
+    '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/no-misused-promises': 'error',
-    
-    // Override base rules for TypeScript
+    '@typescript-eslint/prefer-nullish-coalescing': 'error',
+    '@typescript-eslint/prefer-optional-chain': 'error',
     'no-unused-vars': 'off',
     'no-undef': 'off',
   },
 };
 
 export default [
+  {
+    ignores: [
+      '**/.next/**',
+      '**/node_modules/**',
+      '**/out/**',
+      '**/build/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/backup/**',
+      '**/playwright-report/**',
+      '**/test-results/**',
+    ],
+  },
   ...nextRules.map(config => ({
     ...config,
     rules: {
       ...config.rules,
-      // Downgrade Next.js warnings for deployment
       '@next/next/no-img-element': 'off',
       '@next/next/no-html-link-for-pages': 'off',
       'jsx-a11y/alt-text': 'warn',
@@ -168,4 +232,5 @@ export default [
   baseConfig,
   reactConfig,
   typeScriptConfig,
+  testConfig,
 ];

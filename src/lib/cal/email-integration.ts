@@ -5,14 +5,24 @@
  * Email templates are currently disabled
  */
 
-import type { CalBookingPayload } from '@/types/booking-types';
+// Define local type instead of importing from Prisma
+interface CalBookingPayload {
+  id: string;
+  uid: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  attendees: Array<{ email: string; name: string }>;
+}
 
+import { logger } from "@/lib/logger";
 /**
  * Send appointment confirmation email
  * Currently disabled - email templates removed
  */
 export async function sendAppointmentConfirmationEmail(booking: CalBookingPayload): Promise<void> {
-  void console.warn('Email templates disabled - would send confirmation for booking:', booking.id);
+  void void logger.warn('Email templates disabled - would send confirmation for booking:', booking.id);
 }
 
 /**
@@ -20,16 +30,16 @@ export async function sendAppointmentConfirmationEmail(booking: CalBookingPayloa
  * Currently disabled - email templates removed
  */
 export async function sendAppointmentCancellationEmail(booking: CalBookingPayload): Promise<void> {
-  void console.warn('Email templates disabled - would send cancellation for booking:', booking.id);
+  void void logger.warn('Email templates disabled - would send cancellation for booking:', booking.id);
 }
 
 /**
- * Send booking notification to studio
+ * Send booking notification to Admin Dashboard
  * Currently disabled - email templates removed
  */
 export async function sendBookingNotificationToStudio(booking: CalBookingPayload): Promise<string> {
-  void console.warn(
-    'Email templates disabled - would send studio notification for booking:',
+  void void logger.warn(
+    'Email templates disabled - would send Ink 37 Tattoos notification for booking:',
     booking.id
   );
   return 'Email templates disabled';

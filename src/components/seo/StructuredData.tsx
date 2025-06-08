@@ -21,20 +21,20 @@ interface BusinessInfo {
 }
 
 const businessInfo: BusinessInfo = {
-  name: 'Ink37 Tattoo Studio',
+  name: 'Ink 37 Tattoos',
   description:
     'Professional custom tattoo artist specializing in traditional, realism, fine line, and cover-up tattoos in Dallas Fort Worth area.',
   address: {
-    streetAddress: '123 Main St', // Update with actual address
+    streetAddress: '123 Main St',
     addressLocality: 'Dallas',
     addressRegion: 'TX',
     postalCode: '75201',
     addressCountry: 'US',
   },
-  phone: '', // No phone number provided
-  email: 'contact@ink37tattoos.com',
+  phone: '',
+  email: 'hello@ink37tattoos.com',
   url: 'https://ink37tattoos.com',
-  image: 'https://ink37tattoos.com/images/studio-front.jpg',
+  image: 'https://ink37tattoos.com/images/shop-front.jpg',
   openingHours: ['Mo-Fr 10:00-19:00', 'Sa 10:00-18:00', 'Su 12:00-17:00'],
   priceRange: '$$$',
   services: [
@@ -109,7 +109,7 @@ export function LocalBusinessStructuredData() {
       bestRating: '5',
       worstRating: '1',
     },
-    sameAs: ['https://instagram.com/ink37tattoo', 'https://facebook.com/ink37tattoo'],
+    sameAs: ['https://instagram.com/ink37tattoos', 'https://facebook.com/ink37tattoos'],
   };
 
   return (

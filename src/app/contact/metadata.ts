@@ -1,35 +1,20 @@
 import type { Metadata } from 'next';
+import { generatePageMetadata } from '@/lib/seo/seo-config';
 
-export const metadata: Metadata = {
-  title: 'Contact | Ink 37 Tattoos',
-  description:
-    'Get in touch for tattoo inquiries, consultations, or general questions. Located in Dallas/Fort Worth, Texas.',
-  keywords:
-    'contact ink 37 tattoos, tattoo consultation dallas fort worth, tattoo inquiry, tattoo studio contact',
-  openGraph: {
-    title: 'Contact Ink 37 Tattoos',
-    description:
-      'Contact us for tattoo inquiries and consultations. Located in Dallas/Fort Worth, TX.',
-    url: '/contact',
-    siteName: 'Ink 37 Tattoos',
-    images: [
-      {
-        url: '/logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'Ink 37 Tattoos Interior',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Contact Ink 37 Tattoos',
-    description: 'Contact us for tattoo inquiries and consultations.',
-    images: ['/logo.png'],
-  },
-  alternates: {
-    canonical: '/contact',
-  },
-};
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Contact | Book Your Tattoo Consultation Today',
+  description: 'Contact our professional tattoo artist in Dallas/Fort Worth, Texas for consultations, custom designs, and appointments. Serving Dallas-Fort Worth area with expert tattoo services and personalized artwork.',
+  keywords: [
+    'contact tattoo artist Crowley TX',
+    'tattoo consultation DFW',
+    'book tattoo appointment',
+    'tattoo inquiry',
+    'custom tattoo quote',
+    'custom tattoo design',
+    'custom tattoo contact',
+    'professional tattoo artist contact',
+    'Dallas Fort Worth tattoo booking'
+  ],
+  canonical: 'https://ink37tattoos.com/contact',
+  ogImage: '/images/realism.jpg',
+});

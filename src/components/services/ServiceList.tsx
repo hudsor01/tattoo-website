@@ -1,19 +1,14 @@
-'use client';
-
 import React from 'react';
+
+// CONVERTED TO SERVER COMPONENT: Static service list rendering
 import { ServiceCard } from '@/components/services/ServiceCard';
 import { CTASection } from '@/components/CTASection';
-import type { Service } from '@/types/component-types';
+import type { Service } from '@/data/services-data';
 
 interface ServiceListProps {
   services: Service[];
 }
 
-/**
- * Services List Component
- *
- * Displays a list of all services with their details, used on the services page.
- */
 export function ServiceList({ services }: ServiceListProps) {
   return (
     <div className="space-y-32">

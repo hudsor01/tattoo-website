@@ -1,0 +1,82 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@latest", "."],
+      "options": {
+        "allowedExts": [
+          ".js",
+          ".jsx",
+          ".ts",
+          ".tsx",
+          ".json",
+          ".md",
+          ".css",
+          ".prisma",
+          ".sql",
+          ".svg"
+        ]
+      }
+    },
+    "playwright-automata": {
+      "command": "npx",
+      "args": ["-y", "@automatalabs/mcp-server-playwright"]
+    },
+    "docker": {
+      "command": "uvx",
+      "args": ["docker-mcp"]
+    },
+    "mcp-server-fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "server-curl": {
+      "command": "npx",
+      "args": ["-y", "@mcp-get-community/server-curl"]
+    },
+    "server-llm-txt": {
+      "command": "npx",
+      "args": ["-y", "@mcp-get-community/server-llm-txt"]
+    },
+    "server-macos": {
+      "command": "npx",
+      "args": ["-y", "@mcp-get-community/server-macos"]
+    },
+    "mcp-server-aidd": {
+      "command": "uvx",
+      "args": ["mcp-server-aidd"]
+    },
+    "mcp-server-commands": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-commands"]
+    },
+    "sentry": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-sentry",
+        "--auth-token",
+        "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"
+      ]
+    },
+    "everything": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"]
+    }
+  }
+}

@@ -68,17 +68,12 @@ export default function FeaturedCarousel({
               className={cn(
                 'overflow-hidden rounded-xl relative',
                 aspectRatio === 'portrait' ? 'aspect-[3/4]' : 'aspect-square',
-                'border-2 border-gradient-to-r border-red-500 border-orange-500 shadow-lg'
+                'border-2 shadow-lg'
               )}
             >
               {/* Efficient border gradient */}
               <div
-                className="absolute inset-0"
-                style={{
-                  background: 'linear-gradient(to right, #ef4444, #f97316)',
-                  borderRadius: '0.75rem',
-                  padding: '2px',
-                }}
+                className="absolute inset-0 bg-linear-to-r from-[#ef4444] to-[#f97316] rounded-xl p-[2px]"
               >
                 <div className="absolute inset-[2px] rounded-[calc(0.75rem-2px)] overflow-hidden z-10">
                   <Image
@@ -94,11 +89,12 @@ export default function FeaturedCarousel({
                     placeholder="blur"
                     blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+hxM6T3oDSaBkJw+YWuPkmv"
                     sizes="(max-width: 768px) 90vw, 50vw"
-                    className="object-cover transition-transform duration-300 hover:scale-105"
+                    className="transition-transform duration-300 hover:scale-105"
+                    style={{ objectFit: 'cover' }}
                   />
 
                   {/* Image overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent z-10"></div>
 
                   {/* Image information */}
                   {showInfo && (image.title ?? image.description) && (

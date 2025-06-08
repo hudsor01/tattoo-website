@@ -2,12 +2,13 @@
  * Database Function Execution
  *
  * This file provides a unified interface for executing database functions.
- * It abstracts away the details of how functions are executed (Prisma, Supabase, etc.)
+ * It provides a unified interface for executing database functions with Prisma.
  */
 
 import { prisma } from './prisma';
 import { getErrorMessage } from '@/lib/utils/server';
 
+import { logger } from "@/lib/logger";
 /**
  * Options for stored procedure execution
  */
@@ -34,16 +35,16 @@ export interface ExecuteStoredProcedureOptions {
  * @param options Additional options for execution
  * @returns The result of the stored procedure
  */
-export async function executeStoredProcedure<T = unknown>(
+export async function executeStoredProcedure<T = Record<string, string | number | boolean | null>>(
   functionName: string,
-  params: unknown[] = [],
+  params: (string | number | boolean | null)[] = [],
   options: ExecuteStoredProcedureOptions = {}
 ): Promise<T> {
   const { logParams = false, timeoutMs } = options;
 
   try {
     if (logParams) {
-      void console.error(`Executing ${functionName} with params:`, params);
+      void logger.error(`Executing ${functionName} with params:`, params);
     }
 
     // Create the query string - we use the ANY parameter syntax for flexibility
@@ -68,7 +69,7 @@ export async function executeStoredProcedure<T = unknown>(
       ? ((result.length === 1 ? result[0] : result) as T)
       : ({} as T);
   } catch (error) {
-    void console.error(`Error executing ${functionName}:`, error);
+    void logger.error(`Error executing ${functionName}:`, error);
     throw error;
   }
 }
@@ -82,21 +83,21 @@ export async function executeStoredProcedure<T = unknown>(
  * @param options Additional options for execution
  * @returns A standardized result object with data and error fields
  */
-export async function executeDbFunction<T = unknown>(
+export async function executeDbFunction<T = Record<string, string | number | boolean | null>>(
   functionName: string,
-  params: unknown[] = [],
+  params: (string | number | boolean | null)[] = [],
   options: ExecuteStoredProcedureOptions = {}
-): Promise<{ data: T | null; error: { message: string; originalError: unknown } | null }> {
+): Promise<{ data: T | null; error: { message: string; originalError: Error } | null }> {
   try {
     const data = await executeStoredProcedure<T>(functionName, params, options);
     return { data, error: null };
   } catch (error) {
-    void console.error(`Error executing database function ${functionName}:`, error);
+    void logger.error(`Error executing database function ${functionName}:`, error);
     return {
       data: null,
       error: {
         message: getErrorMessage(error),
-        originalError: error,
+        originalError: error instanceof Error ? error : new Error(String(error)),
       },
     };
   }

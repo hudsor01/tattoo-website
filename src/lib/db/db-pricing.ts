@@ -4,9 +4,32 @@
  * Unified functions for pricing-related operations
  */
 
-import { executeStoredProcedure } from './prisma';
-import type { PricingBreakdown, StandardPricingData, ArtistRate } from '@/types/payments-types';
+import { logger } from "@/lib/logger";
 
+// Define local types for pricing functionality
+interface PricingBreakdown {
+  basePrice: number;
+  placementFactor: number;
+  complexityFactor: number;
+  totalPrice: number;
+  estimatedHours: number;
+  depositAmount: number;
+}
+
+interface StandardPricingData {
+  sizePrices: Array<{ size: string; label: string; basePrice: number }>;
+  placementFactors: Array<{ placement: string; label: string; factor: number }>;
+  complexityLevels: Array<{ level: number; label: string; factor: number }>;
+  depositPercentage: number;
+  baseHourlyRate: number;
+}
+
+interface ArtistRate {
+  artistId: string;
+  hourlyRate: number;
+  minimumCharge: number;
+  specialtyMultiplier: number;
+}
 /**
  * Calculate pricing for a tattoo based on size, placement, and complexity
  */
@@ -18,16 +41,40 @@ export async function calculatePricing(
   customHourlyRate?: number
 ): Promise<PricingBreakdown> {
   try {
-    const result = await executeStoredProcedure<PricingBreakdown>('calculate_pricing', [
-      size,
-      placement,
-      complexity,
-      artistId ?? null,
-      customHourlyRate ?? null,
-    ]);
-    return result;
+    const standardPricing = await getStandardPricingData();
+    
+    // Find size pricing
+    const sizePrice = standardPricing.sizePrices.find(s => s.size === size);
+    const basePrice = sizePrice?.basePrice ?? 200;
+    
+    // Find placement factor
+    const placementData = standardPricing.placementFactors.find(p => p.placement === placement);
+    const placementFactor = placementData?.factor ?? 1.0;
+    
+    // Find complexity factor
+    const complexityData = standardPricing.complexityLevels.find(c => c.level === complexity);
+    const complexityFactor = complexityData?.factor ?? 1.0;
+    
+    // Calculate total price
+    const totalPrice = Math.round(basePrice * placementFactor * complexityFactor);
+    
+    // Estimate hours (assuming $150/hour base rate)
+    const hourlyRate = customHourlyRate ?? standardPricing.baseHourlyRate;
+    const estimatedHours = Math.round((totalPrice / hourlyRate) * 10) / 10; // Round to 1 decimal
+    
+    // Calculate deposit (30% of total)
+    const depositAmount = Math.round(totalPrice * (standardPricing.depositPercentage / 100));
+    
+    return {
+      basePrice,
+      placementFactor,
+      complexityFactor,
+      totalPrice,
+      estimatedHours,
+      depositAmount,
+    };
   } catch (error) {
-    void console.error('Error calculating pricing:', error);
+    logger.error('Error calculating pricing:', error);
     throw error;
   }
 }
@@ -40,13 +87,17 @@ export async function calculateAppointmentDuration(
   complexity: number = 3
 ): Promise<string> {
   try {
-    const result = await executeStoredProcedure<{ duration: string }>(
-      'calculate_appointment_duration',
-      [size, complexity]
-    );
-    return result.duration;
+    const pricing = await calculatePricing(size, 'outer-arm', complexity);
+    const hours = pricing.estimatedHours;
+    
+    if (hours <= 1) return '1 hour';
+    if (hours <= 2) return '1-2 hours';
+    if (hours <= 4) return '2-4 hours';
+    if (hours <= 6) return '4-6 hours';
+    if (hours <= 8) return '6-8 hours';
+    return 'Multiple sessions required';
   } catch (error) {
-    void console.error('Error calculating appointment duration:', error);
+    logger.error('Error calculating appointment duration:', error);
     throw error;
   }
 }
@@ -56,10 +107,15 @@ export async function calculateAppointmentDuration(
  */
 export async function getArtistRates(artistId?: string): Promise<ArtistRate> {
   try {
-    const result = await executeStoredProcedure<ArtistRate>('get_artist_rates', [artistId ?? null]);
-    return result;
+    // For now, return default rates. In the future, this could query the Artist table
+    return {
+      artistId: artistId ?? 'default',
+      hourlyRate: 150,
+      minimumCharge: 100,
+      specialtyMultiplier: 1.0,
+    };
   } catch (error) {
-    void console.error('Error getting artist rates:', error);
+    logger.error('Error getting artist rates:', error);
     throw error;
   }
 }
@@ -109,7 +165,7 @@ export async function getStandardPricingData(): Promise<StandardPricingData> {
       baseHourlyRate: 150, // Standard hourly rate
     };
   } catch (error) {
-    void console.error('Error getting standard pricing data:', error);
+    logger.error('Error getting standard pricing data:', error);
     throw error;
   }
 }

@@ -36,5 +36,4 @@ Thumbs.db
 
 # Lock files & MCP config
 *.lock
-mcp.combined.json
 mcp.json

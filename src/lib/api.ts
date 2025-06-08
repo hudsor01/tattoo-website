@@ -6,24 +6,53 @@
  */
 
 import { z } from 'zod';
-import type { ApiResponse, ErrorResponse, ValidationError } from '@/types/api-types';
-import { type RecordObject } from '@/types/utility-types';
+// API types for standardized responses and requests
+type ApiResponse<T = unknown> = {
+  data: T;
+  success: boolean;
+  message?: string;
+  meta?: {
+    total?: number;
+    page?: number;
+    limit?: number;
+    hasMore?: boolean;
+  };
+};
 
-/**
- * Common options for all API requests
- */
-interface RequestOptions {
+type ErrorResponse = {
+  success: boolean;
+  error: string;
+  message: string;
+  statusCode: number;
+  timestamp: string;
+  path?: string;
+  details?: unknown;
+  validationErrors?: Record<string, string[]>;
+};
+
+
+type RequestOptions = {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
+  body?: unknown;
+  timeout?: number;
+  validateResponse?: boolean;
   signal?: AbortSignal;
   cache?: RequestCache;
-}
+};
 
-/**
- * Parameters for filtering API results
- */
-export interface FilterParams {
-  [key: string]: string | number | boolean | null;
-}
+type FilterParams = {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  search?: string;
+  filters?: Record<string, unknown>;
+};
+
+type RecordObject = Record<string, unknown>;
+
+import { logger } from "@/lib/logger";
 
 /**
  * Error from API requests with status code and structured data
@@ -78,13 +107,24 @@ async function validateResponse<T>(response: Response, schema?: z.ZodType<T>): P
     try {
       return schema.parse(data);
     } catch (error) {
-      void console.error('Response validation error:', error);
+      void logger.error('Response validation error:', error);
+      
+      const validationErrors: Record<string, string[]> = {};
+      if (error instanceof z.ZodError) {
+        error.errors.forEach(err => {
+          const path = err.path.join('.');
+          validationErrors[path] ??= [];
+          validationErrors[path].push(err.message);
+        });
+      }
+      
       throw new ApiError('Invalid response data', response.status, response.statusText, {
         success: false,
         error: 'Validation failed',
         message: 'Invalid response data',
-        validationErrors: error as ValidationError[],
-        data,
+        statusCode: response.status,
+        timestamp: new Date().toISOString(),
+        validationErrors,
       });
     }
   }
@@ -294,7 +334,7 @@ export async function trackVideoView(
 
     return { success: true };
   } catch (error) {
-    void console.error('Failed to track video view:', error);
+    void void logger.error('Failed to track video view:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -305,13 +345,13 @@ export async function trackVideoView(
 /**
  * Share content on social media platforms
  * @param contentType Type of content (tattoo, video)
- * @param contentId Content identifier
+ * @param contentId Content identifier (string or number)
  * @param platform Platform to share on
  * @returns Object containing success status and share URL
  */
 export async function shareContent(
   contentType: 'tattoo' | 'video',
-  contentId: number,
+  contentId: string | number,
   platform: 'facebook' | 'twitter' | 'instagram' | 'pinterest' | 'email' | 'linkedin'
 ): Promise<{ success: boolean; shareUrl: string }> {
   try {
@@ -340,7 +380,7 @@ export async function shareContent(
       shareUrl: shareUrls[platform] ?? baseUrl,
     };
   } catch (error) {
-    void console.error('Share content error:', error);
+    void void logger.error('Share content error:', error);
     // Return error with default URL
     return {
       success: false,

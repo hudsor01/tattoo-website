@@ -1,14 +1,40 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { motion } from '@/components/performance/LazyMotion';
 import { type ReactNode } from 'react';
 
+// Define component prop types locally
 interface AnimatedPageProps {
   children: ReactNode;
   className?: string;
 }
 
-// Page transition variants
+interface FadeInProps {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}
+
+interface SlideInProps {
+  children: ReactNode;
+  direction?: 'left' | 'right' | 'up' | 'down';
+  delay?: number;
+  className?: string;
+}
+
+interface StaggerContainerProps {
+  children: ReactNode;
+  staggerDelay?: number;
+  className?: string;
+}
+
+interface ScaleOnHoverProps {
+  children: ReactNode;
+  scale?: number;
+  className?: string;
+}
+
 const pageVariants = {
   initial: {
     opacity: 0,
@@ -48,13 +74,6 @@ export function AnimatedPage({ children, className }: AnimatedPageProps) {
   );
 }
 
-// Fade in animation for cards and components
-interface FadeInProps {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}
-
 export function FadeIn({ children, delay = 0, className }: FadeInProps) {
   return (
     <motion.div
@@ -70,14 +89,6 @@ export function FadeIn({ children, delay = 0, className }: FadeInProps) {
       {children}
     </motion.div>
   );
-}
-
-// Slide in from side animation
-interface SlideInProps {
-  children: ReactNode;
-  direction?: 'left' | 'right' | 'up' | 'down';
-  delay?: number;
-  className?: string;
 }
 
 export function SlideIn({ children, direction = 'left', delay = 0, className }: SlideInProps) {
@@ -112,11 +123,6 @@ export function SlideIn({ children, direction = 'left', delay = 0, className }: 
 }
 
 // Stagger children animation
-interface StaggerContainerProps {
-  children: ReactNode;
-  staggerDelay?: number;
-  className?: string;
-}
 
 export function StaggerContainer({
   children,
@@ -143,7 +149,6 @@ export function StaggerContainer({
   );
 }
 
-// Stagger child item
 export function StaggerItem({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <motion.div
@@ -165,13 +170,6 @@ export function StaggerItem({ children, className }: { children: ReactNode; clas
   );
 }
 
-// Scale on hover animation
-interface ScaleOnHoverProps {
-  children: ReactNode;
-  scale?: number;
-  className?: string;
-}
-
 export function ScaleOnHover({ children, scale = 1.05, className }: ScaleOnHoverProps) {
   return (
     <motion.div
@@ -188,7 +186,6 @@ export function ScaleOnHover({ children, scale = 1.05, className }: ScaleOnHover
   );
 }
 
-// Float animation for interactive elements
 export function FloatOnHover({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <motion.div
@@ -206,7 +203,6 @@ export function FloatOnHover({ children, className }: { children: ReactNode; cla
   );
 }
 
-// Loading spinner with animation
 export function AnimatedSpinner({ size = 24, className }: { size?: number; className?: string }) {
   return (
     <motion.div
@@ -227,7 +223,6 @@ export function AnimatedSpinner({ size = 24, className }: { size?: number; class
   );
 }
 
-// Pulse animation for notifications
 export function PulseAnimation({
   children,
   className,
@@ -253,7 +248,6 @@ export function PulseAnimation({
   );
 }
 
-// Modal animation wrapper
 export function ModalAnimation({ children, isOpen }: { children: ReactNode; isOpen: boolean }) {
   return (
     <AnimatePresence>

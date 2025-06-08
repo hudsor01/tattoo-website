@@ -17,7 +17,7 @@ const navigationLinks = [
 ];
 
 export function HomeNavbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(false);
 
   // Handle scroll events
@@ -50,8 +50,20 @@ export function HomeNavbar() {
   // Track the current path for client-side rendering
   const [path, setPath] = React.useState('/');
 
-  void React.useEffect(() => {
+  // Set initial path value on component mount
+  React.useEffect(() => {
     setPath(window.location.pathname);
+    
+    // Listen for route changes
+    const handleRouteChange = () => {
+      setPath(window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
   }, []);
 
   if (!visible && path === '/') {
@@ -93,7 +105,7 @@ export function HomeNavbar() {
                   key={link.href}
                   asChild
                   variant="default"
-                  className="bg-tattoo-red hover:bg-tattoo-red-dark text-white ml-2 text-sm lg:text-base"
+                  className="bg-red-500 hover:bg-red-600 text-white ml-2 text-sm lg:text-base"
                   size="sm"
                 >
                   <Link href={link.href}>{link.label}</Link>
@@ -110,6 +122,8 @@ export function HomeNavbar() {
                 </Button>
               )
             )}
+            
+            {/* Admin link if user is authenticated and has admin role */}
           </nav>
 
           {/* Mobile menu button - visible only on mobile */}
@@ -118,7 +132,7 @@ export function HomeNavbar() {
             onClick={toggleMobileMenu}
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
@@ -146,6 +160,8 @@ export function HomeNavbar() {
                   {link.label}
                 </Link>
               ))}
+              
+              {/* Admin link for mobile */}
             </nav>
           </motion.div>
         )}

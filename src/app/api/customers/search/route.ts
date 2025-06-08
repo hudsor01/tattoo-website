@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { verifyAdminAccess } from '@/lib/utils/server';
 import { z } from 'zod';
 
+import { logger } from "@/lib/logger";
 const searchQuerySchema = z.object({
   q: z.string().min(1, 'Search query is required'),
   limit: z.coerce.number().min(1).max(50).default(10),
@@ -9,10 +11,16 @@ const searchQuerySchema = z.object({
 
 /**
  * GET /api/customers/search
- * Public endpoint for searching customers (limited fields for privacy)
+ * Protected endpoint for searching customers (requires admin access)
  */
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin access
+    const hasAccess = await verifyAdminAccess();
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+    
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('q');
     const limit = parseInt(searchParams.get('limit') ?? '10');
@@ -47,11 +55,7 @@ export async function GET(request: NextRequest) {
         lastName: true,
         email: true,
         createdAt: true,
-        _count: {
-          select: {
-            Appointment: true,
-          },
-        },
+        // Customer model simplified - no complex relationships
       },
       orderBy: {
         createdAt: 'desc',
@@ -59,12 +63,12 @@ export async function GET(request: NextRequest) {
       take: validatedLimit,
     });
 
-    // Format response with combined name and appointment count
+    // Format response with combined name
     const formattedCustomers = customers.map((customer) => ({
       id: customer.id,
       name: `${customer.firstName} ${customer.lastName}`.trim(),
       email: customer.email,
-      appointmentCount: customer._count.Appointment,
+      appointmentCount: 0, // Simplified - no appointment tracking
       createdAt: customer.createdAt,
     }));
 
@@ -73,7 +77,7 @@ export async function GET(request: NextRequest) {
       count: formattedCustomers.length,
     });
   } catch (error) {
-    void console.error('Error searching customers:', error);
+    void void logger.error('Error searching customers:', error);
     return NextResponse.json({ error: 'Failed to search customers' }, { status: 500 });
   }
 }

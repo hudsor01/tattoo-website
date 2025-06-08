@@ -5,15 +5,6 @@
  * both client and server environments.
  */
 
-// Define log levels (currently unused)
-// const LogLevel = {
-//   ERROR: 0,
-//   WARN: 1,
-//   INFO: 2,
-//   HTTP: 3,
-//   DEBUG: 4,
-// };
-
 type LogMessage = string;
 type LogData = unknown;
 
@@ -29,20 +20,42 @@ interface LoggerInterface {
 // Shared logger implementation for both client and server
 const consoleLogger: LoggerInterface = {
   error: (message: LogMessage, data?: LogData) => {
-    console.error(`ERROR: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.error(`ERROR: ${message}`, data);
+    } else {
+      console.error(`ERROR: ${message}`);
+    }
   },
   warn: (message: LogMessage, data?: LogData) => {
-    console.warn(`WARN: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.warn(`WARN: ${message}`, data);
+    } else {
+      console.warn(`WARN: ${message}`);
+    }
   },
   info: (message: LogMessage, data?: LogData) => {
-    console.warn(`INFO: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.warn(`INFO: ${message}`, data);
+    } else {
+      console.warn(`INFO: ${message}`);
+    }
   },
   http: (message: LogMessage, data?: LogData) => {
-    console.warn(`HTTP: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.warn(`HTTP: ${message}`, data);
+    } else {
+      console.warn(`HTTP: ${message}`);
+    }
   },
   debug: (message: LogMessage, data?: LogData) => {
-    // Use console.info instead of console.debug for better visibility
-    console.warn(`DEBUG: ${message}`, data ?? '');
+    // Only log debug messages in development
+    if (process.env.NODE_ENV === 'development') {
+      if (data !== undefined) {
+        console.warn(`DEBUG: ${message}`, data);
+      } else {
+        console.warn(`DEBUG: ${message}`);
+      }
+    }
   },
 };
 
@@ -53,23 +66,46 @@ const consoleLogger: LoggerInterface = {
 const serverLogger: LoggerInterface = {
   error: (message: LogMessage, data?: LogData) => {
     const timestamp = new Date().toISOString();
-    console.error(`${timestamp} ERROR: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.error(`[${timestamp}] ERROR: ${message}`, data);
+    } else {
+      console.error(`[${timestamp}] ERROR: ${message}`);
+    }
   },
   warn: (message: LogMessage, data?: LogData) => {
     const timestamp = new Date().toISOString();
-    console.warn(`${timestamp} WARN: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.warn(`[${timestamp}] WARN: ${message}`, data);
+    } else {
+      console.warn(`[${timestamp}] WARN: ${message}`);
+    }
   },
   info: (message: LogMessage, data?: LogData) => {
     const timestamp = new Date().toISOString();
-    console.warn(`${timestamp} INFO: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.warn(`[${timestamp}] INFO: ${message}`, data);
+    } else {
+      console.warn(`[${timestamp}] INFO: ${message}`);
+    }
   },
   http: (message: LogMessage, data?: LogData) => {
     const timestamp = new Date().toISOString();
-    console.warn(`${timestamp} HTTP: ${message}`, data ?? '');
+    if (data !== undefined) {
+      console.warn(`[${timestamp}] HTTP: ${message}`, data);
+    } else {
+      console.warn(`[${timestamp}] HTTP: ${message}`);
+    }
   },
   debug: (message: LogMessage, data?: LogData) => {
-    const timestamp = new Date().toISOString();
-    console.warn(`${timestamp} DEBUG: ${message}`, data ?? '');
+    // Only log debug messages in development
+    if (process.env.NODE_ENV === 'development') {
+      const timestamp = new Date().toISOString();
+      if (data !== undefined) {
+        console.warn(`[${timestamp}] DEBUG: ${message}`, data);
+      } else {
+        console.warn(`[${timestamp}] DEBUG: ${message}`);
+      }
+    }
   },
 };
 

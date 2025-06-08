@@ -1,17 +1,13 @@
 import type { Metadata } from 'next';
-import dynamicImport from 'next/dynamic';
+import { Suspense } from 'react';
+import GalleryClient from '@/components/gallery/GalleryClient';
+import { GallerySkeleton } from '@/components/gallery/GallerySkeleton';
+import { ClientOnly } from '@/components/ClientOnly';
+import { ErrorBoundary } from '@/components/error/error-boundary';
 
-const GalleryClient = dynamicImport(() => import('@/components/gallery/GalleryClient'), {
-  loading: () => (
-    <div className="flex h-96 items-center justify-center">
-      <div className="text-lg">Loading gallery...</div>
-    </div>
-  ),
-});
+// Static generation with ISR for gallery
+export const revalidate = 1800; // Revalidate every 30 minutes
 
-// Force static generation with revalidation every 2 hours (new tattoos)
-export const dynamic = 'force-static';
-export const revalidate = 7200;
 
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',
@@ -34,5 +30,28 @@ export const metadata: Metadata = {
 };
 
 export default function GalleryPage() {
-  return <GalleryClient />;
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <h1 className="text-2xl font-bold">Gallery Temporarily Unavailable</h1>
+            <p className="text-muted-foreground">Please try refreshing the page or contact us if the issue persists.</p>
+            <a
+              href="/gallery"
+              className="inline-block px-4 py-2 bg-fernando-gradient text-white rounded-md hover:opacity-90 transition-opacity"
+            >
+              Refresh Page
+            </a>
+          </div>
+        </div>
+      }
+    >
+      <ClientOnly fallback={<GallerySkeleton />}>
+        <Suspense fallback={<GallerySkeleton />}>
+          <GalleryClient />
+        </Suspense>
+      </ClientOnly>
+    </ErrorBoundary>
+  );
 }

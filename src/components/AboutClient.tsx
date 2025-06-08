@@ -5,265 +5,270 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronRight } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowRight, Calendar, Heart, Shield, Star, Users } from 'lucide-react';
 import Footer from '@/components/layouts/Footer';
 
-// Animation variants - matching gallery's animations
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
-    },
-  },
-};
-
-const imageVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.8,
-      ease: [0.22, 1, 0.36, 1],
-    },
-  },
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0,
-    },
-  },
-};
-
-// AboutClient component
 export default function AboutClient() {
   return (
-    <>
-      <main className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white">
-        <div className="w-full max-w-none px-6 py-16 pt-24">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div
-              className="text-center mb-16"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-100px' }}
-              variants={fadeInUp}
-            >
-              <h1 className="heading-large gradient-text-muted mb-4">About Ink 37</h1>
-              <p className="paragraph-medium max-w-2xl mx-auto">
-                Discover the story behind our studio and the passion that drives our art
-              </p>
-              <motion.div
-                className="mt-8 h-1 w-24 mx-auto bg-gradient-to-r from-red-500 via-orange-500 to-amber-500"
-                variants={fadeInUp}
-              />
-            </motion.div>
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/90">
+      <div className="container mx-auto px-4 py-12 md:py-20">
+        <motion.div 
+          className="text-center mb-20 md:mb-24 px-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-8 fernando-gradient">
+            About Ink 37
+          </h1>
+          <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto mb-12 leading-relaxed md:leading-loose">
+            Discover the story behind the art and the passion that drives our mission 
+            to create meaningful tattoos that tell your unique story.
+          </p>
+        </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Image */}
-              <motion.div
-                className="relative h-[500px] rounded-xl overflow-hidden shadow-xl"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: '-100px' }}
-                variants={imageVariants}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Image
-                  src="/images/traditional.jpg"
-                  alt="Fernando, Tattoo Artist at Ink 37"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  quality={90}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div className="absolute bottom-6 left-6 p-4 bg-black/40 backdrop-blur-sm rounded-lg max-w-xs">
-                  <p className="text-lg font-bold text-white">Fernando Govea</p>
-                  <p className="text-white/80 text-sm">Tattoo Artist & Studio Owner</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-20 md:mb-24"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16 items-center">
+            <div className="relative group">
+              <Card className="overflow-hidden border-border/50 shadow-xl rounded-xl">
+                <div className="relative h-[500px] md:h-[550px]">
+                  <Image
+                    src="/images/traditional.jpg"
+                    alt="Fernando Govea - Professional Tattoo Artist at Ink 37"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    quality={90}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8">
+                    <Card className="bg-black/70 backdrop-blur-md border-white/20 shadow-2xl rounded-lg">
+                      <CardContent className="p-5 md:p-6">
+                        <h3 className="text-xl md:text-2xl font-bold text-white mb-1.5">Fernando Govea</h3>
+                        <p className="text-white/90 text-sm md:text-base mb-1">Professional Tattoo Artist</p>
+                        <p className="text-fernando-orange text-sm md:text-base font-semibold">10+ Years Experience</p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
-              </motion.div>
-
-              {/* Content */}
+              </Card>
+            </div>
+            <div className="space-y-8">
               <motion.div
-                className="space-y-6"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: '-100px' }}
-                variants={staggerContainer}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
               >
-                <motion.h2 className="heading-medium mb-6 text-white" variants={fadeInUp}>
-                  A Studio Built on Passion
-                </motion.h2>
-
-                <motion.div className="space-y-6" variants={staggerContainer}>
-                  <motion.p className="paragraph-medium" variants={fadeInUp}>
-                    At Ink 37, I have created more than just a tattoo studio. I've built a
-                    comfortable, home-like environment where artistic vision thrives. Our mission is
-                    to provide exceptional custom tattoo services in the Dallas/Fort Worth
-                    metroplex, focusing on creating meaningful art that tells your story.
-                  </motion.p>
-
-                  <motion.p className="paragraph-medium" variants={fadeInUp}>
-                    Founded by Fernando, a passionate tattoo artist with over 10 years of
-                    experience, our studio prides itself on attention to detail, cleanliness, and
-                    building genuine connections with our customers. We believe that the tattoo
-                    experience should be as memorable as the art itself.
-                  </motion.p>
-
-                  <motion.p className="paragraph-medium" variants={fadeInUp}>
-                    When you walk through our doors, you are not just another customer, you are part
-                    of the Ink 37 family. We take the time to understand your vision and work
-                    collaboratively to bring it to life on your skin.
-                  </motion.p>
-                </motion.div>
-
-                <motion.div className="pt-6 flex justify-center" variants={fadeInUp}>
-                  <Button
-                    asChild
-                    variant="default"
-                    className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 shadow-lg group"
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8">
+                  A Dream Built on Passion & Precision
+                </h2>
+                <div className="space-y-5 text-muted-foreground text-base md:text-lg leading-relaxed md:leading-loose">
+                  <p>
+                    At Ink 37, I've cultivated more than just a tattoo studio; I've built a sanctuary—a
+                    comfortable, welcoming environment where artistic vision flourishes and 
+                    meaningful connections are forged. My unwavering mission is to provide exceptional 
+                    custom tattoo services throughout the Dallas/Fort Worth metroplex.
+                  </p>
+                  <p>
+                    Founded by Fernando Govea, a dedicated tattoo artist with over a decade of 
+                    experience, Ink 37 stands as a testament to meticulous attention to detail, 
+                    uncompromising cleanliness, and the art of building genuine, lasting relationships 
+                    with every cherished client who walks through our doors.
+                  </p>
+                  <p>
+                    When you choose Ink 37, you're not merely acquiring a tattoo – you're 
+                    embraced into our extended family. We invest the time to deeply understand your vision, 
+                    collaborating closely to bring it to life with unparalleled precision and artistry.
+                  </p>
+                </div>
+                <div className="pt-8 md:pt-10">
+                  <Button 
+                    asChild 
+                    size="lg"
+                    className="bg-fernando-gradient hover:opacity-90 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    <Link href="/booking" className="flex items-center">
+                    <Link href="/book-consultation">
+                      <Calendar className="h-5 w-5 mr-2.5" />
                       Book a Consultation
-                      <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="h-5 w-5 ml-2.5" />
                     </Link>
                   </Button>
-                </motion.div>
+                </div>
               </motion.div>
             </div>
+          </div>
+        </motion.div>
 
-            {/* Studio Values Section */}
-            <section className="py-16 mt-12">
-              <motion.div
-                className="text-center mb-12"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: '-100px' }}
-                variants={fadeInUp}
-              >
-                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">
-                  Our Studio Values
-                </h2>
-                <p className="text-white/70 max-w-2xl mx-auto">
-                  The principles that guide our work and ensure an exceptional experience
-                </p>
-              </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-20 md:mb-24"
+        >
+          <div className="text-center mb-16 md:mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 fernando-gradient">
+              Our Core Values
+            </h2>
+            <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed md:leading-loose">
+              The principles that guide our work and ensure an exceptional 
+              experience for every client.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Star,
+                title: 'Artistic Excellence',
+                description: 'Dedicated to creating high-quality tattoo art that stands the test of time, focusing on detail, composition, and masterful execution.'
+              },
+              {
+                icon: Users,
+                title: 'Personal Connection', 
+                description: 'Building genuine relationships with our clients, taking the time to understand your vision, story, and personal meaning.'
+              },
+              {
+                icon: Shield,
+                title: 'Safe Environment',
+                description: 'Your safety and comfort are paramount. We maintain the highest standards of cleanliness and follow all health regulations.'
+              }
+            ].map((value, index) => {
+              const Icon = value.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="h-full"
+                >
+                  <Card className="h-full text-center p-6 md:p-8 border-border/50 hover:shadow-xl hover:border-primary/30 transition-all duration-300 flex flex-col items-center">
+                    <div className="mb-6">
+                      <div className="w-20 h-20 mx-auto rounded-full bg-fernando-gradient flex items-center justify-center shadow-lg">
+                        <Icon className="h-10 w-10 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-4 group-hover:text-primary transition-colors">{value.title}</h3>
+                    <p className="text-muted-foreground text-sm md:text-base leading-relaxed flex-grow">
+                      {value.description}
+                    </p>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
 
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={staggerContainer}
-              >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-20 md:mb-24"
+        >
+          <Card className="border-border/50 bg-gradient-to-br from-background via-background/95 to-background/90 shadow-xl rounded-xl">
+            <CardContent className="p-10 md:p-16">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 text-center">
                 {[
-                  {
-                    title: 'Artistic Excellence',
-                    description:
-                      'We are dedicated to creating high-quality tattoo art that stands the test of time, focusing on detail, composition, and execution.',
-                  },
-                  {
-                    title: 'Personal Connection',
-                    description:
-                      'We believe in building genuine relationships with our clients, taking the time to understand your vision and story.',
-                  },
-                  {
-                    title: 'Safe Environment',
-                    description:
-                      'Your safety and comfort are paramount. We maintain the highest standards of cleanliness and follow all health regulations.',
-                  },
-                ].map((value) => (
+                  { number: '10+', label: 'Years Experience' },
+                  { number: '500+', label: 'Happy Clients' },
+                  { number: '1000+', label: 'Tattoos Created' },
+                  { number: '100%', label: 'Satisfaction Rate' }
+                ].map((stat, index) => (
                   <motion.div
-                    key={value.title}
-                    className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-white/10 hover:border-orange-500/30 transition-colors shadow-lg"
-                    variants={fadeInUp}
-                    whileHover={{ y: -5 }}
-                    transition={{ duration: 0.3 }}
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.15 }}
                   >
-                    <h3 className="text-xl font-semibold text-white mb-3">{value.title}</h3>
-                    <p className="text-white/70">{value.description}</p>
+                    <div className="space-y-2.5">
+                      <div className="text-4xl md:text-5xl font-bold fernando-gradient tracking-tight">
+                        {stat.number}
+                      </div>
+                      <div className="text-muted-foreground font-medium text-sm md:text-base uppercase tracking-wider">
+                        {stat.label}
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
-              </motion.div>
-            </section>
-
-            {/* Closing CTA Section */}
-            <motion.section
-              className="py-16 mt-8"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={fadeInUp}
-            >
-              <div className="bg-gradient-to-br from-tattoo-black to-tattoo-black/90 rounded-2xl border border-tattoo-red/20 shadow-xl p-8 md:p-12">
-                <div className="max-w-3xl mx-auto text-center">
-                  <motion.h2
-                    className="text-2xl md:text-3xl font-bold text-white mb-4"
-                    variants={fadeInUp}
-                  >
-                    Ready to Start Your Tattoo Journey with Ink 37?
-                  </motion.h2>
-                  <motion.p className="text-white/80 mb-8" variants={fadeInUp}>
-                    I am committed to creating a tattoo that you will love for years to come. Let's
-                    discuss your ideas and create something unique together.
-                  </motion.p>
-
-                  <motion.div
-                    className="flex flex-col sm:flex-row gap-4 justify-center"
-                    variants={staggerContainer}
-                  >
-                    <motion.div variants={fadeInUp}>
-                      <Button
-                        size="lg"
-                        asChild
-                        className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 group"
-                      >
-                        <Link href="/booking" className="inline-flex items-center">
-                          Book a Consultation
-                          <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
-                      </Button>
-                    </motion.div>
-
-                    <motion.div variants={fadeInUp}>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        asChild
-                        className="relative border-2 border-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-amber-500/10 text-white hover:from-red-500/20 hover:via-orange-500/20 hover:to-amber-500/20 hover:scale-105 transition-all duration-300 group overflow-hidden"
-                      >
-                        <Link href="/gallery" className="inline-flex items-center relative z-10">
-                          <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold">
-                            View My Gallery
-                          </span>
-                          <ChevronRight className="ml-2 h-4 w-4 text-amber-400 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
-                        </Link>
-                      </Button>
-                    </motion.div>
-                  </motion.div>
-                </div>
               </div>
-            </motion.section>
-          </motion.div>
-        </div>
-      </main>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className="relative overflow-hidden border-border/50">
+            <div className="absolute inset-0">
+              <Image
+                src="/images/services/neon-sign.jpg"
+                alt="Ink 37 Tattoo Studio"
+                fill
+                className="object-cover opacity-10"
+                sizes="100vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-background/95 to-background/90" />
+            </div>
+            <CardContent className="relative p-10 md:p-16 text-center">
+              <div className="max-w-16 mx-auto mb-8">
+                <Heart className="h-12 w-12 md:h-16 md:w-16 mx-auto text-fernando-orange" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 fernando-gradient">
+                Ready to Start Your Tattoo Journey?
+              </h2>
+              <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed md:leading-loose">
+                Let's bring your vision to life with exceptional artistry and attention 
+                to detail. Book a consultation to discuss your ideas and begin creating 
+                your unique piece of art.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
+                <Button 
+                  asChild 
+                  size="lg"
+                  className="bg-fernando-gradient hover:opacity-90 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Link href="/book-consultation">
+                    <Calendar className="h-5 w-5 mr-2.5" />
+                    Book a Consultation
+                    <ArrowRight className="h-5 w-5 ml-2.5" />
+                  </Link>
+                </Button>
+                <Button 
+                  asChild 
+                  size="lg" 
+                  variant="outline"
+                  className="font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 border-border hover:bg-muted/50 hover:text-primary"
+                >
+                  <Link href="/gallery">
+                    View Portfolio
+                    <ArrowRight className="h-5 w-5 ml-2.5" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="mt-12 pt-10 border-t border-border/30 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Professional tattoo artistry • 10+ years experience • Dallas/Fort Worth
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
       <Footer />
-    </>
+    </div>
   );
 }

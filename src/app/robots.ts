@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { ENV } from '@/lib/utils/env';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://ink37tattoos.com';
+  const baseUrl = typeof ENV.NEXT_PUBLIC_APP_URL === 'string' ? ENV.NEXT_PUBLIC_APP_URL : 'https://ink37tattoos.com';
 
   return {
     rules: [
@@ -11,7 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/api/',
           '/admin/',
-          '/client-portal/',
           '/auth/',
           '/account/',
           '/_next/',
@@ -30,17 +30,17 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/client-portal/'],
+        disallow: ['/api/', '/admin/'],
         crawlDelay: 0,
       },
       {
         userAgent: 'Bingbot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/client-portal/'],
+        disallow: ['/api/', '/admin/'],
         crawlDelay: 1,
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    host: baseUrl as string,
   };
 }

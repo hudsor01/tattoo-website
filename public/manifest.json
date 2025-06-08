@@ -1,12 +1,13 @@
 {
-  "name": "Ink 37 Tattoo Studio",
-  "short_name": "Ink 37",
-  "description": "Professional tattoo artist in Crowley, TX serving Fort Worth, Arlington, Burleson & DFW area. Custom designs, cover-ups, fine line work, traditional tattoos.",
+  "name": "Ink 37 Tattoos",
+  "short_name": "Ink37",
+  "description": "Professional tattoo artist with online booking and gallery",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#8B5A2B",
+  "theme_color": "#dc2626",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -57,30 +58,7 @@
       "purpose": "maskable any"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Book Appointment",
-      "short_name": "Book",
-      "description": "Book a tattoo consultation",
-      "url": "/booking",
-      "icons": [{ "src": "/icons/booking-icon.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "View Gallery",
-      "short_name": "Gallery",
-      "description": "Browse tattoo portfolio",
-      "url": "/gallery",
-      "icons": [{ "src": "/icons/gallery-icon.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Client Portal",
-      "short_name": "Portal",
-      "description": "Access your appointments",
-      "url": "/client-portal",
-      "icons": [{ "src": "/icons/portal-icon.png", "sizes": "96x96" }]
-    }
-  ],
-  "categories": ["business", "lifestyle", "art"],
-  "prefer_related_applications": false,
-  "related_applications": []
+  "categories": ["business", "lifestyle"],
+  "lang": "en-US",
+  "dir": "ltr"
 }

@@ -5,11 +5,12 @@
  * This allows for consistent error responses and client-side handling.
  */
 
-import { TRPCError } from '@trpc/server';
 import { toast } from 'sonner';
+import { logger } from './logger';
 
+// Define our custom error codes enum
 export enum ErrorCode {
-  // HTTP Status Code Errors
+  // HTTP Standard Errors
   BAD_REQUEST = 'BAD_REQUEST',
   UNAUTHORIZED = 'UNAUTHORIZED',
   FORBIDDEN = 'FORBIDDEN',
@@ -17,32 +18,38 @@ export enum ErrorCode {
   METHOD_NOT_ALLOWED = 'METHOD_NOT_ALLOWED',
   CONFLICT = 'CONFLICT',
   PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE',
-  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
   TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-
-  // Business Logic Errors
+  
+  // Validation Errors
   VALIDATION_ERROR = 'VALIDATION_ERROR',
+  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
+  
+  // Authentication & Authorization
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
   AUTHORIZATION_ERROR = 'AUTHORIZATION_ERROR',
+  
+  // Resource Errors
   RESOURCE_NOT_FOUND = 'RESOURCE_NOT_FOUND',
   RESOURCE_ALREADY_EXISTS = 'RESOURCE_ALREADY_EXISTS',
-  INVALID_OPERATION = 'INVALID_OPERATION',
-  DATABASE_ERROR = 'DATABASE_ERROR',
-  EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
-
-  // Payment and Booking Errors
+  
+  // Payment Errors
   PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
   PAYMENT_FAILED = 'PAYMENT_FAILED',
+  
+  // Business Logic Errors
   BOOKING_UNAVAILABLE = 'BOOKING_UNAVAILABLE',
   CALENDAR_ERROR = 'CALENDAR_ERROR',
-
-  // Generic Error
+  EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
+  DATABASE_ERROR = 'DATABASE_ERROR',
+  INVALID_OPERATION = 'INVALID_OPERATION',
+  
+  // Generic
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
-// Standardized error response shape
+// API Error Response interface
 export interface ApiErrorResponse {
   code: ErrorCode;
   message: string;
@@ -63,78 +70,26 @@ export class ApiError extends Error {
     this.details = details;
 
     // Ensures proper stack trace in Node.js
-    void Error.captureStackTrace(this, this.constructor);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 
-  // Convert to TRPC error for API routes
-  toTRPCError(): TRPCError {
-    // Map our error codes to TRPC error codes
-    const trpcCode = this.mapErrorCodeToTRPC();
-
-    return new TRPCError({
-      code: trpcCode,
+  // Convert to standard HTTP response
+  toHttpResponse(): Response {
+    const body: ApiErrorResponse = {
+      code: this.code,
       message: this.message,
-      cause: this.details,
+      details: this.details,
+      ...(process.env.NODE_ENV === 'development' && this.stack && { stack: this.stack }),
+    };
+
+    return new Response(JSON.stringify(body), {
+      status: this.status,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
-  }
-
-  // Maps our custom error codes to TRPC error codes
-  private mapErrorCodeToTRPC():
-    | 'BAD_REQUEST'
-    | 'UNAUTHORIZED'
-    | 'FORBIDDEN'
-    | 'NOT_FOUND'
-    | 'TIMEOUT'
-    | 'CONFLICT'
-    | 'PRECONDITION_FAILED'
-    | 'PAYLOAD_TOO_LARGE'
-    | 'METHOD_NOT_SUPPORTED'
-    | 'UNPROCESSABLE_CONTENT'
-    | 'TOO_MANY_REQUESTS'
-    | 'CLIENT_CLOSED_REQUEST'
-    | 'INTERNAL_SERVER_ERROR' {
-    // Direct mappings
-    if (
-      this.code === ErrorCode.BAD_REQUEST ||
-      this.code === ErrorCode.UNAUTHORIZED ||
-      this.code === ErrorCode.FORBIDDEN ||
-      this.code === ErrorCode.NOT_FOUND ||
-      this.code === ErrorCode.CONFLICT ||
-      this.code === ErrorCode.PAYLOAD_TOO_LARGE ||
-      this.code === ErrorCode.TOO_MANY_REQUESTS ||
-      this.code === ErrorCode.INTERNAL_SERVER_ERROR
-    ) {
-      return this.code;
-    }
-
-    // Indirect mappings
-    switch (this.code) {
-      case ErrorCode.VALIDATION_ERROR:
-      case ErrorCode.UNPROCESSABLE_ENTITY:
-        return 'UNPROCESSABLE_CONTENT';
-      case ErrorCode.AUTHENTICATION_ERROR:
-        return 'UNAUTHORIZED';
-      case ErrorCode.AUTHORIZATION_ERROR:
-        return 'FORBIDDEN';
-      case ErrorCode.RESOURCE_NOT_FOUND:
-        return 'NOT_FOUND';
-      case ErrorCode.RESOURCE_ALREADY_EXISTS:
-        return 'CONFLICT';
-      case ErrorCode.METHOD_NOT_ALLOWED:
-        return 'METHOD_NOT_SUPPORTED';
-      case ErrorCode.SERVICE_UNAVAILABLE:
-      case ErrorCode.EXTERNAL_SERVICE_ERROR:
-      case ErrorCode.DATABASE_ERROR:
-      case ErrorCode.CALENDAR_ERROR:
-        return 'INTERNAL_SERVER_ERROR';
-      case ErrorCode.PAYMENT_REQUIRED:
-      case ErrorCode.PAYMENT_FAILED:
-      case ErrorCode.BOOKING_UNAVAILABLE:
-      case ErrorCode.INVALID_OPERATION:
-      case ErrorCode.UNKNOWN_ERROR:
-      default:
-        return 'BAD_REQUEST';
-    }
   }
 
   // Convert to standard API response for Next.js API routes
@@ -194,13 +149,37 @@ export const ApiErrors = {
 
   calendarError: (message = 'Calendar service error', details?: unknown) =>
     new ApiError(ErrorCode.CALENDAR_ERROR, message, 500, details),
+
+  // Authentication & Authorization specific
+  authenticationError: (message = 'Authentication failed', details?: unknown) =>
+    new ApiError(ErrorCode.AUTHENTICATION_ERROR, message, 401, details),
+
+  authorizationError: (message = 'Authorization failed', details?: unknown) =>
+    new ApiError(ErrorCode.AUTHORIZATION_ERROR, message, 403, details),
+
+  // Resource specific
+  resourceNotFound: (message = 'Resource not found', details?: unknown) =>
+    new ApiError(ErrorCode.RESOURCE_NOT_FOUND, message, 404, details),
+
+  resourceAlreadyExists: (message = 'Resource already exists', details?: unknown) =>
+    new ApiError(ErrorCode.RESOURCE_ALREADY_EXISTS, message, 409, details),
+
+  // Business logic
+  invalidOperation: (message = 'Invalid operation', details?: unknown) =>
+    new ApiError(ErrorCode.INVALID_OPERATION, message, 400, details),
+
+  databaseError: (message = 'Database error', details?: unknown) =>
+    new ApiError(ErrorCode.DATABASE_ERROR, message, 500, details),
+
+  externalServiceError: (message = 'External service error', details?: unknown) =>
+    new ApiError(ErrorCode.EXTERNAL_SERVICE_ERROR, message, 502, details),
 };
 
 /**
  * Utility for handling API errors in client-side code
  */
 export function handleApiError(error: unknown, showToast = true): ApiErrorResponse {
-  void console.error('API Error:', error);
+  logger.error('API Error:', error);
 
   let formattedError: ApiErrorResponse;
 
@@ -220,7 +199,7 @@ export function handleApiError(error: unknown, showToast = true): ApiErrorRespon
   }
 
   if (showToast) {
-    void toast.error(formattedError.message);
+    toast.error(formattedError.message);
   }
 
   return formattedError;
@@ -254,4 +233,80 @@ export function isPaymentError(error: unknown): boolean {
     isApiError(error) &&
     (error.code === ErrorCode.PAYMENT_REQUIRED || error.code === ErrorCode.PAYMENT_FAILED)
   );
+}
+
+// Utility function to create error responses for API routes
+export function createErrorResponse(error: unknown): Response {
+  if (error instanceof ApiError) {
+    return error.toHttpResponse();
+  }
+
+  // Handle standard errors
+  const apiError = new ApiError(
+    ErrorCode.INTERNAL_SERVER_ERROR,
+    error instanceof Error ? error.message : 'An unexpected error occurred',
+    500,
+    error
+  );
+
+  return apiError.toHttpResponse();
+}
+
+// Utility to extract error message from any error type
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'An unexpected error occurred';
+}
+
+// Status code mapper for HTTP responses
+export function getHttpStatusFromErrorCode(code: ErrorCode): number {
+  switch (code) {
+    case ErrorCode.BAD_REQUEST:
+    case ErrorCode.VALIDATION_ERROR:
+    case ErrorCode.BOOKING_UNAVAILABLE:
+    case ErrorCode.PAYMENT_FAILED:
+    case ErrorCode.INVALID_OPERATION:
+      return 400;
+    case ErrorCode.UNAUTHORIZED:
+    case ErrorCode.AUTHENTICATION_ERROR:
+      return 401;
+    case ErrorCode.PAYMENT_REQUIRED:
+      return 402;
+    case ErrorCode.FORBIDDEN:
+    case ErrorCode.AUTHORIZATION_ERROR:
+      return 403;
+    case ErrorCode.NOT_FOUND:
+    case ErrorCode.RESOURCE_NOT_FOUND:
+      return 404;
+    case ErrorCode.METHOD_NOT_ALLOWED:
+      return 405;
+    case ErrorCode.CONFLICT:
+    case ErrorCode.RESOURCE_ALREADY_EXISTS:
+      return 409;
+    case ErrorCode.PAYLOAD_TOO_LARGE:
+      return 413;
+    case ErrorCode.UNPROCESSABLE_ENTITY:
+      return 422;
+    case ErrorCode.TOO_MANY_REQUESTS:
+      return 429;
+    case ErrorCode.INTERNAL_SERVER_ERROR:
+    case ErrorCode.DATABASE_ERROR:
+    case ErrorCode.CALENDAR_ERROR:
+    case ErrorCode.UNKNOWN_ERROR:
+      return 500;
+    case ErrorCode.EXTERNAL_SERVICE_ERROR:
+      return 502;
+    case ErrorCode.SERVICE_UNAVAILABLE:
+      return 503;
+    default:
+      return 500;
+  }
 }

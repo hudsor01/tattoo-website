@@ -1,79 +1,63 @@
+/**
+ * API Routes for Appointments (using Booking model)
+ * 
+ * These routes provide appointment management functionality
+ * using the unified Booking model with Cal.com integration.
+ */
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminAccess } from '@/lib/utils/server';
-import { Prisma } from '@prisma/client';
-import type {
-  AppointmentStatus,
-  AppointmentWithCustomer,
-  FormattedAppointment,
-} from '@/types/booking-types';
 import { prisma } from '@/lib/db/prisma';
-import { randomUUID } from 'node:crypto';
+import type { Prisma, BookingStatus } from '@prisma/client';
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/appointments
- * Get all appointments with optional filtering
+ * Get appointments with pagination and filtering
  */
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin access
     const hasAccess = await verifyAdminAccess();
     if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    // Get query parameters
     const searchParams = request.nextUrl.searchParams;
-    const search = searchParams.get('search');
-    const status = searchParams.get('status');
-    const customerId = searchParams.get('customerId');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
     const page = parseInt(searchParams.get('page') ?? '1');
-    const limit = parseInt(searchParams.get('limit') ?? '50');
+    const limit = parseInt(searchParams.get('limit') ?? '10');
+    const status = searchParams.get('status');
+    const search = searchParams.get('search');
     const skip = (page - 1) * limit;
 
-    const where: Prisma.AppointmentWhereInput = {};
+    // Build filters
+    const where: Prisma.BookingWhereInput = {};
+
+    if (status && status !== 'all') {
+      where.status = status.toUpperCase() as BookingStatus;
+    }
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { Customer: { is: { firstName: { contains: search, mode: 'insensitive' } } } },
-        { Customer: { is: { lastName: { contains: search, mode: 'insensitive' } } } },
       ];
     }
 
-    if (status && status !== 'all') {
-      where.status = status as AppointmentStatus;
-    }
-
-    if (customerId) {
-      where.customerId = customerId;
-    }
-
-    if (startDate && endDate) {
-      where.startDate = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      };
-    } else if (startDate) {
-      where.startDate = {
-        gte: new Date(startDate),
-      };
-    } else if (endDate) {
-      where.startDate = {
-        lte: new Date(endDate),
-      };
-    }
-
+    // Get appointments with customer data
     const [appointments, totalCount] = await Promise.all([
-      prisma.appointment.findMany({
+      prisma.booking.findMany({
         where,
         orderBy: {
-          startDate: 'asc',
+          preferredDate: 'desc',
         },
         skip,
         take: limit,
         include: {
-          Customer: {
+          customer: {
             select: {
               id: true,
               firstName: true,
@@ -84,39 +68,57 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.appointment.count({ where }),
+      prisma.booking.count({
+        where,
+      }),
     ]);
 
-    const formattedAppointments: FormattedAppointment[] = (
-      appointments as AppointmentWithCustomer[]
-    ).map((appointment) => ({
+    // Transform appointments to match expected interface
+    const transformedAppointments = appointments.map(appointment => ({
       id: appointment.id,
-      title: appointment.title,
-      customerId: appointment.customerId,
-      clientName: appointment.Customer
-        ? `${appointment.Customer.firstName ?? ''} ${appointment.Customer.lastName ?? ''}`.trim()
-        : null,
-      clientEmail: appointment.Customer?.email ?? null,
-      clientPhone: appointment.Customer?.phone ?? null,
-      startDate: appointment.startDate,
-      endDate: appointment.endDate,
+      firstName: appointment.firstName,
+      lastName: appointment.lastName,
+      email: appointment.email,
+      phone: appointment.phone ?? null,
+      tattooType: appointment.tattooType,
+      size: appointment.size ?? null,
+      placement: appointment.placement ?? null,
+      description: appointment.description ?? null,
+      preferredDate: appointment.preferredDate,
+      preferredTime: appointment.preferredTime ?? null,
       status: appointment.status,
-      description: appointment.description,
+      notes: appointment.notes ?? null,
+      totalAmount: appointment.totalAmount ?? null,
       createdAt: appointment.createdAt,
       updatedAt: appointment.updatedAt,
+      customer: appointment.customer,
+      // Additional fields for compatibility
+      clientName: `${appointment.firstName} ${appointment.lastName}`,
+      clientEmail: appointment.email,
+      startDate: appointment.preferredDate,
+      endDate: appointment.preferredDate, // Same as start date for now
+      totalPrice: appointment.totalAmount ?? 0,
     }));
 
+    const hasMore = skip + limit < totalCount;
+
     return NextResponse.json({
-      appointments: formattedAppointments,
-      total: totalCount,
-      page,
-      limit,
-      pageCount: Math.ceil(totalCount / limit),
+      appointments: transformedAppointments,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasMore,
+      },
     });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    void console.error('Error fetching appointments:', errorMessage);
-    return NextResponse.json({ error: 'Failed to fetch appointments' }, { status: 500 });
+
+  } catch (error) {
+    void logger.error('Error fetching appointments:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch appointments' },
+      { status: 500 }
+    );
   }
 }
 
@@ -126,73 +128,36 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verify admin access
     const hasAccess = await verifyAdminAccess();
     if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const data: {
-      id?: string;
-      title: string;
-      customerId: string;
-      startTime: string;
-      endTime: string;
-      status?: string;
-      depositAmount?: number;
-      price?: number;
-      description?: string;
-      designNotes?: string;
-      artistId?: string;
-    } = await request.json();
+    const body = await request.json();
 
-    if (!data.title || !data.customerId || !data.startTime || !data.endTime) {
-      return NextResponse.json(
-        { error: 'Title, client, start time, and end time are required' },
-        { status: 400 }
-      );
-    }
-
-    const customer = await prisma.customer.findUnique({
-      where: {
-        id: data.customerId,
+    // Create new appointment using Booking model
+    const appointment = await prisma.booking.create({
+      data: {
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+        phone: body.phone,
+        tattooType: body.tattooType,
+        size: body.size,
+        placement: body.placement,
+        description: body.description,
+        preferredDate: new Date(body.preferredDate),
+        preferredTime: body.preferredTime,
+        status: body.status ?? 'PENDING',
+        notes: body.notes,
+        totalAmount: body.totalAmount,
+        customerId: body.customerId, // Optional link to existing customer
       },
-    });
-
-    if (!customer) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 400 });
-    }
-
-    const appointmentData: {
-      id: string;
-      title: string;
-      customerId: string;
-      startDate: Date;
-      endDate: Date;
-      status: string;
-      deposit: number | null;
-      totalPrice: number | null;
-      description: string | null;
-      designNotes?: string | null;
-      artistId: string;
-    } = {
-      id: data.id ?? randomUUID(),
-      title: String(data.title),
-      customerId: String(data.customerId),
-      startDate: new Date(data.startTime),
-      endDate: new Date(data.endTime),
-      status: String(data.status ?? 'scheduled'),
-      deposit: data.depositAmount ? Number(data.depositAmount) : null,
-      totalPrice: data.price ? Number(data.price) : null,
-      description: data.description ? String(data.description) : null,
-      artistId: data.artistId ?? '00000000-0000-0000-0000-000000000000',
-      designNotes: data.designNotes ?? null,
-    };
-
-    const appointment = await prisma.appointment.create({
-      data: appointmentData,
       include: {
-        Customer: {
+        customer: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
             email: true,
@@ -202,130 +167,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await prisma.customer.update({
-      where: {
-        id: data.customerId,
-      },
-      data: {
-        updatedAt: new Date(),
-      },
-    });
+    void logger.info('Created new appointment:', { appointmentId: appointment.id });
 
-    const customerData = (appointment as AppointmentWithCustomer).Customer;
+    return NextResponse.json(appointment, { status: 201 });
 
-    const formattedAppointment: FormattedAppointment = {
-      id: appointment.id,
-      title: appointment.title,
-      customerId: appointment.customerId,
-      startDate: appointment.startDate,
-      endDate: appointment.endDate,
-      status: appointment.status,
-      description: appointment.description,
-      createdAt: appointment.createdAt,
-      updatedAt: appointment.updatedAt,
-      clientName: customerData
-        ? `${customerData.firstName ?? ''} ${customerData.lastName ?? ''}`.trim()
-        : null,
-      clientEmail: customerData?.email ?? null,
-      clientPhone: customerData?.phone ?? null,
-      artist: null,
-    };
-
-    return NextResponse.json(formattedAppointment, { status: 201 });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    void console.error('Error creating appointment:', errorMessage);
-    return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });
-  }
-}
-
-/**
- * PUT /api/admin/appointments
- * Batch update appointments status
- */
-export async function PUT(request: NextRequest) {
-  try {
-    const hasAccess = await verifyAdminAccess();
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    const data: {
-      ids: string[];
-      status: string;
-    } = await request.json();
-
-    if (!data.ids || !Array.isArray(data.ids) || data.ids.length === 0) {
-      return NextResponse.json({ error: 'Appointment IDs are required' }, { status: 400 });
-    }
-
-    if (!data.status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
-    }
-
-    const updateCount = await prisma.appointment.updateMany({
-      where: {
-        id: {
-          in: data.ids,
-        },
-      },
-      data: {
-        status: data.status,
-        updatedAt: new Date(),
-      },
-    });
-
-    return NextResponse.json({
-      message: `${updateCount.count} appointments updated successfully`,
-      count: updateCount.count,
-    });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    void console.error('Error updating appointments:', errorMessage);
-    return NextResponse.json({ error: 'Failed to update appointments' }, { status: 500 });
-  }
-}
-
-/**
- * DELETE /api/admin/appointments
- * Batch delete appointments
- */
-export async function DELETE(request: NextRequest) {
-  try {
-    const hasAccess = await verifyAdminAccess();
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    const url = request.nextUrl;
-    let ids: string[] = [];
-
-    const idParam = url.searchParams.get('ids');
-    if (idParam) {
-      ids = idParam.split(',');
-    } else {
-      const data: { ids: string[] } = await request.json();
-      if (!data.ids || !Array.isArray(data.ids) || data.ids.length === 0) {
-        return NextResponse.json({ error: 'Appointment IDs are required' }, { status: 400 });
-      }
-      ids = data.ids;
-    }
-
-    const deleteCount = await prisma.appointment.deleteMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
-
-    return NextResponse.json({
-      message: `${deleteCount.count} appointments deleted successfully`,
-      count: deleteCount.count,
-    });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    void console.error('Error deleting appointments:', errorMessage);
-    return NextResponse.json({ error: 'Failed to delete appointments' }, { status: 500 });
+  } catch (error) {
+    void logger.error('Error creating appointment:', error);
+    return NextResponse.json(
+      { error: 'Failed to create appointment' },
+      { status: 500 }
+    );
   }
 }

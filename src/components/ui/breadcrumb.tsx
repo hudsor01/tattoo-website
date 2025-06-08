@@ -1,3 +1,5 @@
+// CONVERTED TO SERVER COMPONENT: Pure navigation components with forwardRef and CSS only
+
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';

@@ -1,0 +1,250 @@
+/**
+ * Cal.com Atoms Custom Styles
+ * 
+ * Custom styling for Cal.com Atoms components to match the tattoo website theme
+ */
+
+/* Cal.com Atoms Global Styling */
+[data-cal-namespace] {
+  /* Override default fonts */
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Booker component styling */
+[data-cal-namespace] .cal-booker {
+  border-radius: 8px;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Dark theme specific overrides */
+.dark [data-cal-namespace] {
+  color-scheme: dark;
+}
+
+.dark [data-cal-namespace] .cal-booker {
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+}
+
+/* Primary button styling */
+[data-cal-namespace] button[data-testid="confirm-book-button"],
+[data-cal-namespace] button[data-testid="book-event-button"] {
+  background-color: #E63A35 !important;
+  border-color: #E63A35 !important;
+}
+
+[data-cal-namespace] button[data-testid="confirm-book-button"]:hover,
+[data-cal-namespace] button[data-testid="book-event-button"]:hover {
+  background-color: #d12a25 !important;
+  border-color: #d12a25 !important;
+}
+
+/* Calendar styling */
+[data-cal-namespace] .cal-calendar {
+  background-color: transparent;
+}
+
+.dark [data-cal-namespace] .cal-calendar-day {
+  color: hsl(var(--foreground));
+}
+
+.dark [data-cal-namespace] .cal-calendar-day:hover {
+  background-color: hsl(var(--accent));
+}
+
+/* Form input styling */
+.dark [data-cal-namespace] input,
+.dark [data-cal-namespace] textarea,
+.dark [data-cal-namespace] select {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark [data-cal-namespace] input:focus,
+.dark [data-cal-namespace] textarea:focus,
+.dark [data-cal-namespace] select:focus {
+  border-color: #E63A35;
+  box-shadow: 0 0 0 2px rgba(230, 58, 53, 0.2);
+}
+
+/* Loading state */
+[data-cal-namespace] .cal-loading {
+  background-color: hsl(var(--muted));
+}
+
+/* Time slot styling */
+[data-cal-namespace] .cal-time-slot {
+  border-color: hsl(var(--border));
+}
+
+.dark [data-cal-namespace] .cal-time-slot:hover {
+  background-color: hsl(var(--accent));
+  border-color: #E63A35;
+}
+
+/* Event meta information */
+[data-cal-namespace] .cal-event-meta {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Gallery lightbox Cal.com styling - Black/White/Red theme using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] {
+  /* Force white background for the calendar */
+  background-color: var(--color-white, #ffffff) !important;
+  color: var(--color-ink-black, #0a0a0a) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-booker {
+  background-color: var(--color-white, #ffffff) !important;
+  color: var(--color-ink-black, #0a0a0a) !important;
+  border: none !important;
+}
+
+/* Header styling */
+.cal-embed-container [data-cal-namespace] .cal-header {
+  background-color: var(--color-ink-black) !important;
+  color: var(--color-white) !important;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-white) 20%, transparent) !important;
+}
+
+/* Primary buttons with Fernando gradient using Tailwind v4 approach */
+.cal-embed-container [data-cal-namespace] button[data-testid="confirm-book-button"],
+.cal-embed-container [data-cal-namespace] button[data-testid="book-event-button"],
+.cal-embed-container [data-cal-namespace] button[type="submit"],
+.cal-embed-container [data-cal-namespace] .cal-primary-button {
+  background: linear-gradient(90deg, var(--color-fernando-red) 0%, var(--color-fernando-orange) 100%) !important;
+  border: none !important;
+  color: var(--color-white) !important;
+  font-weight: var(--font-weight-semibold, 600) !important;
+  border-radius: calc(var(--radius) * 1.5) !important;
+  transition: all 0.2s ease !important;
+}
+
+.cal-embed-container [data-cal-namespace] button[data-testid="confirm-book-button"]:hover,
+.cal-embed-container [data-cal-namespace] button[data-testid="book-event-button"]:hover,
+.cal-embed-container [data-cal-namespace] button[type="submit"]:hover,
+.cal-embed-container [data-cal-namespace] .cal-primary-button:hover {
+  background: linear-gradient(90deg, var(--color-fernando-orange-red) 0%, var(--color-fernando-orange) 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-fernando-red) 30%, transparent) !important;
+}
+
+/* Secondary buttons using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] button[data-testid="back-button"],
+.cal-embed-container [data-cal-namespace] .cal-secondary-button {
+  background-color: color-mix(in oklab, var(--color-ink-black) 10%, transparent) !important;
+  border: 1px solid color-mix(in oklab, var(--color-ink-black) 20%, transparent) !important;
+  color: var(--color-ink-black) !important;
+}
+
+.cal-embed-container [data-cal-namespace] button[data-testid="back-button"]:hover,
+.cal-embed-container [data-cal-namespace] .cal-secondary-button:hover {
+  background-color: color-mix(in oklab, var(--color-ink-black) 20%, transparent) !important;
+}
+
+/* Calendar grid styling using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] .cal-calendar {
+  background-color: var(--color-white) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-calendar-day {
+  color: var(--color-ink-black) !important;
+  border: 1px solid color-mix(in oklab, var(--color-ink-black) 10%, transparent) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-calendar-day:hover {
+  background-color: color-mix(in oklab, var(--color-fernando-red) 10%, transparent) !important;
+  border-color: var(--color-fernando-red) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-calendar-day.selected,
+.cal-embed-container [data-cal-namespace] .cal-calendar-day[aria-selected="true"] {
+  background: linear-gradient(90deg, var(--color-fernando-red) 0%, var(--color-fernando-orange) 100%) !important;
+  color: var(--color-white) !important;
+  border-color: var(--color-fernando-red) !important;
+}
+
+/* Time slot styling using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] .cal-time-slot {
+  background-color: var(--color-white) !important;
+  border: 1px solid color-mix(in oklab, var(--color-ink-black) 10%, transparent) !important;
+  color: var(--color-ink-black) !important;
+  border-radius: var(--radius) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-time-slot:hover {
+  background-color: color-mix(in oklab, var(--color-fernando-red) 10%, transparent) !important;
+  border-color: var(--color-fernando-red) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-time-slot.selected,
+.cal-embed-container [data-cal-namespace] .cal-time-slot[aria-selected="true"] {
+  background: linear-gradient(90deg, var(--color-fernando-red) 0%, var(--color-fernando-orange) 100%) !important;
+  color: var(--color-white) !important;
+  border-color: var(--color-fernando-red) !important;
+}
+
+/* Form inputs using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] input,
+.cal-embed-container [data-cal-namespace] textarea,
+.cal-embed-container [data-cal-namespace] select {
+  background-color: var(--color-white) !important;
+  border: 1px solid color-mix(in oklab, var(--color-ink-black) 20%, transparent) !important;
+  color: var(--color-ink-black) !important;
+  border-radius: var(--radius) !important;
+}
+
+.cal-embed-container [data-cal-namespace] input:focus,
+.cal-embed-container [data-cal-namespace] textarea:focus,
+.cal-embed-container [data-cal-namespace] select:focus {
+  border-color: var(--color-fernando-red) !important;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-fernando-red) 20%, transparent) !important;
+  outline: none !important;
+}
+
+/* Labels and text using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] label {
+  color: var(--color-ink-black) !important;
+  font-weight: var(--font-weight-medium, 500) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-event-title {
+  color: var(--color-ink-black) !important;
+  font-weight: var(--font-weight-semibold, 600) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-event-meta {
+  color: color-mix(in oklab, var(--color-ink-black) 60%, transparent) !important;
+}
+
+/* Loading states using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] .cal-loading {
+  background-color: color-mix(in oklab, var(--color-fernando-red) 10%, transparent) !important;
+}
+
+/* Success/error messages using Tailwind v4 variables */
+.cal-embed-container [data-cal-namespace] .cal-success {
+  background-color: color-mix(in oklab, var(--color-green-500, #10b981) 10%, transparent) !important;
+  border-color: var(--color-green-500, #10b981) !important;
+  color: var(--color-green-700, #059669) !important;
+}
+
+.cal-embed-container [data-cal-namespace] .cal-error {
+  background-color: color-mix(in oklab, var(--color-red-500, #ef4444) 10%, transparent) !important;
+  border-color: var(--color-red-500, #ef4444) !important;
+  color: var(--color-red-600, #dc2626) !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  [data-cal-namespace] .cal-booker {
+    border-radius: 0;
+    margin: -1px;
+  }
+  
+  .cal-embed-container [data-cal-namespace] {
+    padding: 1rem !important;
+  }
+}

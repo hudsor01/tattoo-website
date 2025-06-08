@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import HomeClient from '@/components/home/HomeClient';
+import { ClientOnly } from '@/components/ClientOnly';
 
-// Force static generation with revalidation every 4 hours
+// PPR removed - unstable beta feature
+
+// Use static rendering with ISR for better performance
 export const dynamic = 'force-static';
-export const revalidate = 14400;
+export const revalidate = 3600; // Revalidate every hour
 
 export const metadata: Metadata = {
   title: 'Ink 37 | Custom Tattoos in Dallas/Fort Worth by Fernando Govea',
@@ -18,7 +21,14 @@ export const metadata: Metadata = {
     'traditional tattoos',
     'fine line tattoos',
     'tattoo consultation',
-    'Dallas tattoo studio',
+    'Dallas custom tattoos',
+    'Fort Worth custom tattoos',
+    'Fort Worth tattoo artist',
+    'Dallas tattoo artist',
+    'Dallas tattoo consultation',
+    'Fort Worth tattoo consultation',
+    'Dallas custom tattoo',
+    'Fort Worth custom tattoo'
   ],
   openGraph: {
     title: 'Ink 37 Tattoos | Custom Designs by Fernando Govea',
@@ -41,7 +51,7 @@ export const metadata: Metadata = {
     title: 'Ink 37 Tattoos | Custom Designs by Fernando Govea',
     description: 'Experience exceptional custom tattoo artistry in the Dallas/Fort Worth area.',
     images: ['/images/japanese.jpg'],
-    creator: '@ink37tattoo',
+    creator: '@ink37tattoos',
   },
   alternates: {
     canonical: 'https://ink37tattoos.com',
@@ -117,7 +127,15 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClient />
+      <ClientOnly fallback={
+        <div className="fixed inset-0 overflow-hidden bg-black">
+          <div className="h-full w-full flex items-center justify-center">
+            <div className="text-white text-2xl">Loading...</div>
+          </div>
+        </div>
+      }>
+        <HomeClient />
+      </ClientOnly>
     </>
   );
 }

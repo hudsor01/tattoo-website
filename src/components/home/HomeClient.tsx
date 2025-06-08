@@ -10,19 +10,33 @@ const tattooImages = [
   '/images/japanese.jpg',
   '/images/traditional.jpg',
   '/images/realism.jpg',
-  '/images/leg-piece.jpg',
-  '/images/dragonballz-left-arm.jpg',
   '/images/cover-ups.jpg',
 ];
 
-export default function HomeClient() {
+function HomeClient() {
   // For image carousel
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  const [isMounted, setIsMounted] = React.useState(false);
 
   // Auto-advance carousel with very slow transition (10 seconds)
   const [isPaused, setIsPaused] = React.useState(false);
 
-  void React.useEffect(() => {
+  // Track mounted state for DOM operations only
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Component is now wrapped in ClientOnly, no need for early return
+
+  // Reset index if it's out of bounds
+  React.useEffect(() => {
+    if (currentImageIndex >= tattooImages.length) {
+      setCurrentImageIndex(0);
+    }
+  }, [currentImageIndex]);
+
+  // Carousel auto-advance - works same on server/client
+  React.useEffect(() => {
     if (isPaused) return undefined;
 
     const interval = setInterval(() => {
@@ -35,85 +49,77 @@ export default function HomeClient() {
   }, [isPaused]);
 
   // Handle pause on hover
-  const handleMouseEnter = () => {
+  const handleMouseEnter = React.useCallback(() => {
     setIsPaused(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsPaused(false);
-  };
-
-  // Touch swipe handling for mobile
-  const [touchStart, setTouchStart] = React.useState<number | null>(0);
-  const [touchEnd, setTouchEnd] = React.useState<number | null>(0);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.targetTouches && e.targetTouches.length > 0) {
-      setTouchStart(e.targetTouches[0]?.clientX ?? 0);
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.targetTouches && e.targetTouches.length > 0) {
-      setTouchEnd(e.targetTouches[0]?.clientX ?? 0);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStart !== null && touchEnd !== null) {
-      if (touchStart - touchEnd > 50) {
-        // Swipe left
-        setCurrentImageIndex((prev) => (prev === tattooImages.length - 1 ? 0 : prev + 1));
-      }
-
-      if (touchStart - touchEnd < -50) {
-        // Swipe right
-        setCurrentImageIndex((prev) => (prev === 0 ? tattooImages.length - 1 : prev - 1));
-      }
-    }
-  };
-
-  // Disable scrolling on the page
-  void React.useEffect(() => {
-    // Disable scrolling on this page
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.height = '100%';
-    document.body.style.height = '100%';
-
-    return () => {
-      // Clean up when component unmounts
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      document.documentElement.style.height = '';
-      document.body.style.height = '';
-    };
   }, []);
 
-  // Optimized image preloading - only preload first 2 images
-  void React.useEffect(() => {
-    // Preload only the first image (currently shown) and next image
+  const handleMouseLeave = React.useCallback(() => {
+    setIsPaused(false);
+  }, []);
+
+  // Touch swipe handling for mobile
+  const [touchStart, setTouchStart] = React.useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = React.useState<number | null>(null);
+
+  const handleTouchStart = React.useCallback((e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0]?.clientX ?? null);
+  }, []);
+
+  const handleTouchMove = React.useCallback((e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0]?.clientX ?? null);
+  }, []);
+
+  const handleTouchEnd = React.useCallback(() => {
+    if (touchStart === null || touchEnd === null) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setCurrentImageIndex((prev) => (prev === tattooImages.length - 1 ? 0 : prev + 1));
+    }
+    if (isRightSwipe) {
+      setCurrentImageIndex((prev) => (prev === 0 ? tattooImages.length - 1 : prev - 1));
+    }
+  }, [touchStart, touchEnd]);
+
+
+  // Image preloading only after mount
+  React.useEffect(() => {
+    if (!isMounted) return undefined;
+    
     const preloadImages = tattooImages.slice(0, 2);
+    const cleanupFunctions: (() => void)[] = [];
+
     preloadImages.forEach((src) => {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.as = 'image';
       link.href = src;
       document.head.appendChild(link);
+      
+      cleanupFunctions.push(() => {
+        if (document.head.contains(link)) {
+          document.head.removeChild(link);
+        }
+      });
     });
-  }, []);
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [isMounted]);
 
   return (
     <>
-      {/* Loading overlay removed since isLoading state is not being used */}
-      {/* If you need a loading indicator in the future, implement it with proper state management */}
-
       {/* Persistent minimal navigation */}
       <nav className="fixed top-8 right-8 z-40 flex gap-6">
         <motion.div whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}>
           <Link
             href="/gallery"
-            className="text-white/70 hover:text-white text-sm uppercase tracking-wide font-medium transition-colors"
+            className="text-base uppercase tracking-wide font-semibold transition-colors"
+            style={{ color: 'var(--color-white)' }}
           >
             Gallery
           </Link>
@@ -121,7 +127,8 @@ export default function HomeClient() {
         <motion.div whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}>
           <Link
             href="/services"
-            className="text-white/70 hover:text-white text-sm uppercase tracking-wide font-medium transition-colors"
+            className="text-base uppercase tracking-wide font-semibold transition-colors"
+            style={{ color: 'var(--color-white)' }}
           >
             Services
           </Link>
@@ -129,14 +136,15 @@ export default function HomeClient() {
         <motion.div whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.95 }}>
           <Link
             href="/contact"
-            className="text-white/70 hover:text-white text-sm uppercase tracking-wide font-medium transition-colors"
+            className="text-base uppercase tracking-wide font-semibold transition-colors"
+            style={{ color: 'var(--color-white)' }}
           >
             Contact
           </Link>
         </motion.div>
       </nav>
 
-      <div className="fixed inset-0 overflow-hidden bg-black">
+      <div className="fixed inset-0 overflow-hidden bg-black" suppressHydrationWarning={true}>
         {/* Main container with improved spacing */}
         <div className="h-full w-full flex flex-col md:flex-row px-6 lg:px-12">
           {/* Left side - Content with proper spacing from navbar */}
@@ -145,7 +153,9 @@ export default function HomeClient() {
               <h1 className="artist-name text-white mb-6">
                 TATTOOS BY
                 <br />
-                <span className="gradient-text">FERNANDO GOVEA</span>
+                <span className="fernando-gradient">
+                  FERNANDO GOVEA
+                </span>
               </h1>
 
               <p className="paragraph-large mb-10">
@@ -154,33 +164,37 @@ export default function HomeClient() {
 
               {/* Enhanced CTAs with consistent styling */}
               <div className="flex flex-col sm:flex-row gap-6">
-                <Link href="/gallery" passHref>
-                  <motion.a
-                    whileHover={{
-                      y: -4,
-                      boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
+                <motion.div
+                  whileHover={{
+                    y: -4,
+                    boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link
+                    href="/gallery"
+                    className="block px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-500 opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
-                    <span>See My Work</span>
-                  </motion.a>
-                </Link>
+                    <div className="absolute inset-0 bg-fernando-gradient opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
+                    <span className="relative z-10">See My Work</span>
+                  </Link>
+                </motion.div>
 
-                <Link href="/booking" passHref>
-                  <motion.a
-                    whileHover={{
-                      y: -4,
-                      boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
+                <motion.div
+                  whileHover={{
+                    y: -4,
+                    boxShadow: '0 8px 30px rgba(239, 68, 68, 0.5)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link
+                    href="/booking"
+                    className="block px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-md transition-all text-center shadow-lg relative overflow-hidden group"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-500 opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
-                    <span>Book a Consultation</span>
-                  </motion.a>
-                </Link>
+                    <div className="absolute inset-0 bg-fernando-gradient opacity-0 group-hover:opacity-100 transition-all duration-300 -z-10"></div>
+                    <span className="relative z-10">Book a Consultation</span>
+                  </Link>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -198,15 +212,9 @@ export default function HomeClient() {
                   }}
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
-                  onTouchStart={(e) => {
-                    handleMouseEnter();
-                    handleTouchStart(e);
-                  }}
+                  onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
-                  onTouchEnd={() => {
-                    handleMouseLeave();
-                    handleTouchEnd();
-                  }}
+                  onTouchEnd={handleTouchEnd}
                 >
                   <AnimatePresence mode="wait">
                     {tattooImages.map(
@@ -303,3 +311,6 @@ export default function HomeClient() {
     </>
   );
 }
+
+// Export memoized component for performance
+export default React.memo(HomeClient);

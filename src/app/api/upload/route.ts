@@ -1,12 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { auth } from '@clerk/nextjs/server';
+import { put, del } from '@vercel/blob';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { logger } from '@/lib/logger';
+import { validateFileWithErrorHandling, generateSecureFilename, getFileValidationOptions } from '@/lib/utils/file-validation';
+import { checkRateLimit, rateLimitResponse } from '@/lib/security/rate-limiter';
+
+// Route runtime configuration (Node.js runtime for Next.js 15.2.0+)
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication (Clerk)
-    const { userId } = await auth();
-    if (!userId) {
+    // Add rate limiting check
+    const rateLimitResult = await checkRateLimit(request);
+    const limitResponse = rateLimitResponse(rateLimitResult);
+    if (limitResponse) return limitResponse;
+
+    // Check authentication using direct API access (Next.js 15.2.0+ feature)
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -20,46 +35,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Create Supabase client - using anon key since we removed RLS
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    // Determine file type based on bucket
+    const fileCategory = bucket === 'gallery' ? 'image' : 
+                        bucket === 'documents' ? 'document' : 'any';
+    
+    // Validate file using our utility
+    validateFileWithErrorHandling(file, getFileValidationOptions(fileCategory));
 
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    // Generate secure filename with proper validation
+    const fileName = generateSecureFilename(file.name, folder);
 
-    // Upload to Supabase storage
-    const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
-      cacheControl: '3600',
-      upsert: false,
+    // Upload to Vercel Blob
+    const blob = await put(fileName, file, {
+      access: 'public',
+      addRandomSuffix: true,
     });
-
-    if (error) {
-      void console.error('Upload error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
 
     return NextResponse.json({
-      url: urlData.publicUrl,
-      path: data.path,
+      url: blob.url,
+      path: blob.pathname,
     });
   } catch (error) {
-    void console.error('Upload failed:', error);
+    void logger.error('Upload failed:', error);
+    
+    // Handle different error types
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Upload failed',
-      },
+      { error: 'Upload failed' },
       { status: 500 }
     );
   }
@@ -67,46 +75,47 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Check authentication (Clerk)
-    const { userId } = await auth();
-    if (!userId) {
+    // Add rate limiting check
+    const rateLimitResult = await checkRateLimit(request);
+    const limitResponse = rateLimitResponse(rateLimitResult);
+    if (limitResponse) return limitResponse;
+
+    // Check authentication using direct API access (Next.js 15.2.0+ feature)
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get request data
-    const { path, bucket = 'gallery' } = await request.json();
+    const { url } = await request.json();
 
-    if (!path) {
-      return NextResponse.json({ error: 'No path provided' }, { status: 400 });
+    if (!url) {
+      return NextResponse.json(
+        { error: 'No URL provided' },
+        { status: 400 }
+      );
     }
 
-    // Create Supabase client - using anon key since we removed RLS
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-    // Delete from Supabase storage
-    const { error } = await supabase.storage.from(bucket).remove([path]);
-
-    if (error) {
-      void console.error('Delete error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Delete from Vercel Blob
+    await del(url);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    void console.error('Delete failed:', error);
+    void logger.error('Delete failed:', error);
+    
+    // Handle different error types
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Delete failed',
-      },
+      { error: 'Delete failed' },
       { status: 500 }
     );
   }

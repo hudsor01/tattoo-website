@@ -24,22 +24,22 @@ import { Search, Home, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50@light bg-neutral-950@dark px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/20">
-            <Search className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <Search className="w-8 h-8 text-blue-600@light text-blue-400@dark" />
           </div>
           <CardTitle className="text-3xl font-bold">404</CardTitle>
           <CardDescription className="text-lg">Page Not Found</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <p className="text-center text-neutral-600 dark:text-neutral-400">
+          <p className="text-center text-neutral-600@light text-neutral-400@dark">
             Sorry, the page you&apos;re looking for doesn&apos;t exist or has been moved.
           </p>
 
-          <div className="p-4 bg-neutral-100 dark:bg-neutral-900 rounded-lg">
+          <div className="p-4 bg-neutral-100@light bg-neutral-900@dark rounded-lg">
             <p className="text-sm font-medium mb-2">Popular pages:</p>
             <ul className="space-y-1 text-sm">
               <li>
@@ -81,7 +81,7 @@ export default function NotFound() {
         </CardFooter>
 
         <div className="p-4 border-t text-center">
-          <p className="text-xs text-neutral-500 dark:text-neutral-500">
+          <p className="text-xs text-neutral-500">
             Lost? Try our{' '}
             <Link href="/contact" className="text-primary hover:text-primary/80 underline">
               contact page
