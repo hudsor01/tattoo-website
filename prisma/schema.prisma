@@ -105,6 +105,7 @@ model RateLimit {
   
   @@index([key])
   @@index([lastRequest])
+  @@index([key, lastRequest]) // Rate limiting performance optimization
   @@map("rateLimit")
 }
 
@@ -133,6 +134,8 @@ model Customer {
   @@index([email])
   @@index([phone])
   @@index([firstName, lastName])
+  @@index([firstName, lastName, email]) // Customer search optimization
+  @@index([createdAt, firstName, lastName]) // Admin dashboard recent customers
   @@map("customer")
 }
 
@@ -182,6 +185,12 @@ model Booking {
   @@index([preferredDate])
   @@index([calBookingUid])
   @@index([createdAt])
+  @@index([status, preferredDate]) // Dashboard appointment filtering
+  @@index([createdAt, status]) // Analytics date ranges with status
+  @@index([email, status]) // Customer search with status
+  @@index([customerId, preferredDate]) // Customer appointment history
+  @@index([preferredDate, status]) // Scheduling and availability
+  @@index([customerId, status, createdAt]) // Customer relationship queries
   @@map("booking")
 }
 
@@ -211,6 +220,10 @@ model TattooDesign {
   @@index([designType])
   @@index([artistId])
   @@index([createdAt])
+  @@index([isApproved, createdAt]) // Public gallery ordering
+  @@index([designType, isApproved, createdAt]) // Category filtering with approval
+  @@index([artistId, isApproved, createdAt]) // Artist portfolio queries
+  @@index([isApproved, designType]) // Gallery filtering optimization
   @@map("tattoo_design")
 }
 
@@ -260,6 +273,9 @@ model CalAnalyticsEvent {
   @@index([userId])
   @@index([serviceId])
   @@index([timestamp])
+  @@index([timestamp, eventType]) // Event tracking queries
+  @@index([sessionId, timestamp]) // Session-based analytics
+  @@index([eventType, serviceId, timestamp]) // Service performance tracking
   @@map("cal_analytics_event")
 }
 
@@ -282,6 +298,9 @@ model CalBookingFunnel {
   @@index([completed])
   @@index([abandoned])
   @@index([timestamp])
+  @@index([sessionId, stepOrder]) // Funnel flow tracking
+  @@index([completed, step, timestamp]) // Conversion analysis
+  @@index([step, completed, timestamp]) // Step completion rates
   @@map("cal_booking_funnel")
 }
 
@@ -302,6 +321,8 @@ model CalServiceAnalytics {
   @@index([serviceId])
   @@index([date])
   @@index([eventType])
+  @@index([date, serviceId, eventType]) // Daily service performance queries
+  @@index([serviceId, date]) // Service historical data
   @@unique([serviceId, eventType, date])
   @@map("cal_service_analytics")
 }
@@ -346,6 +367,9 @@ model Payment {
   @@index([status])
   @@index([createdAt])
   @@index([bookingId])
+  @@index([status, createdAt]) // Payment analytics and filtering
+  @@index([bookingId, status]) // Booking payment tracking
+  @@index([createdAt, status]) // Financial reporting date ranges
   @@map("payment")
 }
 
