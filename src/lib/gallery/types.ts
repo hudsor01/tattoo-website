@@ -1,6 +1,3 @@
-// Gallery-related types
-// These types represent the gallery feature's data structures
-
 import type { Prisma } from '@prisma/client';
 
 // Use Prisma's generated type with selected fields

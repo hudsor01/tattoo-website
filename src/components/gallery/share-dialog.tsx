@@ -15,7 +15,7 @@ import { shareContent } from '@/lib/api';
 import { Facebook, Twitter, Instagram, Mail, Copy, Check, Loader2, Linkedin } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
-// Define share types locally since they're not in the database schema
+
 type SharePlatform = 'facebook' | 'twitter' | 'instagram' | 'email' | 'copy' | 'linkedin';
 
 interface ShareDialogProps {
@@ -48,6 +48,7 @@ export function ShareDialog({
   contentType,
   contentId,
   title,
+  imageUrl,
 }: ShareDialogProps) {
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
   const [shareUrl, setShareUrl] = useState('');
@@ -57,7 +58,6 @@ export function ShareDialog({
     setIsLoading((prev) => ({ ...prev, [platform]: true }));
 
     try {
-      // Handle copy platform separately since it's not in the API
       if (platform === 'copy') {
         const url = `${window.location.origin}/gallery/${contentId}`;
         await navigator.clipboard.writeText(url);
@@ -67,7 +67,6 @@ export function ShareDialog({
         return;
       }
 
-      // Only call shareContent for supported platforms
       const supportedPlatforms = ['facebook', 'twitter', 'instagram', 'email', 'linkedin'] as const;
       if (!supportedPlatforms.includes(platform as typeof supportedPlatforms[number])) {
         return;
@@ -80,18 +79,24 @@ export function ShareDialog({
       );
       setShareUrl(result.shareUrl);
 
-      // Open the share URL in a new window for social platforms
       if (platform !== 'email') {
         void window.open(result.shareUrl, '_blank', 'noopener,noreferrer');
       } else {
-        // For email, we'll just open the mailto link
+
         window.location.href = result.shareUrl;
       }
 
+      // Show enhanced success toast with animation
       toast({
-        title: 'Shared successfully',
-        description: `Content shared on ${platform}`,
+        title: '✨ Shared successfully!',
+        description: `Your tattoo design has been shared on ${platform.charAt(0).toUpperCase() + platform.slice(1)}. Thank you for spreading the word!`,
+        duration: 4000,
       });
+
+      // Close dialog after successful share
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 1500);
     } catch (error) {
       void logger.error('Share error:', error);
       toast({
@@ -110,8 +115,9 @@ export function ShareDialog({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast({
-        title: 'Copied to clipboard',
-        description: 'Link copied to clipboard successfully',
+        title: '📋 Link copied!',
+        description: 'Share link has been copied to your clipboard. Paste it anywhere to share this design!',
+        duration: 3000,
       });
     } catch (err) {
       void logger.error('Failed to copy:', err);
@@ -131,7 +137,7 @@ export function ShareDialog({
     title: title,
     description: `Check out this amazing ${contentType} design by Fernando Govea at Ink 37 Tattoos`,
     url: previewUrl,
-    image: `/images/${contentId}`, // Use direct image path for file-based gallery
+    image: imageUrl,
   };
 
   const shareButtons: ShareButton[] = [
@@ -148,7 +154,7 @@ export function ShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Share this {contentType}</DialogTitle>
           <DialogDescription>Share "{title}" with your friends and followers</DialogDescription>
@@ -168,10 +174,9 @@ export function ShareDialog({
                   }
                   width={64}
                   height={64}
-                  className="w-full h-full"
-                  style={{ objectFit: 'cover' }}
+                  className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback to placeholder if image fails to load
+
                     (e.target as HTMLImageElement).src = '/placeholder.svg?height=64&width=64';
                   }}
                 />
@@ -203,20 +208,33 @@ export function ShareDialog({
               </Button>
             ))}
           </div>
+          
+          {/* Separator */}
+          <hr className="my-3 border-border" />
 
-          <div className="flex items-center space-x-2">
-            <Input value={shareUrl ?? previewUrl} readOnly className="flex-1" />
-            <Button
-              size="icon"
-              onClick={() => void copyToClipboard(shareUrl ?? previewUrl)}
-              aria-label="Copy link to clipboard"
-            >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            </Button>
-          </div>
-
-          <div className="text-xs text-muted-foreground mt-2">
-            <p>Sharing this content will include the title, description, and a preview image.</p>
+          {/* Copy Link Section */}
+          <div>
+            <label htmlFor="share-link-input" className="text-sm font-medium text-foreground mb-1 block">
+              Or copy link
+            </label>
+            <div className="flex items-center space-x-2">
+              <Input 
+                id="share-link-input"
+                value={shareUrl || previewUrl} 
+                readOnly 
+                className="flex-1 text-sm" 
+                aria-label="Shareable link"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => void copyToClipboard(shareUrl || previewUrl)}
+                aria-label="Copy link to clipboard"
+                className="shrink-0"
+              >
+                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

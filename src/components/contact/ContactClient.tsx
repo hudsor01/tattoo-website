@@ -9,10 +9,15 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Footer from '@/components/layouts/Footer';
 import { TikTokIcon } from '@/components/icons';
+import { getAdminEmails } from '@/lib/utils/env';
 
 export default function ContactClient() {
-  // Animation variants matching the design system
-  const fadeInUp = {
+// Get admin email for contact link
+const adminEmails = getAdminEmails();
+const primaryEmail = adminEmails[0] || process.env['NEXT_PUBLIC_CONTACT_EMAIL'] || 'contact@ink37tattoos.com';
+
+// Animation variants matching the design system
+const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
@@ -106,7 +111,7 @@ export default function ContactClient() {
               <div className="mt-10 flex-grow flex flex-col">
                 <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
                   <MapPin className="mr-2 text-[#E63A35]" size={20} />
-                  Dallas/Fort Worth Service Area
+                  Dallas/Fort Worth, Texas Area
                 </h3>
                 <GoogleMapInteractive 
                   className="border border-white/10 flex-grow"
@@ -137,13 +142,13 @@ export default function ContactClient() {
                   <div className="flex items-center space-x-6">
                     {/* Email */}
                     <motion.a
-                      href="mailto:fennyg83@gmail.com"
-                      className="w-16 h-16 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-fernando-red hover:text-white transition-colors border border-fernando-red/30 hover:border-fernando-orange"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      title="Send Email"
+                    href={`mailto:${primaryEmail}`}
+                    className="w-16 h-16 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-fernando-red hover:text-white transition-colors border border-fernando-red/30 hover:border-fernando-orange"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="Send Email"
                     >
-                      <Mail className="w-7 h-7" />
+                    <Mail className="w-7 h-7" />
                     </motion.a>
 
                     {/* Instagram */}

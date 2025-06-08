@@ -2,13 +2,15 @@
 import React, { JSX, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { TattooDesign } from "@prisma/client";
 
-type Card = {
-  id: number;
+interface Card extends Pick<TattooDesign, 'id'> {
   content: JSX.Element | React.ReactNode | string;
   className: string;
   thumbnail: string;
-};
+  designData: TattooDesign;
+}
+
 
 export const LayoutGrid = ({ cards }: { cards: Card[] }) => {
   const [selected, setSelected] = useState<Card | null>(null);

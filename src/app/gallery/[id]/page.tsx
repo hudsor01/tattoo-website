@@ -189,8 +189,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
                       <img
                         src={related.thumbnailUrl}
                         alt={related.name}
-                        className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-                        style={{ objectFit: 'cover' }}
+                        className="w-full h-full group-hover:scale-105 transition-transform duration-300 object-cover"
                         loading="lazy"
                       />
                     ) : (

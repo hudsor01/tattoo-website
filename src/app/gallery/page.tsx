@@ -5,6 +5,9 @@ import { GallerySkeleton } from '@/components/gallery/GallerySkeleton';
 import { ClientOnly } from '@/components/ClientOnly';
 import { ErrorBoundary } from '@/components/error/error-boundary';
 
+// Static generation with ISR for gallery
+export const revalidate = 1800; // Revalidate every 30 minutes
+
 
 export const metadata: Metadata = {
   title: 'Gallery | Ink 37 Tattoos',

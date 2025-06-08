@@ -4,12 +4,18 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { validateFileWithErrorHandling, generateSecureFilename, getFileValidationOptions } from '@/lib/utils/file-validation';
+import { checkRateLimit, rateLimitResponse } from '@/lib/security/rate-limiter';
 
 // Route runtime configuration (Node.js runtime for Next.js 15.2.0+)
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Add rate limiting check
+    const rateLimitResult = await checkRateLimit(request);
+    const limitResponse = rateLimitResponse(rateLimitResult);
+    if (limitResponse) return limitResponse;
+
     // Check authentication using direct API access (Next.js 15.2.0+ feature)
     const session = await auth.api.getSession({
       headers: await headers()
@@ -69,6 +75,11 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Add rate limiting check
+    const rateLimitResult = await checkRateLimit(request);
+    const limitResponse = rateLimitResponse(rateLimitResult);
+    if (limitResponse) return limitResponse;
+
     // Check authentication using direct API access (Next.js 15.2.0+ feature)
     const session = await auth.api.getSession({
       headers: await headers()

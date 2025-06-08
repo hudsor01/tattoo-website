@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { prisma, CACHE_TTL } from '@/lib/db/prisma';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { Prisma } from '@prisma/client';
@@ -34,7 +34,10 @@ export async function GET(request: NextRequest) {
       queryOptions.skip = 1; // Skip the cursor itself
     }
 
-    const designs = await prisma.tattooDesign.findMany(queryOptions);
+    const designs = await prisma.tattooDesign.findMany({
+      ...queryOptions,
+      cacheStrategy: { ttl: CACHE_TTL.MEDIUM }
+    });
 
     // Check if there are more items
     let nextCursor: string | null = null;
@@ -43,8 +46,11 @@ export async function GET(request: NextRequest) {
       nextCursor = nextItem?.id ?? null;
     }
 
-    // Get total count for pagination info
-    const totalCount = await prisma.tattooDesign.count({ where });
+    // Get total count for pagination info (cached for longer since it changes less frequently)
+    const totalCount = await prisma.tattooDesign.count({ 
+      where,
+      cacheStrategy: { ttl: CACHE_TTL.LONG }
+    });
 
     const result = NextResponse.json({
       designs,

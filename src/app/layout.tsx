@@ -118,6 +118,43 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
         
+        {/* Error Handling for Development */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Suppress custom element definition errors (dev tools)
+              if (typeof window !== 'undefined') {
+                const originalDefine = window.customElements?.define;
+                if (originalDefine) {
+                  window.customElements.define = function(name, constructor, options) {
+                    try {
+                      return originalDefine.call(this, name, constructor, options);
+                    } catch (error) {
+                      if (error.message && error.message.includes('already been defined')) {
+                        console.warn('Custom element already defined:', name);
+                        return;
+                      }
+                      throw error;
+                    }
+                  };
+                }
+                
+                // Suppress common development errors
+                window.addEventListener('error', function(e) {
+                  if (e.message && (
+                    e.message.includes('mcp-autocomplete') ||
+                    e.message.includes('already been defined')
+                  )) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                  }
+                });
+              }
+            `,
+          }}
+        />
+        
         {/* Note: Splash screen images can be generated using the tool at /icons/splash/generator.html */}
         
         <link rel="canonical" href="https://ink37tattoos.com" />

@@ -158,7 +158,7 @@ function GalleryClient() {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-5xl md:text-6xl font-bold mb-6 fernando-gradient">
-            Tattoo Gallery
+            Gallery
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
             Browse our collection of custom tattoo designs showcasing a diverse range of styles. From

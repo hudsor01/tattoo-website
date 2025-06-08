@@ -102,7 +102,7 @@ export function Navbar() {
             <Button
             asChild
             variant="default"
-            className="bg-fernando-gradient hover:opacity-90 text-white text-sm lg:text-base"
+            className="bg-fernando-gradient hover:opacity-90 text-white text-sm lg:text-base" // Changed class here
             size="sm"
             >
             <Link href="/booking">Book Now</Link>
@@ -116,8 +116,6 @@ export function Navbar() {
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-
-
           </div>
         </div>
 
@@ -138,7 +136,7 @@ export function Navbar() {
               href={link.href}
               className={`text-white py-2 px-4 rounded-md transition-all duration-300 ${
               pathname === link.href
-              ? 'bg-fernando-gradient font-medium'
+              ? 'bg-fernando-gradient font-medium' // Changed class here
               : 'hover:bg-white/5'
               }`}
               onClick={() => setMobileMenuOpen(false)}
@@ -149,7 +147,7 @@ export function Navbar() {
               {/* Book Now button in mobile menu */}
               <Link
               href="/booking"
-              className="text-white py-2 px-4 rounded-md bg-fernando-gradient text-center font-medium"
+              className="text-white py-2 px-4 rounded-md bg-fernando-gradient text-center font-medium" // Changed class here
               onClick={() => setMobileMenuOpen(false)}
               >
               Book Now

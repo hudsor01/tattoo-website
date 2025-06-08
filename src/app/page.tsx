@@ -4,8 +4,9 @@ import { ClientOnly } from '@/components/ClientOnly';
 
 // PPR removed - unstable beta feature
 
-// Use static rendering for better performance
-export const dynamic = 'auto';
+// Use static rendering with ISR for better performance
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
 
 export const metadata: Metadata = {
   title: 'Ink 37 | Custom Tattoos in Dallas/Fort Worth by Fernando Govea',

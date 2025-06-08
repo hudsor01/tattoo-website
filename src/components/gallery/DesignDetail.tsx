@@ -26,50 +26,40 @@ export function DesignDetail({ id }: DesignDetailProps) {
 
   const { design, isLoading } = useDesign(id);
 
-  // Initialize view tracking
   useEffect(() => {
     if (design && !isLoading) {
       viewStartTimeRef.current = new Date();
     }
 
-    // Cleanup on unmount - no action needed
   }, [design, isLoading, id]);
 
-
-  // Handle back navigation
   const handleBack = () => {
     void router.back();
   };
 
-  // Handle share button click
   const handleShare = () => {
     
-    // Try native sharing first
     if (navigator.share) {
       void navigator
         .share({
-          title: design?.name ?? 'Tattoo Design',
+          title: design?.name ?? 'attoo Design',
           text: `Check out this awesome tattoo design from Ink 37: ${design?.name}`,
           url: window.location.href,
         })
         .catch((error) => {
           console.error('Error sharing:', error);
-          // Fallback to our custom share dialog if native sharing fails
           setShareDialogOpen(true);
         });
     } else {
-      // Use our custom share dialog
       setShareDialogOpen(true);
     }
   };
 
   // Handle booking click
   const handleBooking = () => {
-    // Open booking modal instead of navigating
     setBookingModalOpen(true);
   };
 
-  // We shouldn't hit this but just in case
   if (!design && !isLoading) {
     return (
       <div className="text-center py-16">
@@ -101,7 +91,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
             <Image
               src={design.fileUrl}
               alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Ink 37, Crowley TX`}
-              style={{ objectFit: 'cover' }}
+              className="object-cover"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
@@ -110,7 +100,7 @@ export function DesignDetail({ id }: DesignDetailProps) {
             <Image
               src={design.thumbnailUrl}
               alt={`${design.designType ?? 'Custom'} tattoo design: ${design.name} - Professional tattoo art by Ink 37, Crowley TX`}
-              style={{ objectFit: 'cover' }}
+              className="object-cover"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority

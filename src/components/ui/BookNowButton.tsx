@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Calendar, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trackBusinessEvent } from '@/components/providers/AnalyticsProvider';
-import dynamic from 'next/dynamic';
+// dynamic import removed as it's not used
 
 // Cal.com Atoms removed - using direct Cal.com links for reliability
 
@@ -94,7 +94,7 @@ export function BookNowButton({
           variant === 'default' && 'bg-fernando-gradient hover:bg-fernando-gradient-hover',
           className
         )}
-        onClick={handleClick}
+        onClick={() => void handleClick()}
         disabled={isLoading}
       >
         {/* Gradient overlay on hover */}
