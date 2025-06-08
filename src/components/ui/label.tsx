@@ -1,6 +1,6 @@
-'use client';
-
 import * as React from 'react';
+
+// CONVERTED TO SERVER COMPONENT: Radix Label primitive works in Server Components
 import * as LabelPrimitive from '@radix-ui/react-label';
 
 import { cn } from '@/utils';

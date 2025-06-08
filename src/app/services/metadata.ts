@@ -1,36 +1,21 @@
 import type { Metadata } from 'next';
+import { generatePageMetadata } from '@/lib/seo/seo-config';
 
-export const metadata: Metadata = {
-  title: 'Tattoo Services | Ink 37 Tattoos',
-  description:
-    'Custom tattoo services including traditional, realism, Japanese, and cover-ups. Professional tattooing in the Dallas/Fort Worth metroplex.',
-  keywords:
-    'tattoo services dallas, custom tattoos fort worth, traditional tattoo, realism tattoo, japanese tattoo, cover-up tattoo, tattoo pricing, tattoo consultation',
-  openGraph: {
-    title: 'Tattoo Services - Ink 37 Tattoos',
-    description:
-      'Explore our custom tattoo services including traditional, realism, Japanese, and cover-ups. Professional tattooing in Austin, TX.',
-    url: '/services',
-    siteName: 'Ink 37 Tattoos',
-    images: [
-      {
-        url: '/images/services-hero.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Ink 37 Tattoos Services',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Tattoo Services - Ink 37 Tattoos',
-    description:
-      'Custom tattoo services in Austin, TX. Traditional, realism, Japanese, and cover-ups.',
-    images: ['/images/services-hero.jpg'],
-  },
-  alternates: {
-    canonical: '/services',
-  },
-};
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Tattoo Services | Custom Designs, Cover-ups & Fine Line Work',
+  description: 'Professional tattoo services in Crowley, TX including custom tattoo designs, cover-ups, fine line work, traditional tattoos, realism, and Japanese styles. Expert consultation and booking available.',
+  keywords: [
+    'tattoo services Crowley TX',
+    'custom tattoo design',
+    'cover-up tattoos',
+    'fine line tattoos',
+    'traditional tattoos',
+    'realism tattoos',
+    'japanese style tattoos',
+    'tattoo consultation',
+    'professional tattoo artist',
+    'DFW tattoo services'
+  ],
+  canonical: 'https://ink37tattoos.com/services',
+  ogImage: '/images/traditional.jpg',
+});

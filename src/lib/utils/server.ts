@@ -3,9 +3,20 @@
  * Do not import this file in client components
  */
 
+import 'server-only';
+
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { auth } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import { type User } from '@prisma/client';
 
+// Helper function to check if user is admin
+function isAdmin(user: User): boolean {
+  return user.role === 'admin';
+}
+
+import { logger } from "@/lib/logger";
 /**
  * Utility function for combining TailwindCSS classes conditionally
  */
@@ -39,17 +50,27 @@ export function safeJsonParse<T>(json: string, fallback: T): T {
 }
 
 /**
- * Verify admin access - Production ready version
- * This function checks if the current user has admin privileges
+ * Verify admin access for API routes
  */
 export async function verifyAdminAccess(): Promise<boolean> {
   try {
-    // For production, allow admin access when accessing from admin routes
-    // This bypasses Clerk JWT issues while maintaining security through middleware
-    void console.warn('✅ Admin access granted - production mode');
-    return true;
+    // Get session from BetterAuth
+    // We use the getSession method from auth that works with server components
+    // Use cookies directly in a format compatible with auth.api.getSession
+    const cookiesHeader = cookies().toString();
+    const session = await auth.api.getSession({ 
+      headers: new Headers({ cookie: cookiesHeader })
+    });
+    
+    // Check if user is authenticated and has admin role
+    if (!session?.user) {
+      return false;
+    }
+    
+    // Cast the user to the User type from auth-types
+    return isAdmin(session.user as User);
   } catch (error) {
-    void console.error('❌ Error verifying admin access:', error);
+    void logger.error('Error verifying admin access:', error);
     return false;
   }
 }

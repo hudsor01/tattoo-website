@@ -1,359 +1,297 @@
-import { PrismaClient } from '@prisma/client'
+/**
+ * Prisma seed file
+ * 
+ * This file is used to seed the database with initial data.
+ * For production deployments, we're using a simplified version
+ * that doesn't cause TypeScript errors.
+ */
 
-const prisma = new PrismaClient()
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 async function main() {
-  console.info('Starting database seed...')
-
-  // Create Fernando's user account first
-  const user = await prisma.user.upsert({
-    where: { email: 'fennyg83@gmail.com' },
-    update: {},
-    create: {
-      id: 'user-fernando-govea',
-      clerkId: 'temp_clerk_id_fernando', // Will be updated when Clerk is setup
-      email: 'fennyg83@gmail.com',
-      name: 'Fernando Govea',
-      role: 'admin',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-  })
-
-  console.info('User created:', user)
-
-  // Create the main artist (Fernando)
-  const artist = await prisma.artist.upsert({
-    where: { id: 'fernando-govea' },
-    update: {},
-    create: {
-      id: 'fernando-govea',
-      userId: user.id,
-      bio: `I'm Fernando, a passionate tattoo artist dedicated to creating unique, custom artwork that tells your story. With 15 years of experience in the industry, I specialize in bringing your vision to life through personalized tattoo designs.
-
-My approach is collaborative - I work closely with each client to understand their ideas, preferences, and the meaning behind their desired tattoo. Whether you're looking for something bold and striking or delicate and meaningful, I'm here to guide you through the process and create something truly special.
-
-At Ink37 Tattoos, every piece is custom-designed specifically for you. I believe that your tattoo should be as unique as you are, which is why I don't work from flash sheets or pre-made designs. Instead, we'll work together to create original artwork that reflects your personality and story.
-
-Book a consultation to discuss your ideas, and let's create something amazing together!`,
-      specialty: 'Custom Designs, Traditional, Realism, Black & Grey, Color Work',
-      portfolio: 'https://instagram.com/fennyg83',
-      availableForBooking: true,
-      hourlyRate: null, // Custom rates
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    include: {
-      User: true,
-    }
-  })
-
-  console.info('Artist created:', artist)
-
-  // Create some sample customers for testing
+  console.log('Seeding database...');
+  
+  // Create some test customers first
   const customers = await Promise.all([
     prisma.customer.upsert({
       where: { email: 'john.doe@example.com' },
       update: {},
       create: {
-        id: 'customer-john-doe',
         firstName: 'John',
         lastName: 'Doe',
         email: 'john.doe@example.com',
-        address: '123 Main St',
-        city: 'Los Angeles',
-        state: 'CA',
-        postalCode: '90210',
-        country: 'USA',
-        source: 'website',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+        phone: '+1234567890',
+      },
     }),
     prisma.customer.upsert({
       where: { email: 'jane.smith@example.com' },
       update: {},
       create: {
-        id: 'customer-jane-smith',
         firstName: 'Jane',
         lastName: 'Smith',
         email: 'jane.smith@example.com',
-        address: '456 Oak Ave',
-        city: 'San Diego',
-        state: 'CA',
-        postalCode: '92101',
-        country: 'USA',
-        source: 'instagram',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+        phone: '+1987654321',
+      },
     }),
-    prisma.customer.upsert({
-      where: { email: 'mike.johnson@example.com' },
+  ]);
+
+  // Create some test bookings
+  const bookings = await Promise.all([
+    prisma.booking.upsert({
+      where: { id: 'booking-1' },
       update: {},
       create: {
-        id: 'customer-mike-johnson',
-        firstName: 'Mike',
-        lastName: 'Johnson',
-        email: 'mike.johnson@example.com',
-        address: '789 Pine St',
-        city: 'San Francisco',
-        state: 'CA',
-        postalCode: '94102',
-        country: 'USA',
-        source: 'referral',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    })
-  ])
-
-  console.info('Sample customers created:', customers.length)
-
-  // Delete existing data to avoid duplicates (in correct order for foreign keys)
-  await prisma.payment.deleteMany({})
-  await prisma.appointment.deleteMany({})
-  await prisma.booking.deleteMany({})
-  
-  // Create some sample bookings
-  const bookings = await Promise.all([
-    prisma.booking.create({
-      data: {
-        customerId: 'customer-john-doe',
-        artistId: 'fernando-govea',
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        phone: '',
+        id: 'booking-1',
+        customerId: customers[0].id,
+        firstName: customers[0].firstName,
+        lastName: customers[0].lastName,
+        email: customers[0].email ?? 'john.doe@example.com',
+        phone: customers[0].phone,
         tattooType: 'Traditional',
         size: 'Medium',
-        placement: 'Upper Arm',
-        description: 'Traditional eagle with banner design',
-        preferredDate: new Date('2025-02-15T14:00:00'),
+        placement: 'Arm',
+        description: 'Dragon tattoo design',
+        preferredDate: new Date('2024-12-15T14:00:00Z'),
         preferredTime: '2:00 PM',
-        paymentMethod: 'cal.com',
-        depositPaid: true,
-        source: 'cal.com',
-        calBookingUid: 'cal-booking-001',
-        calStatus: 'accepted',
-        calEventTypeId: 1,
-        createdAt: new Date('2025-01-15'),
-        updatedAt: new Date('2025-01-15'),
-      }
+        status: 'CONFIRMED',
+        totalAmount: 250.00,
+        paymentMethod: 'Credit Card',
+      },
     }),
-    prisma.booking.create({
-      data: {
-        id: 2,
-        customerId: 'customer-jane-smith',
-        artistId: 'fernando-govea',
-        name: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        phone: '',
-        tattooType: 'Custom Design',
+    prisma.booking.upsert({
+      where: { id: 'booking-2' },
+      update: {},
+      create: {
+        id: 'booking-2',
+        customerId: customers[1].id,
+        firstName: customers[1].firstName,
+        lastName: customers[1].lastName,
+        email: customers[1].email ?? 'jane.smith@example.com',
+        phone: customers[1].phone,
+        tattooType: 'Realism',
         size: 'Large',
         placement: 'Back',
-        description: 'Custom floral mandala design with personal elements',
-        preferredDate: new Date('2025-02-20T11:00:00'),
-        preferredTime: '11:00 AM',
-        paymentMethod: 'cal.com',
-        depositPaid: false,
-        source: 'cal.com',
-        calBookingUid: 'cal-booking-002',
-        calStatus: 'pending',
-        calEventTypeId: 1,
-        createdAt: new Date('2025-01-18'),
-        updatedAt: new Date('2025-01-18'),
-      }
+        description: 'Portrait tattoo',
+        preferredDate: new Date('2024-12-20T16:00:00Z'),
+        preferredTime: '4:00 PM',
+        status: 'PENDING',
+        totalAmount: 450.00,
+        paymentMethod: 'Debit Card',
+      },
     }),
-    prisma.booking.create({
-      data: {
-        id: 3,
-        customerId: 'customer-mike-johnson',
+  ]);
+
+  // Create some test payments
+  await Promise.all([
+    prisma.payment.upsert({
+      where: { id: 'payment-1' },
+      update: {},
+      create: {
+        id: 'payment-1',
+        bookingId: bookings[0].id,
+        amount: 250.00,
+        currency: 'USD',
+        status: 'COMPLETED',
+        paymentMethod: 'Credit Card',
+        stripeId: 'pi_test_1234567890',
+      },
+    }),
+    prisma.payment.upsert({
+      where: { id: 'payment-2' },
+      update: {},
+      create: {
+        id: 'payment-2',
+        bookingId: bookings[1].id,
+        amount: 450.00,
+        currency: 'USD',
+        status: 'PENDING',
+        paymentMethod: 'Debit Card',
+      },
+    }),
+    prisma.payment.upsert({
+      where: { id: 'payment-3' },
+      update: {},
+      create: {
+        id: 'payment-3',
+        amount: 150.00,
+        currency: 'USD',
+        status: 'COMPLETED',
+        paymentMethod: 'Cash',
+      },
+    }),
+    prisma.payment.upsert({
+      where: { id: 'payment-4' },
+      update: {},
+      create: {
+        id: 'payment-4',
+        amount: 75.00,
+        currency: 'USD',
+        status: 'FAILED',
+        paymentMethod: 'Credit Card',
+        stripeId: 'pi_test_failed',
+      },
+    }),
+  ]);
+
+  // Create some test tattoo designs
+  const designs = await Promise.all([
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-1' },
+      update: {},
+      create: {
+        id: 'design-1',
+        name: 'Traditional Japanese Sleeve',
+        description: 'A full sleeve design featuring traditional Japanese elements including koi fish, cherry blossoms, and waves.',
+        fileUrl: '/images/japanese.jpg',
+        thumbnailUrl: '/images/japanese.jpg',
+        designType: 'Japanese',
+        size: 'Large',
+        isApproved: true,
         artistId: 'fernando-govea',
-        name: 'Mike Johnson',
-        email: 'mike.johnson@example.com',
-        phone: '',
-        tattooType: 'Black & Grey',
-        size: 'Small',
-        placement: 'Forearm',
-        description: 'Portrait of family pet - realistic style',
-        preferredDate: new Date('2025-02-10T15:30:00'),
-        preferredTime: '3:30 PM',
-        paymentMethod: 'cal.com',
-        depositPaid: true,
-        source: 'cal.com',
-        calBookingUid: 'cal-booking-003',
-        calStatus: 'accepted',
-        calEventTypeId: 1,
-        createdAt: new Date('2025-01-10'),
-        updatedAt: new Date('2025-01-12'),
-      }
-    })
-  ])
-
-  console.info('Sample bookings created:', bookings.length)
-
-  // Create some sample appointments
-  const appointments = await Promise.all([
-    prisma.appointment.create({
-      data: {
-        id: 'appt-john-doe-001',
-        customerId: 'customer-john-doe',
+        artistName: 'Fernando Govea',
+      },
+    }),
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-2' },
+      update: {},
+      create: {
+        id: 'design-2',
+        name: 'Classic American Eagle',
+        description: 'Traditional American style eagle with banner, bold lines and vibrant colors.',
+        fileUrl: '/images/traditional.jpg',
+        thumbnailUrl: '/images/traditional.jpg',
+        designType: 'Traditional',
+        size: 'Medium',
+        isApproved: true,
         artistId: 'fernando-govea',
-        title: 'Traditional Eagle Tattoo Session',
-        description: 'Traditional eagle with banner design - Upper Arm placement',
-        startDate: new Date('2025-02-15T14:00:00'),
-        endDate: new Date('2025-02-15T17:00:00'),
-        status: 'confirmed',
-        deposit: 50,
-        totalPrice: 400,
-        designNotes: 'Client confirmed design. Ready to proceed.',
-        createdAt: new Date('2025-01-15'),
-        updatedAt: new Date('2025-01-15'),
-      }
+        artistName: 'Fernando Govea',
+      },
     }),
-    prisma.appointment.create({
-      data: {
-        id: 'appt-jane-smith-001',
-        customerId: 'customer-jane-smith',
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-3' },
+      update: {},
+      create: {
+        id: 'design-3',
+        name: 'Photorealistic Portrait',
+        description: 'Stunning black and grey portrait work with incredible detail and shading.',
+        fileUrl: '/images/realism.jpg',
+        thumbnailUrl: '/images/realism.jpg',
+        designType: 'Realism',
+        size: 'Medium',
+        isApproved: true,
         artistId: 'fernando-govea',
-        title: 'Custom Mandala Design Session',
-        description: 'Custom floral mandala design with personal elements - Back placement',
-        startDate: new Date('2025-02-20T11:00:00'),
-        endDate: new Date('2025-02-20T15:00:00'),
-        status: 'pending',
-        deposit: 50,
-        totalPrice: 800,
-        designNotes: 'Waiting for deposit payment to confirm.',
-        createdAt: new Date('2025-01-18'),
-        updatedAt: new Date('2025-01-18'),
-      }
-    })
-  ])
-
-  console.info('Sample appointments created:', appointments.length)
-
-  // Create some sample payments (Cal.com handles most payments, but we track deposits)
-  const payments = await Promise.all([
-    prisma.payment.create({
-      data: {
-        id: 1,
-        bookingId: 1,
-        amount: 50.00,
-        paymentMethod: 'card',
-        status: 'paid',
-        transactionId: 'cal_cal-booking-001',
-        customerEmail: 'john.doe@example.com',
-        customerName: 'John Doe',
-        paymentType: 'deposit',
-        calPaymentId: 'cal-booking-001',
-        createdAt: new Date('2025-01-15'),
-        updatedAt: new Date('2025-01-15'),
-      }
+        artistName: 'Fernando Govea',
+      },
     }),
-    prisma.payment.create({
-      data: {
-        id: 2,
-        bookingId: 3,
-        amount: 50.00,
-        paymentMethod: 'card',
-        status: 'paid',
-        transactionId: 'cal_cal-booking-003',
-        customerEmail: 'mike.johnson@example.com',
-        customerName: 'Mike Johnson',
-        paymentType: 'deposit',
-        calPaymentId: 'cal-booking-003',
-        createdAt: new Date('2025-01-10'),
-        updatedAt: new Date('2025-01-10'),
-      }
-    })
-  ])
-
-  console.info('Sample payments created:', payments.length)
-
-  // Gallery designs are now handled by the migration script: scripts/migrate-gallery-data.ts
-  // This removes any duplicate or conflicting gallery data from the seed
-  console.info('Gallery designs will be created by migration script - not in seed')
-
-  // Create some customer tags for organization
-  const tags = await Promise.all([
-    prisma.tag.create({
-      data: {
-        id: 'tag-vip',
-        name: 'VIP Client',
-        color: 'gold',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-4' },
+      update: {},
+      create: {
+        id: 'design-4',
+        name: 'Sacred Heart',
+        description: 'Religious artwork featuring sacred heart with roses and thorns.',
+        fileUrl: '/images/christ-crosses.jpg',
+        thumbnailUrl: '/images/christ-crosses.jpg',
+        designType: 'Black & Grey',
+        size: 'Large',
+        isApproved: true,
+        artistId: 'fernando-govea',
+        artistName: 'Fernando Govea',
+      },
     }),
-    prisma.tag.create({
-      data: {
-        id: 'tag-first-time',
-        name: 'First Time',
-        color: 'blue',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-5' },
+      update: {},
+      create: {
+        id: 'design-5',
+        name: 'Dragon Ball Z Sleeve',
+        description: 'Anime-inspired sleeve featuring Goku and other DBZ characters.',
+        fileUrl: '/images/dragonballz-left-arm.jpg',
+        thumbnailUrl: '/images/dragonballz-left-arm.jpg',
+        designType: 'Color',
+        size: 'Large',
+        isApproved: true,
+        artistId: 'fernando-govea',
+        artistName: 'Fernando Govea',
+      },
     }),
-    prisma.tag.create({
-      data: {
-        id: 'tag-large-piece',
-        name: 'Large Piece',
-        color: 'purple',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-6' },
+      update: {},
+      create: {
+        id: 'design-6',
+        name: 'Cover-up Transformation',
+        description: 'Expert cover-up work transforming old tattoos into beautiful new designs.',
+        fileUrl: '/images/cover-ups.jpg',
+        thumbnailUrl: '/images/cover-ups.jpg',
+        designType: 'Cover-up',
+        size: 'Large',
+        isApproved: true,
+        artistId: 'fernando-govea',
+        artistName: 'Fernando Govea',
+      },
     }),
-    prisma.tag.create({
-      data: {
-        id: 'tag-instagram',
-        name: 'From Instagram',
-        color: 'pink',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    })
-  ])
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-7' },
+      update: {},
+      create: {
+        id: 'design-7',
+        name: 'Custom Geometric Design',
+        description: 'Modern geometric patterns with intricate linework.',
+        fileUrl: '/images/custom-designs.jpg',
+        thumbnailUrl: '/images/custom-designs.jpg',
+        designType: 'Custom',
+        size: 'Medium',
+        isApproved: true,
+        artistId: 'fernando-govea',
+        artistName: 'Fernando Govea',
+      },
+    }),
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-8' },
+      update: {},
+      create: {
+        id: 'design-8',
+        name: 'Praying Nun Portrait',
+        description: 'Detailed religious portrait with amazing shading and depth.',
+        fileUrl: '/images/praying-nun-left-arm.jpg',
+        thumbnailUrl: '/images/praying-nun-left-arm.jpg',
+        designType: 'Portrait',
+        size: 'Medium',
+        isApproved: true,
+        artistId: 'fernando-govea',
+        artistName: 'Fernando Govea',
+      },
+    }),
+    prisma.tattooDesign.upsert({
+      where: { id: 'design-9' },
+      update: {},
+      create: {
+        id: 'design-9',
+        name: 'Full Leg Piece',
+        description: 'Comprehensive leg design with flowing elements and detailed artwork.',
+        fileUrl: '/images/leg-piece.jpg',
+        thumbnailUrl: '/images/leg-piece.jpg',
+        designType: 'Neo-Traditional',
+        size: 'Large',
+        isApproved: true,
+        artistId: 'fernando-govea',
+        artistName: 'Fernando Govea',
+      },
+    }),
+  ]);
 
-  console.info('Sample tags created:', tags.length)
-
-  // Associate some tags with customers
-  await prisma.customer.update({
-    where: { id: 'customer-jane-smith' },
-    data: {
-      Tag: {
-        connect: [
-          { id: 'tag-large-piece' },
-          { id: 'tag-instagram' }
-        ]
-      }
-    }
-  })
-
-  await prisma.customer.update({
-    where: { id: 'customer-mike-johnson' },
-    data: {
-      Tag: {
-        connect: [
-          { id: 'tag-vip' }
-        ]
-      }
-    }
-  })
-
-  console.info('Customer tags associated')
-
-  console.info('Database seed completed successfully!')
-  console.info('Fernando Govea (fennyg83@gmail.com) has been set up as the main artist with admin access')
-  console.info('Sample customers, bookings, appointments, and payments have been created')
-  console.info('Gallery designs and customer tags are also ready')
+  console.log('Seed data created successfully');
 }
 
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error('Error during seed:', e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

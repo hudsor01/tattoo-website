@@ -2,31 +2,25 @@
 
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
-import HomeNavbar from './HomeNavbar';
 
 export default function NavigationSystem() {
   const pathname = usePathname();
 
-  // Determine which type of navigation to show
-  const isHomePage = pathname === '/';
-  const isAdminRoute = pathname.startsWith('/admin');
-  const isAuthRoute = pathname.startsWith('/sign-in');
-
-  // Admin routes use their own layout with navigation
-  if (isAdminRoute) {
+  // Admin and dashboard routes use their own layout - no navigation needed
+  if (pathname.startsWith('/admin') || pathname.startsWith('/dashboard')) {
     return null;
   }
 
-  // Auth routes (sign-in) should not show navigation
-  if (isAuthRoute) {
+  // Auth routes should not show navigation
+  if (pathname.startsWith('/sign-in') || pathname.startsWith('/auth')) {
     return null;
   }
 
-  // Home page has its own special navigation
-  if (isHomePage) {
-    return <HomeNavbar />;
+  // Home page uses navigation from HomeClient component - no navigation needed here
+  if (pathname === '/') {
+    return null;
   }
 
-  // All other pages use the standard navigation
+  // All other pages use standard navigation
   return <Navbar />;
 }

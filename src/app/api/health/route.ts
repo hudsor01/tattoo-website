@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+type HealthCheckResult = {
+  status: 'pass' | 'fail' | 'warn';
+  responseTime?: number;
+  error?: string;
+  details?: Record<string, unknown>;
+};
 
-interface HealthCheck {
-  status: 'healthy' | 'unhealthy' | 'degraded';
+type HealthCheck = {
+  status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
   version: string;
   environment: string;
@@ -11,7 +17,6 @@ interface HealthCheck {
   checks: {
     database: HealthCheckResult;
     memory: HealthCheckResult;
-    disk?: HealthCheckResult;
     external?: HealthCheckResult;
   };
   metadata?: {
@@ -19,14 +24,7 @@ interface HealthCheck {
     platform: string;
     processId: number;
   };
-}
-
-interface HealthCheckResult {
-  status: 'pass' | 'fail' | 'warn';
-  responseTime?: number;
-  details?: Record<string, unknown>;
-  error?: string;
-}
+};
 
 async function checkDatabase(): Promise<HealthCheckResult> {
   try {
@@ -77,19 +75,13 @@ function checkMemory(): HealthCheckResult {
 
 async function checkExternalServices(): Promise<HealthCheckResult> {
   try {
-    // Check Supabase connection
-    const supabaseCheck = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/`, {
-      method: 'HEAD',
-      headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      },
-    });
-
+    // Check database connection via Prisma
+    await prisma.$queryRaw`SELECT 1`;
+    
     return {
-      status: supabaseCheck.ok ? 'pass' : 'warn',
+      status: 'pass',
       details: {
-        supabase: supabaseCheck.ok ? 'connected' : 'disconnected',
-        statusCode: supabaseCheck.status,
+        database: 'connected via Prisma',
       },
     };
   } catch {
@@ -126,9 +118,9 @@ export async function GET() {
     const response: HealthCheck = {
       status: overallStatus,
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version ?? '0.1.0',
-      environment: process.env.NODE_ENV ?? 'unknown',
-      buildTime: process.env.BUILD_TIME ?? 'unknown',
+      version: process.env['npm_package_version'] ?? '0.1.0',
+      environment: process.env.NODE_ENV ?? 'development',
+      buildTime: process.env['BUILD_TIME'] ?? 'unknown',
       uptime: process.uptime(),
       checks,
       metadata: {
@@ -151,8 +143,8 @@ export async function GET() {
     const errorResponse: Partial<HealthCheck> = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version ?? '0.1.0',
-      environment: process.env.NODE_ENV ?? 'unknown',
+      version: process.env['npm_package_version'] ?? '0.1.0',
+      environment: process.env.NODE_ENV ?? 'development',
       checks: {
         database: { status: 'fail', error: 'Health check failed' },
         memory: { status: 'fail', error: 'Health check failed' },

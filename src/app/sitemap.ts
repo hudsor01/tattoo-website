@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next';
+import { ENV } from '@/lib/utils/env';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://ink37tattoos.com';
+  const baseUrl = typeof ENV.NEXT_PUBLIC_APP_URL === 'string' ? ENV.NEXT_PUBLIC_APP_URL : 'https://ink37tattoos.com';
 
   // Main pages with higher priority
   const mainPages = [
     {
-      url: baseUrl,
+      url: baseUrl as string,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 1,
@@ -99,21 +100,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  // Blog/Article pages - COMMENTED OUT until blog section exists
-  // const blogPages = [
-  //   'tattoo-aftercare-guide',
-  //   'first-tattoo-tips',
-  //   'tattoo-pain-chart',
-  //   'how-to-choose-tattoo-design',
-  //   'tattoo-style-guide',
-  // ].map(article => ({
-  //   url: `${baseUrl}/blog/${article}`,
-  //   lastModified: new Date(),
-  //   changeFrequency: 'monthly' as const,
-  //   priority: 0.6,
-  // }));
-
-  // Admin portal pages (lower priority, but included for completeness)
+  // Admin portal pages
   const adminPages = [
     {
       url: `${baseUrl}/admin`,
@@ -123,12 +110,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/admin/appointments`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/admin/bookings`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.3,
@@ -159,23 +140,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Client portal (lower priority)
-  const clientPages = [
-    {
-      url: `${baseUrl}/client-portal`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.5,
-    },
-  ];
-
   return [
     ...mainPages,
     ...galleryStyles,
     ...servicePages,
-    ...locationPages, // Cities near Crowley, Texas
-    // ...blogPages,      // Re-enable when blog exists
-    ...adminPages,
-    ...clientPages,
+    ...locationPages,
+    ...adminPages
   ];
 }

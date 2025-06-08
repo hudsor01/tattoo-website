@@ -1,4 +1,4 @@
-'use client';
+// CONVERTED TO SERVER COMPONENT: Pure utility functions for data manipulation
 
 /**
  * Safely access nested object properties

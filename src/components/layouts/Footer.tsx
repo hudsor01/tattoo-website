@@ -1,6 +1,6 @@
-'use client';
-
 import React from 'react';
+
+// CONVERTED TO SERVER COMPONENT: Static footer with Next.js Links
 import Link from 'next/link';
 
 export function Footer() {

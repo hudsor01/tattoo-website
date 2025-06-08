@@ -8,9 +8,10 @@
 import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
 
-// ========================================
+import { logger } from "@/lib/logger";
+// =============================================================================
 // CORE PATTERNS & UTILITIES
-// ========================================
+// =============================================================================
 
 export const patterns = {
   phone: /^[0-9+() -]+$/,
@@ -28,9 +29,9 @@ export function formatZodErrors(error: z.ZodError): string[] {
   });
 }
 
-// ========================================
+// =============================================================================
 // FIELD BUILDERS
-// ========================================
+// =============================================================================
 
 export const createField = {
   name: (options: { required?: boolean; minLength?: number; maxLength?: number } = {}) => {
@@ -83,9 +84,9 @@ export const createField = {
   },
 };
 
-// ========================================
+// =============================================================================
 // CONTACT FORM VALIDATION
-// ========================================
+// =============================================================================
 
 export const contactFormSchema = z.object({
   name: createField.name(),
@@ -113,9 +114,9 @@ export const contactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
 
-// ========================================
+// =============================================================================
 // API UTILITIES
-// ========================================
+// =============================================================================
 
 /**
  * Get a readable error message from various error types
@@ -131,7 +132,7 @@ function getErrorMessage(error: unknown): string {
  * Standard error handler for API routes
  */
 export function handleApiError(error: unknown) {
-  void console.error('API error:', error);
+  void void logger.error('API error:', error);
 
   if (error instanceof z.ZodError) {
     return NextResponse.json(

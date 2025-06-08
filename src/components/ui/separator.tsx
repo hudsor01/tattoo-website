@@ -1,4 +1,4 @@
-'use client';
+// CONVERTED TO SERVER COMPONENT: Radix Separator primitive works in Server Components
 
 import * as React from 'react';
 import * as SeparatorPrimitive from '@radix-ui/react-separator';

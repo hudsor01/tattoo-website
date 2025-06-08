@@ -1,35 +1,19 @@
 import type { Metadata } from 'next';
+import { generatePageMetadata } from '@/lib/seo/seo-config';
 
-export const metadata: Metadata = {
-  title: 'About Fernando Govea | Professional Tattoo Artist',
-  description:
-    'Meet Fernando Govea, a professional tattoo artist with over 10 years of experience in custom tattoo design. Located in the Dallas/Fort Worth metroplex.',
-  keywords:
-    'fernando govea, tattoo artist biography, professional tattoo artist, dallas fort worth tattoo artist story, experienced tattoo artist',
-  openGraph: {
-    title: 'About Fernando Govea - Professional Tattoo Artist',
-    description:
-      "Learn about Fernando Govea's journey as a professional tattoo artist with over 10 years of experience in custom designs.",
-    url: '/about',
-    siteName: 'Ink 37 Tattoos',
-    images: [
-      {
-        url: '/images/japanese.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Fernando Govea - Professional Tattoo Artist',
-      },
-    ],
-    locale: 'en_US',
-    type: 'profile',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'About Fernando Govea - Professional Tattoo Artist',
-    description: "Learn about Fernando Govea's journey and experience in tattoo artistry.",
-    images: ['/images/cover-ups.jpg'],
-  },
-  alternates: {
-    canonical: '/about',
-  },
-};
+export const metadata: Metadata = generatePageMetadata({
+  title: 'About Fernando Govea | Professional Tattoo Artist with 10+ Years Experience',
+  description: 'Meet Fernando Govea, a professional tattoo artist with over 10 years of experience in custom tattoo design. Specializing in traditional, realism, and Japanese styles in Crowley, TX and the Dallas-Fort Worth metroplex.',
+  keywords: [
+    'Fernando Govea tattoo artist',
+    'experienced tattoo artist Crowley TX',
+    'professional tattoo artist bio',
+    'Dallas Fort Worth tattoo artist',
+    'custom tattoo specialist',
+    '10+ years tattoo experience',
+    'traditional tattoo artist',
+    'realism tattoo specialist'
+  ],
+  canonical: 'https://ink37tattoos.com/about',
+  ogImage: '/images/japanese.jpg',
+});

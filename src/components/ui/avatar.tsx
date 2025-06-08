@@ -1,4 +1,4 @@
-'use client';
+// CONVERTED TO SERVER COMPONENT: Radix Avatar primitives work in Server Components for static display
 
 import * as React from 'react';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';

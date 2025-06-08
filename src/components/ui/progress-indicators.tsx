@@ -4,12 +4,45 @@ import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
+// Component-specific types - not shared, inline definition appropriate
 interface LinearProgressProps {
   value: number;
   max?: number;
   className?: string;
   showLabel?: boolean;
   color?: 'primary' | 'success' | 'warning' | 'error';
+}
+
+interface CircularProgressProps {
+  value: number;
+  max?: number;
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
+  showLabel?: boolean;
+  color?: 'primary' | 'success' | 'warning' | 'error';
+}
+
+interface StepIndicatorStep {
+  label: string;
+  description?: string;
+  status: 'complete' | 'current' | 'pending' | 'error';
+}
+
+interface StepIndicatorProps {
+  steps: StepIndicatorStep[];
+  className?: string;
+}
+
+interface LoadingDotsProps {
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+interface PulseDotProps {
+  color?: 'primary' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 export function LinearProgress({
@@ -47,16 +80,6 @@ export function LinearProgress({
       )}
     </div>
   );
-}
-
-interface CircularProgressProps {
-  value: number;
-  max?: number;
-  size?: number;
-  strokeWidth?: number;
-  className?: string;
-  showLabel?: boolean;
-  color?: 'primary' | 'success' | 'warning' | 'error';
 }
 
 export function CircularProgress({
@@ -127,19 +150,10 @@ export function CircularProgress({
   );
 }
 
-interface StepIndicatorProps {
-  steps: Array<{
-    label: string;
-    description?: string;
-    status: 'complete' | 'current' | 'pending' | 'error';
-  }>;
-  className?: string;
-}
-
 export function StepIndicator({ steps, className }: StepIndicatorProps) {
   return (
     <div className={`space-y-4 ${className}`}>
-      {steps.map((step, index) => {
+      {steps.map((step: StepIndicatorStep, index: number) => {
         const isLast = index === steps.length - 1;
 
         const statusConfig = {
@@ -228,11 +242,6 @@ export function StepIndicator({ steps, className }: StepIndicatorProps) {
   );
 }
 
-interface LoadingDotsProps {
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
-}
-
 export function LoadingDots({ size = 'md', className }: LoadingDotsProps) {
   const sizeClasses = {
     sm: 'w-1 h-1',
@@ -260,12 +269,6 @@ export function LoadingDots({ size = 'md', className }: LoadingDotsProps) {
       ))}
     </div>
   );
-}
-
-interface PulseDotProps {
-  color?: 'primary' | 'success' | 'warning' | 'error';
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
 }
 
 export function PulseDot({ color = 'primary', size = 'md', className }: PulseDotProps) {

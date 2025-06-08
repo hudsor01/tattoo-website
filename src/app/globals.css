@@ -1,57 +1,141 @@
-/* Critical CSS optimizations applied */
+@import '../styles/cal-atoms.css';
+
 @import 'tailwindcss';
 
-@custom-variant dark (&:is(.dark *));
-
-@layer base, components, utilities;
-
-/* Main theme configuration - Optimized */
+/* Tailwind v4 Theme Configuration */
 @theme {
-  /* Core spacing and colors only */
-  --spacing: 0.25rem;
-  
-  /* Essential color palette */
-  --color-background: #ffffff;
+  /* Colors - Tattoo-Specific Brand Palette */
+  --color-*: initial;
+  --color-background: #fafafa;
   --color-foreground: #0a0a0a;
-  --color-primary: #e53935;
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #0f172a;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  --color-border: #e2e8f0;
-  --color-ring: #e53935;
   
-  /* Tattoo brand colors */
-  --color-tattoo-red: #e53935;
-  --color-tattoo-red-dark: #c62828;
-  --color-tattoo-black: #0a0a0a;
-  --color-tattoo-white: #fafafa;
+  /* Standardized white color across site */
+  --color-white: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-primary: #dc2626;        /* Signature red */
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f5f5f5;
+  --color-secondary-foreground: #262626;
+  --color-muted: #f1f1f1;
+  --color-muted-foreground: #525252;
+  --color-accent: #f5f5f5;
+  --color-accent-foreground: #0a0a0a;
+  --color-destructive: #b91c1c;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e5e5e5;
+  --color-input: #e5e5e5;
+  --color-ring: #dc2626;
   
-  /* Essential radius and animations */
+  /* Tattoo Brand Specific Colors */
+  --color-ink-black: #0a0a0a;      /* Deep black */
+  --color-charcoal: #171717;       /* Charcoal black */
+  --color-steel: #404040;          /* Steel gray */
+  --color-silver: #737373;         /* Silver gray */
+  --color-chrome: #a3a3a3;         /* Chrome gray */
+  --color-platinum: #d4d4d4;       /* Light metallic */
+  --color-crimson: #b91c1c;        /* Deep red */
+  --color-blood: #dc2626;          /* Blood red */
+  --color-fire: #f87171;           /* Fire red */
+  
+  /* Fernando Govea Brand Colors - Project Theme */
+  --color-fernando-red: #f87171;      /* Starting red */
+  --color-fernando-orange-red: #FF4500; /* Middle transition */  
+  --color-fernando-orange: #FF6800;   /* Ending orange */
+  
+  /* Legacy gradient colors for backward compatibility */
+  --color-tattoo-red: #f87171;
+  --color-orange-500: #FF6800;
+  
+  /* Chart Colors - Tattoo Theme */
+  --color-chart-1: #dc2626;        /* Blood red */
+  --color-chart-2: #404040;        /* Steel gray */
+  --color-chart-3: #737373;        /* Silver */
+  --color-chart-4: #f87171;        /* Fire red */
+  --color-chart-5: #171717;        /* Charcoal */
+  
+  /* Sidebar specific colors */
+  --color-sidebar: #0a0a0a;
+  --color-sidebar-foreground: #fafafa;
+  --color-sidebar-border: #262626;
+  --color-sidebar-accent: #262626;
+  --color-sidebar-accent-foreground: #fafafa;
+  --color-sidebar-ring: #dc2626;
+  
+  /* Additional colors for compatibility */
+  --color-green-100: #dcfce7;
+  --color-green-300: #86efac;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+  --color-amber-100: #fef3c7;
+  --color-amber-300: #fcd34d;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-red-300: #fca5a5;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  
+  /* Font families with next/font integration */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-inter: var(--font-inter);
+  --font-montserrat: var(--font-montserrat);
+  --font-pacifico: var(--font-pacifico);
+  --font-satisfy: var(--font-satisfy);
+  
+  /* Radius */
   --radius: 0.5rem;
-  --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
-  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
   
-  /* Font family theme variables */
-  --font-inter-var: var(--font-inter);
-  --font-montserrat-var: var(--font-montserrat);
-  --font-pacifico-var: var(--font-pacifico);
-  --font-satisfy-var: var(--font-satisfy);
+  /* Sidebar width variables */
+  --sidebar-width: 20rem;
+  --sidebar-width-mobile: 22rem;
+  --sidebar-width-icon: 3rem;
 }
 
-/* Dark theme overrides - Essential only */
-.dark {
-  --color-background: #0a0a0a;
-  --color-foreground: #fafafa;
-  --color-primary: #e53935;
-  --color-secondary: #1e293b;
-  --color-muted: #1e293b;
-  --color-muted-foreground: #94a3b8;
-  --color-border: #1e293b;
+/* Dark mode theme overrides */
+:root[class~="dark"],
+:root.dark {
+  /* Base colors - Enhanced contrast */
+  --color-background: #000000;         /* Pure black for maximum contrast */
+  --color-foreground: #ffffff;         /* Pure white text */
+  --color-card: #0f0f0f;               /* Subtle card background */
+  --color-card-foreground: #ffffff;
+  --color-primary: #ff4444;            /* Brighter red for dark mode */
+  --color-primary-foreground: #000000;
+  --color-secondary: #1a1a1a;          /* Dark secondary */
+  --color-secondary-foreground: #d4d4d4;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #a3a3a3;
+  --color-accent: #262626;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #262626;
+  --color-input: #1a1a1a;
+  --color-ring: #ff4444;
+  
+  /* Enhanced Tattoo Brand Colors for Dark Mode */
+  --color-ink-black: #000000;          /* Pure black */
+  --color-charcoal: #0f0f0f;          /* Deeper charcoal */
+  --color-steel: #525252;              /* Brighter steel */
+  --color-silver: #a3a3a3;            /* Metallic silver */
+  --color-chrome: #d4d4d4;            /* Chrome highlight */
+  --color-platinum: #f5f5f5;          /* Platinum accent */
+  --color-crimson: #dc2626;           /* Rich crimson */
+  --color-blood: #ff4444;             /* Vibrant blood red */
+  --color-fire: #ff6b6b;              /* Bright fire red */
+  
+  /* Enhanced Sidebar Dark Mode Colors */
+  --color-sidebar: #000000;               /* Pure black sidebar */
+  --color-sidebar-foreground: #ffffff;    /* Pure white text */
+  --color-sidebar-border: #1a1a1a;       /* Subtle border */
+  --color-sidebar-accent: #1a1a1a;       /* Accent background */
+  --color-sidebar-accent-foreground: #ffffff;
 }
 
-/* Base styles - Critical only */
 @layer base {
   * {
     @apply border-border;
@@ -59,97 +143,238 @@
   
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter);
     font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
-  html, body {
-    height: 100%;
-    overflow-x: hidden;
-  }
-}
-
-/* Essential animations only */
-@keyframes fade-in {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(1rem);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Critical component styles only */
-@layer components {
-  .animate-fade-in {
-    animation: fade-in 0.6s ease forwards;
+  /* Global typography elements for client-facing site */
+  h1, .h1 {
+    font-family: var(--font-montserrat);
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
   
-  .animate-slide-up {
-    animation: slide-up 0.6s ease forwards;
-  }
-}
-
-/* Essential utilities only */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  h2, .h2 {
+    font-family: var(--font-montserrat);
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
   
-  .gradient-text {
-    @apply bg-gradient-to-r from-tattoo-red to-orange-500 bg-clip-text text-transparent;
+  h3, .h3 {
+    font-family: var(--font-montserrat);
+    font-weight: 600;
   }
   
-  /* Critical typography utilities */
+  h4, .h4 {
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+  }
+  
+  h5, .h5 {
+    font-family: var(--font-montserrat);
+    font-weight: 500;
+  }
+  
+  h6, .h6 {
+    font-family: var(--font-montserrat);
+    font-weight: 500;
+  }
+  
+  p {
+    line-height: 1.7;
+    max-width: 65ch;
+  }
+  
+  /* Artist name styling */
   .artist-name {
-    font-family: var(--font-montserrat-var);
-    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-family: var(--font-montserrat);
+    font-size: clamp(3rem, 8vw, 6rem);
     line-height: 0.9;
+    font-weight: 900;
     letter-spacing: -0.02em;
-    font-weight: 800;
     text-transform: uppercase;
+    display: inline-block;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    font-stretch: extra-condensed;
   }
-
+  
   .paragraph-large {
-    font-family: var(--font-inter-var);
     font-size: clamp(1.125rem, 2.5vw, 1.375rem);
-    line-height: 1.4;
+    line-height: 1.6;
     color: rgba(255, 255, 255, 0.85);
     font-weight: 400;
     letter-spacing: 0.01em;
   }
+}
+
+@layer utilities {
+  /* Fernando Govea Gradient Text - Project Brand Theme */
+  .fernando-gradient {
+    background: linear-gradient(90deg, #E63A35 0%, #FF4500 50%, #FF6800 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #E63A35; /* Fallback color */
+    display: inline-block;
+    font-weight: 900;
+    background-size: 100% 100%;
+  }
   
-  /* Essential font utilities */
-  .font-inter {
-    font-family: var(--font-inter-var);
+  /* Brand gradient backgrounds for buttons, hovers, etc. */
+  .bg-fernando-gradient {
+    background: linear-gradient(90deg, #E63A35 0%, #FF6800 100%);
+  }
+  
+  .bg-fernando-gradient-hover {
+    background: linear-gradient(90deg, #D63531 0%, #FF5500 100%);
+  }
+  
+  /* Force Fernando gradient on active tabs */
+  [data-state="active"].bg-fernando-gradient,
+  [data-state="active"]:is(.bg-fernando-gradient),
+  .bg-fernando-gradient[data-state="active"],
+  [role="tab"][data-state="active"] {
+    background: linear-gradient(90deg, #E63A35 0%, #FF6800 100%) !important;
+    color: white !important;
+  }
+  
+  /* Gallery tabs specific styling */
+  .gallery-tabs [role="tab"][data-state="active"],
+  .gallery-tab-trigger[data-state="active"],
+  .gallery-tabs .gallery-tab-trigger[data-state="active"] {
+    background: linear-gradient(90deg, #E63A35 0%, #FF6800 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(230, 58, 53, 0.3) !important;
+    border: none !important;
+  }
+  
+  /* Override any other background styling on gallery tabs */
+  .gallery-tabs [role="tablist"] [role="tab"][data-state="active"] {
+    background: linear-gradient(90deg, #E63A35 0%, #FF6800 100%) !important;
+  }
+  
+  /* Custom gradient text utility - general purpose */
+  .gradient-text {
+    background: linear-gradient(90deg, var(--color-fernando-red) 0%, var(--color-fernando-orange) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--color-fernando-red); /* Fallback color */
+    display: inline-block;
+    font-weight: 900;
+  }
+  
+  /* Text balance utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  
+  /* Dashboard utilities */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
   }
 
-  .font-montserrat {
-    font-family: var(--font-montserrat-var);
+  .metric-card {
+    @apply bg-card rounded-xl shadow-sm border p-6 transition-all duration-300;
+    background: linear-gradient(135deg, var(--color-card) 0%, var(--color-muted) 100%);
+    border: 1px solid var(--color-border);
   }
 
-  .font-pacifico {
-    font-family: var(--font-pacifico-var);
+  .metric-card:hover {
+    @apply shadow-xl scale-[1.02];
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 10px 25px rgba(0, 0, 0, 0.15);
   }
-
-  .font-satisfy {
-    font-family: var(--font-satisfy-var);
+  
+  /* Focus states for accessibility */
+  .focus-ring {
+    @apply outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+  
+  /* High contrast focus indicator */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  
+  /* Custom scrollbar styles for lightbox content */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-track-gray-800 {
+    scrollbar-color: #374151 #1f2937;
+  }
+  
+  .scrollbar-thumb-gray-600 {
+    scrollbar-color: #4b5563 #1f2937;
+  }
+  
+  .hover\:scrollbar-thumb-gray-500:hover {
+    scrollbar-color: #6b7280 #1f2937;
+  }
+  
+  /* Webkit scrollbar styles for better browser support */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-track-gray-800::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 3px;
+  }
+  
+  .hover\:scrollbar-thumb-gray-500:hover::-webkit-scrollbar-thumb {
+    background: #6b7280;
   }
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .artist-name {
-    font-size: clamp(2rem, 12vw, 3rem);
+/* Animation utilities */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  
-  .paragraph-large {
-    font-size: clamp(1rem, 4vw, 1.25rem);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
   }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
 }

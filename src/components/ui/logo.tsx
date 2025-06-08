@@ -3,9 +3,17 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { cn } from '@/utils';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import type { LogoProps } from '@/types/component-types';
+
+interface LogoProps {
+  className?: string;
+  href?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  onClick?: () => void;
+  variant?: 'text' | 'full';
+  isLinked?: boolean;
+}
 
 export function Logo({
   className,
@@ -45,9 +53,11 @@ export function Logo({
             width={sizePixels[size].width}
             height={sizePixels[size].height}
             priority
+            sizes="(max-width: 768px) 180px, 240px"
+            quality={95}
             className="relative z-10"
           />
-          <div className="absolute inset-0 bg-gradient-fancy opacity-40 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-fernando-gradient opacity-40 mix-blend-overlay"></div>
         </div>
       </motion.div>
     ) : (
@@ -58,9 +68,9 @@ export function Logo({
         transition={{ duration: 0.5, ease: 'easeOut' }}
         whileHover={{ scale: 1.05 }}
       >
-        <span className="text-tattoo-white">Ink</span>{' '}
+        <span className="text-white">Ink</span>{' '}
         <span className="relative">
-          <span className="bg-gradient-fancy bg-clip-text text-transparent">37</span>
+          <span className="bg-gradient-to-r from-[#E63A35] to-[#FF6800] bg-clip-text text-transparent">37</span>
           <motion.span
             className="absolute -bottom-1 -left-1 -right-1 h-0.5 bg-gradient-to-r from-primary to-secondary"
             initial={{ scaleX: 0 }}

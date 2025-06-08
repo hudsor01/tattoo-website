@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import ContactClient from '@/components/contact/ContactClient';
 
-// Enable static generation with revalidation every 24 hours
 export const revalidate = 86400;
 
 export const metadata: Metadata = {

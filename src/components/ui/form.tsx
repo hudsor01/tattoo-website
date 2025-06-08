@@ -3,93 +3,105 @@
 import * as React from 'react';
 import * as LabelPrimitive from '@radix-ui/react-label';
 import { Slot } from '@radix-ui/react-slot';
-import {
-  Controller,
-  type ControllerProps,
-  type FieldPath,
-  type FieldValues,
-  FormProvider,
-  useFormContext,
-} from 'react-hook-form';
-
 import { cn } from '@/utils';
 import { Label } from '@/components/ui/label';
 
-/**
- * Form context type
- */
-interface FormFieldContextValue<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> {
-  name: TName;
-}
-
-/**
- * Form context
- */
-const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFieldContextValue);
-
-/**
- * Form item context type
- */
-interface FormItemContextValue {
+// Component-specific form types - inline definition appropriate
+type FormFieldContextValue = {
+  name: string;
+  error: string;
   id: string;
-}
+};
 
-/**
- * Form item context
- */
-const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue);
+type FormItemContextValue = {
+  id: string;
+};
 
-/**
- * Form provider component
- */
-const Form = FormProvider;
+type FormProps = React.FormHTMLAttributes<HTMLFormElement> & {
+  action?: string | ((formData: FormData) => void | Promise<void>);
+};
 
-/**
- * Form field component
- */
-function FormField<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({ ...props }: ControllerProps<TFieldValues, TName>) {
+type FormFieldProps = {
+  name: string;
+  error?: string;
+  children: React.ReactNode;
+};
+
+type FormSubmitProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  loadingText?: string;
+};
+
+type FormState = {
+  status: 'idle' | 'loading' | 'error' | 'success';
+  isSubmitting: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+};
+
+
+// Form field context
+const FormFieldContext = React.createContext<FormFieldContextValue | null>(null);
+
+
+// Form item context
+const FormItemContext = React.createContext<FormItemContextValue | null>(null);
+
+
+// Form component that works with Server Actions and useActionState
+const Form = React.forwardRef<HTMLFormElement, FormProps>(
+  ({ className, action, children, ...props }, ref) => {
+    return (
+      <form
+        ref={ref}
+        action={action}
+        className={cn('space-y-6', className)}
+        {...props}
+      >
+        {children}
+      </form>
+    );
+  }
+);
+Form.displayName = 'Form';
+
+function FormField({ name, error, children }: FormFieldProps) {
+  const id = React.useId();
+
+  const fieldContextValue: FormFieldContextValue = { 
+    name, 
+    error: error ?? '', 
+    id 
+  };
+  
   return (
-    <FormFieldContext.Provider value={{ name: props.name }}>
-      <Controller {...props} />
+    <FormFieldContext.Provider value={fieldContextValue}>
+      {children}
     </FormFieldContext.Provider>
   );
 }
 
-/**
- * useFormField hook
- */
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
-  const { getFieldState, formState } = useFormContext();
-
-  const fieldState = getFieldState(fieldContext.name, formState);
 
   if (!fieldContext) {
     throw new Error('useFormField should be used within <FormField>');
   }
 
-  const { id } = itemContext;
+  const { id: fieldId, name, error } = fieldContext;
+  const { id: itemId } = itemContext ?? { id: fieldId };
 
   return {
-    id,
-    name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
-    ...fieldState,
+    id: itemId,
+    name,
+    formItemId: `${itemId}-form-item`,
+    formDescriptionId: `${itemId}-form-item-description`,
+    formMessageId: `${itemId}-form-item-message`,
+    error,
+    invalid: !!error,
   };
 };
 
-/**
- * Form item component
- */
 const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     const id = React.useId();
@@ -103,9 +115,6 @@ const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
 );
 FormItem.displayName = 'FormItem';
 
-/**
- * Form label component
- */
 const FormLabel = React.forwardRef<
   React.ComponentRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
@@ -123,20 +132,19 @@ const FormLabel = React.forwardRef<
 });
 FormLabel.displayName = 'FormLabel';
 
-/**
- * Form control component
- */
 const FormControl = React.forwardRef<
   React.ComponentRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
->(({ ...props }, ref) => {
+>((props, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
 
   return (
     <Slot
       ref={ref}
       id={formItemId}
-      aria-describedby={!error ? `${formDescriptionId}` : `${formDescriptionId} ${formMessageId}`}
+      aria-describedby={
+        !error ? formDescriptionId : `${formDescriptionId} ${formMessageId}`
+      }
       aria-invalid={!!error}
       {...props}
     />
@@ -144,9 +152,6 @@ const FormControl = React.forwardRef<
 });
 FormControl.displayName = 'FormControl';
 
-/**
- * Form description component
- */
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -164,15 +169,12 @@ const FormDescription = React.forwardRef<
 });
 FormDescription.displayName = 'FormDescription';
 
-/**
- * Form message component
- */
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField();
-  const body = error ? String(error?.message) : children;
+  const body = error ? String(error) : children;
 
   if (!body) {
     return null;
@@ -191,6 +193,64 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = 'FormMessage';
 
+const FormSubmit = React.forwardRef<HTMLButtonElement, FormSubmitProps>(
+  ({ className, children, loadingText = 'Submitting...', disabled, ...props }, ref) => {
+    // Simple state-based pending indicator - stable for SSR
+    const [isPending, setIsPending] = React.useState(false);
+
+    // Track form submission with useEffect for cleanup
+    React.useEffect(() => {
+      return () => {
+        // Cleanup effect
+        if (isPending) {
+          setIsPending(false);
+        }
+      };
+    }, [isPending, setIsPending]);
+
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (props.onClick) {
+        props.onClick(event);
+      }
+    };
+
+    return (
+      <button
+        ref={ref}
+        type="submit"
+        disabled={disabled ?? isPending}
+        className={cn(
+          'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors',
+          'bg-primary text-primary-foreground hover:bg-primary/90',
+          'h-10 px-4 py-2',
+          'disabled:pointer-events-none disabled:opacity-50',
+          className
+        )}
+        onClick={handleClick}
+        suppressHydrationWarning
+        {...props}
+      >
+        {isPending ? loadingText : children}
+      </button>
+    );
+  }
+);
+FormSubmit.displayName = 'FormSubmit';
+
+export function getFieldError(
+  errors: Record<string, string[]> | undefined,
+  fieldName: string
+): string | undefined {
+  return errors?.[fieldName]?.[0];
+}
+
+export const initialFormState: FormState = {
+  status: 'idle',
+  isSubmitting: false,
+  isError: false,
+  isSuccess: false,
+};
+
 export {
   useFormField,
   Form,
@@ -200,4 +260,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  FormSubmit,
 };

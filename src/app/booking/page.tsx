@@ -1,32 +1,32 @@
-import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
+/**
+ * Booking Page - Cal.com Integration
+ * 
+ * Purpose: Main booking page using Cal.com for scheduling
+ * Rendering: SSG for SEO with CSR hydration for booking functionality
+ * Dependencies: Cal.com integration, metadata for SEO
+ */
 
-const BookingClient = dynamic(() => import('./booking-client'), {
-  loading: () => (
-    <div className="flex h-96 items-center justify-center">
-      <div className="text-lg">Loading booking form...</div>
-    </div>
-  ),
-});
+import type { Metadata } from 'next';
+import BookingClient from '@/components/booking/BookingClient';
 
 export const metadata: Metadata = {
-  title: 'Book a Consultation | Ink 37 Tattoos',
+  title: 'Book Your Tattoo Appointment | Ink 37 Tattoos',
   description:
-    'Schedule your tattoo consultation with Ink 37 Tattoos. Professional tattoo services in the Dallas/Fort Worth metroplex. Easy online booking available.',
+    'Schedule your tattoo appointment with Ink 37 Tattoos. Professional consultations, custom designs, and expert tattoo services in the Dallas/Fort Worth metroplex. Book online now.',
   keywords:
-    'book tattoo appointment, tattoo consultation dallas fort worth, schedule tattoo session, tattoo artist booking, ink 37 tattoos appointment',
+    'book tattoo appointment, tattoo consultation dallas fort worth, schedule tattoo session, tattoo artist booking, ink 37 tattoos appointment, cal.com booking',
   openGraph: {
-    title: 'Book a Tattoo Consultation - Ink 37 Tattoos',
+    title: 'Book Your Tattoo Appointment - Ink 37 Tattoos',
     description:
-      'Ready to get your custom tattoo? Schedule a consultation with Ink 37 Tattoos in the Dallas/Fort Worth area.',
+      'Ready to get your custom tattoo? Schedule your appointment with Ink 37 Tattoos in the Dallas/Fort Worth area. Free consultations available.',
     url: '/booking',
     siteName: 'Ink 37 Tattoos',
     images: [
       {
-        url: '/images/cover-ups.jpg',
+        url: '/images/realism.jpg',
         width: 1200,
         height: 630,
-        alt: 'Book Your Tattoo Consultation',
+        alt: 'Book Your Tattoo Appointment',
       },
     ],
     locale: 'en_US',
@@ -34,16 +34,21 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Book Your Tattoo Consultation',
+    title: 'Book Your Tattoo Appointment',
     description:
-      'Schedule your custom tattoo consultation with Ink 37 Tattoos in the Dallas/Fort Worth area.',
-    images: ['/images/cover-ups.jpg'],
+      'Schedule your custom tattoo appointment with Ink 37 Tattoos. Expert artists, free consultations.',
+    images: ['/images/realism.jpg'],
   },
   alternates: {
     canonical: '/booking',
   },
 };
 
+// Static generation for SEO benefits
 export default function BookingPage() {
-  return <BookingClient />;
+  return (
+    <div className="min-h-screen pt-32 md:pt-36 bg-black">
+      <BookingClient />
+    </div>
+  );
 }

@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   description: 'A modern tattoo gallery showcasing our portfolio and process videos',
 };
 
-export default function GalleryLayout({ children }: { children: React.ReactNode }) {
+export default function AceternityLayoutGrid({ children }: { children: React.ReactNode }) {
   return <div className="min-h-screen bg-background">{children}</div>;
 }

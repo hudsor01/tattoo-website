@@ -5,6 +5,7 @@ export const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
   fallback: ['system-ui', 'sans-serif'],
+  preload: true,
 });
 
 export const montserrat = Montserrat({
@@ -12,6 +13,7 @@ export const montserrat = Montserrat({
   display: 'swap',
   variable: '--font-montserrat',
   fallback: ['system-ui', 'sans-serif'],
+  preload: true,
 });
 
 export const pacifico = Pacifico({
@@ -20,6 +22,7 @@ export const pacifico = Pacifico({
   display: 'swap',
   variable: '--font-pacifico',
   fallback: ['cursive'],
+  preload: false, // Only preload essential fonts
 });
 
 export const satisfy = Satisfy({
@@ -28,4 +31,5 @@ export const satisfy = Satisfy({
   display: 'swap',
   variable: '--font-satisfy',
   fallback: ['cursive'],
+  preload: false, // Only preload essential fonts
 });

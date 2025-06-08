@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
 import { verifyAdminAccess } from '@/lib/utils/server';
+import { prisma } from '@/lib/db/prisma';
+import type { BookingStatus } from '@prisma/client';
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/appointments/[id]
  * Get a specific appointment by ID
  */
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     // Verify admin access
     const hasAccess = await verifyAdminAccess();
@@ -16,13 +21,27 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
     const id = params.id;
 
-    // Get appointment with customer data
-    const appointment = await prisma.appointment.findUnique({
-      where: {
-        id,
-      },
+    const appointment = await prisma.booking.findUnique({
+      where: { id },
       include: {
-        Customer: true,
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        payments: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            status: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -30,47 +49,25 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
     }
 
-    // Format response
-    const formattedAppointment = {
-      id: appointment.id,
-      title: appointment.title,
-      customerId: appointment.customerId,
-      customerName: appointment.Customer
-        ? `${appointment.Customer.firstName} ${appointment.Customer.lastName}`
-        : '',
-      customerEmail: appointment.Customer?.email,
-      customerPhone: appointment.Customer?.phone,
-      startDate: appointment.startDate,
-      endDate: appointment.endDate,
-      status: appointment.status,
-      deposit: appointment.deposit,
-      totalPrice: appointment.totalPrice,
-      designNotes: appointment.designNotes,
-      description: appointment.description,
-      createdAt: appointment.createdAt,
-      updatedAt: appointment.updatedAt,
-      customer: appointment.Customer
-        ? {
-            id: appointment.Customer.id,
-            name: `${appointment.Customer.firstName} ${appointment.Customer.lastName}`,
-            email: appointment.Customer.email,
-            phone: appointment.Customer.phone,
-          }
-        : null,
-    };
+    return NextResponse.json(appointment);
 
-    return NextResponse.json(formattedAppointment);
   } catch (error) {
-    void console.error(`Error fetching appointment ${params.id}:`, error);
-    return NextResponse.json({ error: 'Failed to fetch appointment' }, { status: 500 });
+    void logger.error('Error fetching appointment:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch appointment' },
+      { status: 500 }
+    );
   }
 }
 
 /**
  * PUT /api/admin/appointments/[id]
- * Update a specific appointment
+ * Update an appointment
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     // Verify admin access
     const hasAccess = await verifyAdminAccess();
@@ -79,77 +76,60 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const id = params.id;
-    const data = await request.json();
+    const body = await request.json();
 
-    // Check if appointment exists
-    const existingAppointment = await prisma.appointment.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!existingAppointment) {
-      return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
-    }
-
-    // If changing customer, verify new customer exists
-    if (data.customerId && data.customerId !== existingAppointment.customerId) {
-      const customer = await prisma.customer.findUnique({
-        where: {
-          id: data.customerId,
-        },
-      });
-
-      if (!customer) {
-        return NextResponse.json({ error: 'Customer not found' }, { status: 400 });
-      }
-    }
-
-    // Update appointment
-    const updatedAppointment = await prisma.appointment.update({
-      where: {
-        id,
-      },
+    const updatedAppointment = await prisma.booking.update({
+      where: { id },
       data: {
-        ...(data.title !== null && { title: data.title }),
-        ...(data.customerId !== null && { customerId: data.customerId }),
-        ...(data.startDate !== null && { startDate: new Date(data.startDate) }),
-        ...(data.endDate !== null && { endDate: new Date(data.endDate) }),
-        ...(data.status !== null && { status: data.status }),
-        ...(data.deposit !== null && { deposit: data.deposit }),
-        ...(data.totalPrice !== null && { totalPrice: data.totalPrice }),
-        ...(data.designNotes !== null && { designNotes: data.designNotes }),
-        ...(data.description !== null && { description: data.description }),
+        ...(body.firstName && { firstName: body.firstName }),
+        ...(body.lastName && { lastName: body.lastName }),
+        ...(body.email && { email: body.email }),
+        ...(body.phone && { phone: body.phone }),
+        ...(body.tattooType && { tattooType: body.tattooType }),
+        ...(body.size && { size: body.size }),
+        ...(body.placement && { placement: body.placement }),
+        ...(body.description && { description: body.description }),
+        ...(body.preferredDate && { preferredDate: new Date(body.preferredDate) }),
+        ...(body.preferredTime && { preferredTime: body.preferredTime }),
+        ...(body.status && { status: body.status as BookingStatus }),
+        ...(body.notes && { notes: body.notes }),
+        ...(body.totalAmount !== undefined && { totalAmount: body.totalAmount }),
         updatedAt: new Date(),
       },
       include: {
-        Customer: true,
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
       },
     });
 
-    // Format response
-    const formattedAppointment = {
-      ...updatedAppointment,
-      customerName: updatedAppointment.Customer
-        ? `${updatedAppointment.Customer.firstName} ${updatedAppointment.Customer.lastName}`
-        : '',
-      customerEmail: updatedAppointment.Customer?.email,
-      customerPhone: updatedAppointment.Customer?.phone,
-      Customer: null, // Don't include full customer in response
-    };
+    void logger.info('Updated appointment:', { appointmentId: id });
 
-    return NextResponse.json(formattedAppointment);
+    return NextResponse.json(updatedAppointment);
+
   } catch (error) {
-    void console.error(`Error updating appointment ${params.id}:`, error);
-    return NextResponse.json({ error: 'Failed to update appointment' }, { status: 500 });
+    void logger.error('Error updating appointment:', error);
+    return NextResponse.json(
+      { error: 'Failed to update appointment' },
+      { status: 500 }
+    );
   }
 }
 
 /**
  * DELETE /api/admin/appointments/[id]
- * Delete a specific appointment
+ * Delete an appointment
  */
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     // Verify admin access
     const hasAccess = await verifyAdminAccess();
@@ -159,29 +139,19 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 
     const id = params.id;
 
-    // Check if appointment exists
-    const appointment = await prisma.appointment.findUnique({
-      where: {
-        id,
-      },
+    await prisma.booking.delete({
+      where: { id },
     });
 
-    if (!appointment) {
-      return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
-    }
+    void logger.info('Deleted appointment:', { appointmentId: id });
 
-    // Delete appointment
-    await prisma.appointment.delete({
-      where: {
-        id,
-      },
-    });
+    return NextResponse.json({ success: true });
 
-    return NextResponse.json({
-      message: 'Appointment deleted successfully',
-    });
   } catch (error) {
-    void console.error(`Error deleting appointment ${params.id}:`, error);
-    return NextResponse.json({ error: 'Failed to delete appointment' }, { status: 500 });
+    void logger.error('Error deleting appointment:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete appointment' },
+      { status: 500 }
+    );
   }
 }

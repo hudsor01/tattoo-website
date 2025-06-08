@@ -1,18 +1,20 @@
 // Google Analytics tracking utilities
 // Use these functions throughout the app to track user interactions
+import { ENV } from '@/lib/utils/env';
 
+import { logger } from "@/lib/logger";
 // Get GA measurement ID from environment
 const getGAMeasurementId = (): string | null => {
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? null;
+    return ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? null;
   }
   return null;
 };
 
 // Safe error logging without exposing sensitive information
 const logAnalyticsError = (action: string, error: unknown) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.warn(`[Analytics] Failed to track ${action}:`, error instanceof Error ? error.message : 'Unknown error');
+  if (ENV.NODE_ENV === 'development') {
+    void logger.warn(`[Analytics] Failed to track ${action}:`, error instanceof Error ? error.message : 'Unknown error');
   }
 };
 

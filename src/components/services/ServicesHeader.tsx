@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
-import type { ServicesHeaderProps } from '@/types/component-types';
+import { useInView } from 'framer-motion';
+import { motion } from '@/components/performance/LazyMotion';
 
-/**
- * Services Header Component
- *
- * Displays the header section for the services page with animated title and description.
- * Updated to match gallery page design system.
- */
+interface ServicesHeaderProps {
+  title?: string;
+  description?: string;
+}
+
 export function ServicesHeader({
   title = 'Tattoo Services',
   description = 'From custom designs to portrait work, I offer a range of specialized tattooing services to bring your vision to life. Each service is delivered with meticulous attention to detail and artistic excellence.',
@@ -57,7 +56,7 @@ export function ServicesHeader({
       </motion.p>
 
       <motion.div
-        className="mt-8 h-1 w-24 mx-auto bg-gradient-to-r from-red-500 via-orange-500 to-amber-500"
+        className="mt-8 h-1 w-24 mx-auto bg-linear-to-r from-red-500 via-orange-500 to-amber-500"
         variants={fadeInUp}
       />
     </motion.div>

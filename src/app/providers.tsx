@@ -1,42 +1,104 @@
+/**
+* Application Providers - Enhanced with Cal.com Integration
+*
+* Purpose: Central provider setup for all application services
+* Dependencies: Better Auth, Cal.com, themes, analytics
+* 
+* Trade-offs:
+* - Provider nesting vs performance: Organization vs overhead
+* - Global state vs local state: Consistency vs flexibility
+* - Error boundaries vs simple setup: Robustness vs complexity
+*/
 'use client';
 
-import { type ReactNode } from 'react';
-import { TrpcClientProvider } from '@/components/providers/TRPCProvider';
+import React, { memo } from 'react';
+import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/toaster';
-import { AnalyticsProvider } from '@/components/providers/AnalyticsProvider';
+import { ErrorBoundary } from '@/components/error/error-boundary';
+import { ClientOnly } from '@/components/ClientOnly';
 import { LazyMotionProvider } from '@/components/performance/LazyMotion';
+import { CalAtomsProviderWrapper } from '@/providers/CalProvider';
+import { Toaster } from 'sonner';
 
 interface ProvidersProps {
-  children: ReactNode;
+  children: React.ReactNode;
   cookies?: Record<string, string>;
   headers?: Record<string, string>;
 }
 
 /**
- * Application providers (excluding Clerk which is in root layout)
+ * Application providers
  *
  * Includes:
- * - tRPC for API calls
+ * - Better Auth for authentication (direct integration)
+ * - TanStack Query for API calls
+ * - Cal.com for booking functionality
  * - Theme management
  * - Toast notifications
+ * - Analytics tracking
+ * - Performance optimizations
  */
-export default function Providers({ children, cookies, headers }: ProvidersProps) {
-  return (
-    <TrpcClientProvider cookies={cookies ?? {}} headers={headers ?? {}}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-        <LazyMotionProvider>
-          <Toaster
-            position="bottom-right"
-            closeButton
-            richColors
-            theme="system"
-            className="z-[9999]"
-          />
-          <AnalyticsProvider />
-          {children}
-        </LazyMotionProvider>
-      </ThemeProvider>
-    </TrpcClientProvider>
-  );
+// Memoized error fallback component
+const ErrorFallback = memo(() => (
+  <div className="flex min-h-screen items-center justify-center">
+    <div className="text-center">
+      <h1 className="text-2xl font-bold text-red-600 mb-2">Application Error</h1>
+      <p className="text-muted-foreground mb-4">
+        Something went wrong. Please refresh the page.
+      </p>
+      <button
+        onClick={() => window.location.reload()}
+        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+      >
+        Refresh Page
+      </button>
+    </div>
+  </div>
+));
+
+ErrorFallback.displayName = 'ErrorFallback';
+
+// Memoized toaster component
+const MemoizedToaster = memo(() => (
+  <Toaster 
+    position="bottom-right" 
+    expand={false} 
+    richColors 
+    closeButton
+    duration={4000}
+  />
+));
+
+MemoizedToaster.displayName = 'MemoizedToaster';
+
+function Providers({ children }: ProvidersProps) {
+return (
+<ErrorBoundary
+fallback={<ErrorFallback />}
+onError={(error) => {
+console.error('Application provider error:', error);
+}}
+>
+<QueryProvider>
+<CalAtomsProviderWrapper>
+<ThemeProvider 
+attribute="class" 
+defaultTheme="dark" 
+enableSystem 
+disableTransitionOnChange
+>
+<LazyMotionProvider>
+{children}
+</LazyMotionProvider>
+
+<ClientOnly>
+<MemoizedToaster />
+</ClientOnly>
+</ThemeProvider>
+</CalAtomsProviderWrapper>
+</QueryProvider>
+</ErrorBoundary>
+);
 }
+
+export default memo(Providers);
