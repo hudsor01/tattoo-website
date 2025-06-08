@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    config: Record<string, any>
+    config: Record<string, { color?: string }>
   }
 >(({ className, config, ...props }, ref) => {
   return (
@@ -15,8 +15,8 @@ const ChartContainer = React.forwardRef<
       className={cn('w-full', className)}
       style={
         {
-          '--color-appointments': config['appointments']?.color || 'hsl(var(--primary))',
-          '--color-revenue': config['revenue']?.color || 'hsl(var(--secondary))',
+          '--color-appointments': config['appointments']?.color ?? 'hsl(var(--primary))',
+          '--color-revenue': config['revenue']?.color ?? 'hsl(var(--secondary))',
           '--color-chart-1': 'hsl(var(--chart-1))',
           '--color-chart-2': 'hsl(var(--chart-2))',
           '--color-chart-3': 'hsl(var(--chart-3))',
@@ -51,7 +51,7 @@ const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
     active?: boolean
-    payload?: any[]
+    payload?: Array<{ value: unknown; name: string; color?: string }>
     label?: string
     labelFormatter?: (label: string) => string
     indicator?: 'line' | 'dot' | 'dashed'

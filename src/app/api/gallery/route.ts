@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
 
     const designs = await prisma.tattooDesign.findMany({
       ...queryOptions,
-      cacheStrategy: { ttl: CACHE_TTL.MEDIUM }
     });
 
     // Check if there are more items
@@ -46,10 +45,9 @@ export async function GET(request: NextRequest) {
       nextCursor = nextItem?.id ?? null;
     }
 
-    // Get total count for pagination info (cached for longer since it changes less frequently)
+    // Get total count for pagination info
     const totalCount = await prisma.tattooDesign.count({ 
       where,
-      cacheStrategy: { ttl: CACHE_TTL.LONG }
     });
 
     const result = NextResponse.json({

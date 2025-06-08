@@ -97,7 +97,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
       }
     }
     
-    this.previousResetKeys = resetKeys || [];
+    this.previousResetKeys = resetKeys ?? [];
   }
 
   override componentWillUnmount() {
