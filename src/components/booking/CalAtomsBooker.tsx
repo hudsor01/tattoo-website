@@ -1,13 +1,29 @@
 'use client';
 
-import { useCallback } from 'react';
-import { Booker } from '@calcom/atoms';
+import { useCallback, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
+
+// Dynamically import Cal.com Atoms Booker to prevent SSR issues
+const Booker = dynamic(
+  () => import('@calcom/atoms').then(mod => mod.Booker),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[600px] w-full rounded-lg bg-muted flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading Cal.com booking system...</p>
+        </div>
+      </div>
+    )
+  }
+);
 
 // Cal.com Atoms compatible types
 interface BookingResponse {

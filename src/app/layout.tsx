@@ -152,13 +152,28 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 window.addEventListener('error', function(e) {
                   if (e.message && (
                     e.message.includes('mcp-autocomplete') ||
-                    e.message.includes('already been defined')
+                    e.message.includes('already been defined') ||
+                    e.message.includes('dailyvideo') ||
+                    e.message.includes('Failed to load resource')
                   )) {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
                   }
                 });
+                
+                // Suppress resource loading errors (404s for missing icons)
+                const originalFetch = window.fetch;
+                window.fetch = function(...args) {
+                  return originalFetch.apply(this, args).catch(error => {
+                    if (args[0] && typeof args[0] === 'string' && 
+                        (args[0].includes('dailyvideo') || args[0].includes('store'))) {
+                      console.warn('Suppressed 404 for non-critical resource:', args[0]);
+                      return new Response('', { status: 404 });
+                    }
+                    throw error;
+                  });
+                };
               }
             `,
           }}
@@ -204,9 +219,16 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           dangerouslySetInnerHTML={{
             __html: `
               // Initialize performance tracking
-              import('/lib/performance/core-web-vitals').then(module => {
-                module.initializePerformanceOptimizations();
-              }).catch(err => console.warn('Performance tracking failed:', err));
+              if (typeof window !== 'undefined') {
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.textContent = \`
+                  import('/lib/performance/core-web-vitals').then(module => {
+                    module.initializePerformanceOptimizations();
+                  }).catch(err => console.warn('Performance tracking failed:', err));
+                \`;
+                document.head.appendChild(script);
+              }
             `,
           }}
         />
@@ -240,16 +262,13 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           }}
         />
         
-        {/* Next.js App Router root element for React hydration */}
-        <div id="__next">
-          {/* Providers system */}
-          <Providers>
-            <ClientOnly>
-              <NavigationSystem />
-            </ClientOnly>
-            {children}
-          </Providers>
-        </div>
+        {/* Providers system */}
+        <Providers>
+          <ClientOnly>
+            <NavigationSystem />
+          </ClientOnly>
+          {children}
+        </Providers>
       </body>
     </html>
   );
