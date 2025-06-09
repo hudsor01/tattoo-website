@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { CalBookerErrorFallback } from '@/components/booking/CalAtomsBooker';
 import { ErrorBoundary } from '@/components/error/error-boundary';
 import dynamic from 'next/dynamic';
 
@@ -92,15 +91,19 @@ export default function BookConsultationPage() {
 
           {/* Cal.com Atoms Booker Component */}
           <ErrorBoundary 
-            fallback={<CalBookerErrorFallback className='rounded-lg shadow-lg overflow-hidden' error={new Error('Cal.com booking system error')} resetErrorBoundary={() => window.location.reload()} />}
+            fallback={
+              <div className='rounded-lg shadow-lg overflow-hidden p-8 bg-destructive/10 text-center'>
+                <h3 className='text-lg font-semibold mb-2'>Booking System Error</h3>
+                <p className='text-muted-foreground mb-4'>Unable to load the booking calendar</p>
+                <Button onClick={() => window.location.reload()}>Reload Page</Button>
+              </div>
+            }
           >
             <div className='w-full'>
               <CalAtomsBooker
                 username='ink37tattoos'
                 eventSlug='consultation'
                 view='MONTH_VIEW'
-                hideBranding={false}
-                isTeamEvent={false}
                 defaultFormValues={{
                   notes: designName ? `Interested in design: ${designName}` : 'Tattoo consultation request'
                 }}
