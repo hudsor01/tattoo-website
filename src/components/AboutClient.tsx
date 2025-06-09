@@ -72,7 +72,7 @@ export default function AboutClient() {
                 </h2>
                 <div className="space-y-5 text-muted-foreground text-base md:text-lg leading-relaxed md:leading-loose">
                   <p>
-                    At Ink 37, I've cultivated more than just a tattoo studio; I've built a sanctuary—a
+                    At Ink 37, I've cultivated more than just a tattoo community; I've built a sanctuary—a
                     comfortable, welcoming environment where artistic vision flourishes and 
                     meaningful connections are forged. My unwavering mission is to provide exceptional 
                     custom tattoo services throughout the Dallas/Fort Worth metroplex.
@@ -216,7 +216,7 @@ export default function AboutClient() {
             <div className="absolute inset-0">
               <Image
                 src="/images/services/neon-sign.jpg"
-                alt="Ink 37 Tattoo Studio"
+                alt="Ink 37 Tattoos"
                 fill
                 className="object-cover opacity-10"
                 sizes="100vw"

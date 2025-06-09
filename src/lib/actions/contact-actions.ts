@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db/prisma';
 import { ContactStatus } from '@prisma/client';
 import { sendEmail, generateAdminContactEmail, generateCustomerContactConfirmation } from '@/lib/email/email-service';
 import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
-import { ENV, getEnvVar } from '@/lib/utils/env';
+import { getEnvVar, createSafeUrl } from '@/lib/utils/env';
 import { checkRateLimit } from '@/lib/security/rate-limiter';
 import { headers } from 'next/headers';
 import { NextRequest } from 'next/server';
@@ -66,7 +66,7 @@ export async function submitContactAction(
         'x-forwarded-for': xForwardedFor,
         'host': host
       }),
-      nextUrl: new URL('/api/contact', ENV.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+      nextUrl: createSafeUrl('/api/contact') ?? new URL('/api/contact', 'https://ink37tattoos.com'),
     } as NextRequest;
     
     // Use the rate limiter with our properly constructed request object

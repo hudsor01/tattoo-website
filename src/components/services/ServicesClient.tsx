@@ -182,7 +182,7 @@ export default function ServicesClient() {
             <div className="absolute inset-0">
               <Image
                 src="/images/services/neon-sign.jpg"
-                alt="Professional tattoo studio"
+                alt="Professional tattoo artist"
                 fill
                 className="object-cover opacity-10"
                 sizes="100vw"

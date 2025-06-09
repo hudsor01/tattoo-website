@@ -260,7 +260,7 @@ export function generateLocalKeywords() {
   const serviceTypes = ['custom', 'traditional', 'japanese', 'realistic', 'cover-up', 'fine-line'];
   const locations = localSEOConfig.serviceAreas.map(area => area.city);
   const modifiers = ['best', 'professional', 'experienced', 'expert', 'top', 'affordable'];
-  const terms = ['tattoo artist', 'tattoo shop', 'tattoo studio', 'body art'];
+  const terms = ['tattoo artist', 'tattoo shop', 'tattoos', 'body art'];
 
   const keywords: string[] = [];
 

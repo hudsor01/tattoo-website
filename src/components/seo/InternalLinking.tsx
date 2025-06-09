@@ -145,7 +145,7 @@ export function LocationLinks() {
     {
       title: 'Serving Crowley, TX',
       href: '/locations/crowley',
-      description: 'Our home base in Crowley, Texas - convenient parking and comfortable studio',
+      description: 'Our home base in Crowley, Texas - convenient parking and comfortable atmosphere',
       priority: 'high' as const
     },
     {

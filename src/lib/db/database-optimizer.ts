@@ -494,15 +494,9 @@ export class DatabaseOptimizer {
           }
 
           // Explicitly map bookings to match CustomerWithStats['bookings'] structure.
-          // This is a workaround for potential discrepancies between Prisma's inferred type
-          // for `customer.bookings` (from a complex query) and the structure defined
-          // in `CustomerWithStats` (derived from a direct Prisma.CustomerGetPayload).
           const mappedBookings: CustomerWithStats['bookings'] = 
             (actualBookingsFromCustomer || []).map((bRaw) => {
               // Assert bRaw to the specific shape we expect from the select clause.
-              // Using 'as unknown as SelectedBookingShape' to bypass TypeScript's strict
-              // overlap checking for assertions, as we are confident about the runtime shape
-              // due to the Prisma select arguments.
               const b = bRaw as unknown as SelectedBookingShape;
               return {
                 id: b.id,
@@ -510,8 +504,6 @@ export class DatabaseOptimizer {
                 preferredDate: b.preferredDate,
                 status: b.status, 
                 // b.payments is already Array<{amount:number}> due to SelectedBookingShape.
-                // No '?? []' needed if SelectedBookingShape correctly types payments as non-nullable array.
-                // Prisma's select on a to-many relation typically yields an array (possibly empty).
                 payments: b.payments, 
               };
             });
@@ -521,8 +513,8 @@ export class DatabaseOptimizer {
 
           return {
             ...customerBaseFields,
-            _count: customer._count, // Pass through _count as it's correctly typed by findMany.
-            bookings: mappedBookings, // Use the explicitly mapped and typed bookings.
+            _count: customer._count,
+            bookings: mappedBookings,
             totalAppointments: bookingCount,
             totalSpent: Math.round(paymentTotal * 100) / 100,
             lastVisit,
@@ -553,7 +545,6 @@ export class DatabaseOptimizer {
           paymentStats,
           recentActivity
         ] = await Promise.all([
-          // Booking statistics
           this.db.booking.groupBy({
             by: ['status'],
             _count: { id: true },
@@ -732,8 +723,8 @@ export class DatabaseOptimizer {
       queries: this.monitor.getPerformanceStats(timeRange),
       cache: this.cache.getStats(),
       database: {
-        connectionCount: 10, // Would need to be implemented with actual connection pool
-        activeConnections: 5, // Would need to be implemented with actual connection pool
+        connectionCount: 10,
+        activeConnections: 5,
       },
     };
   }

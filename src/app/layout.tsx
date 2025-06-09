@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import { ENV } from '@/lib/utils/env';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
-import { seoConfig, generateBusinessStructuredData } from '@/lib/seo/seo-config';
+import { seoConfig } from '@/lib/seo/seo-config';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
 import { ClientOnly } from '@/components/ClientOnly';
@@ -11,7 +11,7 @@ import { ClientOnly } from '@/components/ClientOnly';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(typeof seoConfig.siteUrl === 'string' ? seoConfig.siteUrl : 'https://ink37tattoos.com'),
+  metadataBase: new URL('https://ink37tattoos.com'),
   title: {
     default: seoConfig.defaultTitle,
     template: '%s | Ink 37 Tattoos'
@@ -30,25 +30,25 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: typeof seoConfig.siteUrl === 'string' ? seoConfig.siteUrl : 'https://ink37tattoos.com',
+    url: 'https://ink37tattoos.com',
     siteName: seoConfig.businessName,
     images: [
       {
-        url: `${seoConfig.siteUrl}/images/japanese.jpg`,
+        url: '/images/japanese.jpg',
         width: 1200,
         height: 630,
         alt: `Professional custom tattoo artwork by ${seoConfig.businessName} - Japanese style tattoo design`,
         type: 'image/jpeg',
       },
       {
-        url: `${seoConfig.siteUrl}/images/traditional.jpg`,
+        url: '/images/traditional.jpg',
         width: 1200,
         height: 630,
         alt: `Traditional style tattoo work by ${seoConfig.businessName} tattoo artist`,
         type: 'image/jpeg',
       },
       {
-        url: `${seoConfig.siteUrl}/images/realism.jpg`,
+        url: '/images/realism.jpg',
         width: 1200,
         height: 630,
         alt: `Realistic tattoo artwork by professional tattoo artist ${seoConfig.businessName}`,
@@ -62,8 +62,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Generate structured data using centralized configuration
-const businessSchema = generateBusinessStructuredData();
+// Generate structured data using centralized configuration - temporarily disabled
+// const businessSchema = generateBusinessStructuredData();
 
 type RootLayoutProps = {
   children: ReactNode;
@@ -211,58 +211,13 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           }}
         />
 
-        {/* Enhanced Structured Data for Enterprise SEO */}
+        {/* Enhanced Structured Data for Enterprise SEO - Temporarily disabled to debug build issue */}
+        {/* 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              "name": "Ink 37 Tattoos",
-              "url": "https://ink37tattoos.com",
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": {
-                  "@type": "EntryPoint",
-                  "urlTemplate": "https://ink37tattoos.com/gallery?search={search_term_string}"
-                },
-                "query-input": "required name=search_term_string"
-              }
-            })
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              "name": "Ink 37 Tattoos",
-              "url": "https://ink37tattoos.com",
-              "logo": "https://ink37tattoos.com/logo.png",
-              "foundingDate": "2020",
-              "founders": [{
-                "@type": "Person",
-                "name": "Fernando Govea"
-              }],
-              "contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "+1-817-297-3700",
-                "contactType": "customer service",
-                "areaServed": "US",
-                "availableLanguage": "English"
-              },
-              "sameAs": [
-                "https://www.instagram.com/ink37tattoos",
-                "https://www.facebook.com/ink37tattoos"
-              ]
-            })
-          }}
-        />
+        */}
         
         {/* PWA Service Worker Registration */}
         <Script

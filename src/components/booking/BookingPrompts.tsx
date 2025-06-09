@@ -1,10 +1,3 @@
-/**
- * Booking Prompts Component
- * 
- * Purpose: Strategic booking CTAs throughout the site
- * Features: Multiple variants, contextual messaging, analytics
- */
-
 'use client';
 
 import React from 'react';

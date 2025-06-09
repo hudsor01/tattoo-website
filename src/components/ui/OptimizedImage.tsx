@@ -5,20 +5,21 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface OptimizedImageProps {
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
-  className?: string;
-  priority?: boolean;
-  placeholder?: 'blur' | 'empty';
-  blurDataURL?: string;
-  sizes?: string;
-  quality?: number;
-  loading?: 'eager' | 'lazy';
-  onLoad?: () => void;
-  onError?: () => void;
-  fallback?: string;
+src: string;
+alt: string;
+width?: number;
+height?: number;
+fill?: boolean;
+className?: string;
+priority?: boolean;
+placeholder?: 'blur' | 'empty';
+blurDataURL?: string;
+sizes?: string;
+quality?: number;
+loading?: 'eager' | 'lazy';
+onLoad?: () => void;
+onError?: () => void;
+fallback?: string;
 }
 
 /**
@@ -32,20 +33,21 @@ interface OptimizedImageProps {
  * - Core Web Vitals optimization
  */
 export default function OptimizedImage({
-  src,
-  alt,
-  width,
-  height,
-  className,
-  priority = false,
-  placeholder = 'blur',
-  blurDataURL,
-  sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
-  quality = 85,
-  loading = 'lazy',
-  onLoad,
-  onError,
-  fallback = '/images/placeholder-tattoo.jpg'
+src,
+alt,
+width,
+height,
+fill,
+className,
+priority = false,
+placeholder = 'blur',
+blurDataURL,
+sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
+quality = 85,
+loading = 'lazy',
+onLoad,
+onError,
+fallback = '/images/placeholder-tattoo.jpg'
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -93,28 +95,26 @@ export default function OptimizedImage({
   return (
     <div className={cn('relative overflow-hidden', className)}>
       <Image
-        src={imageSrc}
-        alt={alt}
-        width={width}
-        height={height}
-        priority={priority}
-        placeholder={placeholder}
-        blurDataURL={blurDataURL ?? defaultBlurDataURL}
-        sizes={sizes}
-        quality={quality}
-        loading={loading}
-        onLoad={handleLoad}
-        onError={handleError}
-        className={cn(
-          'transition-opacity duration-300',
-          isLoaded ? 'opacity-100' : 'opacity-0',
-          hasError && 'opacity-75'
-        )}
-        style={{
-          objectFit: 'cover',
-          width: '100%',
-          height: '100%'
-        }}
+      src={imageSrc}
+      alt={alt}
+      {...(fill ? { fill: true } : { width, height })}
+      priority={priority}
+      placeholder={placeholder}
+      blurDataURL={blurDataURL ?? defaultBlurDataURL}
+      sizes={sizes}
+      quality={quality}
+      loading={loading}
+      onLoad={handleLoad}
+      onError={handleError}
+      className={cn(
+      'transition-opacity duration-300',
+      isLoaded ? 'opacity-100' : 'opacity-0',
+      hasError && 'opacity-75'
+      )}
+      style={{
+      objectFit: 'cover',
+      ...(fill ? {} : { width: '100%', height: '100%' })
+      }}
       />
       
       {/* Loading indicator */}

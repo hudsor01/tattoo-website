@@ -6,7 +6,7 @@
  */
 
 import type { Metadata } from 'next';
-import { ENV } from '@/lib/utils/env';
+import { getAppUrl } from '@/lib/utils/env';
 
 // Base SEO configuration
 export const seoConfig = {
@@ -38,9 +38,9 @@ export const seoConfig = {
     tiktok: '@ink37tattoos',
   },
   
-  // Base URLs and images
-  siteUrl: typeof ENV.NEXT_PUBLIC_APP_URL === 'string' ? ENV.NEXT_PUBLIC_APP_URL : 'https://ink37tattoos.com',
-  baseUrl: typeof ENV.NEXT_PUBLIC_APP_URL === 'string' ? ENV.NEXT_PUBLIC_APP_URL : 'https://ink37tattoos.com',
+  // Base URLs and images (using getters for dynamic values)
+  get siteUrl() { return getAppUrl(); },
+  get baseUrl() { return getAppUrl(); },
   defaultOgImage: '/images/og-image.jpg',
   ogImage: '/images/og-image.jpg',
   logo: '/logo.png',
@@ -144,7 +144,7 @@ export function generatePageMetadata({
     publisher: seoConfig.businessName,
     
     // Technical SEO
-    metadataBase: new URL(typeof seoConfig.baseUrl === 'string' ? seoConfig.baseUrl : 'https://ink37tattoos.com'),
+    metadataBase: new URL(getAppUrl()),
     alternates: {
       canonical: canonical ?? undefined,
     },
@@ -166,7 +166,7 @@ export function generatePageMetadata({
     openGraph: {
       title: fullTitle,
       description: pageDescription,
-      url: canonical ? `${typeof seoConfig.baseUrl === 'string' ? seoConfig.baseUrl : 'https://ink37tattoos.com'}${canonical}` : (typeof seoConfig.baseUrl === 'string' ? seoConfig.baseUrl : 'https://ink37tattoos.com'),
+      url: canonical ?? 'https://ink37tattoos.com',
       siteName: seoConfig.businessName,
       type: ogType,
       locale: 'en_US',

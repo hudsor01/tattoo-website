@@ -47,13 +47,13 @@ export const googleBusinessConfig: GoogleBusinessConfig = {
     lng: -97.362500
   },
   businessHours: [
-    { day: "Monday", open: "10:00", close: "18:00" },
-    { day: "Tuesday", open: "10:00", close: "18:00" },
-    { day: "Wednesday", open: "10:00", close: "18:00" },
-    { day: "Thursday", open: "10:00", close: "18:00" },
-    { day: "Friday", open: "10:00", close: "18:00" },
-    { day: "Saturday", open: "10:00", close: "16:00" },
-    { day: "Sunday", closed: true }
+  { day: "Monday", open: "10:00", close: "18:00" },
+  { day: "Tuesday", open: "10:00", close: "18:00" },
+  { day: "Wednesday", open: "10:00", close: "18:00" },
+  { day: "Thursday", open: "10:00", close: "18:00" },
+  { day: "Friday", open: "10:00", close: "18:00" },
+  { day: "Saturday", open: "10:00", close: "16:00" },
+  { day: "Sunday", open: "", close: "", closed: true }
   ],
   categories: [
     "Tattoo Shop",

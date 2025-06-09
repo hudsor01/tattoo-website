@@ -111,14 +111,14 @@ function validateServerEnv() {
     DATABASE_URL: process.env['DATABASE_URL'],
     DIRECT_URL: process.env['DIRECT_URL'],
 
-// Email
-RESEND_API_KEY: process.env['RESEND_API_KEY'],
-ARTIST_EMAIL: process.env['ARTIST_EMAIL'],
-CONTACT_EMAIL: process.env['CONTACT_EMAIL'],
-CONTACT_PHONE: process.env['CONTACT_PHONE'],
+    // Email
+    RESEND_API_KEY: process.env['RESEND_API_KEY'],
+    ARTIST_EMAIL: process.env['ARTIST_EMAIL'],
+    CONTACT_EMAIL: process.env['CONTACT_EMAIL'],
+    CONTACT_PHONE: process.env['CONTACT_PHONE'],
 
-// Admin Access
-ADMIN_EMAILS: process.env['ADMIN_EMAILS'],
+    // Admin Access
+    ADMIN_EMAILS: process.env['ADMIN_EMAILS'],
     
     // Cal.com Integration
     CAL_API_KEY: process.env['CAL_API_KEY'],
@@ -235,25 +235,64 @@ export function getRequiredEnvVar(name: string): string {
  * @param name The name of the environment variable
  * @param defaultValue Default value if environment variable is not defined
  * @returns The environment variable value cast to the type of defaultValue
- *export function getTypedEnvVar<T>(name: string, defaultValue: T): T {
-const value = process.env[name];
+ */
+export function getTypedEnvVar<T>(name: string, defaultValue: T): T {
+  const value = process.env[name];
 
-if (value === undefined || value === '') {
-return defaultValue;
+  if (value === undefined || value === '') {
+    return defaultValue;
+  }
+
+  try {
+    // Try to parse the value as JSON if T is not string
+    if (typeof defaultValue !== 'string') {
+      return JSON.parse(value) as T;
+    }
+
+    // Otherwise treat as string
+    return value as unknown as T;
+  } catch {
+    // If parsing fails, return the default value
+    return defaultValue;
+  }
 }
 
-try {
-// Try to parse the value as JSON if T is not string
-if (typeof defaultValue !== 'string') {
-return JSON.parse(value) as T;
+/**
+ * Get the app URL safely with guaranteed fallback
+ * 
+ * @returns Always returns a valid URL string
+ */
+export function getAppUrl(): string {
+  // First try ENV object
+  if (ENV.NEXT_PUBLIC_APP_URL && ENV.NEXT_PUBLIC_APP_URL !== '') {
+    return ENV.NEXT_PUBLIC_APP_URL;
+  }
+  
+  // Fallback to direct process.env access
+  const envUrl = process.env['NEXT_PUBLIC_APP_URL'];
+  if (envUrl && envUrl !== '') {
+    return envUrl;
+  }
+  
+  // Final fallback to production URL
+  return 'https://ink37tattoos.com';
 }
 
-// Otherwise treat as string
-return value as unknown as T;
-} catch {
-// If parsing fails, return the default value
-return defaultValue;
-}
+/**
+ * Create a safe URL constructor that never throws
+ * 
+ * @param path The path to append to the base URL
+ * @param baseUrl Optional base URL (defaults to app URL)
+ * @returns URL object or null if construction fails
+ */
+export function createSafeUrl(path: string, baseUrl?: string): URL | null {
+  try {
+    const base = baseUrl ?? getAppUrl();
+    return new URL(path, base);
+  } catch (error) {
+    void logger.error('Failed to create URL', { path, baseUrl, error });
+    return null;
+  }
 }
 
 /**

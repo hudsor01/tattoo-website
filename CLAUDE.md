@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Professional tattoo studio website with Next.js 15, featuring client portal, admin dashboard, Cal.com booking integration, and real-time analytics.
+Professional tattoo studio website with Next.js 15.3.3 and React 19.1.0, featuring Cal.com booking integration, portfolio gallery, contact forms, and comprehensive analytics tracking.
 
 ## Development Commands
 
@@ -26,16 +26,8 @@ npx prisma generate                     # Generate Prisma client
 npm run prisma:generate                 # Alternative command for Prisma client generation
 npx prisma studio                       # Open database GUI
 
-# Testing
-npm run test:e2e                        # Run all Playwright E2E tests
-npm run test:e2e:ui                     # Playwright test UI
-npm run test:e2e:auth                   # Run auth-specific tests
-npx playwright test --debug             # Debug mode
-npx playwright test <filename>          # Run single test file
-npx playwright show-report              # View test report after failure
-
-# Cal.com Data Sync
-npm run cal:sync                        # Sync Cal.com data to local database (uses tsx scripts/sync-cal-data.ts)
+# Cal.com Data Sync (Not Currently Implemented)
+# npm run cal:sync                      # Sync Cal.com data to local database (planned)
 
 # Bundle Analysis
 npm run build:analyze                   # Analyze bundle size with @next/bundle-analyzer
@@ -71,34 +63,43 @@ interface CustomerType { ... }  // ESLint will block this
 ```
 /src/app/                    # App Router root
 ├── api/                     # API routes
-├── (public routes)/         # No auth required
-├── admin/                   # Admin routes (role-based)
-├── auth/                    # Authentication pages
+├── about/                   # About page
+├── booking/                 # Booking system
+├── book-consultation/       # Consultation booking
+├── contact/                 # Contact page
+├── faq/                     # FAQ page
+├── gallery/                 # Portfolio gallery
+├── services/                # Services page
 └── providers.tsx            # Client providers wrapper
 ```
 
-### Admin Dashboard Migration
-The admin dashboard is being migrated from `/app/admin/*` to `/src/admin-dashboard/*`:
-- Old location: `/src/app/admin/` (being phased out)
-- New location: `/src/admin-dashboard/` (feature-based structure)
-- Both locations work during migration
+### Current Project Structure (Role-Oriented)
+```
+src/
+├── app/                     # Next.js App Router pages & API routes
+├── components/              # React components (organized by domain)
+├── hooks/                   # Custom React hooks
+├── lib/                     # Business logic & utilities
+├── providers/               # React context providers
+├── styles/                  # CSS files & font configurations
+├── types/                   # TypeScript type definitions
+└── utils.ts                 # General utility functions
+```
 
 ### API Layer (REST + TanStack Query)
 **No tRPC** - Uses native Next.js API routes with TanStack Query for client-side state management.
 
-**API Route Structure:**
+**Current API Route Structure:**
 ```
 /src/app/api/
-├── admin/           # Protected admin endpoints
-│   ├── analytics/   # Dashboard metrics, booking times
-│   ├── appointments/# CRUD operations
-│   ├── customers/   # Customer management
-│   └── payments/    # Payment tracking
-├── auth/           # Better Auth endpoints
-├── cal/            # Cal.com integration
-├── bookings/       # Public booking endpoints
-├── gallery/        # Portfolio management
-└── webhooks/       # External service hooks
+├── bookings/        # Public booking endpoints
+├── contact/         # Contact form submission
+├── csrf/            # CSRF token generation
+├── gallery/         # Portfolio management
+│   ├── [id]/        # Individual design retrieval
+│   └── files/       # File upload handling
+├── health/          # Health check endpoint
+└── refresh/         # Token refresh (planned)
 ```
 
 **Data Fetching Pattern:**
@@ -114,13 +115,12 @@ export function useAdminDashboard(params = {}) {
 }
 ```
 
-### Authentication (Better Auth)
-- **Provider**: Better Auth with Prisma adapter
-- **OAuth**: Google provider configured
-- **Auto-Admin Emails**: Set via `ADMIN_EMAILS` environment variable (comma-separated)
-- **Session Storage**: Database sessions with JWT tokens
-- **Route Protection**: Middleware + page-level auth checks
-- **Client Hooks**: `useUser()`, `useIsAdmin()`, `useAuthState()`
+### Authentication (Not Currently Implemented)
+- **Status**: No authentication system currently implemented
+- **Database Ready**: Prisma schema includes User, Session, Account models for future auth
+- **Planned**: Better Auth integration with Google OAuth
+- **Environment Variables**: `ADMIN_EMAILS` for admin designation (when implemented)
+- **Current State**: Public website with contact forms and booking integration
 
 ### Database Models (Prisma)
 **Core Models:**
@@ -138,10 +138,10 @@ export function useAdminDashboard(params = {}) {
 - `CalRealtimeMetrics` - Live dashboard data
 
 ### State Management
-- **Server State**: TanStack Query (no tRPC)
-- **Form State**: react-hook-form + Zod
-- **Auth State**: Better Auth hooks
-- **Client State**: Zustand (when needed)
+- **Server State**: TanStack Query v5.80.6 for data fetching and caching
+- **Form State**: react-hook-form + Zod validation schemas
+- **Client State**: React Context for providers (CSRF, themes)
+- **Auth State**: Not implemented (no auth system currently)
 
 ### Build Configuration
 - **Webpack**: Filesystem cache with gzip
@@ -157,47 +157,45 @@ export function useAdminDashboard(params = {}) {
 - Proxy pattern switches between client/server loggers automatically
 - Server adds timestamps, client remains simple
 
-### 2. Middleware Authentication Architecture
-- Middleware validates session with Better Auth's `getSession()`
-- Role-based access control for admin routes
-- Redirects unauthorized users appropriately
-- Falls back to redirect on errors rather than allowing access
-
-### 3. Database Function Execution Layer
-`db-execute.ts` provides sophisticated database abstraction:
-- Executes stored procedures via Prisma's `$queryRaw`
-- Timeout protection with Promise.race
-- Dual API: `executeStoredProcedure` (throws) vs `executeDbFunction` (returns error objects)
-
-### 4. In-Memory Rate Limiting
-- Pure in-memory storage (no Redis dependency)
-- Auto-cleanup every 60 seconds
-- Different limits per endpoint type
-- Threat detection with regex patterns
-- Location: `src/lib/security/rate-limiter.ts`
-
-### 5. Unified API Client
-`api.ts` creates standardized HTTP client:
-- Optional Zod schema validation
-- Custom `ApiError` class
-- Built-in social sharing logic
-- Multipart upload support
-
-### 6. CSRF Protection Implementation
-- Double-submit cookie pattern
-- `CSRFProvider` for React components
+### 2. CSRF Protection Architecture
+- Double-submit cookie pattern implemented in `CSRFProvider`
+- Token generation via `/api/csrf` endpoint
 - Header-based validation (`x-csrf-token`)
-- Secure cookie configuration
+- Secure cookie configuration with httpOnly and sameSite settings
+
+### 3. Cal.com Integration Layer
+Comprehensive Cal.com integration in `/src/lib/cal/`:
+- OAuth 2.0 and legacy API key support
+- Service definitions with detailed custom fields (piercing, tattoo styles, etc.)
+- Webhook processing for booking events
+- Fallback mechanisms when Cal.com is unavailable
+- Event type mapping and booking validation
+
+### 4. Environment Configuration
+Comprehensive environment variable validation in `/src/lib/utils/env.ts`:
+- Zod schemas for type-safe environment variables
+- Client/server variable separation
+- Cal.com configuration management
+- Admin email handling utilities
+- Development vs production environment handling
+
+### 5. Gallery Management System
+Sophisticated image/video handling in `/src/hooks/use-gallery.ts`:
+- TanStack Query integration for efficient caching
+- Optimistic updates for likes/interactions
+- File upload handling with progress tracking
+- Social sharing capabilities
+- SEO-friendly URL generation
 
 ## Security Implementation
 
-- **Input Validation**: Zod schemas on all endpoints
-- **Rate Limiting**: In-memory rate limiter (add to critical endpoints)
-- **CORS**: Configured allowed origins
+- **Input Validation**: Zod schemas for all form submissions and API inputs
+- **CSRF Protection**: Double-submit cookie pattern with secure configuration
+- **CORS**: Configured allowed origins in next.config.mjs
 - **CSP Headers**: Strict Content Security Policy with nonce support
-- **Auth Protection**: Middleware + page-level auth checks
-- **CSRF Protection**: Double-submit cookie pattern
-- **Environment Variables**: Use `getAdminEmails()` utility for admin emails
+- **Environment Variables**: Type-safe validation with Zod schemas
+- **File Upload Security**: Planned enhancement for gallery uploads
+- **Rate Limiting**: Database model ready for implementation (RateLimit table)
 
 ## Code Quality Requirements
 
@@ -206,14 +204,16 @@ export function useAdminDashboard(params = {}) {
 npm run type-check && npm run lint && npm run build
 ```
 
-**Known ESLint Issues:**
-- Admin components: Promise handling (being fixed)
-- LoadingUI: Array index keys (warnings only)
+**Current Code Quality Status:**
+- ESLint configuration enforces Prisma-first type system
+- TypeScript strict mode enabled with comprehensive type checking
+- Prettier formatting enforced
+- Security-focused ESLint rules applied
 
-**Critical Security Items:**
-- Rate limiting needed on `/api/contact`, `/api/upload`, `/api/admin/*`
-- File upload security validation requires enhancement
-- Admin emails now use environment variables via `ADMIN_EMAILS`
+**Areas for Enhancement:**
+- Rate limiting implementation on critical endpoints
+- File upload security validation for gallery
+- Authentication system implementation (database schema ready)
 
 ## Common Issues & Solutions
 
@@ -242,95 +242,118 @@ npm run type-check && npm run lint && npm run build
 - Verify API response format
 - Use `queryClient.invalidateQueries()` for cache refresh
 
-### Authentication Failures
-- Check Better Auth environment variables
-- Verify OAuth redirect URLs
-- Ensure admin emails in `ADMIN_EMAILS` env var
+### Development Issues
+- **Environment Setup**: Check all required environment variables in `.env.local`
+- **Build Failures**: Ensure Prisma client is generated with `npx prisma generate`
+- **Type Issues**: Verify imports from `@prisma/client` and `/lib/prisma-types`
+- **Cal.com Integration**: Verify API keys and webhook configurations
 
 ## Environment Variables
 
-Required variables (see `.env.local.example` and `.env.cal.example`):
+Current environment variables used:
 - **Database**: `DATABASE_URL`, `DIRECT_URL` (Prisma)
-- **Auth**: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAILS`
 - **Cal.com**: `CAL_API_KEY`, `NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID`, `CAL_OAUTH_CLIENT_SECRET`, `CAL_WEBHOOK_SECRET`
-- **Email**: `RESEND_API_KEY`
-- **Maps**: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
-- **Security**: `RATE_LIMIT_PER_MINUTE`, `ALLOWED_ORIGINS`
+- **Email**: `RESEND_API_KEY` (for contact form notifications)
+- **Maps**: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (for contact page)
 - **Analytics**: `NEXT_PUBLIC_VERCEL_ANALYTICS_ID`, `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+- **Security**: `RATE_LIMIT_PER_MINUTE`, `ALLOWED_ORIGINS` (configured via env utils)
 
-## API Route Pattern
+Planned for auth implementation:
+- **Auth**: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAILS`
+
+## Current API Route Pattern
 
 ```typescript
-import { auth } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAdminAccess } from '@/lib/auth/api-auth';
-import { rateLimit } from '@/lib/security/rate-limiter';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
-  // Rate limiting
-  const rateLimitResult = await rateLimit(request);
-  if (!rateLimitResult.success) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+// Input validation schema
+const requestSchema = z.object({
+  // Define expected inputs
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    // Parse and validate input
+    const body = await request.json();
+    const validatedData = requestSchema.parse(body);
+    
+    // CSRF validation (if needed)
+    const csrfToken = request.headers.get('x-csrf-token');
+    if (!csrfToken) {
+      return NextResponse.json({ error: 'CSRF token required' }, { status: 403 });
+    }
+    
+    // Business logic with Prisma
+    const result = await prisma.model.create({
+      data: validatedData,
+    });
+    
+    return NextResponse.json({ success: true, data: result });
+  } catch (error) {
+    logger.error('API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-  
-  // Auth check
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  
-  // Admin check (if needed)
-  const adminCheck = await verifyAdminAccess(request);
-  if (!adminCheck.isAdmin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-  
-  // Implementation
-  return NextResponse.json(data);
 }
 ```
 
-## Testing Strategy
+## Testing Strategy (Not Currently Implemented)
 
-### E2E Tests with Playwright
-- Tests located in `/tests/` directory
-- Run on port 3001 to avoid conflicts
-- Uses Chromium, Firefox, and WebKit browsers
-- Screenshots captured on failure
-- HTML report generated after test runs
+### Planned Testing Framework
+- **E2E Testing**: Playwright for user journey testing
+- **Unit Testing**: Jest/Vitest for component and utility testing
+- **Integration Testing**: API route testing with database
+- **Visual Testing**: Storybook for component documentation
 
-### Test Categories
-- **Auth Tests**: Login, OAuth, session management
-- **Gallery Tests**: Image/video handling, lightbox, sharing
-- **Admin Tests**: Dashboard, customers, appointments
-- **Booking Tests**: Cal.com integration, form submission
+### Areas Requiring Testing
+- **Gallery**: Image/video upload, display, sharing functionality
+- **Booking**: Cal.com integration, form validation, submission
+- **Contact**: Form submission, email notifications
+- **CSRF**: Token generation and validation
+- **Performance**: Core Web Vitals monitoring
 
 ## Performance Considerations
 
-### Bundle Optimization
-- Remove duplicate motion libraries (`framer-motion` + `motion`)
-- Tree shake unused dependencies
-- Monitor bundle size with `npm run build:analyze`
+### Current Performance Features
+- **Bundle Optimization**: Webpack optimization with specialized chunks (framework, radix, tanstack)
+- **Package Imports**: 20+ packages optimized in next.config.mjs
+- **Image Optimization**: Next.js Image component with OptimizedImage wrapper
+- **Core Web Vitals**: Vercel Analytics and Speed Insights monitoring
+- **Database**: Performance indexes implemented for common queries
 
-### Database Performance
-- Add indexes for common query patterns
-- Fix N+1 queries in gallery API
-- Use Prisma's `include` wisely
+### Performance Monitoring
+- **Client**: Vercel Speed Insights tracks Core Web Vitals
+- **Server**: Performance logging in `/src/lib/performance/core-web-vitals.ts`
+- **Bundle**: Bundle analyzer available via `npm run build:analyze`
+- **Database**: Prisma query optimization and indexing strategies
 
-### Core Web Vitals
-- Optimize images with Next.js Image component
-- Implement proper loading states
-- Use `loading="lazy"` for below-fold content
+## Current Deployment Status
 
-## Deployment Checklist
+### Production-Ready Features
+1. **Environment Variables**: Type-safe validation with Zod schemas
+2. **Database**: Prisma with PostgreSQL, migrations ready
+3. **Analytics**: Vercel Analytics and Google Analytics configured
+4. **Security**: CSRF protection, CSP headers, CORS configuration
+5. **Performance**: Bundle optimization, image optimization, Core Web Vitals tracking
+6. **Cal.com Integration**: OAuth and API key support, webhook handling
+7. **SEO**: Structured data, meta tags, sitemap generation
 
-1. Set all environment variables in deployment platform
-2. Configure Google OAuth authorized domains
-3. Update `BETTER_AUTH_URL` to production domain
-4. Set `ADMIN_EMAILS` with comma-separated admin emails
-5. Enable Vercel Analytics for production monitoring
-6. Configure error tracking (Sentry recommended)
-7. Set up CDN for static assets
-8. Enable HTTP/2 and compression
-9. Review security headers in production
-10. Test CSRF protection across browsers
+### Deployment Checklist
+1. Set required environment variables (database, Cal.com, email, maps, analytics)
+2. Run database migrations: `npx prisma migrate deploy`
+3. Generate Prisma client: `npx prisma generate`
+4. Enable Vercel Analytics in production
+5. Configure Google Maps API keys and restrictions
+6. Set up Cal.com webhooks for production domain
+7. Test contact form email delivery
+8. Verify CSRF protection across browsers
+9. Monitor Core Web Vitals and performance metrics
+
+### Future Enhancements
+- Authentication system implementation (database schema ready)
+- Admin dashboard for portfolio management
+- Rate limiting on critical endpoints
+- Comprehensive testing suite
+- Enhanced file upload security

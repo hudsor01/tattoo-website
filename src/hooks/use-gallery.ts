@@ -1,6 +1,6 @@
 /**
  * Consolidated gallery hooks for image gallery management
- * No tRPC - using REST API calls instead
+ * Using REST API calls
  */
 
 'use client';

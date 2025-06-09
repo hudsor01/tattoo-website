@@ -71,15 +71,17 @@ export function trackWebVitals() {
 
   // Track LCP (Largest Contentful Paint)
   const lcpObserver = new PerformanceObserver((list) => {
-    const entries = list.getEntries();
-    const lastEntry = entries[entries.length - 1];
-    reportWebVital({
-      name: 'LCP',
-      value: lastEntry.startTime,
-      rating: getRating('lcp', lastEntry.startTime),
-      delta: 0,
-      id: 'lcp'
-    });
+  const entries = list.getEntries();
+  const lastEntry = entries[entries.length - 1];
+  if (lastEntry) {
+  reportWebVital({
+  name: 'LCP',
+  value: lastEntry.startTime,
+  rating: getRating('lcp', lastEntry.startTime),
+  delta: 0,
+  id: 'lcp'
+  });
+  }
   });
 
   if (PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint')) {
@@ -204,16 +206,16 @@ export function optimizeImages() {
   // Lazy load non-critical images
   const images = document.querySelectorAll('img[data-lazy]');
   const imageObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target as HTMLImageElement;
-        if (img.dataset.lazy) {
-          img.src = img.dataset.lazy;
-          img.removeAttribute('data-lazy');
-          imageObserver.unobserve(img);
-        }
-      }
-    });
+  entries.forEach(entry => {
+  if (entry.isIntersecting) {
+  const img = entry.target as HTMLImageElement;
+  if (img.dataset['lazy']) {
+  img.src = img.dataset['lazy'];
+  img.removeAttribute('data-lazy');
+  imageObserver.unobserve(img);
+  }
+  }
+  });
   });
 
   images.forEach(img => imageObserver.observe(img));
