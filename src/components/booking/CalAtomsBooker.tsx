@@ -8,6 +8,33 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 
+// Cal.com Atoms types (inlined to avoid ESLint restriction)
+interface ApiSuccessResponse<T = unknown> {
+  status: 'success';
+  data: T;
+}
+
+interface BookingResponse {
+  id: string;
+  uid: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  attendees?: Array<{
+    name: string;
+    email: string;
+  }>;
+}
+
+interface ApiErrorResponse {
+  status: 'error';
+  error: {
+    message?: string;
+    code?: string;
+    details?: string | object | string[];
+  };
+}
+
 interface BookerProps {
   // Required props based on Cal.com Atoms documentation
   username: string;
@@ -26,9 +53,9 @@ interface BookerProps {
   };
   metadata?: Record<string, string>;
   
-  // Callback props
-  onCreateBookingSuccess?: (event: any) => void | Promise<void>;
-  onCreateBookingError?: (event: any) => void | Promise<void>;
+  // Callback props - using proper Cal.com Atoms types
+  onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void | Promise<void>;
+  onCreateBookingError?: (error: ApiErrorResponse | Error) => void | Promise<void>;
   
   // Component props
   className?: string;
@@ -76,52 +103,70 @@ export default function CalAtomsBooker({
   customClassNames
 }: BookerProps) {
   // Handle booking success
-  const handleBookingSuccess = useCallback((event: any) => {
-    logger.warn('Booking created successfully:', event);
+  const handleBookingSuccess = useCallback((data: ApiSuccessResponse<BookingResponse>) => {
+    logger.warn('Booking created successfully:', data);
     
     if (onCreateBookingSuccess) {
-      void onCreateBookingSuccess(event);
+      void onCreateBookingSuccess(data);
     } else {
       // Default success handling - redirect to gallery with success message
+      const booking = data.data;
       const params = new URLSearchParams({
         booking_success: 'true',
-        booking_id: event?.bookingId ?? event?.id ?? 'unknown',
-        event_slug: event?.eventSlug ?? event?.slug ?? 'consultation'
+        booking_id: booking.id || 'unknown',
+        event_slug: 'consultation'
       });
       window.location.href = `/gallery?${params.toString()}`;
     }
   }, [onCreateBookingSuccess]);
 
   // Handle booking error
-  const handleBookingError = useCallback((event: any) => {
-    logger.error('Booking creation failed:', event);
+  const handleBookingError = useCallback((error: ApiErrorResponse | Error) => {
+    logger.error('Booking creation failed:', error);
     
     if (onCreateBookingError) {
-      void onCreateBookingError(event);
+      void onCreateBookingError(error);
     } else {
       // Default error handling - show error message
-      const errorMessage = event?.message ?? event?.error?.message ?? event?.error ?? 'Unknown error';
+      let errorMessage = 'Unknown error occurred';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if ('error' in error && error.error) {
+        errorMessage = error.error.message ?? 'Unknown error occurred';
+      }
+      
       console.error(`Booking failed: ${errorMessage}`);
       // Could show a toast or alert here instead
     }
   }, [onCreateBookingError]);
 
-  // Default custom class names for branding
+  // Default custom class names for dark theme
   const defaultCustomClassNames = {
-    bookerContainer: "border border-border rounded-lg overflow-hidden",
+    bookerContainer: "dark-theme-booker !bg-black !text-white !border-zinc-800 rounded-lg overflow-hidden",
     eventMetaCustomClassNames: {
-      eventMetaTitle: "text-foreground font-montserrat font-semibold",
+      eventMetaContainer: "!bg-black !text-white !border-zinc-800",
+      eventMetaTitle: "font-montserrat font-semibold fernando-gradient !text-transparent bg-clip-text",
+      eventMetaTimezoneSelect: "!bg-zinc-900 !text-white !border-zinc-700",
     },
     datePickerCustomClassNames: {
-      datePickerDatesActive: "!bg-primary text-primary-foreground",
+      datePickerContainer: "!bg-black !text-white !border-zinc-800",
+      datePickerTitle: "!text-white !font-medium",
+      datePickerDays: "!text-zinc-400",
+      datePickerDate: "!text-white !bg-zinc-900 hover:!bg-zinc-800 !border-zinc-700",
+      datePickerDatesActive: "!bg-white !text-black hover:!bg-zinc-200",
+      datePickerToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
     },
     availableTimeSlotsCustomClassNames: {
-      availableTimeSlotsHeaderContainer: "bg-muted/50",
-      availableTimes: "hover:bg-primary/10",
+      availableTimeSlotsContainer: "!bg-black !text-white !border-zinc-800",
+      availableTimeSlotsHeaderContainer: "!bg-zinc-900 !text-white !border-zinc-700",
+      availableTimeSlotsTitle: "!text-white !font-medium",
+      availableTimeSlotsTimeFormatToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
+      availableTimes: "!text-white !bg-zinc-900 hover:!bg-zinc-800 hover:!text-white !border-zinc-700",
     },
     confirmStep: {
-      confirmButton: "!bg-primary hover:!bg-primary/90 !text-primary-foreground",
-      backButton: "text-muted-foreground hover:!bg-muted hover:!text-foreground"
+      confirmButton: "!bg-white !text-black hover:!bg-zinc-200 !border-white",
+      backButton: "!text-zinc-400 hover:!bg-zinc-800 hover:!text-white !border-zinc-700"
     }
   };
 

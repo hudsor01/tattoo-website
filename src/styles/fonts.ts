@@ -6,6 +6,7 @@ export const inter = Inter({
   variable: '--font-inter',
   fallback: ['system-ui', 'sans-serif'],
   preload: true,
+  adjustFontFallback: true, // Optimize layout shift
 });
 
 export const montserrat = Montserrat({
@@ -14,6 +15,7 @@ export const montserrat = Montserrat({
   variable: '--font-montserrat',
   fallback: ['system-ui', 'sans-serif'],
   preload: true,
+  adjustFontFallback: true, // Optimize layout shift
 });
 
 export const pacifico = Pacifico({

@@ -56,17 +56,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  twitter: {
-    card: 'summary_large_image',
-    site: seoConfig.social.twitter,
-    creator: seoConfig.social.twitter,
-    title: seoConfig.defaultTitle,
-    description: seoConfig.defaultDescription,
-    images: {
-      url: `${seoConfig.siteUrl}/images/japanese.jpg`,
-      alt: `Professional custom tattoo artwork by ${seoConfig.businessName} - Japanese style tattoo design`,
-    },
-  },
   robots: {
     index: true,
     follow: true,
@@ -99,6 +88,26 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <meta
           name="google-site-verification"
           content="qv1_HzbLkbp9qF_TxoQryposrxfe8HsgyrM_erp-pCs"
+        />
+        
+        {/* React 19 Resource Preloading */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // React 19 resource preloading
+              if (typeof preconnect !== 'undefined') {
+                preconnect('https://fonts.googleapis.com', { crossOrigin: 'anonymous' });
+                preconnect('https://fonts.gstatic.com', { crossOrigin: 'anonymous' });
+                preconnect('https://cal.com', { crossOrigin: 'anonymous' });
+                preconnect('https://api.cal.com', { crossOrigin: 'anonymous' });
+              }
+              if (typeof prefetchDNS !== 'undefined') {
+                prefetchDNS('https://vercel.com');
+                prefetchDNS('https://analytics.vercel.com');
+                prefetchDNS('https://vitals.vercel-analytics.com');
+              }
+            `,
+          }}
         />
         
         {/* PWA Meta Tags */}
@@ -182,10 +191,77 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           </>
         )}
 
-        {/* Structured data for business */}
+        {/* Vercel Speed Insights */}
+        <Script
+          src="https://va.vercel-scripts.com/v1/speed-insights/script.js"
+          strategy="afterInteractive"
+        />
+
+        {/* Core Web Vitals Tracking */}
+        <Script
+          id="web-vitals-tracking"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Initialize performance tracking
+              import('/lib/performance/core-web-vitals').then(module => {
+                module.initializePerformanceOptimizations();
+              }).catch(err => console.warn('Performance tracking failed:', err));
+            `,
+          }}
+        />
+
+        {/* Enhanced Structured Data for Enterprise SEO */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Ink 37 Tattoos",
+              "url": "https://ink37tattoos.com",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://ink37tattoos.com/gallery?search={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Ink 37 Tattoos",
+              "url": "https://ink37tattoos.com",
+              "logo": "https://ink37tattoos.com/logo.png",
+              "foundingDate": "2020",
+              "founders": [{
+                "@type": "Person",
+                "name": "Fernando Govea"
+              }],
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+1-817-297-3700",
+                "contactType": "customer service",
+                "areaServed": "US",
+                "availableLanguage": "English"
+              },
+              "sameAs": [
+                "https://www.instagram.com/ink37tattoos",
+                "https://www.facebook.com/ink37tattoos"
+              ]
+            })
+          }}
         />
         
         {/* PWA Service Worker Registration */}

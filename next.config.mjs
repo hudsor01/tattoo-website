@@ -15,8 +15,41 @@ const nextConfig = {
   // Transpile Cal.com Atoms
   transpilePackages: ['@calcom/atoms'],
   
+  // Optimize package imports for better tree shaking
+  optimizePackageImports: [
+    'lucide-react',
+    '@radix-ui/react-accordion',
+    '@radix-ui/react-alert-dialog',
+    '@radix-ui/react-aspect-ratio',
+    '@radix-ui/react-avatar',
+    '@radix-ui/react-checkbox',
+    '@radix-ui/react-collapsible',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-label',
+    '@radix-ui/react-popover',
+    '@radix-ui/react-progress',
+    '@radix-ui/react-scroll-area',
+    '@radix-ui/react-select',
+    '@radix-ui/react-separator',
+    '@radix-ui/react-slider',
+    '@radix-ui/react-slot',
+    '@radix-ui/react-switch',
+    '@radix-ui/react-tabs',
+    '@radix-ui/react-toggle',
+    '@radix-ui/react-tooltip',
+    'framer-motion',
+    'date-fns',
+    'clsx'
+  ],
+  
   experimental: {
     optimizeServerReact: true,
+  },
+  
+  // Suppress React 19 warnings from external libraries during development
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
   },
   
   // Turbopack configuration (moved from experimental.turbo)
@@ -60,7 +93,6 @@ const nextConfig = {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
-          // Disable caching in development
           ...(isDev ? [{
             key: 'Cache-Control',
             value: 'no-cache, no-store, must-revalidate, max-age=0',
@@ -228,27 +260,12 @@ const nextConfig = {
         },
       };
     }
-
-    // Memory optimization for large builds
     config.stats = config.stats || {};
     config.stats.children = false;
     config.stats.modules = false;
     
     return config;
-  },
-  
-  async redirects() {
-    return [
-      // Removed conflicting admin-dashboard redirect
-      // This was conflicting with the rewrites below
-    ];
-  },
-  
-  async rewrites() {
-    return [
-      // No rewrites needed - admin routes now served directly from /app/admin
-    ];
-  },
+  }
 }
 
 export default withBundleAnalyzer(nextConfig);

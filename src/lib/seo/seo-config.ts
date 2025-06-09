@@ -31,11 +31,10 @@ export const seoConfig = {
     website: 'https://ink37tattoos.com',
   },
   
-  // Social Media
+  // Social Media (no Twitter per client request)
   social: {
     instagram: 'https://instagram.com/ink37tattoos',
     facebook: 'https://facebook.com/ink37tattoos',
-    twitter: '@ink37tattoos',
     tiktok: '@ink37tattoos',
   },
   
@@ -181,15 +180,7 @@ export function generatePageMetadata({
       ],
     },
     
-    // Twitter/X
-    twitter: {
-      card: 'summary_large_image',
-      title: fullTitle,
-      description: pageDescription,
-      images: [imageUrl],
-      creator: seoConfig.social.twitter,
-      site: seoConfig.social.twitter,
-    },
+    // OpenGraph only (no Twitter per client request)
     
     // Additional metadata
     formatDetection: {

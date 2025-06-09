@@ -63,8 +63,10 @@ export async function GET(request: NextRequest) {
       totalCount,
     });
     
-    // Set cache headers for static data (longer cache for public content)
+    // ISR with Next.js 15: revalidate every 10 minutes, serve stale up to 1 hour
     result.headers.set('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+    result.headers.set('CDN-Cache-Control', 'public, s-maxage=600');
+    result.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
     return result;
   } catch (error) {
     void logger.error('Gallery API error:', error);

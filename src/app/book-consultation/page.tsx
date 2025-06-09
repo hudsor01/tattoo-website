@@ -4,8 +4,25 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import CalAtomsBooker, { CalBookerErrorFallback } from '@/components/booking/CalAtomsBooker';
+import { CalBookerErrorFallback } from '@/components/booking/CalAtomsBooker';
 import { ErrorBoundary } from '@/components/error/error-boundary';
+import dynamic from 'next/dynamic';
+
+// Dynamically import CalAtomsBooker to prevent SSR issues with Cal.com Atoms
+const CalAtomsBooker = dynamic(
+  () => import('@/components/booking/CalAtomsBooker'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[600px] w-full rounded-lg bg-muted flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading booking calendar...</p>
+        </div>
+      </div>
+    )
+  }
+);
 
 export default function BookConsultationPage() {
   const searchParams = useSearchParams();
@@ -26,17 +43,51 @@ export default function BookConsultationPage() {
             </Button>
           </div>
 
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4 fernando-gradient">Book Your Tattoo Consultation</h1>
-            {designName && (
-              <p className="text-xl text-muted-foreground mb-4">
-                Design: <span className="font-semibold text-foreground">{designName}</span>
-              </p>
-            )}
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Schedule your consultation directly on the calendar below
-            </p>
+          {/* Consultation Details Header - Centered over Cal.com Booker width */}
+          <div className="w-full max-w-[1000px] mx-auto mb-8">
+            <h1 className="text-4xl font-bold text-center mb-6 fernando-gradient">Consultation Details</h1>
+            <div className="w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+                {/* Left Column - Centered Content */}
+                <div className="flex justify-center px-4">
+                  <ul className="text-muted-foreground space-y-2 text-left">
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>30-60 minutes duration</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>Free consultation</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>In-person or video call</span>
+                    </li>
+                  </ul>
+                </div>
+                {/* Right Column - Centered Content */}
+                <div className="flex justify-center px-4">
+                  <ul className="text-muted-foreground space-y-2 text-left">
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>Your design ideas and vision</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>Size, placement, and style preferences</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>Pricing and timeline</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>Any questions about the tattoo process</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Cal.com Atoms Booker Component */}
@@ -58,53 +109,54 @@ export default function BookConsultationPage() {
                   page: 'book-consultation',
                   designInterest: designName ?? 'general'
                 }}
-                onCreateBookingSuccess={(event) => {
+                customClassNames={{
+                  bookerContainer: "dark-theme-booker !bg-black !text-white !border-zinc-800 rounded-lg overflow-hidden",
+                  eventMetaCustomClassNames: {
+                    eventMetaContainer: "!bg-black !text-white !border-zinc-800",
+                    eventMetaTitle: "font-montserrat font-semibold fernando-gradient !text-transparent bg-clip-text",
+                    eventMetaTimezoneSelect: "!bg-zinc-900 !text-white !border-zinc-700",
+                  },
+                  datePickerCustomClassNames: {
+                    datePickerContainer: "!bg-black !text-white !border-zinc-800",
+                    datePickerTitle: "!text-white !font-medium",
+                    datePickerDays: "!text-zinc-400",
+                    datePickerDate: "!text-white !bg-zinc-900 hover:!bg-zinc-800 !border-zinc-700",
+                    datePickerDatesActive: "!bg-white !text-black hover:!bg-zinc-200",
+                    datePickerToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
+                  },
+                  availableTimeSlotsCustomClassNames: {
+                    availableTimeSlotsContainer: "!bg-black !text-white !border-zinc-800",
+                    availableTimeSlotsHeaderContainer: "!bg-zinc-900 !text-white !border-zinc-700",
+                    availableTimeSlotsTitle: "!text-white !font-medium",
+                    availableTimeSlotsTimeFormatToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
+                    availableTimes: "!text-white !bg-zinc-900 hover:!bg-zinc-800 hover:!text-white !border-zinc-700",
+                  },
+                  confirmStep: {
+                    confirmButton: "!bg-white !text-black hover:!bg-zinc-200 !border-white",
+                    backButton: "!text-zinc-400 hover:!bg-zinc-800 hover:!text-white !border-zinc-700"
+                  }
+                }}
+                onCreateBookingSuccess={(data) => {
                   // Custom success handling
                   const params = new URLSearchParams({
                     booking_success: 'true',
-                    booking_id: event?.bookingId ?? event?.id ?? 'unknown',
-                    event_slug: event?.eventSlug ?? event?.slug ?? 'consultation',
+                    booking_id: data.data.id || 'unknown',
+                    event_slug: 'consultation',
                     design_name: designName ?? ''
                   });
                   window.location.href = `/gallery?${params.toString()}`;
                 }}
-                onCreateBookingError={(event) => {
-                  console.error('Booking failed:', event);
-                  const errorMessage = event?.message ?? event?.error?.message ?? event?.error ?? 'Unknown error';
+                onCreateBookingError={(error) => {
+                  console.error('Booking failed:', error);
+                  const errorMessage = error instanceof Error 
+                    ? error.message 
+                    : ('error' in error ? (error.error.message ?? 'Unknown error') : 'Unknown error');
                   console.error(`Booking failed: ${errorMessage}. Please try again or contact us directly.`);
                 }}
                 className='rounded-lg shadow-lg overflow-hidden'
               />
             </div>
           </ErrorBoundary>
-
-          {/* Booking Info */}
-          <div className="mt-8 p-6 bg-muted/50 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Consultation Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <h4 className="font-medium mb-2">Duration</h4>
-                <p className="text-muted-foreground">30-60 minutes</p>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Cost</h4>
-                <p className="text-muted-foreground">Free consultation</p>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Location</h4>
-                <p className="text-muted-foreground">In-person or video call</p>
-              </div>
-            </div>
-            <div className="mt-4">
-              <h4 className="font-medium mb-2">What we'll discuss:</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Your design ideas and vision</li>
-                <li>• Size, placement, and style preferences</li>
-                <li>• Pricing and timeline</li>
-                <li>• Any questions about the tattoo process</li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </div>

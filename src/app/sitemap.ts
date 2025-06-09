@@ -1,8 +1,22 @@
 import type { MetadataRoute } from 'next';
 import { ENV } from '@/lib/utils/env';
+import { prisma } from '@/lib/db/prisma';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = typeof ENV.NEXT_PUBLIC_APP_URL === 'string' ? ENV.NEXT_PUBLIC_APP_URL : 'https://ink37tattoos.com';
+
+  // Fetch dynamic gallery items for sitemap
+  let galleryItems: Array<{ id: string; name: string; createdAt: Date }> = [];
+  try {
+    galleryItems = await prisma.tattooDesign.findMany({
+      where: { isApproved: true },
+      select: { id: true, name: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      take: 100 // Limit to prevent sitemap bloat
+    });
+  } catch (error) {
+    console.warn('Failed to fetch gallery items for sitemap:', error);
+  }
 
   // Main pages with higher priority
   const mainPages = [
@@ -140,11 +154,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
+  // Dynamic gallery pages
+  const galleryPages = galleryItems.map((item) => ({
+    url: `${baseUrl}/gallery/${item.id}`,
+    lastModified: item.createdAt,
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
   return [
     ...mainPages,
     ...galleryStyles,
     ...servicePages,
     ...locationPages,
+    ...galleryPages,
     ...adminPages
   ];
 }

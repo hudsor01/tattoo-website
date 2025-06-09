@@ -5,30 +5,42 @@ export const dynamic = 'force-static';
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Tattoo Services | Ink 37 Tattoos',
+  title: 'Professional Tattoo Services Crowley TX | Custom Designs & Cover-ups | Ink 37',
   description:
-    'Explore our premium tattoo services including custom designs, realistic portraits, fine line work, and expert cover-ups. Each tattoo is a unique piece of art crafted with precision and passion.',
+    'Expert tattoo services in Crowley, TX including custom designs, traditional tattoos, Japanese art, realistic portraits, fine line work, and cover-ups. Serving DFW metroplex with premium tattoo artistry.',
   keywords: [
-    'tattoo services',
-    'custom tattoos',
-    'portrait tattoos',
-    'fine line tattoos',
-    'tattoo cover-ups',
-    'Dallas tattoo artist',
-    'Fort Worth tattoo artist',
-    'professional tattoo services',
-    'Ink 37 Tattoos',
+    'tattoo services Crowley TX',
+    'custom tattoo design Crowley',
+    'professional tattoo artist DFW',
+    'traditional tattoo services',
+    'Japanese tattoo artist Texas',
+    'realistic portrait tattoos',
+    'fine line tattoo work',
+    'cover up tattoo specialist',
+    'Dallas Fort Worth tattoo services',
+    'Crowley tattoo shop',
+    'Fernando Govea tattoo artist',
+    'DFW custom tattoos',
+    'Texas tattoo services',
+    'professional body art',
+    'tattoo consultation services'
   ],
   openGraph: {
-    title: 'Premium Tattoo Services | Ink 37 Tattoos',
+    title: 'Professional Tattoo Services | Ink 37 Tattoos Crowley, TX',
     description:
-      'Discover our range of professional tattoo services. From custom designs to cover-ups, we bring your vision to life with artistic excellence.',
+      'Comprehensive tattoo services by Fernando Govea in Crowley, Texas. Custom designs, traditional work, Japanese art, realistic portraits & expert cover-ups serving the DFW metroplex.',
     images: [
+      {
+        url: '/images/services/tattoo-gun-grayscale.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Professional tattoo services at Ink 37 Tattoos in Crowley, Texas',
+      },
       {
         url: '/images/traditional.jpg',
         width: 1200,
         height: 630,
-        alt: 'Ink 37 Tattoos Services',
+        alt: 'Traditional tattoo services by Ink 37 Tattoos',
       },
     ],
     url: '/services',
@@ -36,16 +48,20 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Premium Tattoo Services | Ink 37 Tattoos',
-    description:
-      'Custom designs, portraits, fine line work & cover-ups. Professional tattoo services in Dallas/Fort Worth.',
-    images: ['/images/traditional.jpg'],
-  },
   alternates: {
     canonical: '/services',
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1
+    }
+  }
 };
 
 export default function ServicesPage() {

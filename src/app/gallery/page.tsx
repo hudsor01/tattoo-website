@@ -10,23 +10,62 @@ export const revalidate = 1800; // Revalidate every 30 minutes
 
 
 export const metadata: Metadata = {
-  title: 'Gallery | Ink 37 Tattoos',
+  title: 'Tattoo Gallery - Custom Designs & Portfolio | Ink 37 Tattoos Crowley, TX',
   description:
-    "Explore our tattoo gallery showcasing Ink 37 Tattoos' custom designs, Japanese style, traditional, and realism tattoos. Get inspired for your next ink.",
+    "Browse Ink 37 Tattoos' gallery of custom tattoo designs from Crowley, TX. See traditional, Japanese, realistic, and fine-line tattoo artwork by Fernando Govea. DFW's premier tattoo artist portfolio.",
   keywords: [
-    'tattoo gallery',
-    'custom tattoos',
-    'Ink 37 Tattoos',
-    'Dallas tattoo',
-    'Fort Worth tattoo',
-    'ink inspiration',
+    'tattoo gallery Crowley TX',
+    'custom tattoo designs',
+    'Fernando Govea tattoo portfolio',
+    'DFW tattoo gallery',
+    'traditional tattoo examples',
+    'Japanese tattoo portfolio',
+    'realistic tattoo gallery',
+    'fine line tattoo examples',
+    'cover up tattoo gallery',
+    'Crowley tattoo artist portfolio',
+    'Fort Worth tattoo gallery',
+    'Dallas tattoo examples',
+    'custom tattoo inspiration',
+    'tattoo design ideas',
+    'professional tattoo artwork'
   ],
   openGraph: {
-    title: 'Tattoo Gallery | Ink 37',
+    title: 'Tattoo Gallery - Custom Designs & Portfolio | Ink 37 Tattoos',
     description:
-      'Browse our collection of custom tattoo artwork by Ink 37 Tattoos. Find inspiration for your next tattoo piece.',
-    images: ['/images/gallery-banner.jpg'],
+      'Explore our comprehensive tattoo gallery featuring custom designs, traditional work, Japanese art, and realistic pieces by Fernando Govea in Crowley, Texas.',
+    images: [
+      {
+        url: '/images/japanese.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Japanese style tattoo artwork by Ink 37 Tattoos'
+      },
+      {
+        url: '/images/traditional.jpg', 
+        width: 1200,
+        height: 630,
+        alt: 'Traditional tattoo gallery by Ink 37 Tattoos'
+      }
+    ],
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Ink 37 Tattoos'
   },
+  alternates: {
+    canonical: '/gallery'
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1
+    }
+  }
 };
 
 export default function GalleryPage() {
