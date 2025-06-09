@@ -74,6 +74,27 @@
   background-color: hsl(var(--muted));
 }
 
+/* Loading state handling */
+.cal-loading {
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Hide loading when Cal.com is ready */
+[data-cal-namespace] + .cal-loading,
+[data-cal-namespace]:not(:empty) ~ .cal-loading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Cal.com embed container */
+[data-cal-namespace] {
+  min-height: 700px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 /* Time slot styling */
 [data-cal-namespace] .cal-time-slot {
   border-color: hsl(var(--border));

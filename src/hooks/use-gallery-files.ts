@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { GalleryFilesResponse } from '@/lib/prisma-types';
+import { logger } from '@/lib/logger';
 
 async function fetchGalleryFiles(): Promise<GalleryFilesResponse> {
   try {
@@ -11,15 +12,16 @@ async function fetchGalleryFiles(): Promise<GalleryFilesResponse> {
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.warn('Gallery API error:', response.status, errorText);
+      void logger.warn('Gallery Files API error:', { status: response.status, errorDetails: errorText });
       throw new Error(`Failed to fetch gallery files: ${response.status}`);
     }
     
-    const data = await response.json();
-    console.log('Gallery files loaded:', data);
+    const data = await response.json() as GalleryFilesResponse;
+    
+    // The new API already returns the correct format
     return data;
   } catch (error) {
-    console.error('Gallery fetch error:', error);
+    void logger.error('Gallery fetch error:', error);
     throw error;
   }
 }

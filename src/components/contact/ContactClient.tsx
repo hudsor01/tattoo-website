@@ -9,12 +9,10 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Footer from '@/components/layouts/Footer';
 import { TikTokIcon } from '@/components/icons';
-import { getAdminEmails } from '@/lib/utils/env';
+import { getEnvVar } from '@/lib/utils/env';
 
 export default function ContactClient() {
-// Get admin email for contact link
-const adminEmails = getAdminEmails();
-const primaryEmail = adminEmails[0] || process.env['NEXT_PUBLIC_CONTACT_EMAIL'] || 'contact@ink37tattoos.com';
+const primaryEmail = getEnvVar('NEXT_PUBLIC_CONTACT_EMAIL', 'contact@ink37tattoos.com');
 
 // Animation variants matching the design system
 const fadeInUp = {
@@ -100,7 +98,7 @@ const fadeInUp = {
 
               <p className="paragraph-small mb-6">
                 Have a question or want to discuss a custom tattoo design? Fill out the form below
-                and I&apos;ll get back to you as soon as possible.
+                and I'll get back to you as soon as possible.
               </p>
 
               <div className="flex-grow">

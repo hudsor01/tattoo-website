@@ -35,8 +35,8 @@ function BookingForm() {
   return (
     <div className="min-h-[600px] w-full rounded-lg overflow-hidden">
       <CalAtomsBooker
-        eventTypeSlug="consultation"
-        calUsername="ink37tattoos"
+        username="ink37tattoos"
+        eventSlug="ink37tattoos/consultation"
       />
     </div>
   );

@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { submitContactAction } from '@/lib/actions/contact-actions';
 import type { ContactFormState } from '@/lib/prisma-types';
 import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
-import { CSRFInput } from '@/components/providers/CSRFProvider';
 
 // Initial state for React 19 useActionState
 const initialState: ContactFormState = {
@@ -89,9 +88,6 @@ export default function ContactForm() {
 
   return (
     <form action={formAction} className="space-y-6">
-      {/* CSRF Token */}
-      <CSRFInput />
-      
       {/* Name Field */}
       <div className="space-y-2">
         <Label htmlFor={nameId} className="text-white font-medium">
@@ -209,10 +205,10 @@ export default function ContactForm() {
         <p className="text-white/70 text-sm text-center">
           You can also reach me directly at:{' '}
           <a
-            href={`mailto:${process.env['NEXT_PUBLIC_CONTACT_EMAIL'] || 'contact@ink37tattoos.com'}`}
+            href={`mailto:${process.env['NEXT_PUBLIC_CONTACT_EMAIL'] ?? 'contact@ink37tattoos.com'}`}
             className="text-fernando-red hover:text-red-300 transition-colors"
           >
-            {process.env['NEXT_PUBLIC_CONTACT_EMAIL'] || 'contact@ink37tattoos.com'}
+            {process.env['NEXT_PUBLIC_CONTACT_EMAIL'] ?? 'contact@ink37tattoos.com'}
           </a>
         </p>
       </div>

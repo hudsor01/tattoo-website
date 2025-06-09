@@ -15,7 +15,9 @@
       "@lib/*": ["./src/lib/*"],
       "@utils/*": ["./src/lib/utils/*"],
       "@hooks/*": ["./src/hooks/*"],
-      "@types/*": ["./src/types/*"]
+      "@types/*": ["./src/types/*"],
+      "@prisma-client": ["./output/generated/prisma-client"],
+      "@prisma-client/*": ["./output/generated/prisma-client/*"]
     },
     "resolveJsonModule": true,
     "allowJs": false,
@@ -76,7 +78,7 @@
     "coverage/**/*",
     "**/.DS_Store",
     "**/Thumbs.db",
-    "output/**/*",
+    // "output/**/*", // Removed to allow importing Prisma client
     "public/**/*",
     "docs/**/*",
     "backup/**/*"

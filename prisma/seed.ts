@@ -6,9 +6,10 @@
  * that doesn't cause TypeScript errors.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../output/generated/prisma-client';
+import { withAccelerate } from '@prisma/extension-accelerate';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient().$extends(withAccelerate());
 
 async function main() {
   console.log('Seeding database...');

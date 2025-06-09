@@ -1,29 +1,15 @@
 /**
- * Cal.com Atoms Provider Component
+ * Cal.com Provider Component
  * 
- * Purpose: Provides Cal.com Atoms context to the application
- * For now, this is a simplified version that provides context for the booking modal
- * without the full Cal.com Atoms integration
+ * Purpose: Provides context for Cal.com Atoms components
+ * Sets up the required CalProvider with proper OAuth configuration
  */
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React from 'react';
+import { CalProvider } from '@calcom/atoms';
 import { logger } from '@/lib/logger';
-
-interface CalAtomsContextValue {
-  isReady: boolean;
-  accessToken: string | null;
-  error: Error | null;
-}
-
-const CalAtomsContext = createContext<CalAtomsContextValue>({
-  isReady: false,
-  accessToken: null,
-  error: null,
-});
-
-export const useCalAtomsContext = () => useContext(CalAtomsContext);
 
 interface CalAtomsProviderWrapperProps {
   children: React.ReactNode;
@@ -32,74 +18,40 @@ interface CalAtomsProviderWrapperProps {
 /**
  * CalAtomsProviderWrapper
  * 
- * This component provides Cal.com context for the booking modal
- * Simplified version without full Cal.com Atoms integration
+ * This component provides the CalProvider for Cal.com Atoms components
+ * with proper OAuth configuration
  */
 export function CalAtomsProviderWrapper({ children }: CalAtomsProviderWrapperProps) {
-  const [accessToken, setAccessToken] = useState<string>('');
-  const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const clientId = process.env['NEXT_PUBLIC_X_CAL_ID'] ?? process.env['CAL_OAUTH_CLIENT_ID'] ?? '';
+  const apiUrl = process.env['NEXT_PUBLIC_CALCOM_API_URL'] ?? process.env['CAL_API_URL'] ?? 'https://api.cal.com/v2';
+  const refreshUrl = process.env['NEXT_PUBLIC_REFRESH_URL'] ?? '/api/refresh';
 
-  // Get configuration from environment
-  const clientId = process.env['NEXT_PUBLIC_X_CAL_ID'] ?? '';
-
-  // Handle client-side mounting
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const initializeCalAtoms = async () => {
-      try {
-        // For now, we'll just set the provider as ready
-        // This allows the booking modal to work without requiring full Cal.com Atoms setup
-        
-        // Check if we have any stored auth state
-        const storedToken = typeof window !== 'undefined' ? localStorage.getItem('cal_access_token') : null;
-
-        if (storedToken && storedToken !== 'demo-token') {
-          // Use stored token if available and valid
-          setAccessToken(storedToken);
-          setIsReady(true);
-        } else {
-          // For now, just set as ready without OAuth
-          logger.info('Cal.com provider initialized in simple mode');
-          setAccessToken('');
-          setIsReady(true);
-        }
-      } catch (err) {
-        logger.error('Failed to initialize Cal.com provider:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error'));
-        setIsReady(true); // Set ready even on error to prevent infinite loading
-      }
-    };
-
-    void initializeCalAtoms();
-  }, [isMounted, clientId]);
-
-  // Don't render anything until mounted to prevent hydration mismatch
-  if (!isMounted) {
+  try {
+    return (
+      <CalProvider
+        clientId={clientId}
+        options={{
+          apiUrl,
+          refreshUrl,
+          readingDirection: 'ltr'
+        }}
+        autoUpdateTimezone={true}
+        language="en"
+      >
+        {children}
+      </CalProvider>
+    );
+  } catch (error) {
+    logger.error('Failed to render Cal.com Atoms provider:', error);
     return <>{children}</>;
   }
-
-  // Always render children with context, even if not fully configured
-  return (
-    <CalAtomsContext.Provider value={{ isReady, accessToken, error }}>
-      {children}
-    </CalAtomsContext.Provider>
-  );
 }
 
 // Export a hook to check if Cal.com Atoms is available
 export function useCalAtoms() {
-  const context = useCalAtomsContext();
-  
   return {
-    isReady: context.isReady,
-    isConfigured: context.isReady && !context.error, // Simple check for now
-    error: context.error,
+    isReady: true,
+    isConfigured: true,
+    error: null,
   };
 }

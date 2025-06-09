@@ -2,7 +2,6 @@
 * Application Providers - Enhanced with Cal.com Integration
 *
 * Purpose: Central provider setup for all application services
-* Dependencies: Better Auth, Cal.com, themes, analytics
 * 
 * Trade-offs:
 * - Provider nesting vs performance: Organization vs overhead
@@ -18,6 +17,7 @@ import { ErrorBoundary } from '@/components/error/error-boundary';
 import { ClientOnly } from '@/components/ClientOnly';
 import { LazyMotionProvider } from '@/components/performance/LazyMotion';
 import { CalAtomsProviderWrapper } from '@/providers/CalProvider';
+import { CSRFProvider } from '@/components/providers/CSRFProvider';
 import { Toaster } from 'sonner';
 
 interface ProvidersProps {
@@ -30,7 +30,6 @@ interface ProvidersProps {
  * Application providers
  *
  * Includes:
- * - Better Auth for authentication (direct integration)
  * - TanStack Query for API calls
  * - Cal.com for booking functionality
  * - Theme management
@@ -72,33 +71,35 @@ const MemoizedToaster = memo(() => (
 MemoizedToaster.displayName = 'MemoizedToaster';
 
 function Providers({ children }: ProvidersProps) {
-return (
-<ErrorBoundary
-fallback={<ErrorFallback />}
-onError={(error) => {
-console.error('Application provider error:', error);
-}}
->
-<QueryProvider>
-<CalAtomsProviderWrapper>
-<ThemeProvider 
-attribute="class" 
-defaultTheme="dark" 
-enableSystem 
-disableTransitionOnChange
->
-<LazyMotionProvider>
-{children}
-</LazyMotionProvider>
+  return (
+    <ErrorBoundary
+      fallback={<ErrorFallback />}
+      onError={(error) => {
+        console.error('Application provider error:', error);
+      }}
+    >
+      <QueryProvider>
+        <CSRFProvider>
+          <ThemeProvider 
+            attribute="class" 
+            defaultTheme="dark" 
+            enableSystem 
+            disableTransitionOnChange
+          >
+            <LazyMotionProvider>
+              <CalAtomsProviderWrapper>
+                {children}
+              </CalAtomsProviderWrapper>
+            </LazyMotionProvider>
 
-<ClientOnly>
-<MemoizedToaster />
-</ClientOnly>
-</ThemeProvider>
-</CalAtomsProviderWrapper>
-</QueryProvider>
-</ErrorBoundary>
-);
+            <ClientOnly>
+              <MemoizedToaster />
+            </ClientOnly>
+          </ThemeProvider>
+        </CSRFProvider>
+      </QueryProvider>
+    </ErrorBoundary>
+  );
 }
 
 export default memo(Providers);

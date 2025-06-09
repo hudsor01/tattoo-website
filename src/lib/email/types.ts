@@ -1,6 +1,3 @@
-// Email service types
-// Types specific to email functionality
-
 export interface EmailTemplate {
   subject: string;
   html: string;

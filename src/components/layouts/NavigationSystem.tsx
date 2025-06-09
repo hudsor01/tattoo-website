@@ -11,11 +11,6 @@ export default function NavigationSystem() {
     return null;
   }
 
-  // Auth routes should not show navigation
-  if (pathname.startsWith('/sign-in') || pathname.startsWith('/auth')) {
-    return null;
-  }
-
   // Home page uses navigation from HomeClient component - no navigation needed here
   if (pathname === '/') {
     return null;

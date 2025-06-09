@@ -15,7 +15,23 @@ const nextConfig = {
   // Transpile Cal.com Atoms
   transpilePackages: ['@calcom/atoms'],
   
+  experimental: {
+    optimizeServerReact: true,
+  },
+  
+  // Turbopack configuration (moved from experimental.turbo)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+  },
+  
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
+    
     return [
       {
         source: '/(.*)',
@@ -44,6 +60,17 @@ const nextConfig = {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
+          // Disable caching in development
+          ...(isDev ? [{
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0',
+          }, {
+            key: 'Pragma',
+            value: 'no-cache',
+          }, {
+            key: 'Expires',
+            value: '0',
+          }] : []),
         ],
       },
       {
@@ -51,7 +78,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev ? 'no-cache, no-store, must-revalidate, max-age=0' : 'public, max-age=31536000, immutable',
           },
         ],
       },
@@ -73,7 +100,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev ? 'no-cache, no-store, must-revalidate, max-age=0' : 'public, max-age=31536000, immutable',
           },
         ],
       },
@@ -83,6 +110,24 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=60, s-maxage=60',
+          },
+        ],
+      },
+      {
+        source: '/api/gallery',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600',
+          },
+        ],
+      },
+      {
+        source: '/api/admin/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, max-age=120, s-maxage=120',
           },
         ],
       },
@@ -121,9 +166,11 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 86400, // Cache images for 24 hours
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    loader: 'default',
+    unoptimized: false,
   },
   
   env: {
@@ -131,55 +178,62 @@ const nextConfig = {
   },
   
   webpack: (config, { dev, isServer }) => {
-    // Basic webpack optimizations
+    // Enhanced webpack configuration for better bundle optimization
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',
+        minSize: 20000,
+        maxSize: 500000,
         cacheGroups: {
-          default: false,
-          vendors: false,
           framework: {
             name: 'framework',
             chunks: 'all',
-            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+            test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
             priority: 40,
             enforce: true,
           },
-          lib: {
-            test(module) {
-              return module.size() > 160000 &&
-                /node_modules[/\\]/.test(module.identifier());
-            },
-            name(module) {
-              // Simple module naming without crypto dependency
-              const identifier = module.identifier();
-              return 'lib-' + identifier.split('/').pop()?.substring(0, 8) || 'chunk';
-            },
-            priority: 30,
-            minChunks: 1,
-            reuseExistingChunk: true,
+          radix: {
+            name: 'radix',
+            chunks: 'all',
+            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+            priority: 35,
+            enforce: true,
           },
-          commons: {
-            name: 'commons',
-            minChunks: 2,
+          tanstack: {
+            name: 'tanstack',
+            chunks: 'all',
+            test: /[\\/]node_modules[\\/]@tanstack[\\/]/,
+            priority: 30,
+            enforce: true,
+          },
+          motion: {
+            name: 'motion',
+            chunks: 'all',
+            test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+            priority: 25,
+            enforce: true,
+          },
+          vendor: {
+            name: 'vendor',
+            chunks: 'all',
+            test: /[\\/]node_modules[\\/]/,
             priority: 20,
           },
-          shared: {
-            name(module, chunks) {
-              // Simple shared chunk naming without crypto dependency
-              const chunkNames = chunks.map(chunk => chunk.name || 'chunk').join('-');
-              return 'shared-' + chunkNames.substring(0, 8);
-            },
-            priority: 10,
+          common: {
+            name: 'common',
             minChunks: 2,
+            priority: 10,
             reuseExistingChunk: true,
           },
         },
-        maxAsyncRequests: 30,
-        maxInitialRequests: 30,
       };
     }
 
+    // Memory optimization for large builds
+    config.stats = config.stats || {};
+    config.stats.children = false;
+    config.stats.modules = false;
+    
     return config;
   },
   

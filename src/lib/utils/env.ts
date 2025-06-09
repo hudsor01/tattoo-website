@@ -13,12 +13,11 @@ const clientEnvSchema = z.object({
   // App URL
   NEXT_PUBLIC_APP_URL: z.string().optional(),
 
-  // Authentication (Better Auth)
-  NEXT_PUBLIC_AUTH_SECRET: z.string().optional(),
-  NEXT_PUBLIC_AUTH_URL: z.string().default('/api/auth'),
-
   // Cal.com Integration
   NEXT_PUBLIC_CAL_USERNAME: z.string().optional(),
+  
+  // Contact Information
+  NEXT_PUBLIC_CONTACT_EMAIL: z.string().optional(),
   
   // Media CDN
   NEXT_PUBLIC_MEDIA_CDN: z.string().optional(),
@@ -39,14 +38,6 @@ const serverEnvSchema = z.object({
   // Database
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DIRECT_URL: z.string().min(1, 'DIRECT_URL is required'),
-  
-  
-  // Authentication
-  AUTH_SECRET: z.string().min(1, 'AUTH_SECRET is required'),
-  
-  // Google OAuth
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
   
   // Email
   RESEND_API_KEY: z.string().optional(),
@@ -80,9 +71,8 @@ const serverEnvSchema = z.object({
 function validateClientEnv() {
   const clientEnv = {
     NEXT_PUBLIC_APP_URL: process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://ink37tattoos.com',
-    NEXT_PUBLIC_AUTH_SECRET: process.env['NEXT_PUBLIC_AUTH_SECRET'],
-    NEXT_PUBLIC_AUTH_URL: process.env['NEXT_PUBLIC_AUTH_URL'],
     NEXT_PUBLIC_CAL_USERNAME: process.env['NEXT_PUBLIC_CAL_USERNAME'],
+    NEXT_PUBLIC_CONTACT_EMAIL: process.env['NEXT_PUBLIC_CONTACT_EMAIL'],
     NEXT_PUBLIC_MEDIA_CDN: process.env['NEXT_PUBLIC_MEDIA_CDN'],
     NEXT_PUBLIC_GTM_ID: process.env['NEXT_PUBLIC_GTM_ID'],
     NEXT_PUBLIC_VERCEL_ANALYTICS_ID: process.env['NEXT_PUBLIC_VERCEL_ANALYTICS_ID'],
@@ -120,19 +110,15 @@ function validateServerEnv() {
     // Database
     DATABASE_URL: process.env['DATABASE_URL'],
     DIRECT_URL: process.env['DIRECT_URL'],
-    
-    // Authentication
-    AUTH_SECRET: process.env['AUTH_SECRET'],
-    
-    // Google OAuth
-    GOOGLE_CLIENT_ID: process.env['GOOGLE_CLIENT_ID'],
-    GOOGLE_CLIENT_SECRET: process.env['GOOGLE_CLIENT_SECRET'],
-    
-    // Email
-    RESEND_API_KEY: process.env['RESEND_API_KEY'],
-    ARTIST_EMAIL: process.env['ARTIST_EMAIL'],
-    CONTACT_EMAIL: process.env['CONTACT_EMAIL'],
-    CONTACT_PHONE: process.env['CONTACT_PHONE'],
+
+// Email
+RESEND_API_KEY: process.env['RESEND_API_KEY'],
+ARTIST_EMAIL: process.env['ARTIST_EMAIL'],
+CONTACT_EMAIL: process.env['CONTACT_EMAIL'],
+CONTACT_PHONE: process.env['CONTACT_PHONE'],
+
+// Admin Access
+ADMIN_EMAILS: process.env['ADMIN_EMAILS'],
     
     // Cal.com Integration
     CAL_API_KEY: process.env['CAL_API_KEY'],
@@ -249,24 +235,33 @@ export function getRequiredEnvVar(name: string): string {
  * @param name The name of the environment variable
  * @param defaultValue Default value if environment variable is not defined
  * @returns The environment variable value cast to the type of defaultValue
+ *export function getTypedEnvVar<T>(name: string, defaultValue: T): T {
+const value = process.env[name];
+
+if (value === undefined || value === '') {
+return defaultValue;
+}
+
+try {
+// Try to parse the value as JSON if T is not string
+if (typeof defaultValue !== 'string') {
+return JSON.parse(value) as T;
+}
+
+// Otherwise treat as string
+return value as unknown as T;
+} catch {
+// If parsing fails, return the default value
+return defaultValue;
+}
+}
+
+/**
+ * Get admin emails from environment variable
+ * 
+ * @returns Array of admin email addresses
  */
-export function getTypedEnvVar<T>(name: string, defaultValue: T): T {
-  const value = process.env[name];
-  
-  if (value === undefined || value === '') {
-    return defaultValue;
-  }
-  
-  try {
-    // Try to parse the value as JSON if T is not string
-    if (typeof defaultValue !== 'string') {
-      return JSON.parse(value) as T;
-    }
-    
-    // Otherwise treat as string
-    return value as unknown as T;
-  } catch {
-    // If parsing fails, return the default value
-    return defaultValue;
-  }
+export function getAdminEmails(): string[] {
+  const adminEmailsStr = getEnvVar('ADMIN_EMAILS', process.env['NEXT_PUBLIC_CONTACT_EMAIL'] ?? 'contact@ink37tattoos.com');
+  return adminEmailsStr.split(',').map(email => email.trim()).filter(email => email.length > 0);
 }

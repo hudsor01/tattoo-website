@@ -7,13 +7,13 @@
 export { cn, parseColorVar } from './lib/utils/styling';
 
 // Export common utilities
-export * from './lib/utils/common';
+// Removed: export * from './lib/utils/common'; // File does not exist
 
 // Export formatting and date utilities with namespaces to avoid conflicts
 import * as formatUtils from './lib/utils/date-format';
 
 // Export image utilities
-export * from './lib/utils/image';
+// Removed: export * from './lib/utils/image'; // File does not exist
 
 // Export utilities with namespace to avoid conflicts
 export { formatUtils };

@@ -3,9 +3,8 @@ import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { Prisma, ContactStatus } from '@prisma/client';
-import { getAdminEmails } from '@/lib/utils/env';
+import { getEnvVar } from '@/lib/utils/env';
 import { checkRateLimit, rateLimitResponse } from '@/lib/security/rate-limiter';
-import { verifyCSRFToken } from '@/lib/security/csrf';
 
 // Validation schema for contact form
 const contactSchema = z.object({
@@ -21,17 +20,6 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await checkRateLimit(request);
     const limitResponse = rateLimitResponse(rateLimitResult);
     if (limitResponse) return limitResponse;
-
-    // Verify CSRF token for API requests
-    if (!verifyCSRFToken(request, { allowFormData: false })) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'CSRF verification failed' 
-        },
-        { status: 403 }
-      );
-    }
 
     const body = await request.json();
     
@@ -58,7 +46,7 @@ export async function POST(request: NextRequest) {
         email,
         phone,
         message,
-        status: 'NEW',
+        status: ContactStatus.NEW,
       },
     });
 
@@ -76,12 +64,14 @@ export async function POST(request: NextRequest) {
         contactId: contact.id,
       });
       
-      const adminEmails = getAdminEmails();
+      // Get contact email from environment
+      const contactEmail = getEnvVar('CONTACT_EMAIL', getEnvVar('NEXT_PUBLIC_CONTACT_EMAIL', 'contact@ink37tattoos.com'));
+      
       await sendEmail({
-      to: adminEmails[0]!, // Send to primary admin email
-      subject: adminEmail.subject,
-      html: adminEmail.html,
-      text: adminEmail.text,
+        to: contactEmail,
+        subject: adminEmail.subject,
+        html: adminEmail.html,
+        text: adminEmail.text,
       });
 
       // Send customer confirmation email

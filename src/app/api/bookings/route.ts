@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
 import { Prisma, BookingStatus } from '@prisma/client';
-import type { User } from '@/lib/prisma-types';
 
-// GET /api/bookings - Get bookings (admin only)
+// GET /api/bookings - Get bookings (public access)
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers()
-    });
-
-    if (!session?.user || (session.user as User).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') ?? '20');
     const cursor = searchParams.get('cursor');

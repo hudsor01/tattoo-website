@@ -1,10 +1,13 @@
 /**
  * Root app loading state
  * Provides loading UI for the entire application
- * Uses the loading component for consistency
  */
-import { LoadingUI } from '@/components/admin/layout/Loading';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Loading() {
-  return <LoadingUI type="page" />;
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <LoadingSpinner size="lg" />
+    </div>
+  );
 }

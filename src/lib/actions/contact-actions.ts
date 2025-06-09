@@ -3,14 +3,14 @@
 import { revalidateTag } from 'next/cache';
 import { contactFormSchema } from '@/lib/validation-schemas';
 import { prisma } from '@/lib/db/prisma';
+import { ContactStatus } from '@prisma/client';
 import { sendEmail, generateAdminContactEmail, generateCustomerContactConfirmation } from '@/lib/email/email-service';
 import { sanitizeForPrisma } from '@/lib/utils/prisma-helper';
-import { ENV, getAdminEmails } from '@/lib/utils/env';
+import { ENV, getEnvVar } from '@/lib/utils/env';
 import { checkRateLimit } from '@/lib/security/rate-limiter';
-import { headers, cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { NextRequest } from 'next/server';
 import type { ContactFormState } from '@/lib/prisma-types';
-import { verifyCSRFTokenFromForm } from '@/lib/security/csrf';
 
 import { logger } from "@/lib/logger";
 /**
@@ -22,19 +22,6 @@ export async function submitContactAction(
   formData: FormData
 ): Promise<ContactFormState> {
   try {
-    // Verify CSRF token first
-    const cookieStore = await cookies();
-    const csrfCookie = cookieStore.get('csrf-token')?.value;
-    const csrfToken = formData.get('_csrf_token') as string;
-
-    if (!verifyCSRFTokenFromForm(csrfCookie ?? '', csrfToken || '')) {
-      return {
-        status: 'error',
-        success: false,
-        message: 'Security verification failed. Please refresh the page and try again.',
-      };
-    }
-
     // Extract form data
     const rawFormData = {
       name: formData.get('name') as string,
@@ -111,7 +98,7 @@ export async function submitContactAction(
         email: validatedData.email ?? '',
         phone: validatedData.phone ?? null,
         message: validatedData.message ?? '',
-        status: 'NEW',
+        status: ContactStatus.NEW,
       }),
     });
 
@@ -135,21 +122,12 @@ export async function submitContactAction(
       };
       
       const adminEmail = generateAdminContactEmail(adminEmailData);
-      const adminEmails = getAdminEmails();
       
-      if (!adminEmails || adminEmails.length === 0) {
-        void logger.error('No admin emails configured for contact form notifications');
-        throw new Error('Admin email configuration missing');
-      }
-      
-      const primaryAdminEmail = adminEmails[0];
-      if (!primaryAdminEmail) {
-        void logger.error('Primary admin email is undefined');
-        throw new Error('Primary admin email configuration invalid');
-      }
+      // Get contact email from environment
+      const contactEmail = getEnvVar('CONTACT_EMAIL', getEnvVar('NEXT_PUBLIC_CONTACT_EMAIL', 'contact@ink37tattoos.com'));
       
       await sendEmail({
-        to: primaryAdminEmail,
+        to: contactEmail,
         subject: adminEmail.subject,
         html: adminEmail.html,
         text: adminEmail.text,

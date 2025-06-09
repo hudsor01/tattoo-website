@@ -5,5 +5,8 @@
   "javascript.preferences.importModuleSpecifierEnding": "minimal",
   "typescript.tsdk": "node_modules/typescript/lib",
   "prisma.schemaPath": "prisma/schema.prisma",
-  "prisma.trace.server": "verbose"
+  "prisma.trace.server": "verbose",
+  "window.autoDetectColorScheme": true,
+  "workbench.preferredDarkColorTheme": "Default Dark Modern",
+  "workbench.colorTheme": "Tomorrow Night Blue"
 }

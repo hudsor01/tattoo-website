@@ -9,19 +9,26 @@ import { logger } from "@/lib/logger";
 
 // Rate limit configurations
 const RATE_LIMITS = {
-  // API endpoints
-  API_GENERAL: { requests: 100, window: 60 * 1000 }, // 100 requests per minute
-  API_CONTACT: { requests: 5, window: 60 * 1000 }, // 5 contact form submissions per minute
-  API_BOOKING: { requests: 10, window: 60 * 1000 }, // 10 booking requests per minute
-  API_UPLOAD: { requests: 20, window: 60 * 1000 }, // 20 uploads per minute
+// API endpoints
+API_GENERAL: { requests: 100, window: 60 * 1000 }, // 100 requests per minute
+API_CONTACT: { requests: 5, window: 60 * 1000 }, // 5 contact form submissions per minute
+API_BOOKING: { requests: 10, window: 60 * 1000 }, // 10 booking requests per minute
+API_UPLOAD: { requests: 20, window: 60 * 1000 }, // 20 uploads per minute
 
-  // Authentication endpoints
-  AUTH_SIGNIN: { requests: 5, window: 15 * 60 * 1000 }, // 5 sign-in attempts per 15 minutes
-  AUTH_SIGNUP: { requests: 3, window: 60 * 60 * 1000 }, // 3 sign-ups per hour
+// Admin API endpoints (stricter limits for security)
+API_ADMIN_GENERAL: { requests: 50, window: 60 * 1000 }, // 50 admin requests per minute
+API_ADMIN_ANALYTICS: { requests: 30, window: 60 * 1000 }, // 30 analytics requests per minute
+API_ADMIN_CUSTOMERS: { requests: 20, window: 60 * 1000 }, // 20 customer operations per minute
+API_ADMIN_APPOINTMENTS: { requests: 40, window: 60 * 1000 }, // 40 appointment operations per minute
+API_ADMIN_PAYMENTS: { requests: 15, window: 60 * 1000 }, // 15 payment operations per minute
 
-  // Public pages
-  GALLERY_VIEW: { requests: 200, window: 60 * 1000 }, // 200 gallery views per minute
-  PAGE_VIEW: { requests: 300, window: 60 * 1000 }, // 300 page views per minute
+// Authentication endpoints
+AUTH_SIGNIN: { requests: 5, window: 15 * 60 * 1000 }, // 5 sign-in attempts per 15 minutes
+AUTH_SIGNUP: { requests: 3, window: 60 * 60 * 1000 }, // 3 sign-ups per hour
+
+// Public pages
+GALLERY_VIEW: { requests: 200, window: 60 * 1000 }, // 200 gallery views per minute
+PAGE_VIEW: { requests: 300, window: 60 * 1000 }, // 300 page views per minute
 } as const;
 
 // In-memory store for rate limiting
@@ -79,16 +86,34 @@ function getRateLimitConfig(request: NextRequest) {
 
   // API endpoints
   if (pathname.startsWith('/api/')) {
-    if (pathname.includes('/contact')) {
-      return RATE_LIMITS.API_CONTACT;
-    }
-    if (pathname.includes('/booking') || pathname.includes('/appointments')) {
-      return RATE_LIMITS.API_BOOKING;
-    }
-    if (pathname.includes('/upload')) {
-      return RATE_LIMITS.API_UPLOAD;
-    }
-    return RATE_LIMITS.API_GENERAL;
+  // Admin API endpoints (stricter security)
+  if (pathname.startsWith('/api/admin/')) {
+  if (pathname.includes('/analytics')) {
+  return RATE_LIMITS.API_ADMIN_ANALYTICS;
+  }
+  if (pathname.includes('/customers')) {
+  return RATE_LIMITS.API_ADMIN_CUSTOMERS;
+  }
+  if (pathname.includes('/appointments')) {
+  return RATE_LIMITS.API_ADMIN_APPOINTMENTS;
+  }
+  if (pathname.includes('/payments')) {
+  return RATE_LIMITS.API_ADMIN_PAYMENTS;
+  }
+  return RATE_LIMITS.API_ADMIN_GENERAL;
+  }
+  
+  // Public API endpoints
+  if (pathname.includes('/contact')) {
+  return RATE_LIMITS.API_CONTACT;
+  }
+  if (pathname.includes('/booking') || pathname.includes('/appointments')) {
+  return RATE_LIMITS.API_BOOKING;
+  }
+  if (pathname.includes('/upload')) {
+  return RATE_LIMITS.API_UPLOAD;
+  }
+  return RATE_LIMITS.API_GENERAL;
   }
 
   // Gallery pages (higher limit for browsing)
