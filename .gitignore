@@ -33,6 +33,18 @@ yarn-error.log*
 .env
 .env.local
 .env.example
+.env.development.local
+.env.test.local
+.env.production.local
+.env.vercel
+.env.development.vercel
+.env.test.vercel
+.env.production.vercel
+mcp.json
+
+# Ensure all environment files are ignored
+*.env
+*.env.*
 
 # vercel
 .vercel

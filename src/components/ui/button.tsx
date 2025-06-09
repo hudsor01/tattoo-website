@@ -38,7 +38,7 @@ const Button = React.forwardRef<
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
   }
->(function Button(props, ref) {
+>((props, ref) => {
   const {
     className,
     variant,
