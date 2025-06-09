@@ -59,3 +59,11 @@ node_modules/.prisma/
 node_modules/@prisma/client/
 
 certificates
+
+# Files and directories to exclude from tracking
+.github/*
+.vscode/*
+output/*
+.gitignore
+.*
+CLAUDE.md
