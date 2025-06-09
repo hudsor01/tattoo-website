@@ -7,13 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { toast } from 'sonner';
 
-// Cal.com Atoms types (inlined to avoid ESLint restriction)
-interface ApiSuccessResponse<T = unknown> {
-  status: 'success';
-  data: T;
-}
-
+// Cal.com Atoms compatible types
 interface BookingResponse {
   id: string;
   uid: string;
@@ -26,6 +22,11 @@ interface BookingResponse {
   }>;
 }
 
+interface ApiSuccessResponse<T = unknown> {
+  status: 'success';
+  data: T;
+}
+
 interface ApiErrorResponse {
   status: 'error';
   error: {
@@ -36,7 +37,7 @@ interface ApiErrorResponse {
 }
 
 interface BookerProps {
-  // Required props based on Cal.com Atoms documentation
+  // Required props
   username: string;
   eventSlug: string;
   
@@ -44,67 +45,43 @@ interface BookerProps {
   view?: 'MONTH_VIEW' | 'WEEK_VIEW' | 'COLUMN_VIEW';
   hideBranding?: boolean;
   isTeamEvent?: boolean;
-  teamId?: number; // Required when isTeamEvent is true
+  teamId?: number;
+  
+  // Form defaults
   defaultFormValues?: {
     name?: string;
     email?: string;
     guests?: string[];
     notes?: string;
   };
+  
+  // Metadata
   metadata?: Record<string, string>;
   
-  // Callback props - using proper Cal.com Atoms types
+  // Callback props
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void | Promise<void>;
   onCreateBookingError?: (error: ApiErrorResponse | Error) => void | Promise<void>;
   
-  // Component props
+  // Styling
   className?: string;
-  customClassNames?: {
-    bookerContainer?: string;
-    eventMetaCustomClassNames?: {
-      eventMetaContainer?: string;
-      eventMetaTitle?: string;
-      eventMetaTimezoneSelect?: string;
-    };
-    datePickerCustomClassNames?: {
-      datePickerContainer?: string;
-      datePickerTitle?: string;
-      datePickerDays?: string;
-      datePickerDate?: string;
-      datePickerDatesActive?: string;
-      datePickerToggle?: string;
-    };
-    availableTimeSlotsCustomClassNames?: {
-      availableTimeSlotsContainer?: string;
-      availableTimeSlotsHeaderContainer?: string;
-      availableTimeSlotsTitle?: string;
-      availableTimeSlotsTimeFormatToggle?: string;
-      availableTimes?: string;
-    };
-    confirmStep?: {
-      confirmButton?: string;
-      backButton?: string;
-    };
-  };
 }
 
 export default function CalAtomsBooker({ 
   username,
   eventSlug,
   view = 'MONTH_VIEW',
-  hideBranding = false,
+  hideBranding = true,
   isTeamEvent = false,
   teamId,
   defaultFormValues,
   metadata,
   onCreateBookingSuccess,
   onCreateBookingError,
-  className = '',
-  customClassNames
+  className = ''
 }: BookerProps) {
   // Handle booking success
   const handleBookingSuccess = useCallback((data: ApiSuccessResponse<BookingResponse>) => {
-    logger.warn('Booking created successfully:', data);
+    logger.info('Booking created successfully:', data);
     
     if (onCreateBookingSuccess) {
       void onCreateBookingSuccess(data);
@@ -114,7 +91,7 @@ export default function CalAtomsBooker({
       const params = new URLSearchParams({
         booking_success: 'true',
         booking_id: booking.id || 'unknown',
-        event_slug: 'consultation'
+        event_title: booking.title || 'consultation'
       });
       window.location.href = `/gallery?${params.toString()}`;
     }
@@ -128,73 +105,28 @@ export default function CalAtomsBooker({
       void onCreateBookingError(error);
     } else {
       // Default error handling - show error message
-      let errorMessage = 'Unknown error occurred';
+      let errorMessage = 'An error occurred while booking your appointment';
       
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if ('error' in error && error.error) {
-        errorMessage = error.error.message ?? 'Unknown error occurred';
+        errorMessage = error.error.message ?? errorMessage;
       }
       
-      console.error(`Booking failed: ${errorMessage}`);
-      // Could show a toast or alert here instead
+      // Show user-friendly error with toast
+      toast.error(`Booking failed: ${errorMessage}`, {
+        description: 'Please try again or contact us directly.',
+        action: {
+          label: 'Contact Support',
+          onClick: () => window.location.href = '/contact'
+        }
+      });
     }
   }, [onCreateBookingError]);
 
-  // Default custom class names for dark theme
-  const defaultCustomClassNames = {
-    bookerContainer: "dark-theme-booker !bg-black !text-white !border-zinc-800 rounded-lg overflow-hidden",
-    eventMetaCustomClassNames: {
-      eventMetaContainer: "!bg-black !text-white !border-zinc-800",
-      eventMetaTitle: "font-montserrat font-semibold fernando-gradient !text-transparent bg-clip-text",
-      eventMetaTimezoneSelect: "!bg-zinc-900 !text-white !border-zinc-700",
-    },
-    datePickerCustomClassNames: {
-      datePickerContainer: "!bg-black !text-white !border-zinc-800",
-      datePickerTitle: "!text-white !font-medium",
-      datePickerDays: "!text-zinc-400",
-      datePickerDate: "!text-white !bg-zinc-900 hover:!bg-zinc-800 !border-zinc-700",
-      datePickerDatesActive: "!bg-white !text-black hover:!bg-zinc-200",
-      datePickerToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
-    },
-    availableTimeSlotsCustomClassNames: {
-      availableTimeSlotsContainer: "!bg-black !text-white !border-zinc-800",
-      availableTimeSlotsHeaderContainer: "!bg-zinc-900 !text-white !border-zinc-700",
-      availableTimeSlotsTitle: "!text-white !font-medium",
-      availableTimeSlotsTimeFormatToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
-      availableTimes: "!text-white !bg-zinc-900 hover:!bg-zinc-800 hover:!text-white !border-zinc-700",
-    },
-    confirmStep: {
-      confirmButton: "!bg-white !text-black hover:!bg-zinc-200 !border-white",
-      backButton: "!text-zinc-400 hover:!bg-zinc-800 hover:!text-white !border-zinc-700"
-    }
-  };
-
-  // Merge custom class names with defaults
-  const finalCustomClassNames = customClassNames ? {
-    ...defaultCustomClassNames,
-    ...customClassNames,
-    eventMetaCustomClassNames: {
-      ...defaultCustomClassNames.eventMetaCustomClassNames,
-      ...customClassNames.eventMetaCustomClassNames
-    },
-    datePickerCustomClassNames: {
-      ...defaultCustomClassNames.datePickerCustomClassNames,
-      ...customClassNames.datePickerCustomClassNames
-    },
-    availableTimeSlotsCustomClassNames: {
-      ...defaultCustomClassNames.availableTimeSlotsCustomClassNames,
-      ...customClassNames.availableTimeSlotsCustomClassNames
-    },
-    confirmStep: {
-      ...defaultCustomClassNames.confirmStep,
-      ...customClassNames.confirmStep
-    }
-  } : defaultCustomClassNames;
-
   try {
     return (
-      <div className={`cal-atoms-booker-wrapper ${className}`}>
+      <div className={`cal-embed-container min-h-[600px] ${className}`}>
         {isTeamEvent && teamId ? (
           <Booker
             isTeamEvent={true}
@@ -206,7 +138,6 @@ export default function CalAtomsBooker({
             metadata={metadata}
             onCreateBookingSuccess={handleBookingSuccess}
             onCreateBookingError={handleBookingError}
-            customClassNames={finalCustomClassNames}
           />
         ) : (
           <Booker
@@ -219,7 +150,6 @@ export default function CalAtomsBooker({
             metadata={metadata}
             onCreateBookingSuccess={handleBookingSuccess}
             onCreateBookingError={handleBookingError}
-            customClassNames={finalCustomClassNames}
           />
         )}
       </div>

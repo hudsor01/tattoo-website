@@ -109,33 +109,6 @@ export default function BookConsultationPage() {
                   page: 'book-consultation',
                   designInterest: designName ?? 'general'
                 }}
-                customClassNames={{
-                  bookerContainer: "dark-theme-booker !bg-black !text-white !border-zinc-800 rounded-lg overflow-hidden",
-                  eventMetaCustomClassNames: {
-                    eventMetaContainer: "!bg-black !text-white !border-zinc-800",
-                    eventMetaTitle: "font-montserrat font-semibold fernando-gradient !text-transparent bg-clip-text",
-                    eventMetaTimezoneSelect: "!bg-zinc-900 !text-white !border-zinc-700",
-                  },
-                  datePickerCustomClassNames: {
-                    datePickerContainer: "!bg-black !text-white !border-zinc-800",
-                    datePickerTitle: "!text-white !font-medium",
-                    datePickerDays: "!text-zinc-400",
-                    datePickerDate: "!text-white !bg-zinc-900 hover:!bg-zinc-800 !border-zinc-700",
-                    datePickerDatesActive: "!bg-white !text-black hover:!bg-zinc-200",
-                    datePickerToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
-                  },
-                  availableTimeSlotsCustomClassNames: {
-                    availableTimeSlotsContainer: "!bg-black !text-white !border-zinc-800",
-                    availableTimeSlotsHeaderContainer: "!bg-zinc-900 !text-white !border-zinc-700",
-                    availableTimeSlotsTitle: "!text-white !font-medium",
-                    availableTimeSlotsTimeFormatToggle: "!text-white hover:!bg-zinc-800 !border-zinc-700",
-                    availableTimes: "!text-white !bg-zinc-900 hover:!bg-zinc-800 hover:!text-white !border-zinc-700",
-                  },
-                  confirmStep: {
-                    confirmButton: "!bg-white !text-black hover:!bg-zinc-200 !border-white",
-                    backButton: "!text-zinc-400 hover:!bg-zinc-800 hover:!text-white !border-zinc-700"
-                  }
-                }}
                 onCreateBookingSuccess={(data) => {
                   // Custom success handling
                   const params = new URLSearchParams({

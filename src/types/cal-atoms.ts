@@ -22,7 +22,7 @@ export interface ApiSuccessResponse<T = unknown> {
 export interface ApiErrorResponse {
   status: 'error';
   error: {
-    message: string;
+    message?: string;
     code?: string;
     details?: Record<string, string | number | boolean>;
   };

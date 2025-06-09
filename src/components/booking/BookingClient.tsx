@@ -36,7 +36,7 @@ function BookingForm() {
     <div className="min-h-[600px] w-full rounded-lg overflow-hidden">
       <CalAtomsBooker
         username="ink37tattoos"
-        eventSlug="ink37tattoos/consultation"
+        eventSlug="consultation"
       />
     </div>
   );
