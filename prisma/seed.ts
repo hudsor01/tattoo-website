@@ -6,7 +6,7 @@
  * that doesn't cause TypeScript errors.
  */
 
-import { PrismaClient } from '../output/generated/prisma-client';
+import { PrismaClient } from '@prisma/client';
 import { withAccelerate } from '@prisma/extension-accelerate';
 
 const prisma = new PrismaClient().$extends(withAccelerate());
