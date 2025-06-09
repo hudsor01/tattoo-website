@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
-import dynamic from 'next/dynamic';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,21 +8,86 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
-// Dynamically import Cal.com Atoms Booker to prevent SSR issues
-const Booker = dynamic(
-  () => import('@calcom/atoms').then(mod => mod.Booker),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="min-h-[600px] w-full rounded-lg bg-muted flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading Cal.com booking system...</p>
+// Cal.com Embed Component using iframe
+function CalEmbed({ username, eventSlug, view, defaultFormValues, metadata, className }: {
+  username: string;
+  eventSlug: string;
+  view?: string;
+  defaultFormValues?: any;
+  metadata?: any;
+  className?: string;
+}) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    // Cal.com inline embed script
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.innerHTML = `
+      (function (C, A, L) { 
+        let p = function (a, ar) { 
+          a.q.push(ar); 
+        }; 
+        let d = C.document; 
+        C.Cal = C.Cal || function () { 
+          let cal = C.Cal; 
+          let ar = arguments; 
+          if (!cal.loaded) { 
+            cal.q = cal.q || []; 
+            p(cal, ar); 
+            return; 
+          } 
+        }; 
+        C.Cal.ns = {}; 
+        C.Cal.q = C.Cal.q || []; 
+        d.head.appendChild(d.createElement("script")).src = A; 
+        C.Cal.loaded = true; 
+      })(window, "https://app.cal.com/embed/embed.js");
+      
+      Cal("init", { origin: "https://cal.com" });
+      Cal("inline", {
+        elementOrSelector: "#cal-booking-${eventSlug}",
+        calLink: "${username}/${eventSlug}",
+        layout: "month_view"
+      });
+    `;
+    
+    document.head.appendChild(script);
+    
+    // Set loading to false after a delay
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      document.head.removeChild(script);
+    };
+  }, [username, eventSlug]);
+
+  return (
+    <div className={`cal-embed-container min-h-[600px] ${className}`}>
+      {isLoading && (
+        <div className="min-h-[600px] w-full rounded-lg bg-muted flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading Cal.com booking system...</p>
+          </div>
         </div>
-      </div>
-    )
-  }
-);
+      )}
+      <div 
+        id={`cal-booking-${eventSlug}`}
+        style={{ 
+          width: '100%', 
+          height: '600px', 
+          overflow: 'scroll',
+          display: isLoading ? 'none' : 'block'
+        }}
+      />
+    </div>
+  );
+}
 
 // Cal.com Atoms compatible types
 interface BookingResponse {
@@ -142,33 +206,14 @@ export default function CalAtomsBooker({
 
   try {
     return (
-      <div className={`cal-embed-container min-h-[600px] ${className}`}>
-        {isTeamEvent && teamId ? (
-          <Booker
-            isTeamEvent={true}
-            teamId={teamId}
-            eventSlug={eventSlug}
-            view={view}
-            hideBranding={hideBranding}
-            defaultFormValues={defaultFormValues}
-            metadata={metadata}
-            onCreateBookingSuccess={handleBookingSuccess}
-            onCreateBookingError={handleBookingError}
-          />
-        ) : (
-          <Booker
-            username={username}
-            eventSlug={eventSlug}
-            view={view}
-            hideBranding={hideBranding}
-            isTeamEvent={false}
-            defaultFormValues={defaultFormValues}
-            metadata={metadata}
-            onCreateBookingSuccess={handleBookingSuccess}
-            onCreateBookingError={handleBookingError}
-          />
-        )}
-      </div>
+      <CalEmbed
+        username={username}
+        eventSlug={eventSlug}
+        view={view}
+        defaultFormValues={defaultFormValues}
+        metadata={metadata}
+        className={className}
+      />
     );
   } catch (error) {
     logger.error('Failed to render Cal.com Atoms Booker:', error);
