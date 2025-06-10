@@ -17,8 +17,8 @@ const clientEnvSchema = z.object({
 });
 
 const serverEnvSchema = z.object({
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  DIRECT_URL: z.string().min(1, 'DIRECT_URL is required'),
+  DATABASE_URL: z.string().optional(),
+  DIRECT_URL: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   ARTIST_EMAIL: z.string().optional(),
   CONTACT_EMAIL: z.string().optional(),
@@ -111,7 +111,8 @@ function validateServerEnv() {
     result.error.issues.forEach((issue) => {
       void logger.error(`  ${issue.path.join('.')}: ${issue.message}`);
     });
-    if (process.env['NODE_ENV'] === 'production') {
+    // Only throw error in production if it's a runtime error, not build time
+    if (process.env['NODE_ENV'] === 'production' && !process.env['VERCEL_ENV']) {
       throw new Error('Invalid server environment variables');
     }
   }

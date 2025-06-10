@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development next dev",
-    "build": "NODE_ENV=production npm run lint && npm run type-check && npx prisma generate --no-engine && next build",
+    "build": "NODE_ENV=production npm run lint && npm run type-check && npx prisma generate && next build",
     "build:analyze": "NODE_ENV=production ANALYZE=true npm run build",
     "lint": "eslint . --fix",
     "lint:fix": "eslint . --fix",
