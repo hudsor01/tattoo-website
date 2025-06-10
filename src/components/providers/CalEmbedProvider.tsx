@@ -5,7 +5,7 @@ import { getCalApi } from '@calcom/embed-react';
 
 export function CalEmbedProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    (async function () {
+    void (async function () {
       try {
         const cal = await getCalApi({ namespace: "consultation" });
         
