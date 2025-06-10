@@ -187,6 +187,215 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             <NavigationSystem />
             <main className="flex-grow">{children}</main>
         </Providers>
+        
+        {/* Enhanced SEO Components */}
+        <Script
+          id="enhanced-local-business-schema"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': ['TattooShop', 'LocalBusiness', 'HealthAndBeautyBusiness'],
+              '@id': `${seoConfig.siteUrl}#business`,
+              name: seoConfig.businessName,
+              alternateName: ['Ink 37', 'Ink37 Tattoos'],
+              description: seoConfig.defaultDescription,
+              url: seoConfig.siteUrl,
+              logo: `${seoConfig.siteUrl}${seoConfig.logo}`,
+              image: [
+                `${seoConfig.siteUrl}/images/japanese.jpg`,
+                `${seoConfig.siteUrl}/images/traditional.jpg`,
+                `${seoConfig.siteUrl}/images/realism.jpg`,
+              ],
+              telephone: seoConfig.contact.phone || undefined,
+              email: seoConfig.contact.email,
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: seoConfig.location.address,
+                addressLocality: seoConfig.location.city,
+                addressRegion: seoConfig.location.state,
+                postalCode: seoConfig.location.zipCode,
+                addressCountry: 'US',
+              },
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: 32.5639,
+                longitude: -97.2983,
+              },
+              openingHours: ['Mo-Sa 10:00-18:00'],
+              priceRange: '$$',
+              paymentAccepted: ['Cash', 'Credit Card', 'Debit Card', 'Venmo', 'Zelle'],
+              currenciesAccepted: 'USD',
+              areaServed: [
+                { '@type': 'City', name: 'Crowley', containedInPlace: { '@type': 'State', name: 'Texas' } },
+                { '@type': 'City', name: 'Fort Worth', containedInPlace: { '@type': 'State', name: 'Texas' } },
+                { '@type': 'City', name: 'Arlington', containedInPlace: { '@type': 'State', name: 'Texas' } },
+                { '@type': 'City', name: 'Burleson', containedInPlace: { '@type': 'State', name: 'Texas' } },
+                { '@type': 'City', name: 'Mansfield', containedInPlace: { '@type': 'State', name: 'Texas' } },
+                { '@type': 'City', name: 'Grand Prairie', containedInPlace: { '@type': 'State', name: 'Texas' } },
+              ],
+              sameAs: [
+                seoConfig.social.instagram,
+                seoConfig.social.facebook,
+              ],
+              founder: {
+                '@type': 'Person',
+                name: seoConfig.artistName,
+                jobTitle: 'Professional Tattoo Artist',
+                knowsAbout: [
+                  'Traditional Tattoos',
+                  'Japanese Tattoos', 
+                  'Realism Tattoos',
+                  'Cover-up Tattoos',
+                  'Custom Tattoo Design',
+                ],
+              },
+              hasOfferCatalog: {
+                '@type': 'OfferCatalog',
+                name: 'Tattoo Services',
+                itemListElement: [
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Custom Tattoo Design',
+                      description: 'Personalized tattoo artwork created specifically for each client',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Cover-up Tattoos',
+                      description: 'Professional cover-up work for existing tattoos',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Traditional Tattoos',
+                      description: 'Classic American traditional style tattoos',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Japanese Tattoos',
+                      description: 'Traditional Japanese style tattoo artwork',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Realism Tattoos',
+                      description: 'Photorealistic tattoo artwork',
+                    },
+                  },
+                ],
+              },
+            }, null, 2),
+          }}
+        />
+        
+        {/* Core Web Vitals Optimization */}
+        <Script
+          id="core-web-vitals-optimization"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Critical resource preloading for Core Web Vitals
+              if (typeof window !== 'undefined') {
+                // Preload critical fonts for CLS prevention
+                const criticalFonts = [
+                  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+                  'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap'
+                ];
+                
+                criticalFonts.forEach(fontUrl => {
+                  const link = document.createElement('link');
+                  link.rel = 'preload';
+                  link.as = 'style';
+                  link.href = fontUrl;
+                  link.onload = function() { this.rel = 'stylesheet'; };
+                  document.head.appendChild(link);
+                });
+                
+                // Intersection Observer for lazy loading optimization
+                if ('IntersectionObserver' in window) {
+                  const imageObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                      if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                          img.src = img.dataset.src;
+                          img.classList.remove('lazy');
+                          imageObserver.unobserve(img);
+                        }
+                      }
+                    });
+                  }, { rootMargin: '50px 0px', threshold: 0.01 });
+                  
+                  // Observe lazy images when they're added to DOM
+                  const observeLazyImages = () => {
+                    document.querySelectorAll('img[data-src]').forEach(img => {
+                      imageObserver.observe(img);
+                    });
+                  };
+                  
+                  // Initial observation
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', observeLazyImages);
+                  } else {
+                    observeLazyImages();
+                  }
+                  
+                  // Re-observe when new content is added
+                  const bodyObserver = new MutationObserver(observeLazyImages);
+                  bodyObserver.observe(document.body, { childList: true, subtree: true });
+                }
+                
+                // Performance monitoring for debugging
+                if ('PerformanceObserver' in window) {
+                  // Track Long Tasks (affects FID)
+                  try {
+                    const longTaskObserver = new PerformanceObserver((list) => {
+                      list.getEntries().forEach((entry) => {
+                        if (entry.duration > 50) {
+                          console.warn('Long task detected:', entry.duration + 'ms');
+                        }
+                      });
+                    });
+                    longTaskObserver.observe({ entryTypes: ['longtask'] });
+                  } catch (e) {
+                    // Longtask API not supported
+                  }
+                  
+                  // Track Layout Shifts (CLS)
+                  try {
+                    let clsValue = 0;
+                    const clsObserver = new PerformanceObserver((list) => {
+                      list.getEntries().forEach((entry) => {
+                        if (!entry.hadRecentInput) {
+                          clsValue += entry.value;
+                        }
+                      });
+                      if (clsValue > 0.1) {
+                        console.warn('High CLS detected:', clsValue);
+                      }
+                    });
+                    clsObserver.observe({ entryTypes: ['layout-shift'] });
+                  } catch (e) {
+                    // Layout shift API not supported
+                  }
+                }
+              }
+            `,
+          }}
+        />
         {/* Google Analytics */}
         {typeof ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID === 'string' && ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>

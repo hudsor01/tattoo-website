@@ -1,16 +1,8 @@
-/**
- * SEO Configuration for Ink 37 Tattoos
- * 
- * Centralized SEO configuration for consistent metadata across the application.
- * Optimized for local tattoo business SEO and Google discoverability.
- */
-
 import type { Metadata } from 'next';
 import { getAppUrl } from '@/lib/utils/env';
 
 // Base SEO configuration
 export const seoConfig = {
-  // Business Information
   businessName: 'Ink 37 Tattoos',
   artistName: 'Fernando Govea',
   tagline: 'Custom Tattoo Artistry',
@@ -33,9 +25,9 @@ export const seoConfig = {
   
   // Social Media (no Twitter per client request)
   social: {
-    instagram: 'https://instagram.com/ink37tattoos',
+    instagram: 'https://instagram.com/fennyg83',
     facebook: 'https://facebook.com/ink37tattoos',
-    tiktok: '@ink37tattoos',
+    tiktok: '@fennyg83',
   },
   
   // Base URLs and images (using getters for dynamic values)
@@ -47,8 +39,8 @@ export const seoConfig = {
   favicon: '/favicon.ico',
   
   // Default metadata
-  defaultTitle: 'Ink 37 | Professional Tattoo Artist in Dallas/Fort Worth, TX | Custom Tattoos DFW',
-  defaultDescription: 'Professional tattoo artist in Dallas/Fort Worth area serving Crowley, Arlington, Burleson & DFW metroplex. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
+  defaultTitle: 'Ink 37 Tattoos | Professional Tattoo Artist in Dallas/Fort Worth, TX | Custom Tattoos DFW',
+  defaultDescription: 'Professional tattoo artist in Dallas/Fort Worth area serving Arlington, Grand Prairie, Burleson & DFW metroplex. Custom designs, cover-ups, fine line work, traditional tattoos. Book your consultation today!',
   
   // Keywords array for layout
   defaultKeywords: [
@@ -103,7 +95,127 @@ export const seoConfig = {
     'forest hill tattoo',
     'grand prairie tattoo',
   ],
-} as const;
+  
+  // Enhanced SEO Keywords with comprehensive coverage
+  enhancedKeywords: [
+    // Core business terms
+    'tattoo artist dallas fort worth',
+    'tattoo shop crowley tx',
+    'ink 37 tattoos',
+    'fernando govea tattoo artist',
+    'custom tattoo design dfw',
+    
+    // Style-specific long-tail keywords
+    'traditional tattoo artist fort worth',
+    'japanese tattoo dallas',
+    'realism tattoo artist texas',
+    'cover up tattoo specialist dfw',
+    'fine line tattoo crowley',
+    'black and grey tattoo fort worth',
+    'color tattoo artist dallas',
+    'geometric tattoo design',
+    
+    // Location-based keywords
+    'tattoo artist near crowley tx',
+    'best tattoo shop fort worth',
+    'tattoo parlor arlington tx',
+    'custom tattoos burleson',
+    'tattoo artist mansfield tx',
+    'ink artist grand prairie',
+    
+    // Service-specific keywords
+    'tattoo consultation dfw',
+    'tattoo touch ups dallas',
+    'tattoo aftercare fort worth',
+    'tattoo pricing texas',
+    'walk in tattoo crowley',
+    'appointment tattoo artist',
+    
+    // Body placement keywords
+    'arm tattoo artist dallas',
+    'back tattoo fort worth',
+    'chest tattoo artist texas',
+    'leg tattoo dfw',
+    'sleeve tattoo specialist',
+    'small tattoo artist crowley',
+    
+    // Trending searches
+    'tattoo artist 2025',
+    'best rated tattoo shop texas',
+    'professional tattoo artist dfw',
+    'licensed tattoo artist crowley',
+    'clean tattoo shop standards',
+  ],
+
+  // Social proof and trust signals
+  trustSignals: {
+    experience: '10+ years experience',
+    licensing: 'Licensed & Insured',
+    cleanliness: 'Hospital-grade sterilization',
+    consultation: 'Free consultations',
+    guarantee: 'Touch-up guarantee',
+    portfolio: '500+ satisfied clients',
+  },
+
+  // Conversion-focused CTAs
+  conversionCTAs: {
+    primary: 'Book Your Free Consultation Today',
+    secondary: 'View Our Portfolio',
+    tertiary: 'Get a Quote',
+    emergency: 'Walk-ins Welcome',
+  },
+
+  // Advanced SEO Meta Tags
+  advancedSeoTags: {
+    // Geo-location meta tags for local SEO
+    geoTags: {
+      'geo.region': 'US-TX',
+      'geo.placename': 'Dallas-Fort Worth Metroplex',
+      'geo.position': '32.5639;-97.2983', // Crowley, TX coordinates
+      'ICBM': '32.5639, -97.2983',
+    },
+    
+    // Enhanced mobile optimization
+    mobileOptimization: {
+      'mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-status-bar-style': 'black-translucent',
+      'apple-mobile-web-app-title': 'Ink 37 Tattoos',
+      'application-name': 'Ink 37 Tattoos',
+      'msapplication-TileColor': '#000000',
+      'theme-color': '#000000',
+    },
+    
+    // Security and privacy headers
+    security: {
+      'referrer': 'origin-when-cross-origin',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+    },
+    
+    // Enhanced search engine directives
+    robotsMeta: {
+      'robots': 'index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1',
+      'googlebot': 'index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1',
+      'bingbot': 'index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1',
+    },
+    
+    // Core Web Vitals optimization hints
+    performance: {
+      'preconnect': [
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com',
+        'https://api.cal.com',
+      ],
+      'dns-prefetch': [
+        'https://www.google-analytics.com',
+        'https://www.googletagmanager.com',
+      ],
+    },
+  },
+
+  // ...existing code...
+};
 
 /**
  * Generate page-specific metadata with SEO best practices

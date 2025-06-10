@@ -1,13 +1,16 @@
 {
-  "name": "Ink 37 Tattoos",
+  "name": "Ink 37 Tattoos - Professional Tattoo Artist in Dallas/Fort Worth, TX",
   "short_name": "Ink37",
-  "description": "Professional tattoo artist with online booking and gallery",
-  "start_url": "/",
+  "description": "Professional custom tattoo artist serving Dallas/Fort Worth metroplex. Book consultations, view gallery, and explore tattoo services by Fernando Govea at Ink 37 Tattoos.",
+  "start_url": "/?utm_source=pwa&utm_medium=app&utm_campaign=homescreen",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#dc2626",
+  "theme_color": "#8B5A2B",
   "orientation": "portrait-primary",
   "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["business", "lifestyle", "art"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -58,7 +61,89 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["business", "lifestyle"],
-  "lang": "en-US",
-  "dir": "ltr"
+  "screenshots": [
+    {
+      "src": "/images/screenshot-mobile.jpg",
+      "sizes": "375x812",
+      "type": "image/jpeg",
+      "platform": "mobile",
+      "label": "Ink 37 Tattoos mobile gallery view"
+    },
+    {
+      "src": "/images/screenshot-desktop.jpg", 
+      "sizes": "1920x1080",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "Ink 37 Tattoos desktop gallery and booking"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Consultation",
+      "short_name": "Book",
+      "description": "Schedule your free tattoo consultation",
+      "url": "/booking?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/icons/booking-icon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "View Gallery",
+      "short_name": "Gallery", 
+      "description": "Browse our tattoo portfolio",
+      "url": "/gallery?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/icons/gallery-icon.png",
+          "sizes": "96x96", 
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Contact Us",
+      "short_name": "Contact",
+      "description": "Get in touch with our studio",
+      "url": "/contact?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/icons/portal-icon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/contact",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "images",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+tattoo",
+      "url": "/booking?from=%s"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
