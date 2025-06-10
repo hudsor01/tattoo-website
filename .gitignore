@@ -53,17 +53,52 @@ mcp.json
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma
+# prisma - protect database schema and generated files
 .prisma/
 node_modules/.prisma/
 node_modules/@prisma/client/
+output/
+prisma/migrations/
+*.sql
 
 certificates
 
-# Files and directories to exclude from tracking
+# Client Business Protection - Exclude documentation and internal files
+*.md
+!CLAUDE.md
 .github/*
 .vscode/*
 output/*
-.gitignore
-.*
-CLAUDE.md
+temp/*
+docs/*
+documentation/*
+
+# Development and analysis files
+*_SUMMARY.md
+*_ANALYSIS.md
+*_NOTES.md
+TODO.md
+CHANGELOG.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and debugging
+logs/
+*.log
+debug/
+
+# Temporary files
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Build analysis and reports
+bundle-analyzer/
+lighthouse-reports/
+performance-reports/
