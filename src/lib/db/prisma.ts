@@ -98,6 +98,9 @@ if (typeof process !== 'undefined') {
 // Export the Prisma client
 export const prisma = prismaClient;
 
+// Default export for compatibility
+export default prismaClient;
+
 // Make sure we keep the same client in dev mode
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prismaClient;
@@ -135,6 +138,37 @@ export async function checkDatabaseHealth(): Promise<{
       status: 'unhealthy',
       latency: Date.now() - start,
       error: error instanceof Error ? error.message : 'Unknown database error',
+    };
+  }
+}
+
+/**
+ * Simple database connection test for API routes
+ * Returns Promise<HealthCheckResult> for consistency with health API
+ */
+export async function checkDatabaseConnection(): Promise<{
+  status: 'pass' | 'fail' | 'warn';
+  responseTime?: number;
+  error?: string;
+  details?: Record<string, unknown>;
+}> {
+  try {
+    const start = Date.now();
+    await prisma.$queryRaw`SELECT 1`;
+    const responseTime = Date.now() - start;
+
+    return {
+      status: 'pass',
+      responseTime,
+      details: {
+        connectionPool: 'active',
+        provider: 'postgresql',
+      },
+    };
+  } catch (error) {
+    return {
+      status: 'fail',
+      error: error instanceof Error ? error.message : 'Database connection failed',
     };
   }
 }

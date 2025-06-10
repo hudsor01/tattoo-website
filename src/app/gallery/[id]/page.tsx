@@ -165,7 +165,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<DesignDetailSkeleton />}>
           <DesignDetail id={id} />
@@ -174,7 +174,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
         {/* Related Designs Section */}
         {relatedDesigns.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            <h2 className="text-2xl font-bold text-foreground mb-8">
               More from this collection
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -182,9 +182,9 @@ export default async function DesignDetailPage({ params }: PageProps) {
                 <a
                   key={related.id}
                   href={`/gallery/${related.id}`}
-                  className="group block bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200"
+                  className="group block bg-card rounded-lg shadow-xs hover:shadow-lg transition-all duration-300 overflow-hidden border border-border"
                 >
-                  <div className="aspect-square bg-gray-100 overflow-hidden">
+                  <div className="aspect-square bg-muted overflow-hidden">
                     {related.thumbnailUrl ? (
                       <img
                         src={related.thumbnailUrl}
@@ -199,13 +199,13 @@ export default async function DesignDetailPage({ params }: PageProps) {
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="font-medium text-gray-900 group-hover:text-tattoo-blue transition-colors">
+                    <h3 className="font-medium text-foreground group-hover:text-fernando-red transition-colors">
                       {related.name}
                     </h3>
                     {related.designType && (
-                      <p className="text-sm text-gray-500 mt-1">{related.designType}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{related.designType}</p>
                     )}
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                       {new Date(related.createdAt).toLocaleDateString()}
                     </p>
                   </div>

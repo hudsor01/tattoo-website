@@ -38,7 +38,7 @@ export function ServiceCard({
         <CardContent className="p-8 h-full flex flex-col">
           {/* Service Header */}
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 rounded-lg bg-fernando-gradient/10 border border-fernando-red/20 flex-shrink-0">
+            <div className="p-3 rounded-lg bg-fernando-gradient/10 border border-fernando-red/20 shrink-0">
               <Icon className="h-8 w-8 text-fernando-red" />
             </div>
             <div>
@@ -62,7 +62,7 @@ export function ServiceCard({
               <ul className="space-y-2">
                 {service.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-fernando-orange mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-fernando-orange mt-0.5 shrink-0" />
                     <span className="text-muted-foreground text-sm">{feature}</span>
                   </li>
                 ))}
@@ -77,7 +77,7 @@ export function ServiceCard({
               <ol className="space-y-2">
                 {service.process.map((step, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-fernando-orange font-semibold text-sm mt-0.5 flex-shrink-0">
+                    <span className="text-fernando-orange font-semibold text-sm mt-0.5 shrink-0">
                       {idx + 1}.
                     </span>
                     <span className="text-muted-foreground text-sm">{step}</span>

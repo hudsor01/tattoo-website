@@ -72,8 +72,8 @@ const fadeInUp = {
           viewport={{ once: true, margin: '-100px' }}
           variants={fadeInUp}
         >
-          <h1 className="heading-large text-white mb-4">Get In Touch</h1>
-          <p className="paragraph-medium max-w-2xl mx-auto mb-6">
+          <h1 className="heading-large text-white mb-4 text-balance">Get In Touch</h1>
+          <p className="paragraph-medium max-w-2xl mx-auto mb-6 text-pretty">
             Have questions? Ready to schedule a consultation? Reach out today.
           </p>
           <motion.div
@@ -92,11 +92,11 @@ const fadeInUp = {
           >
             <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8 h-full flex flex-col">
               <h2 className="heading-small mb-6 flex items-center text-white">
-                <Phone className="mr-3 text-[#E63A35]" size={24} />
+                <Phone className="mr-3 text-fernando-red" size={24} />
                 Send Me a Message
               </h2>
 
-              <p className="paragraph-small mb-6">
+              <p className="paragraph-small mb-6 text-pretty">
                 Have a question or want to discuss a custom tattoo design? Fill out the form below
                 and I'll get back to you as soon as possible.
               </p>
@@ -108,7 +108,7 @@ const fadeInUp = {
               {/* Map Section */}
               <div className="mt-10 flex-grow flex flex-col">
                 <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <MapPin className="mr-2 text-[#E63A35]" size={20} />
+                  <MapPin className="mr-2 text-fernando-red" size={20} />
                   Dallas/Fort Worth, Texas Area
                 </h3>
                 <GoogleMapInteractive 
@@ -129,7 +129,7 @@ const fadeInUp = {
           >
             <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl p-6 md:p-8 h-full flex flex-col">
               <h2 className="heading-small mb-6 flex items-center text-white">
-                <Info className="mr-3 text-[#E63A35]" size={24} />
+                <Info className="mr-3 text-fernando-red" size={24} />
                 Contact Information
               </h2>
 
@@ -179,7 +179,7 @@ const fadeInUp = {
 
                 {/* Working Hours */}
                 <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-[#E63A35] mr-4">
+                  <div className="w-10 h-10 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-fernando-red mr-4">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -193,7 +193,7 @@ const fadeInUp = {
 
                 {/* Location */}
                 <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-[#E63A35] mr-4">
+                  <div className="w-10 h-10 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-fernando-red mr-4">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
@@ -222,7 +222,7 @@ const fadeInUp = {
               {/* FAQ Section */}
               <div className="mt-6">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <HelpCircle className="mr-2 text-[#E63A35]" size={20} />
+                  <HelpCircle className="mr-2 text-fernando-red" size={20} />
                   Quick FAQs
                 </h3>
 
@@ -241,18 +241,18 @@ const fadeInUp = {
                       transition={{ duration: 0.3 }}
                     >
                       <h4 className="font-medium text-white mb-3 text-base flex items-center">
-                        <span className="w-7 h-7 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-red-400 mr-3 text-sm font-semibold">
+                        <span className="w-7 h-7 rounded-full bg-fernando-gradient/20 flex items-center justify-center text-fernando-red mr-3 text-sm font-semibold">
                           Q
                         </span>
                         {faq.question}
                       </h4>
-                      <p className="text-white/70 text-sm pl-10 leading-relaxed">{faq.answer}</p>
+                      <p className="text-white/70 text-sm pl-10 leading-relaxed text-pretty">{faq.answer}</p>
                     </motion.div>
                   ))}
                 </motion.div>
 
                 <div className="mt-4 text-center">
-                  <a href="/faq" className="text-red-400 hover:text-red-300 text-sm font-medium">
+                  <a href="/faq" className="text-fernando-red hover:text-fernando-orange text-sm font-medium">
                     View all FAQs
                   </a>
                 </div>

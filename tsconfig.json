@@ -78,7 +78,6 @@
     "coverage/**/*",
     "**/.DS_Store",
     "**/Thumbs.db",
-    // "output/**/*", // Removed to allow importing Prisma client
     "public/**/*",
     "docs/**/*",
     "backup/**/*"

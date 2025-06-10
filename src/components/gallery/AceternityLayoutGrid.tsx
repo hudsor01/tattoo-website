@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils/styling";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { BookingPopupButton } from "@/components/booking/BookingPopupButton";
 import { ShareDialog } from "./share-dialog";
 import { Share, Calendar, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -63,17 +64,13 @@ React.useEffect(() => {
         <h3 className="font-bold text-xl mb-2">{design.name}</h3>
         {design.description && <p className="text-sm mb-4 opacity-90">{design.description}</p>}
         <div className="flex gap-3 flex-wrap">
-          <Button
-            className="bg-fernando-gradient text-white border-none hover:bg-fernando-gradient-hover"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Navigate to book-consultation page with design parameter
-              router.push(`/book-consultation?design=${encodeURIComponent(design.name)}&id=${design.id}`);
-            }}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            Book This Design
-          </Button>
+          <div onClick={(e) => e.stopPropagation()}>
+            <BookingPopupButton
+              designName={design.name}
+              designId={design.id}
+              className="bg-fernando-gradient text-white border-none hover:bg-fernando-gradient-hover"
+            />
+          </div>
           <Button 
             variant="outline" 
             className="bg-transparent border-white text-white hover:bg-white/20"
@@ -112,7 +109,7 @@ React.useEffect(() => {
   <motion.div
     onClick={handleOutsideClick}
     className={cn(
-      "fixed inset-0 bg-black/80 backdrop-blur-md z-[900]",
+      "fixed inset-0 bg-black/80 backdrop-blur-lg backdrop-saturate-150 z-[900]",
       selected?.id ? "pointer-events-auto" : "pointer-events-none"
     )}
     animate={{ opacity: selected?.id ? 1 : 0 }}
@@ -124,9 +121,9 @@ React.useEffect(() => {
             onClick={() => handleClick(card)}
             data-testid={`gallery-item-${card.id}`}
             className={cn(
-              "relative overflow-hidden cursor-pointer",
+              "relative overflow-hidden cursor-zoom-in hover:cursor-pointer will-change-transform transform-gpu",
               selected?.id === card.id
-                ? "fixed inset-0 z-[950] flex justify-center items-center"
+                ? "fixed inset-0 z-[950] flex justify-center items-center cursor-zoom-out"
                 : lastSelected?.id === card.id
                 ? "z-40 bg-black rounded-xl h-full w-full"
                 : "bg-black rounded-xl h-full w-full"
@@ -184,7 +181,7 @@ const ImageComponent = ({ card }: { card: Card }) => {
           <video
             ref={videoRef}
             src={card.thumbnail}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:rotate-1 select-none"
             muted
             loop
             playsInline
@@ -212,15 +209,15 @@ const ImageComponent = ({ card }: { card: Card }) => {
           src={card.thumbnail}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="transition-transform duration-500 group-hover:scale-105 object-cover object-center"
+          className="transition-all duration-500 group-hover:scale-105 group-hover:rotate-1 object-cover object-center select-none"
           alt={`Tattoo design: ${card.designData.name} - Professional tattoo art by Fernando Govea`}
           priority={false}
           quality={90}
         />
       )}
       
-      {/* Overlay gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-60" />
+      {/* Overlay gradient with enhanced depth */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent group-hover:from-black/60" />
     </div>
   );
 };
@@ -230,7 +227,6 @@ const SelectedCard = ({
   onClose,
   setSharingDesign,
   setShareDialogOpen,
-  router
 }: { 
   selected: Card | null, 
   onClose: () => void,
@@ -278,20 +274,17 @@ const SelectedCard = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.4 }}
             className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 md:bottom-6 md:left-6 z-[1000]"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Button
+            <BookingPopupButton
+              designName={selected?.designData.name}
+              designId={selected?.designData.id}
               className="bg-fernando-gradient hover:bg-fernando-gradient-hover text-white text-sm sm:text-base md:text-lg px-3 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 h-auto font-bold transition-all duration-300 hover:scale-105 shadow-2xl rounded-lg sm:rounded-xl border-2 border-white/20 hover:border-white/40 backdrop-blur-sm whitespace-nowrap"
-              onClick={(e) => {
-                e.stopPropagation();
-                const designName = selected?.designData.name ?? '';
-                const designId = selected?.designData.id ?? '';
-                router.push(`/book-consultation?design=${encodeURIComponent(designName)}&id=${designId}`);
-              }}
             >
               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Book This Design</span>
               <span className="sm:hidden">Book Now</span>
-            </Button>
+            </BookingPopupButton>
           </motion.div>
 
           {/* Share CTA Button - Bottom Right Corner */}

@@ -223,25 +223,23 @@ export function optimizeImages() {
 
 /**
  * Optimize fonts for better CLS
+ * Note: Next.js handles font optimization automatically through next/font/google
+ * This function is kept for other font-related optimizations
  */
 export function optimizeFonts() {
   if (typeof window === 'undefined') return;
 
-  // Preload critical fonts
-  const criticalFonts = [
-    '/fonts/inter.woff2',
-    '/fonts/montserrat.woff2'
-  ];
-
-  criticalFonts.forEach(font => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'font';
-    link.type = 'font/woff2';
-    link.crossOrigin = 'anonymous';
-    link.href = font;
-    document.head.appendChild(link);
-  });
+  // Next.js handles font preloading automatically via next/font/google
+  // No manual font preloading needed as fonts are optimized at build time
+  
+  // Enable font optimization features that work with Next.js fonts
+  if (document.fonts) {
+    // Use font-display: swap which is already handled by next/font
+    // This helps prevent layout shifts during font loading
+    void document.fonts.ready.then(() => {
+      // Font loading complete - can trigger any post-font-load optimizations
+    });
+  }
 }
 
 /**

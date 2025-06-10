@@ -3,10 +3,9 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import { ENV } from '@/lib/utils/env';
 import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
-import { seoConfig } from '@/lib/seo/seo-config';
+import { seoConfig, generateBusinessStructuredData } from '@/lib/seo/seo-config';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
-import { ClientOnly } from '@/components/ClientOnly';
 
 import './globals.css';
 
@@ -22,7 +21,7 @@ export const metadata: Metadata = {
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
     ],
-    apple: '/apple-touch-icon.png',
+    apple: '/icons/apple-icon.png',
     shortcut: '/favicon.ico',
   },
   keywords: seoConfig.defaultKeywords,
@@ -62,8 +61,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Generate structured data using centralized configuration - temporarily disabled
-// const businessSchema = generateBusinessStructuredData();
+const businessSchema = generateBusinessStructuredData();
 
 type RootLayoutProps = {
   children: ReactNode;
@@ -79,7 +77,6 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     >
       <head>
         {/* Critical performance and SEO meta tags */}
-        <meta name="emotion-insertion-point" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#8B5A2B" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -122,9 +119,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link rel="manifest" href="/manifest.json" />
         
         {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/icons/apple-icon.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-icon.png" />
         <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
         
         {/* Error Handling for Development */}
@@ -185,7 +182,11 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${inter.variable} ${montserrat.variable} ${pacifico.variable} ${satisfy.variable} font-sans bg-black text-white antialiased`}>
+      <body>
+        <Providers>
+            <NavigationSystem />
+            <main className="flex-grow">{children}</main>
+        </Providers>
         {/* Google Analytics */}
         {typeof ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID === 'string' && ENV.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>
@@ -206,40 +207,13 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           </>
         )}
 
-        {/* Vercel Speed Insights */}
-        <Script
-          src="https://va.vercel-scripts.com/v1/speed-insights/script.js"
-          strategy="afterInteractive"
-        />
 
-        {/* Core Web Vitals Tracking */}
         <Script
-          id="web-vitals-tracking"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Initialize performance tracking
-              if (typeof window !== 'undefined') {
-                const script = document.createElement('script');
-                script.type = 'module';
-                script.textContent = \`
-                  import('/lib/performance/core-web-vitals').then(module => {
-                    module.initializePerformanceOptimizations();
-                  }).catch(err => console.warn('Performance tracking failed:', err));
-                \`;
-                document.head.appendChild(script);
-              }
-            `,
-          }}
-        />
-
-        {/* Enhanced Structured Data for Enterprise SEO - Temporarily disabled to debug build issue */}
-        {/* 
-        <script
           type="application/ld+json"
+          id="business-schema"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
         />
-        */}
         
         {/* PWA Service Worker Registration */}
         <Script
@@ -261,14 +235,19 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             `,
           }}
         />
-        
-        {/* Providers system */}
-        <Providers>
-          <ClientOnly>
-            <NavigationSystem />
-          </ClientOnly>
-          {children}
-        </Providers>
+        <Script
+          id='google-tag-manager-init'
+          strategy='afterInteractive'
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','${ENV.NEXT_PUBLIC_GTM_ID}');
+            `,
+          }}
+        />
       </body>
     </html>
   );

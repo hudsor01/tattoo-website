@@ -27,10 +27,6 @@ export function BookingModal({ open, onOpenChange, designId: _designId, designNa
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className="max-w-4xl w-full h-[90vh] max-h-[900px] overflow-hidden p-0"
-        onInteractOutside={(e) => {
-          // Prevent closing when clicking inside the Cal.com iframe
-          e.preventDefault();
-        }}
       >
         <DialogHeader className="p-6 pb-4 border-b">
           <div className="flex items-center justify-between">

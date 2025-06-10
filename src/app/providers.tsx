@@ -16,8 +16,8 @@ import { ThemeProvider } from 'next-themes';
 import { ErrorBoundary } from '@/components/error/error-boundary';
 import { ClientOnly } from '@/components/ClientOnly';
 import { LazyMotionProvider } from '@/components/performance/LazyMotion';
-import { CalAtomsProviderWrapper } from '@/providers/CalProvider';
 import { CSRFProvider } from '@/components/providers/CSRFProvider';
+import { CalEmbedProvider } from '@/components/providers/CalEmbedProvider';
 import { Toaster } from 'sonner';
 
 interface ProvidersProps {
@@ -87,9 +87,9 @@ function Providers({ children }: ProvidersProps) {
             disableTransitionOnChange
           >
             <LazyMotionProvider>
-              <CalAtomsProviderWrapper>
+              <CalEmbedProvider>
                 {children}
-              </CalAtomsProviderWrapper>
+              </CalEmbedProvider>
             </LazyMotionProvider>
 
             <ClientOnly>

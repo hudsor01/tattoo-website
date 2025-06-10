@@ -24,7 +24,7 @@ function SubmitButton() {
     <Button
       type="submit"
       disabled={pending}
-      className="w-full bg-linear-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:to-amber-600 text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+      className="w-full bg-fernando-gradient hover:bg-fernando-gradient-hover text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed group"
     >
       {pending ? (
         <>
@@ -45,8 +45,8 @@ function SubmitButton() {
 function SuccessMessage({ onReset }: { onReset: () => void }) {
   return (
     <div className="text-center py-8">
-      <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-        <CheckCircle className="w-8 h-8 text-green-400" />
+      <div className="w-16 h-16 bg-green-700/20 rounded-full flex items-center justify-center mx-auto mb-4">
+        <CheckCircle className="w-8 h-8 text-green-700" />
       </div>
       <h3 className="text-xl font-semibold text-white mb-2">Message Sent Successfully!</h3>
       <p className="text-white/70 mb-6">
@@ -97,7 +97,7 @@ export default function ContactForm() {
           id={nameId}
           name="name"
           required
-          className="bg-black/40 border-white/20 text-white placeholder:text-white/50 focus:border-red-400 focus:ring-red-400/20"
+          className="bg-black/40 border-white/20 text-white placeholder:text-white/40 accent-fernando-red focus:border-fernando-red focus:ring-2 focus:ring-fernando-orange/50 focus:ring-offset-2 focus:ring-offset-black focus:shadow-lg focus:shadow-fernando-red/20 transition-all duration-200 selection:bg-fernando-gradient selection:text-white"
           placeholder="Enter your full name"
           aria-describedby={state.errors?.['name'] ? `${nameId}-error` : undefined}
         />
@@ -120,7 +120,7 @@ export default function ContactForm() {
             name="email"
             type="email"
             required
-            className="bg-black/40 border-white/20 text-white placeholder:text-white/50 focus:border-red-400 focus:ring-red-400/20 pl-11"
+            className="bg-black/40 border-white/20 text-white placeholder:text-white/40 accent-fernando-red focus:border-fernando-red focus:ring-2 focus:ring-fernando-orange/50 focus:ring-offset-2 focus:ring-offset-black focus:shadow-lg focus:shadow-fernando-red/20 transition-all duration-200 selection:bg-fernando-gradient selection:text-white pl-11"
             placeholder="your.email@example.com"
             aria-describedby={state.errors?.['email'] ? `${emailId}-error` : undefined}
           />
@@ -141,7 +141,7 @@ export default function ContactForm() {
           id={subjectId}
           name="subject"
           required
-          className="bg-black/40 border-white/20 text-white placeholder:text-white/50 focus:border-red-400 focus:ring-red-400/20"
+          className="bg-black/40 border-white/20 text-white placeholder:text-white/40 accent-fernando-red focus:border-fernando-red focus:ring-2 focus:ring-fernando-orange/50 focus:ring-offset-2 focus:ring-offset-black focus:shadow-lg focus:shadow-fernando-red/20 transition-all duration-200 selection:bg-fernando-gradient selection:text-white"
           placeholder="What can I help you with?"
           aria-describedby={state.errors?.['subject'] ? `${subjectId}-error` : undefined}
         />
@@ -163,7 +163,7 @@ export default function ContactForm() {
           required
           rows={6}
           maxLength={2000}
-          className="bg-black/40 border-white/20 text-white placeholder:text-white/50 focus:border-red-400 focus:ring-red-400/20 resize-none"
+          className="bg-black/40 border-white/20 text-white placeholder:text-white/40 accent-fernando-red focus:border-fernando-red focus:ring-2 focus:ring-fernando-orange/50 focus:ring-offset-2 focus:ring-offset-black focus:shadow-lg focus:shadow-fernando-red/20 transition-all duration-200 selection:bg-fernando-gradient selection:text-white resize-none scroll-smooth"
           placeholder="Tell me about your tattoo idea, questions, or how I can help you..."
           aria-describedby={state.errors?.['message'] ? `${messageId}-error` : undefined}
         />
@@ -181,7 +181,7 @@ export default function ContactForm() {
       {state.status === 'error' && state.message && (
         <div className="bg-fernando-gradient/20 border border-fernando-red/30 rounded-lg p-4">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-fernando-red flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-fernando-red shrink-0" />
             <div className="text-fernando-red text-sm">
               <p>{state.message}</p>
               {state.rateLimitInfo && (

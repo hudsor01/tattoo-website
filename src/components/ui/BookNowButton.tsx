@@ -14,9 +14,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Calendar, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trackBusinessEvent } from '@/components/providers/AnalyticsProvider';
-// dynamic import removed as it's not used
-
-// Cal.com Atoms removed - using direct Cal.com links for reliability
 
 interface BookNowButtonProps {
   variant?: 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary' | 'link';
@@ -28,9 +25,9 @@ interface BookNowButtonProps {
   showIcon?: boolean;
   fullWidth?: boolean;
   onClick?: () => void;
-  designName?: string; // For tracking which design was booked
-  forcePageNavigation?: boolean; // Force navigation to /booking page instead of modal
-  useModal?: boolean; // Use modal instead of page navigation (default: false for backward compatibility)
+  designName?: string;
+  forcePageNavigation?: boolean;
+  useModal?: boolean;
 }
 
 export function BookNowButton({
@@ -71,12 +68,10 @@ export function BookNowButton({
       if (serviceId) params.set('service', serviceId);
       if (designName) params.set('design', designName);
       
-      // Use dedicated consultation page for better UX
-      const bookingUrl = designName 
-        ? `/book-consultation?design=${encodeURIComponent(designName)}`
-        : params.toString() 
-          ? `/booking?${params.toString()}`
-          : '/booking';
+      // Navigate to booking page with parameters
+      const bookingUrl = params.toString() 
+        ? `/booking?${params.toString()}`
+        : '/booking';
       
       // Navigate to booking page
       router.push(bookingUrl);

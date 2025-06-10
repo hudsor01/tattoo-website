@@ -12,7 +12,7 @@ export function LoadingSpinner({ className, size = 'md' }: { className?: string;
   
   return (
     <div className={`flex items-center justify-center py-8 ${className ?? ''}`}>
-      <Loader2 className={`${sizeClasses[size]} animate-spin text-red-500`} />
+      <Loader2 className={`${sizeClasses[size]} animate-spin text-fernando-red`} />
     </div>
   )
 }

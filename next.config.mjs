@@ -12,9 +12,6 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   
-  // Transpile Cal.com Atoms
-  transpilePackages: ['@calcom/atoms'],
-  
   experimental: {
     optimizeServerReact: true,
   },

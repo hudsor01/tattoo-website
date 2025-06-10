@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, ChevronLeft, InfoIcon, RulerIcon, ShareIcon } from 'lucide-react';
 import Image from 'next/image';
 import { ShareDialog } from './share-dialog';
-import { BookingModal } from '@/components/booking/BookingModal';
+import { BookingPopupButton } from '@/components/booking/BookingPopupButton';
 
 interface DesignDetailProps {
   id: string;
@@ -21,7 +21,6 @@ interface DesignDetailProps {
 export function DesignDetail({ id }: DesignDetailProps) {
   const router = useRouter();
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const viewStartTimeRef = useRef<Date | null>(null);
 
   const { design, isLoading } = useDesign(id);
@@ -55,10 +54,6 @@ export function DesignDetail({ id }: DesignDetailProps) {
     }
   };
 
-  // Handle booking click
-  const handleBooking = () => {
-    setBookingModalOpen(true);
-  };
 
   if (!design && !isLoading) {
     return (
@@ -175,10 +170,12 @@ export function DesignDetail({ id }: DesignDetailProps) {
           )}
 
           <div className="pt-4">
-            <Button size="lg" className="w-full sm:w-auto" onClick={handleBooking}>
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              Book This Design
-            </Button>
+            <BookingPopupButton
+              designName={design?.name}
+              designId={id}
+              size="lg"
+              className="w-full sm:w-auto bg-gradient-to-r from-fernando-red via-fernando-orange-red to-fernando-orange hover:opacity-90 transition-opacity text-white font-montserrat font-semibold"
+            />
           </div>
         </div>
       </div>
@@ -192,13 +189,6 @@ export function DesignDetail({ id }: DesignDetailProps) {
         title={design?.name ?? 'Tattoo Design'}
       />
 
-      {/* Booking Modal */}
-      <BookingModal
-        open={bookingModalOpen}
-        onOpenChange={setBookingModalOpen}
-        designId={id}
-        designName={design?.name}
-      />
 
       {/* Back to Gallery CTA */}
       <div className="pt-8 border-t border-border">

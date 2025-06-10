@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils/styling"
 
 // Strongly typed input component
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, type, ...props }, ref) => {
+  function Input({ className, type, ...props }, ref) {
     return (
       <input
         type={type}

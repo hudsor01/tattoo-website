@@ -128,7 +128,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ClientOnly fallback={
-        <div className="fixed inset-0 overflow-hidden bg-black">
+        <div className="fixed inset-0 overflow-hidden bg-ink-black">
           <div className="h-full w-full flex items-center justify-center">
             <div className="text-white text-2xl">Loading...</div>
           </div>

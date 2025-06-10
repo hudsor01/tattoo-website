@@ -233,7 +233,7 @@ export function CTALinks() {
           href="/book-consultation"
           priority="high"
           context="cta_primary"
-          className="inline-flex items-center bg-white text-black px-4 py-2 rounded font-medium hover:bg-gray-100 no-underline"
+          className="inline-flex items-center bg-white text-ink-black px-4 py-2 rounded font-medium hover:bg-gray-100 no-underline"
         >
           Book Consultation
           <ArrowRight className="ml-2 h-4 w-4" />

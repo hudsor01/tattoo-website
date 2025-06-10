@@ -322,7 +322,7 @@ export function ErrorHandler({
 }: ErrorHandlerProps) {
   useEffect(() => {
     // Log the error to an error reporting service
-    void void logger.error(`${variant} error:`, error);
+    void logger.error(`${variant} error:`, error);
   }, [error, variant]);
 
   // Configure variant-specific properties

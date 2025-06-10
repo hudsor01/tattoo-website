@@ -1,14 +1,48 @@
 /**
  * Consolidated gallery hooks for image gallery management
- * Using REST API calls
+ * Using TanStack Query for state management and caching
  */
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { TattooDesign } from '@prisma/client';
+import type { GalleryFilesResponse } from '@/lib/prisma-types';
 import { logger } from "@/lib/logger";
+
+// ==============================
+// TYPES
+// ==============================
+
+interface GalleryResponse {
+  designs: TattooDesign[];
+  nextCursor: string | null;
+  totalCount: number;
+}
+
+interface CreateDesignData {
+  name: string;
+  description?: string;
+  fileUrl: string;
+  designType?: string;
+  size?: string;
+}
+
+interface UpdateDesignData {
+  name?: string;
+  description?: string;
+  fileUrl?: string;
+  designType?: string;
+  size?: string;
+  isApproved?: boolean;
+}
+
+interface GalleryParams {
+  limit?: number;
+  cursor?: string;
+  designType?: string;
+}
 
 export interface UseGalleryResult {
   designs: TattooDesign[];
@@ -22,124 +56,236 @@ export interface UseGalleryResult {
   searchDesigns: (query: string) => void;
 }
 
+export interface UseDesignResult {
+  design: TattooDesign | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+}
+
+// ==============================
+// API FUNCTIONS
+// ==============================
+
+async function fetchGalleryDesigns(params: GalleryParams = {}): Promise<GalleryResponse> {
+  const searchParams = new URLSearchParams();
+  
+  if (params.limit) searchParams.set('limit', params.limit.toString());
+  if (params.cursor) searchParams.set('cursor', params.cursor);
+  if (params.designType) searchParams.set('designType', params.designType);
+
+  const response = await fetch(`/api/gallery?${searchParams}`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch gallery designs');
+  }
+  
+  return response.json();
+}
+
+async function fetchDesignById(id: string): Promise<TattooDesign> {
+  const response = await fetch(`/api/gallery/${id}`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch design');
+  }
+  
+  return response.json();
+}
+
+async function fetchGalleryFiles(): Promise<GalleryFilesResponse> {
+  try {
+    const response = await fetch('/api/gallery/files', {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      void logger.warn('Gallery Files API error:', { status: response.status, errorDetails: errorText });
+      throw new Error(`Failed to fetch gallery files: ${response.status}`);
+    }
+    
+    const data = await response.json() as GalleryFilesResponse;
+    return data;
+  } catch (error) {
+    void logger.error('Gallery fetch error:', error);
+    throw error;
+  }
+}
+
+async function createDesign(data: CreateDesignData): Promise<TattooDesign> {
+  const response = await fetch('/api/gallery', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to create design');
+  }
+  
+  return response.json();
+}
+
+async function updateDesign(id: string, data: UpdateDesignData): Promise<TattooDesign> {
+  const response = await fetch(`/api/gallery/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to update design');
+  }
+  
+  return response.json();
+}
+
+async function deleteDesign(id: string): Promise<void> {
+  const response = await fetch(`/api/gallery/${id}`, {
+    method: 'DELETE',
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete design');
+  }
+}
+
+// ==============================
+// HOOKS - TANSTACK QUERY
+// ==============================
+
+export function useGalleryApi(params: GalleryParams = {}) {
+  return useQuery({
+    queryKey: ['gallery', params],
+    queryFn: () => fetchGalleryDesigns(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useDesignById(id: string | null) {
+  return useQuery({
+    queryKey: ['design', id],
+    queryFn: () => {
+      if (!id) {
+        throw new Error('Design ID is required');
+      }
+      return fetchDesignById(id);
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useGalleryFiles() {
+  return useQuery({
+    queryKey: ['gallery-files'],
+    queryFn: fetchGalleryFiles,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useCreateDesign() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: createDesign,
+    onSuccess: () => {
+      // Invalidate and refetch gallery queries
+      void queryClient.invalidateQueries({ queryKey: ['gallery'] });
+    },
+  });
+}
+
+export function useUpdateDesign() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateDesignData }) =>
+      updateDesign(id, data),
+    onSuccess: (updatedDesign) => {
+      // Update the specific design in the cache
+      queryClient.setQueryData(['design', updatedDesign.id], updatedDesign);
+      
+      // Invalidate gallery queries to refresh lists
+      void queryClient.invalidateQueries({ queryKey: ['gallery'] });
+    },
+  });
+}
+
+export function useDeleteDesign() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: deleteDesign,
+    onSuccess: (_, deletedId) => {
+      // Remove the design from the cache
+      queryClient.removeQueries({ queryKey: ['design', deletedId] });
+      
+      // Invalidate gallery queries to refresh lists
+      void queryClient.invalidateQueries({ queryKey: ['gallery'] });
+    },
+  });
+}
+
+// ==============================
+// LEGACY HOOKS - STATE BASED
+// ==============================
+
 /**
- * Hook for gallery management with filtering, sorting, and search
+ * Legacy hook for gallery management with filtering, sorting, and search
  * Non-infinite version for smaller galleries
  */
 export function useGallery(): UseGalleryResult {
-  const [designs, setDesigns] = useState<TattooDesign[]>([]);
-  const [filteredDesigns, setFilteredDesigns] = useState<TattooDesign[]>([]);
   const [category, setCategory] = useState<string | null>(null);
   const [artistId, setArtistId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest' | 'popular'>('latest');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
-  // Fetch designs from API
-  const fetchDesigns = useCallback(async () => {
-    setIsLoading(true);
-    setIsError(false);
-    setError(null);
+  // Use TanStack Query for data fetching
+  const { data, isLoading, isError, error, refetch: queryRefetch } = useGalleryApi({
+    designType: category ?? undefined,
+    limit: 50, // Reasonable limit for non-infinite scroll
+  });
 
-    try {
-      const response = await fetch('/api/gallery/designs', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch designs');
-      }
-
-      const data = await response.json();
-      setDesigns(data.designs ?? []);
-    } catch (err) {
-      const errorObj = err instanceof Error ? err : new Error('Unknown error');
-      setError(errorObj);
-      setIsError(true);
-      logger.error('Error fetching gallery designs:', errorObj);
-      toast({
-        title: 'Error loading gallery',
-        description: 'Failed to load tattoo designs. Please try again later.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Load designs on mount
-  useEffect(() => {
-    void fetchDesigns();
-  }, [fetchDesigns]);
-
-  // Apply filters and sorting
-  useEffect(() => {
-    let result = [...designs];
-
-    // Filter by category
-    if (category) {
-      result = result.filter((design) => design.designType === category);
-    }
-
+  // Client-side filtering and sorting for additional parameters
+  const filteredDesigns = (data?.designs ?? []).filter((design) => {
     // Filter by artist
-    if (artistId) {
-      result = result.filter((design) => design.artistId === artistId);
-    }
+    if (artistId && design.artistId !== artistId) return false;
 
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter((design) => {
-        if (typeof design.name === 'string' && design.name.toLowerCase().includes(query)) {
-          return true;
-        }
-        
-        if (design.description !== null && 
-            design.description !== undefined && 
-            typeof design.description === 'string' && 
-            design.description.toLowerCase().includes(query)) {
-          return true;
-        }
-        
-        if (design.designType !== null && 
-            design.designType !== undefined && 
-            typeof design.designType === 'string' && 
-            design.designType.toLowerCase().includes(query)) {
-          return true;
-        }
-        
+      if (
+        !design.name.toLowerCase().includes(query) &&
+        !(design.description?.toLowerCase().includes(query)) &&
+        !(design.designType?.toLowerCase().includes(query))
+      ) {
         return false;
-      });
+      }
     }
 
-    // Apply sorting
-    result = sortDesignsByOrder(result, sortOrder);
-
-    setFilteredDesigns(result);
-  }, [designs, category, artistId, searchQuery, sortOrder]);
-
-  // Helper function to sort designs
-  const sortDesignsByOrder = (designs: TattooDesign[], order: 'latest' | 'oldest' | 'popular') => {
-    switch (order) {
+    return true;
+  }).sort((a, b) => {
+    switch (sortOrder) {
       case 'latest':
-        return [...designs].sort((a, b) => {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case 'oldest':
-        return [...designs].sort((a, b) => {
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        });
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case 'popular':
-        return [...designs].sort((a, b) => {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       default:
-        return designs;
+        return 0;
     }
-  };
+  });
 
   // Filter by category
   const filterByCategory = (newCategory?: string) => {
@@ -163,14 +309,14 @@ export function useGallery(): UseGalleryResult {
 
   // Refetch wrapper
   const refetch = async () => {
-    await fetchDesigns();
+    await queryRefetch();
   };
 
   return {
     designs: filteredDesigns,
     isLoading,
     isError,
-    error,
+    error: error as Error | null,
     refetch,
     filterByCategory,
     filterByArtist,
@@ -179,77 +325,22 @@ export function useGallery(): UseGalleryResult {
   };
 }
 
-// ==============================
-// Individual Design Hook
-// ==============================
-
-export interface UseDesignResult {
-  design: TattooDesign | null;
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-}
-
 /**
- * Hook for fetching and managing a single design by ID
+ * Legacy hook for fetching and managing a single design by ID
  */
 export function useDesign(id: string): UseDesignResult {
-  const [design, setDesign] = useState<TattooDesign | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  // Fetch design from API
-  const fetchDesign = useCallback(async () => {
-    if (!id) return;
-
-    setIsLoading(true);
-    setIsError(false);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/gallery/designs/${id}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch design');
-      }
-
-      const data = await response.json();
-      setDesign(data.design ?? null);
-    } catch (err) {
-      const errorObj = err instanceof Error ? err : new Error('Unknown error');
-      setError(errorObj);
-      setIsError(true);
-      logger.error(`Error fetching design ID ${id}:`, errorObj);
-      toast({
-        title: 'Error loading design',
-        description: 'Failed to load tattoo design details. Please try again later.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
-
-  // Load design on mount or ID change
-  useEffect(() => {
-    void fetchDesign();
-  }, [fetchDesign]);
+  const { data: design, isLoading, isError, error, refetch: queryRefetch } = useDesignById(id);
 
   // Refetch wrapper
   const refetch = async () => {
-    await fetchDesign();
+    await queryRefetch();
   };
 
   return {
-    design,
+    design: design ?? null,
     isLoading,
     isError,
-    error,
+    error: error as Error | null,
     refetch,
   };
 }
@@ -258,34 +349,21 @@ export function useDesign(id: string): UseDesignResult {
  * Hook for infinite loading gallery with filtering, sorting, and search
  */
 export function useGalleryInfinite() {
-  const [designs, setDesigns] = useState<TattooDesign[]>([]);
-  const [isLoading] = useState(false);
-  const [hasMore] = useState(true);
   const [_page, setPage] = useState(1);
+  
+  // Use the main gallery hook as base
+  const galleryData = useGallery();
 
   // Placeholder implementation - infinite scroll would need pagination API
   const fetchNextPage = () => {
     setPage(prev => prev + 1);
   };
 
-  const refetch = async () => {
-    setPage(1);
-    setDesigns([]);
-  };
-
   return {
-    designs,
-    isLoading,
-    isError: false,
-    error: null,
-    hasMore,
+    ...galleryData,
+    hasMore: true,
     fetchNextPage,
-    refetch,
-    filterByCategory: () => {},
-    filterByArtist: () => {},
-    sortDesigns: () => {},
-    searchDesigns: () => {},
-    totalCount: designs.length,
+    totalCount: galleryData.designs.length,
   };
 }
 

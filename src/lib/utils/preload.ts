@@ -18,14 +18,12 @@ declare global {
 
 /**
  * Preload critical resources using React 19 APIs
+ * Note: Fonts are handled automatically by Next.js next/font/google
  */
 export function preloadCriticalResources() {
   try {
-    // Preload critical fonts
-    if (typeof preload !== 'undefined') {
-      preload('/fonts/montserrat.woff2', { as: 'font' });
-      preload('/fonts/inter.woff2', { as: 'font' });
-    }
+    // Next.js handles font preloading automatically via next/font/google
+    // No manual font preloading needed - fonts are optimized at build time
 
     // Preconnect to external domains
     if (typeof preconnect !== 'undefined') {
@@ -67,17 +65,14 @@ export function preloadGalleryImages(imageUrls: string[]) {
 }
 
 /**
- * Preload Cal.com resources when booking page is likely to be visited
+ * Preload Cal.com Atoms resources when booking page is likely to be visited
  */
 export function preloadCalResources() {
   try {
-    if (typeof preloadModule !== 'undefined') {
-      preloadModule('https://app.cal.com/embed/embed.js');
-    }
-    
     if (typeof preconnect !== 'undefined') {
       preconnect('https://app.cal.com');
       preconnect('https://cal.com');
+      preconnect('https://api.cal.com');
     }
   } catch (error) {
     void logger.warn('Cal.com resource preloading failed:', error);

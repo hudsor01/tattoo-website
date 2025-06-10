@@ -149,7 +149,7 @@ export function ShareDialog({
       icon: Instagram,
       color: 'bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90',
     },
-    { name: 'email' as SharePlatform, icon: Mail, color: 'bg-gray-600 hover:bg-gray-700' },
+    { name: 'email' as SharePlatform, icon: Mail, color: 'bg-steel hover:bg-charcoal' },
   ];
 
   return (
@@ -164,7 +164,7 @@ export function ShareDialog({
           {/* Preview card */}
           <div className="border rounded-md p-3 bg-muted/30">
             <div className="flex items-start gap-3">
-              <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0 overflow-hidden">
+              <div className="w-16 h-16 bg-muted rounded-md shrink-0 overflow-hidden">
                 <Image
                   src={shareMetadata.image ?? '/placeholder.svg'}
                   alt={
@@ -232,7 +232,7 @@ export function ShareDialog({
                 aria-label="Copy link to clipboard"
                 className="shrink-0"
               >
-                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="h-4 w-4 text-green-700" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
           </div>

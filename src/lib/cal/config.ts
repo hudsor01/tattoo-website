@@ -32,7 +32,6 @@ enum MeetingType {
 interface CalProviderConfig {
   username: string;
   baseUrl: string;
-  embedUrl: string;
   clientId: string;
   refreshUrl?: string;
   accessToken?: string;
@@ -136,7 +135,6 @@ export function getCalProviderConfig(): CalProviderConfig | null {
   return {
     username: getEnvVarOrDefault('NEXT_PUBLIC_CAL_USERNAME', ''),
     baseUrl: getEnvVarOrDefault('CAL_API_URL', 'https://api.cal.com/v2'),
-    embedUrl: getEnvVarOrDefault('CAL_EMBED_URL', 'https://cal.com'),
     clientId,
     refreshUrl: getEnvVar('CAL_REFRESH_URL') ?? '/api/refresh',
     accessToken: getEnvVar('CAL_ACCESS_TOKEN'),

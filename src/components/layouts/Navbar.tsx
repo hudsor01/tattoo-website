@@ -71,7 +71,7 @@ export function Navbar() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between">
             {/* Brand/Logo */}
-            <Link href="/" className="relative z-20 flex-shrink-0">
+            <Link href="/" className="relative z-20 shrink-0">
             <img
             src="/logo.png"
             alt="Logo"
@@ -98,7 +98,7 @@ export function Navbar() {
             </nav>
             
             {/* Book Now Button - Right side */}
-            <div className="hidden md:block flex-shrink-0">
+            <div className="hidden md:block shrink-0">
             <Button
             asChild
             variant="default"
@@ -110,7 +110,7 @@ export function Navbar() {
             </div>
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 text-white focus:outline-none flex-shrink-0"
+              className="md:hidden p-2 text-white focus:outline-none shrink-0"
               onClick={toggleMobileMenu}
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >

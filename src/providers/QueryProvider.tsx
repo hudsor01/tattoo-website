@@ -4,6 +4,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 
+// Suppress Redux development warnings from TanStack Query DevTools
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    const message = args[0];
+    if (typeof message === 'string' && message.includes('slower development build of Redux')) {
+      // Suppress Redux dev build warnings from TanStack Query DevTools
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -33,7 +46,12 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {process.env.NODE_ENV === 'development' && (
+        <ReactQueryDevtools 
+          initialIsOpen={false} 
+          buttonPosition="bottom-left"
+        />
+      )}
     </QueryClientProvider>
   );
 }

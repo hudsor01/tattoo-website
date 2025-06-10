@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { TattooDesign } from '@prisma/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SectionBookingPrompt } from '@/components/booking/BookingPrompts';
-import { useGalleryFiles } from '@/hooks/use-gallery-files';
+import { useGalleryFiles } from '@/hooks/use-gallery';
 import { Loader2, CheckCircle, X } from 'lucide-react';
 import type { GalleryFile } from '@/lib/prisma-types';
 import AceternityLayoutGrid from '@/components/gallery/AceternityLayoutGrid';
@@ -14,7 +14,7 @@ import { useSearchParams } from 'next/navigation';
 
 // Loading skeleton for the gallery grid
 const GalleryGridSkeleton = memo(() => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 max-w-7xl mx-auto">
     {[...Array(6)].map((_, i) => (
       <div key={i} className="aspect-square bg-muted/50 rounded-lg animate-pulse" />
     ))}
@@ -97,7 +97,7 @@ function GalleryClient() {
       <div className="min-h-screen bg-gradient-to-b from-background to-background/90">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-20">
-            <h2 className="text-2xl font-bold mb-4">Gallery Loading Error</h2>
+            <h2 className="text-2xl font-bold mb-4 text-balance">Gallery Loading Error</h2>
             <p className="text-muted-foreground mb-4">
               We're having trouble loading the tattoo gallery. This might be a temporary issue with image loading.
             </p>

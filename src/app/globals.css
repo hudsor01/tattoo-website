@@ -1,6 +1,3 @@
-@import '../styles/cal-atoms.css';
-@import '@calcom/atoms/globals.min.css';
-
 @import 'tailwindcss';
 
 /* Tailwind v4 Theme Configuration */

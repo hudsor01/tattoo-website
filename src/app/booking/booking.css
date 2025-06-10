@@ -9,7 +9,7 @@
   --cal-iframe-height: 700px;
   --cal-iframe-height-mobile: 600px;
   --cal-iframe-height-small: 550px;
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-primary: linear-gradient(90deg, var(--color-fernando-red) 0%, var(--color-fernando-orange) 100%);
 }
 
 /* Wrapper for the Cal.com iframe */

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { checkDatabaseConnection, prisma } from '@/lib/db/prisma';
 type HealthCheckResult = {
   status: 'pass' | 'fail' | 'warn';
   responseTime?: number;
@@ -26,27 +26,8 @@ type HealthCheck = {
   };
 };
 
-async function checkDatabase(): Promise<HealthCheckResult> {
-  try {
-    const start = Date.now();
-    await prisma.$queryRaw`SELECT 1`;
-    const responseTime = Date.now() - start;
-
-    return {
-      status: 'pass',
-      responseTime,
-      details: {
-        connectionPool: 'active',
-        provider: 'postgresql',
-      },
-    };
-  } catch (error) {
-    return {
-      status: 'fail',
-      error: error instanceof Error ? error.message : 'Database connection failed',
-    };
-  }
-}
+// Use consolidated database connection check from prisma.ts
+const checkDatabase = checkDatabaseConnection;
 
 function checkMemory(): HealthCheckResult {
   try {
