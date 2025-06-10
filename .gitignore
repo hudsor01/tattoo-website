@@ -65,7 +65,7 @@ certificates
 
 # Client Business Protection - Exclude documentation and internal files
 *.md
-!CLAUDE.md
+CLAUDE.md
 .github/*
 .vscode/*
 output/*
