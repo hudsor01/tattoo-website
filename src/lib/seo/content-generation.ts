@@ -620,7 +620,7 @@ export function generateGuideStructuredData(guideSlug: string) {
 export function generateGuideFAQStructuredData(guideSlug: string) {
   const guide = TATTOO_GUIDES[guideSlug];
   
-  if (!guide || !guide.faq.length) {
+  if (!guide?.faq.length) {
     return null;
   }
 
@@ -650,5 +650,5 @@ export function getAllGuideSlugs(): string[] {
  * Get guide data by slug
  */
 export function getGuideData(slug: string): GuideContent | null {
-  return TATTOO_GUIDES[slug] || null;
+  return TATTOO_GUIDES[slug] ?? null;
 }

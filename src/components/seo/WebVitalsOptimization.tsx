@@ -52,8 +52,8 @@ export default function WebVitalsOptimization({
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target as HTMLImageElement;
-            if (img.dataset.src) {
-              img.src = img.dataset.src;
+            if (img.dataset['src']) {
+              img.src = img.dataset['src'];
               img.classList.remove('lazy');
               observer.unobserve(img);
             }
@@ -93,10 +93,21 @@ export default function WebVitalsOptimization({
 
   }, [criticalImages, preloadFonts]);
 
+interface WebVitalMetric {
+  name: string;
+  id: string;
+  value: number;
+  delta: number;
+}
+
+interface WindowWithGtag extends Window {
+  gtag?: (...args: unknown[]) => void;
+}
+
   // Web Vitals tracking function
-  const reportWebVitals = (metric: any) => {
-    if (enableWebVitalsTracking && typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', metric.name, {
+  const _reportWebVitals = (metric: WebVitalMetric) => {
+    if (enableWebVitalsTracking && typeof window !== 'undefined' && (window as WindowWithGtag).gtag) {
+      (window as WindowWithGtag).gtag?.('event', metric.name, {
         custom_map: {
           metric_id: metric.id,
           metric_value: metric.value,
@@ -238,9 +249,9 @@ export default function WebVitalsOptimization({
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                  console.log('SW registered: ', registration);
+                  // SW registered successfully
                 }).catch(function(registrationError) {
-                  console.log('SW registration failed: ', registrationError);
+                  // SW registration failed
                 });
               });
             }
@@ -251,67 +262,84 @@ export default function WebVitalsOptimization({
   );
 }
 
+interface PerformanceEntry {
+  duration: number;
+  hadRecentInput?: boolean;
+  value?: number;
+  startTime?: number;
+}
+
 /**
  * Hook for reporting custom Web Vitals metrics
  */
-export function useWebVitalsReporting() {
+export function useWebVitalsReporting(): void {
   useEffect(() => {
     // Custom performance observers for detailed tracking
-    if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
-      
-      // Track Long Tasks (affects FID)
+    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) {
+      return () => {
+        // No cleanup needed when observers are not supported
+      };
+    }
+
+    const observers: PerformanceObserver[] = [];
+    
+    // Track Long Tasks (affects FID)
+    try {
       const longTaskObserver = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry) => {
+        const entries = list.getEntries();
+        entries.forEach((entry) => {
           if (entry.duration > 50) {
-            console.warn('Long task detected:', entry.duration);
+            // Long task detected - report to monitoring service
           }
         });
       });
-      
-      try {
-        longTaskObserver.observe({ entryTypes: ['longtask'] });
-      } catch (e) {
-        // Longtask API not supported
-      }
+      longTaskObserver.observe({ entryTypes: ['longtask'] });
+      observers.push(longTaskObserver);
+    } catch {
+      // Longtask API not supported
+    }
 
-      // Track Layout Shifts
+    // Track Layout Shifts
+    try {
       const layoutShiftObserver = new PerformanceObserver((list) => {
         let clsValue = 0;
-        list.getEntries().forEach((entry: any) => {
-          if (!entry.hadRecentInput) {
+        const entries = list.getEntries();
+        entries.forEach((entry: PerformanceEntry) => {
+          if (!entry.hadRecentInput && entry.value) {
             clsValue += entry.value;
           }
         });
         if (clsValue > 0.1) {
-          console.warn('High CLS detected:', clsValue);
+          // High CLS detected - report to monitoring service
         }
       });
-      
-      try {
-        layoutShiftObserver.observe({ entryTypes: ['layout-shift'] });
-      } catch (e) {
-        // Layout shift API not supported
-      }
+      layoutShiftObserver.observe({ entryTypes: ['layout-shift'] });
+      observers.push(layoutShiftObserver);
+    } catch {
+      // Layout shift API not supported
+    }
 
-      // Track Largest Contentful Paint
+    // Track Largest Contentful Paint
+    try {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
-        console.log('LCP:', lastEntry.startTime);
+        if (lastEntry?.startTime) {
+          // LCP measured - report to monitoring service
+        }
       });
-      
-      try {
-        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-      } catch (e) {
-        // LCP API not supported
-      }
-
-      return () => {
-        longTaskObserver.disconnect();
-        layoutShiftObserver.disconnect();
-        lcpObserver.disconnect();
-      };
+      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+      observers.push(lcpObserver);
+    } catch {
+      // LCP API not supported
     }
+
+    // Cleanup function to disconnect observers
+    return () => {
+      for (const observer of observers) {
+        observer.disconnect();
+      }
+    };
   }, []);
 }
 

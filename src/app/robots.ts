@@ -11,24 +11,23 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
+          // API endpoints (but allow health check)
+          '/api/bookings*',
+          '/api/contact*',
+          '/api/csrf*',
+          '/api/refresh*',
+          '/api/cron*',
+          
           // Private and admin areas
-          '/api/',
           '/admin/',
           '/account/',
           '/dashboard/',
           
           // Technical directories
           '/_next/',
-          '/static/',
           '/server/',
           '/tmp/',
           '/private/',
-          
-          // File types that don't need indexing
-          '*.json',
-          '*.xml',
-          '*.txt',
-          '*.log',
           
           // Error and system pages
           '/_error',
@@ -41,19 +40,11 @@ export default function robots(): MetadataRoute.Robots {
           '/.git*',
           '/config/',
           
-          // Booking process pages (keep them out of search results)
+          // Booking process pages (sensitive user data)
           '/booking/cancel/*',
           '/booking/reschedule/*',
           '/booking/confirmation/*',
           '/payment/*',
-          
-          // Search and filter parameters to prevent duplicate content
-          '/gallery?*',
-          '/services?*',
-          '*?search=*',
-          '*?filter=*',
-          '*?sort=*',
-          '*?page=*',
           
           // Temporary and maintenance pages
           '/maintenance/',
@@ -65,9 +56,11 @@ export default function robots(): MetadataRoute.Robots {
       // Specific rules for Google's main crawler
       {
         userAgent: 'Googlebot',
-        allow: '/',
+        allow: ['/', '/api/health'],
         disallow: [
-          '/api/', 
+          '/api/bookings*',
+          '/api/contact*',
+          '/api/csrf*',
           '/admin/',
           '/account/',
           '/dashboard/',
@@ -75,10 +68,6 @@ export default function robots(): MetadataRoute.Robots {
           '/booking/cancel/*',
           '/booking/reschedule/*',
           '/payment/*',
-          '*?search=*',
-          '*?filter=*',
-          '*?sort=*',
-          '*?page=*',
         ],
         crawlDelay: 0,
       },

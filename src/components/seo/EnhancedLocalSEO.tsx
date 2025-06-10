@@ -15,6 +15,7 @@
 import React from 'react';
 import Script from 'next/script';
 import { seoConfig } from '@/lib/seo/seo-config';
+import { LocationData, ServiceData } from '@/lib/prisma-types';
 
 interface LocalSEOProps {
   page?: 'homepage' | 'services' | 'gallery' | 'contact' | 'booking';
@@ -161,7 +162,7 @@ function generateServiceSchema(service?: string) {
       '@type': 'Offer',
       name: serviceData.name,
       description: serviceData.description,
-      price: serviceData.priceRange || 'Contact for pricing',
+      price: serviceData.priceRange ?? 'Contact for pricing',
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       seller: {
@@ -504,24 +505,105 @@ function generateServiceAreas() {
 /**
  * Helper function to get location data
  */
-function getLocationData(location: string) {
-  const locationMap: Record<string, any> = {
-    'crowley': { displayName: 'Crowley', coordinates: { lat: 32.5639, lng: -97.2983 } },
-    'fort-worth': { displayName: 'Fort Worth', coordinates: { lat: 32.7555, lng: -97.3308 } },
-    'arlington': { displayName: 'Arlington', coordinates: { lat: 32.7357, lng: -97.1081 } },
-    'burleson': { displayName: 'Burleson', coordinates: { lat: 32.5421, lng: -97.3208 } },
-    'mansfield': { displayName: 'Mansfield', coordinates: { lat: 32.5632, lng: -97.1417 } },
-    'grand-prairie': { displayName: 'Grand Prairie', coordinates: { lat: 32.7460, lng: -96.9978 } },
+function getLocationData(location: string): LocationData {
+  const locationMap: Record<string, LocationData> = {
+    'crowley': {
+      slug: 'crowley',
+      displayName: 'Crowley',
+      county: 'Tarrant',
+      population: '17000',
+      zipCodes: ['76036'],
+      coordinates: { lat: 32.5639, lng: -97.2983 },
+      landmarks: ['Bicentennial Park', 'Crowley Recreation Center'],
+      searchVolume: 'high',
+      drivingTime: '20 minutes from downtown Fort Worth',
+      description: 'Crowley is a growing suburb in Tarrant County, Texas, known for its friendly community and proximity to Fort Worth.',
+    },
+    'fort-worth': {
+      slug: 'fort-worth',
+      displayName: 'Fort Worth',
+      county: 'Tarrant',
+      population: '935508',
+      zipCodes: ['76102', '76103', '76104'],
+      coordinates: { lat: 32.7555, lng: -97.3308 },
+      landmarks: ['Fort Worth Stockyards', 'Sundance Square', 'Kimbell Art Museum'],
+      searchVolume: 'high',
+      drivingTime: '20 minutes from Crowley',
+      description: 'Fort Worth is a major city in North Texas, known for its western heritage, vibrant arts scene, and diverse neighborhoods.',
+    },
+    'arlington': {
+      slug: 'arlington',
+      displayName: 'Arlington',
+      county: 'Tarrant',
+      population: '398864',
+      zipCodes: ['76010', '76011', '76012'],
+      coordinates: { lat: 32.7357, lng: -97.1081 },
+      landmarks: ['AT&T Stadium', 'Globe Life Field', 'Six Flags Over Texas'],
+      searchVolume: 'high',
+      drivingTime: '25 minutes from Crowley',
+      description: 'Arlington is a bustling city between Dallas and Fort Worth, famous for its sports venues and family attractions.',
+    },
+    'burleson': {
+      slug: 'burleson',
+      displayName: 'Burleson',
+      county: 'Johnson',
+      population: '50000',
+      zipCodes: ['76028'],
+      coordinates: { lat: 32.5421, lng: -97.3208 },
+      landmarks: ['Old Town Burleson', 'Chisenhall Fields'],
+      searchVolume: 'medium',
+      drivingTime: '10 minutes from Crowley',
+      description: 'Burleson is a family-friendly suburb south of Fort Worth, offering parks, shopping, and a welcoming community.',
+    },
+    'mansfield': {
+      slug: 'mansfield',
+      displayName: 'Mansfield',
+      county: 'Tarrant',
+      population: '73000',
+      zipCodes: ['76063'],
+      coordinates: { lat: 32.5632, lng: -97.1417 },
+      landmarks: ['Hawaiian Falls', 'Mansfield National Golf Club'],
+      searchVolume: 'medium',
+      drivingTime: '20 minutes from Crowley',
+      description: 'Mansfield is a growing city with excellent schools, recreation, and easy access to the DFW metroplex.',
+    },
+    'grand-prairie': {
+      slug: 'grand-prairie',
+      displayName: 'Grand Prairie',
+      county: 'Dallas',
+      population: '197000',
+      zipCodes: ['75050', '75051', '75052'],
+      coordinates: { lat: 32.7460, lng: -96.9978 },
+      landmarks: ['Lone Star Park', 'Epic Waters Indoor Waterpark'],
+      searchVolume: 'medium',
+      drivingTime: '30 minutes from Crowley',
+      description: 'Grand Prairie is a vibrant city in the heart of DFW, known for entertainment, shopping, and family fun.',
+    },
   };
 
-  return locationMap[location] || { displayName: location.replace('-', ' '), coordinates: null };
+  // Fallback for unknown locations
+  return (
+    locationMap[location] ??
+    {
+      slug: location,
+      displayName: location.replace('-', ' '),
+      county: '',
+      population: '0',
+      zipCodes: [],
+      coordinates: null,
+      landmarks: [],
+      searchVolume: 'low' as const,
+      drivingTime: 'Contact for details',
+      description: `Professional tattoo services in ${location.replace('-', ' ')}.`,
+    }
+  );
 }
 
 /**
  * Helper function to get service data
  */
-function getServiceData(service: string) {
-  const serviceMap: Record<string, any> = {
+function getServiceData(service: string): ServiceData {
+  const serviceMap: Record<string, ServiceData> = {
     'custom-tattoo-design': {
       name: 'Custom Tattoo Design',
       description: 'Personalized tattoo artwork created specifically for each client',
@@ -549,7 +631,7 @@ function getServiceData(service: string) {
     },
   };
 
-  return serviceMap[service] || { name: service.replace('-', ' '), description: '', priceRange: 'Contact for pricing' };
+  return serviceMap[service] ?? { name: service.replace('-', ' '), description: '', priceRange: 'Contact for pricing' };
 }
 
 /**

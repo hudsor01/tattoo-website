@@ -5,6 +5,11 @@ import { prisma } from '@/lib/db/prisma';
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Regenerate sitemap every hour
 
+// Add cache headers for better performance
+export async function generateStaticParams() {
+  return [];
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = typeof ENV.NEXT_PUBLIC_APP_URL === 'string' ? ENV.NEXT_PUBLIC_APP_URL : 'https://ink37tattoos.com';
 
@@ -27,6 +32,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   } catch (error) {
     console.warn('Failed to fetch gallery items for sitemap:', error);
+    // Return empty array if database is unavailable
+    galleryItems = [];
   }
 
   // Main pages with optimized priority and frequency based on business importance
@@ -108,7 +115,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const servicePages = [
     { slug: 'custom-tattoo-design', priority: 0.85 },
     { slug: 'cover-up-tattoos', priority: 0.8 },
-    { slug: 'tattoo-consultation', priority: 0.8 },
+    { slug: 'tattoo-appointments', priority: 0.8 },
     { slug: 'traditional-tattoos', priority: 0.75 },
     { slug: 'fine-line-tattoos', priority: 0.75 },
     { slug: 'japanese-tattoos', priority: 0.75 },

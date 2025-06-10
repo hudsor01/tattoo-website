@@ -47,7 +47,6 @@ export function generateAdvancedMetadata(options: AdvancedSEOOptions): Metadata 
     locale = 'en_US',
     alternateLocales = [],
     twitterCard = 'summary_large_image',
-    structuredData,
   } = options;
 
   // Combine and optimize keywords
@@ -58,7 +57,7 @@ export function generateAdvancedMetadata(options: AdvancedSEOOptions): Metadata 
   ].filter((keyword, index, array) => array.indexOf(keyword) === index);
 
   // Determine the best image for social sharing
-  const socialImage = ogImage || seoConfig.ogImage;
+  const socialImage = ogImage ?? seoConfig.ogImage;
   const imageUrl = socialImage.startsWith('http') 
     ? socialImage 
     : `${seoConfig.siteUrl}${socialImage}`;
@@ -192,8 +191,8 @@ export function generateAdvancedMetadata(options: AdvancedSEOOptions): Metadata 
       }),
       
       // Rich snippets optimization
-      'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION || '',
-      'msvalidate.01': process.env.BING_SITE_VERIFICATION || '',
+      'google-site-verification': process.env['GOOGLE_SITE_VERIFICATION'] ?? '',
+      'msvalidate.01': process.env['BING_SITE_VERIFICATION'] ?? '',
     },
   };
 
@@ -211,14 +210,14 @@ export function generateStructuredDataScript(data: object): string {
  * Generate preconnect and DNS prefetch links for Core Web Vitals
  */
 export function generatePerformanceLinks(): Array<{ rel: string; href: string; crossOrigin?: string }> {
-  const links = [];
+  const links: { rel: string; href: string; crossOrigin?: string }[] = [];
   
   // Preconnect to external domains
   seoConfig.advancedSeoTags.performance.preconnect.forEach(domain => {
     links.push({
       rel: 'preconnect',
       href: domain,
-      ...(domain.includes('fonts') && { crossOrigin: 'anonymous' }),
+      crossOrigin: domain.includes('fonts') ? 'anonymous' : undefined,
     });
   });
   

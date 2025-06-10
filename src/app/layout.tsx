@@ -6,6 +6,7 @@ import { inter, montserrat, pacifico, satisfy } from '../styles/fonts';
 import { seoConfig, generateBusinessStructuredData } from '@/lib/seo/seo-config';
 import Providers from './providers';
 import NavigationSystem from '../components/layouts/NavigationSystem';
+import MobileOptimization from '../components/mobile/MobileOptimization';
 
 import './globals.css';
 
@@ -14,6 +15,16 @@ export const metadata: Metadata = {
   title: {
     default: seoConfig.defaultTitle,
     template: '%s | Ink 37 Tattoos'
+  },
+  description: seoConfig.defaultDescription,
+  applicationName: 'Ink 37 Tattoos',
+  authors: [{ name: 'Fernando Govea', url: 'https://ink37tattoos.com' }],
+  generator: 'Next.js',
+  referrer: 'origin-when-cross-origin',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
   icons: {
     icon: [
@@ -58,6 +69,16 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'qv1_HzbLkbp9qF_TxoQryposrxfe8HsgyrM_erp-pCs',
   },
 };
 
@@ -77,11 +98,15 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     >
       <head>
         {/* Critical performance and SEO meta tags */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
         <meta name="theme-color" content="#8B5A2B" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Ink 37 Tattoos" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-TileColor" content="#8B5A2B" />
+        <meta name="msapplication-tap-highlight" content="no" />
         <meta
           name="google-site-verification"
           content="qv1_HzbLkbp9qF_TxoQryposrxfe8HsgyrM_erp-pCs"
@@ -187,6 +212,14 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             <NavigationSystem />
             <main className="flex-grow">{children}</main>
         </Providers>
+        
+        {/* Mobile Optimization Component */}
+        <MobileOptimization 
+          enableTouchOptimizations={true}
+          enableMobileSEO={true}
+          enablePWAFeatures={true}
+          enablePerformanceOptimizations={true}
+        />
         
         {/* Enhanced SEO Components */}
         <Script

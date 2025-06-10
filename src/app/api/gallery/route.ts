@@ -70,6 +70,25 @@ export async function GET(request: NextRequest) {
     return result;
   } catch (error) {
     void logger.error('Gallery API error:', error);
+    
+    // For crawlers, return empty data instead of 500 error
+    const userAgent = request.headers.get('user-agent')?.toLowerCase() ?? '';
+    const isCrawler = /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebookexternalhit|twitterbot|linkedinbot/i.test(userAgent);
+    
+    if (isCrawler) {
+      return NextResponse.json({
+        designs: [],
+        nextCursor: null,
+        totalCount: 0,
+        error: 'Temporary unavailability',
+      }, {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, max-age=30', // Short cache for error state
+        },
+      });
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch gallery designs' },
       { status: 500 }

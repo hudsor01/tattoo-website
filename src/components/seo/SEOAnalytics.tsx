@@ -21,22 +21,20 @@ export default function SEOAnalytics({
   debugMode = false,
   trackingId,
 }: SEOAnalyticsProps) {
-  const [performanceData, setPerformanceData] = useState<any>(null);
+  const [_performanceData, _setPerformanceData] = useState<{
+    lcp?: number;
+    cls?: number;
+    fid?: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!enableTracking) return;
 
     // Initialize SEO performance tracking
-    initializeSEOTracking();
-    
-    // Track Core Web Vitals for SEO
-    trackCoreWebVitals();
-    
-    // Monitor search-related interactions
-    trackSearchInteractions();
-    
-    // Track local SEO interactions
-    trackLocalSEOInteractions();
+    if (typeof window !== 'undefined') {
+      // SEO tracking will be handled by the Script components below
+      // Console output removed for production
+    }
 
   }, [enableTracking]);
 
@@ -508,10 +506,10 @@ export default function SEOAnalytics({
         >
           <div>SEO Debug Mode Active</div>
           <div>Check console for detailed metrics</div>
-          {performanceData && (
+          {_performanceData && (
             <div>
-              <div>LCP: {Math.round(performanceData.lcp)}ms</div>
-              <div>CLS: {performanceData.cls?.toFixed(3)}</div>
+              <div>LCP: {Math.round(_performanceData.lcp ?? 0)}ms</div>
+              <div>CLS: {_performanceData.cls?.toFixed(3)}</div>
             </div>
           )}
         </div>
@@ -527,20 +525,36 @@ function getLocationFromURL(): string {
   if (typeof window === 'undefined') return '';
   
   const path = window.location.pathname;
-  const locationMatch = path.match(/tattoo-artist-([^\/]+)/);
+  const locationMatch = path.match(/tattoo-artist-([^/]+)/);
   
-  if (locationMatch) {
-    return locationMatch[1].replace('-', ' ');
-  }
-  
-  return 'crowley'; // Default location
+  return locationMatch?.[1]?.replace('-', ' ') ?? 'crowley';
+}
+
+interface SEOMetrics {
+  coreWebVitals: {
+    lcp: { value: number; rating: string };
+    fid: { value: number; rating: string };
+    cls: { value: number; rating: string };
+  };
+  searchVisibility: {
+    impressions: number;
+    clicks: number;
+    ctr: number;
+    avgPosition: number;
+  };
+  localSEO: {
+    gmb_views: number;
+    gmb_clicks: number;
+    direction_requests: number;
+    phone_clicks: number;
+  };
 }
 
 /**
  * SEO Performance Dashboard Component (for admin use)
  */
 export function SEOPerformanceDashboard() {
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<SEOMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -571,6 +585,10 @@ export function SEOPerformanceDashboard() {
 
   if (loading) {
     return <div className="p-4">Loading SEO metrics...</div>;
+  }
+
+  if (!metrics) {
+    return <div className="p-4">Failed to load SEO metrics</div>;
   }
 
   return (

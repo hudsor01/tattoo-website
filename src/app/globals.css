@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Mobile-first optimizations */
+@import '../styles/mobile.css';
+
 /* Tailwind v4 Theme Configuration */
 @theme {
   /* Colors - Tattoo-Specific Brand Palette */

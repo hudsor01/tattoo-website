@@ -78,7 +78,7 @@ export default function TattooImageSEO({
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry && entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setIsInView(true);
           observer.disconnect();
         }

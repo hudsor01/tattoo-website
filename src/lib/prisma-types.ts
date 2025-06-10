@@ -177,6 +177,35 @@ export type UserRole = 'user' | 'admin';
 export type DesignType = 'traditional' | 'realism' | 'japanese' | 'geometric' | 'other';
 
 // ============================================================================
+// SEO AND LOCATION TYPES
+// ============================================================================
+
+// Location data for SEO components
+export interface LocationData {
+  slug: string;
+  displayName: string;
+  county: string;
+  population: string;
+  zipCodes: string[];
+  landmarks: string[];
+  searchVolume: 'high' | 'medium' | 'low';
+  coordinates: {
+    lat: number;
+    lng: number;
+  } | null;
+  drivingTime: string;
+  description: string;
+  neighborhoods?: string[];
+}
+
+// Service data for SEO schemas
+export interface ServiceData {
+  name: string;
+  description: string;
+  priceRange: string;
+}
+
+// ============================================================================
 // MISSING TYPES FOR LEGACY COMPONENTS
 // ============================================================================
 
