@@ -28,11 +28,11 @@ model User {
   banned          Boolean   @default(false)
   banReason       String?
   banExpires      DateTime?
-  
+
   // Better Auth relationships
   accounts        Account[]
   sessions        Session[]
-  
+
   @@index([email])
   @@index([role])
   @@index([emailVerified])
@@ -45,13 +45,14 @@ model Session {
   userId        String
   expiresAt     DateTime
   token         String   @unique
+  sessionToken  String   @unique
   ipAddress     String?
   userAgent     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   impersonatedBy String?
   user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
@@ -62,8 +63,9 @@ model Session {
 model Account {
   id                        String  @id @default(uuid())
   userId                    String
-  accountId                 String  
-  providerId                String  
+  accountId                 String
+  providerId                String
+  type                      String  @default("credential")
   accessToken               String? @db.Text
   refreshToken              String? @db.Text
   accessTokenExpiresAt      DateTime?
@@ -74,11 +76,11 @@ model Account {
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
   user                      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([providerId])
   @@unique([providerId, accountId])
-  @@map("account")
+  @@map("accounts")
 }
 
 // Email verification for Better Auth
@@ -89,7 +91,7 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  
+
   @@index([identifier])
   @@index([expiresAt])
   @@unique([identifier, value])
@@ -104,7 +106,7 @@ model RateLimit {
   lastRequest BigInt
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   @@index([key])
   @@index([lastRequest])
   @@index([key, lastRequest]) // Rate limiting performance optimization
@@ -128,11 +130,11 @@ model Customer {
   notes      String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  
+
   // Relationships
   bookings   Booking[]
   tattooDesigns TattooDesign[]
-  
+
   @@index([email])
   @@index([phone])
   @@index([firstName, lastName])
@@ -144,44 +146,44 @@ model Customer {
 // Unified booking model (combines Booking + CalBooking)
 model Booking {
   id              String    @id @default(uuid())
-  
+
   // Customer details
   customerId      String?
   firstName       String
   lastName        String
   email           String
   phone           String?
-  
+
   // Tattoo details
   tattooType      String
   size            String?
   placement       String?
   description     String?
-  
+
   // Scheduling
   preferredDate   DateTime
   preferredTime   String?
   status          BookingStatus @default(PENDING)
-  
+
   // Cal.com integration
   calBookingUid   String?  @unique
   calEventTypeId  Int?
   calStatus       String?
   calMeetingUrl   String?
-  
+
   // Additional info
   source          String   @default("website")
   notes           String?
   paymentMethod   String?
   totalAmount     Float?
-  
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
   // Relationships
   customer        Customer? @relation(fields: [customerId], references: [id])
   payments        Payment[]
-  
+
   @@index([email])
   @@index([status])
   @@index([preferredDate])
@@ -206,18 +208,18 @@ model TattooDesign {
   designType   String?  // traditional, japanese, realism, etc.
   size         String?  // small, medium, large, sleeve
   isApproved   Boolean  @default(false)
-  
+
   // Artist info (simplified)
   artistId     String   @default("fernando-govea")
   artistName   String   @default("Fernando Govea")
-  
+
   // Customer association (if custom design)
   customerId   String?
   customer     Customer? @relation(fields: [customerId], references: [id])
-  
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
+
   @@index([isApproved])
   @@index([designType])
   @@index([artistId])
@@ -240,7 +242,7 @@ model Contact {
   adminNotes String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
-  
+
   @@index([email])
   @@index([status])
   @@index([createdAt])
@@ -269,7 +271,7 @@ model CalAnalyticsEvent {
   timestamp     DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   @@index([sessionId])
   @@index([eventType])
   @@index([userId])
@@ -294,7 +296,7 @@ model CalBookingFunnel {
   timeSpent     Int?
   errorMessage  String?
   timestamp     DateTime  @default(now())
-  
+
   @@index([sessionId])
   @@index([step])
   @@index([completed])
@@ -319,7 +321,7 @@ model CalServiceAnalytics {
   conversionRate  Float?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
   @@index([serviceId])
   @@index([date])
   @@index([eventType])
@@ -345,7 +347,7 @@ model CalRealtimeMetrics {
   errorRate             Float    @default(0)
   systemLoad            Float    @default(0)
   timestamp             DateTime @default(now())
-  
+
   @@index([timestamp])
   @@map("cal_realtime_metrics")
 }
@@ -362,10 +364,10 @@ model Payment {
   metadata      Json?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  
+
   // Relationships
   booking       Booking?    @relation(fields: [bookingId], references: [id])
-  
+
   @@index([status])
   @@index([createdAt])
   @@index([bookingId])
@@ -385,7 +387,7 @@ enum BookingStatus {
   CANCELLED
   COMPLETED
   NO_SHOW
-  
+
   @@map("booking_status")
 }
 
@@ -394,7 +396,7 @@ enum ContactStatus {
   READ
   REPLIED
   RESOLVED
-  
+
   @@map("contact_status")
 }
 
@@ -403,6 +405,6 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
-  
+
   @@map("payment_status")
 }

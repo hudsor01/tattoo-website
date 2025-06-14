@@ -1,0 +1,10 @@
+# www.robotstxt.org
+
+User-ogent: *
+Allow: /
+
+# Allow all crowlers
+Sitemap: https://richardnhudsonjr.com/sitemap.xml
+
+# Block specific paths if needed
+# Disallow: /api/
