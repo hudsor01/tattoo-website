@@ -29,7 +29,7 @@ function getResendClient() {
 }
 
 // Default email configuration
-export const DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com';
+export const DEFAULT_FROM_EMAIL = 'noreply@ink37tattoos.com';
 
 /**
  * Send email using Resend

@@ -1,9 +1,9 @@
-import type { MetadataRoute } from 'next';
+import {type MetadataRoute } from 'next';
 import { ENV } from '@/lib/utils/env';
 import { prisma } from '@/lib/db/prisma';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Regenerate sitemap every hour
+export const revalidate = 3600;
 
 // Add cache headers for better performance
 export async function generateStaticParams() {
