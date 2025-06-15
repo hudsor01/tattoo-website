@@ -44,7 +44,6 @@ export default function robots(): MetadataRoute.Robots {
           '/booking/cancel/*',
           '/booking/reschedule/*',
           '/booking/confirmation/*',
-          '/payment/*',
           
           // Temporary and maintenance pages
           '/maintenance/',
@@ -67,7 +66,6 @@ export default function robots(): MetadataRoute.Robots {
           '/_next/',
           '/booking/cancel/*',
           '/booking/reschedule/*',
-          '/payment/*',
         ],
         crawlDelay: 0,
       },
@@ -95,7 +93,6 @@ export default function robots(): MetadataRoute.Robots {
           '/account/',
           '/dashboard/',
           '/booking/cancel/*',
-          '/payment/*',
         ],
         crawlDelay: 1,
       },
@@ -111,7 +108,6 @@ export default function robots(): MetadataRoute.Robots {
           '/dashboard/',
           '/_next/',
           '/booking/cancel/*',
-          '/payment/*',
         ],
         crawlDelay: 2,
       },

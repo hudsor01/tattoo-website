@@ -186,8 +186,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  // Exclude admin pages from public sitemap for better crawl budget
-  // Admin pages should not be publicly indexed
+  // Exclude admin pages and internal/private pages from public sitemap for better crawl budget
+  // Admin pages, booking management, and API routes should not be publicly indexed
 
   return [
     ...mainPages,
@@ -196,5 +196,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...locationPages,
     ...contentPages,
     ...galleryPages,
-  ];
+  ].filter((item) => {
+    // Exclude private pages that shouldn't be indexed
+    const url = item.url;
+    const excludePatterns = [
+      '/booking/cancel/',
+      '/booking/cancelled',
+      '/booking/confirmation', 
+      '/booking/reschedule',
+      '/admin/',
+      '/api/',
+    ];
+    
+    return !excludePatterns.some(pattern => url.includes(pattern));
+  });
 }

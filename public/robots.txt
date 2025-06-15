@@ -1,10 +1,19 @@
 # www.robotstxt.org
 
-User-ogent: *
+User-agent: *
 Allow: /
 
-# Allow all crowlers
-Sitemap: https://richardnhudsonjr.com/sitemap.xml
+# Allow all crawlers
+Sitemap: https://ink37tattoos.com/sitemap.xml
 
-# Block specific paths if needed
-# Disallow: /api/
+# Block API and admin paths
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /booking/cancel/
+Disallow: /booking/cancelled/
+Disallow: /booking/confirmation
+Disallow: /booking/reschedule
+
+# Allow specific API endpoints that should be crawlable
+Allow: /api/gallery/files
